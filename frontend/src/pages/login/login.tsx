@@ -1,46 +1,84 @@
-import React, { useState } from 'react';
-import './login.css';  // ไฟล์ CSS หลัก
-import '../../responsive/responsive.css'
-// import Responsive from '../../responsive/responsive';
-const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+import { Button, Card, Form, Input, message, Flex, Row, Col } from "antd";
+import { useNavigate } from "react-router-dom";
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    alert('Login successful!');
+import { SignIn } from "../../services/https/login";
+import { SignInInterface } from "../../interfaces/SignIn";
+import logo from "../../assets/logo.png";
+function SignInPages() {
+  const navigate = useNavigate();
+  const [messageApi, contextHolder] = message.useMessage();
+  const onFinish = async (values: SignInInterface) => {
+    let res = await SignIn(values);
+    if (res.status == 200) {
+      messageApi.success("Sign-in successful");
+      localStorage.setItem("isLogin", "true");
+      localStorage.setItem("page", "dashboard");
+      localStorage.setItem("token_type", res.data.token_type);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("id", res.data.id);
+      setTimeout(() => {
+        location.href = "/";
+      }, 2000);
+    } else {
+      messageApi.error(res.data.error);
+    }
   };
-
   return (
-    <div className="login-container">
-      <div className="login-form">
-        <h2>Login</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-            />
-          </div>
-          <button type="submit">Login</button>
-        </form>
-      </div>
-    </div>
+    <>
+      {contextHolder}
+      <Flex justify="center" align="center" className="login">
+        <Card className="card-login" style={{ width: 500 }}>
+          <Row align={"middle"} justify={"center"} style={{ height: "400px" }}>
+            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+              <img
+                alt="logo"
+                style={{ width: "80%" }}
+                src={logo}
+                className="images-logo"
+              />
+            </Col>
+            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+              <Form
+                name="basic"
+                onFinish={onFinish}
+                autoComplete="off"
+                layout="vertical"
+              >
+                <Form.Item
+                  label="Email"
+                  name="email"
+                  rules={[
+                    { required: true, message: "Please input your username!" },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Password"
+                  name="password"
+                  rules={[
+                    { required: true, message: "Please input your password!" },
+                  ]}
+                >
+                  <Input.Password />
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    className="login-form-button"
+                    style={{ marginBottom: 20 }}
+                  >
+                    Log in
+                  </Button>
+                  Or <a onClick={() => navigate("/signup")}>signup now !</a>
+                </Form.Item>
+              </Form>
+            </Col>
+          </Row>
+        </Card>
+      </Flex>
+    </>
   );
-};
-
-export default Login;
+}
+export default SignInPages;

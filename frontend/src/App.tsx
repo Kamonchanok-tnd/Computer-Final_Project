@@ -1,13 +1,13 @@
-import React from 'react';
-import './App.css';
-import Login from './pages/login/login';
-
-function App() {
+import React from "react";
+import { BrowserRouter as Router } from "react-router-dom";
+ // Import ConfigRoutes which contains the role-based routing
+import ConfigRoutes from "./ routes/ConfigRoutes";
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <Login />
-    </div>
+    <Router>
+      <ConfigRoutes /> {/* Use ConfigRoutes which handles all routing */}
+    </Router>
   );
-}
+};
 
 export default App;

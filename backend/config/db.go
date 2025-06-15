@@ -74,11 +74,21 @@ func SetupDatabase() {
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
 // เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
 func SetupInitialData() {
+	// แฮชรหัสผ่านก่อนบันทึก
+	adminPassword, err := HashPassword("admin123")
+	if err != nil {
+		log.Fatalf("Error hashing admin password: %v", err)
+	}
+	userPassword, err := HashPassword("user123")
+	if err != nil {
+		log.Fatalf("Error hashing user password: %v", err)
+	}
+
 	// เพิ่มข้อมูลในตาราง Users โดยใช้ Create
 	db.Create(&entity.Users{
 		Username:    "admin", 
 		Email:       "admin@example.com", 
-		Password:    "admin123", 
+		Password:    adminPassword, // ใช้รหัสผ่านที่แฮชแล้ว
 		Role:        "admin", 
 		Age:         30, 
 		Gender:      "Male", 
@@ -88,7 +98,7 @@ func SetupInitialData() {
 	db.Create(&entity.Users{
 		Username:    "user", 
 		Email:       "user@example.com", 
-		Password:    "user123", 
+		Password:    userPassword, // ใช้รหัสผ่านที่แฮชแล้ว
 		Role:        "user", 
 		Age:         25, 
 		Gender:      "Female", 
