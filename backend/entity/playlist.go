@@ -1,7 +1,15 @@
 package entity
 
+import (
+	"gorm.io/gorm"
+)
+
 type Playlist struct {
-    ID   string `gorm:"primaryKey"`
-    Name string
-    UID  string
+	gorm.Model
+	Name        string
+	UID         uint
+	BID         uint
+	Users       Users      `gorm:"foreignKey:UID"`
+	Background  Background `gorm:"foreignKey:BID"`
+	Sounds      []SoundPlaylist `gorm:"foreignKey:PID"` // ความสัมพันธ์กับ SoundPlaylist ผ่าน PID
 }

@@ -1,10 +1,15 @@
 package entity
 
+import (
+	"time"
+	"gorm.io/gorm"
+)
+
 type Mirror struct {
-    ID      string `gorm:"primaryKey"`
-    Date    string
-    Title   string
-    Mode    string
-    Message string
-    UID     string
+	gorm.Model
+	Date    time.Time `json:"date"`
+	Title   string    `json:"title"`
+	Message string    `json:"message"`
+	EID     uint      `json:"eid"`
+	UID     uint      `json:"uid"`
 }

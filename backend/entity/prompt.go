@@ -1,7 +1,10 @@
 package entity
+import (
+	"gorm.io/gorm"
+)
 
 type Prompt struct {
-    ID        string `gorm:"primaryKey"`
-    Description string
-    AdminID   string
+	gorm.Model
+	Description string `json:"description"`
+	Using       bool   `json:"using"`
 }

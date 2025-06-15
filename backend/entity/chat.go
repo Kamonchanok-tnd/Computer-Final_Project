@@ -1,11 +1,13 @@
 package entity
 
-type Chat struct {
-    ID           string `gorm:"primaryKey"`
-    Message      string
-    Field        string
-    ChatRoomID   string
-    ChatRoom     ChatRoom `gorm:"foreignKey:ChatRoomID"`
-    STID         string
-    SendType     SendType `gorm:"foreignKey:STID"`
+import (
+	"gorm.io/gorm"
+)
+type ChatRoom struct {
+	gorm.Model
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+	UID       uint   `json:"uid"`
+
+	Conversations []Conversation `gorm:"foreignKey:ChatRoomID"`
 }

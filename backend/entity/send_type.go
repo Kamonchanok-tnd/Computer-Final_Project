@@ -1,7 +1,8 @@
 package entity
-
+import (
+	"gorm.io/gorm"
+)
 type SendType struct {
-    ID   string `gorm:"primaryKey"`
-    Type string
-    Chats []Chat `gorm:"foreignKey:STID"`
+	gorm.Model
+	Type string `json:"type"`
 }

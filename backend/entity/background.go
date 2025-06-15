@@ -1,9 +1,13 @@
 package entity
 
+import (
+	"gorm.io/gorm"
+)
 type Background struct {
-    ID     string `gorm:"primaryKey"`
-    Name   string
-    File   string
-    AMID   string
-    SID    string
+	gorm.Model
+	Name    string
+	Picture string
+	UID     uint
+
+	Users Users `gorm:"foreignKey:UID"`
 }
