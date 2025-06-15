@@ -72,9 +72,27 @@ func SetupDatabase() {
 }
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
+// เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
 func SetupInitialData() {
-	// เพิ่มข้อมูลในตาราง Users
-	DB.FirstOrCreate(&entity.Users{Username: "admin", Email: "admin@example.com", Password: "admin123", Role: "admin"})
-	DB.FirstOrCreate(&entity.Users{Username: "user", Email: "user@example.com", Password: "user123", Role: "user"})
-
+	// เพิ่มข้อมูลในตาราง Users โดยใช้ Create
+	DB.Create(&entity.Users{
+		Username:    "admin", 
+		Email:       "admin@example.com", 
+		Password:    "admin123", 
+		Role:        "admin", 
+		Age:         30, 
+		Gender:      "Male", 
+		PhoneNumber: "1234567890", 
+		Facebook:    "admin_fb",
+	})
+	DB.Create(&entity.Users{
+		Username:    "user", 
+		Email:       "user@example.com", 
+		Password:    "user123", 
+		Role:        "user", 
+		Age:         25, 
+		Gender:      "Female", 
+		PhoneNumber: "0987654321", 
+		Facebook:    "user_fb",
+	})
 }
