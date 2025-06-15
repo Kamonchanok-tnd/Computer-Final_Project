@@ -9,11 +9,11 @@ import (
 )
 
 // ประกาศตัวแปร DB ที่ระดับ package
-var DB *gorm.DB
+var db *gorm.DB
 
 // ฟังก์ชันคืนค่า DB
-func db() *gorm.DB {
-	return DB
+func DB() *gorm.DB {
+	return db
 }
 
 // ConnectionDB - เชื่อมต่อกับฐานข้อมูล PostgreSQL
@@ -23,7 +23,7 @@ func ConnectionDB() {
 
 	// เชื่อมต่อกับฐานข้อมูล
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{}) // ใช้ DB ที่ประกาศไว้แล้ว
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{}) // ใช้ DB ที่ประกาศไว้แล้ว
 	if err != nil {
 		log.Fatalf("Error while connecting to the database: %v", err)
 	}
@@ -33,7 +33,7 @@ func ConnectionDB() {
 // SetupDatabase - ทำการ AutoMigrate เพื่อสร้างตารางต่างๆ
 func SetupDatabase() {
 	// ทำการ auto migrate เพื่อสร้างตารางทั้งหมดในฐานข้อมูล
-	err := DB.AutoMigrate(
+	err := db.AutoMigrate(
 		&entity.Users{}, 
 		&entity.Like{}, 
 		&entity.Feedback{}, 
@@ -75,7 +75,7 @@ func SetupDatabase() {
 // เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
 func SetupInitialData() {
 	// เพิ่มข้อมูลในตาราง Users โดยใช้ Create
-	DB.Create(&entity.Users{
+	db.Create(&entity.Users{
 		Username:    "admin", 
 		Email:       "admin@example.com", 
 		Password:    "admin123", 
@@ -85,7 +85,7 @@ func SetupInitialData() {
 		PhoneNumber: "1234567890", 
 		Facebook:    "admin_fb",
 	})
-	DB.Create(&entity.Users{
+	db.Create(&entity.Users{
 		Username:    "user", 
 		Email:       "user@example.com", 
 		Password:    "user123", 
