@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"sukjai_project/entity" // เพิ่มการนำเข้า package ของ entity
+	// "os"
 )
 
 // ประกาศตัวแปร DB ที่ระดับ package
@@ -16,18 +17,44 @@ func DB() *gorm.DB {
 	return db
 }
 
+const (
+   host     = "localhost" // เปลี่ยนจาก "db" เป็น "postgres"       
+   port     = 5432        // default PostgreSQL port
+   user     = "postgres"  // user ที่กำหนดใน docker-compose.yml
+   password = "12345"     // password ที่กำหนดใน docker-compose.yml
+   dbname   = "sukjai"    // ชื่อฐานข้อมูล
+)
+
+
+// ConnectionDB - เชื่อมต่อกับฐานข้อมูล PostgreSQL
+// func ConnectionDB() {
+//     dsn := os.Getenv("DATABASE_DSN")
+//     if dsn == "" {
+//         log.Fatal("DATABASE_DSN not found in environment variables")
+//     }
+
+//     var err error
+//     db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+//     if err != nil {
+//         log.Fatalf("Error connecting to database: %v", err)
+//     }
+//     fmt.Println("Connected to the database successfully!")
+// }
+
 // ConnectionDB - เชื่อมต่อกับฐานข้อมูล PostgreSQL
 func ConnectionDB() {
-	// ข้อมูลการเชื่อมต่อฐานข้อมูล PostgreSQL (ปรับให้ตรงกับข้อมูลของคุณ)
-	dsn := "user=postgres password=12345 dbname=sukjai port=5432 sslmode=disable"
+	// สร้าง connection string
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
 
-	// เชื่อมต่อกับฐานข้อมูล
+	// เปิดการเชื่อมต่อกับฐานข้อมูล
 	var err error
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{}) // ใช้ DB ที่ประกาศไว้แล้ว
+	db, err = gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error while connecting to the database: %v", err)
+		log.Fatalf("Error connecting to database: %v", err)
 	}
-	fmt.Println("Connected to the database successfully!")
+
+	fmt.Println("Successfully connected to the database!")
 }
 
 // SetupDatabase - ทำการ AutoMigrate เพื่อสร้างตารางต่างๆ

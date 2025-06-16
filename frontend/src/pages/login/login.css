@@ -1,5 +1,3 @@
-
-
 /* ตั้งค่าพื้นหลังของหน้า login */
 .login-wrapper .login-page {
   background-color: #C2F4FF; /* เปลี่ยนสีพื้นหลังตามต้องการ */
@@ -11,31 +9,36 @@
   text-align: center;
 }
 
-
+/* Card Login */
 .login-wrapper .card-login {
-  width: 450px;
+  width: 80%; /* เปลี่ยนจาก 450px ให้ยืดหยุ่น */
+  max-width: 450px; /* กำหนดความกว้างสูงสุดให้กับ card */
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
   background: linear-gradient(180deg, #C2F4FF, #ffffff); /* Gradient from #C2F4FF to white */
 }
 
+/* Logo */
 .login-wrapper .login-logo {
   width: 50%;
   margin-bottom: 20px;
 }
 
+/* Title */
 .login-wrapper h1 {
   font-size: 2rem;
   font-weight: bold;
   color: #000000;
 }
 
+/* Sub-title */
 .login-wrapper h2 {
   font-size: 1.2rem;
   margin-bottom: 20px;
 }
 
+/* Login Button */
 .login-wrapper .login-button {
   width: 100%;
   background: linear-gradient(180deg, #86D2E2, #90c5ff); /* Gradient from bottom to top */
@@ -51,6 +54,48 @@
   background: linear-gradient(180deg, #2a5a8e, #86D2E2); /* Reverse gradient effect on hover */
 }
 
+/* Link Style */
 .login-wrapper a {
   color: #2a5a8e;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  /* สำหรับอุปกรณ์ที่มีความกว้างไม่เกิน 768px (แท็บเล็ต, มือถือ) */
+  .login-wrapper .card-login {
+    width: 90%; /* ให้ card ใช้ความกว้าง 90% ของหน้าจอ */
+    padding: 15px; /* ลด padding */
+  }
+
+  .login-wrapper h1 {
+    font-size: 1.5rem; /* ลดขนาดฟอนต์ของหัวข้อหลัก */
+  }
+
+  .login-wrapper h2 {
+    font-size: 1rem; /* ลดขนาดฟอนต์ของหัวข้อรอง */
+  }
+
+  .login-wrapper .login-button {
+    font-size: 14px; /* ลดขนาดฟอนต์ของปุ่ม */
+  }
+}
+
+@media (max-width: 480px) {
+  /* สำหรับอุปกรณ์ที่มีความกว้างไม่เกิน 480px (มือถือ) */
+  .login-wrapper .card-login {
+    width: 95%; /* ให้ card ใช้ความกว้าง 95% ของหน้าจอ */
+    padding: 10px; /* ลด padding มากขึ้น */
+  }
+
+  .login-wrapper h1 {
+    font-size: 1.2rem; /* ลดขนาดฟอนต์ของหัวข้อหลัก */
+  }
+
+  .login-wrapper h2 {
+    font-size: 0.9rem; /* ลดขนาดฟอนต์ของหัวข้อรอง */
+  }
+
+  .login-wrapper .login-button {
+    font-size: 12px; /* ลดขนาดฟอนต์ของปุ่ม */
+  }
 }
