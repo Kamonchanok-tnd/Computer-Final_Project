@@ -1,9 +1,85 @@
-/* responsive.css */
+/* ใช้ box-sizing border-box ทั่วทุกส่วนเพื่อไม่ให้เกิดปัญหากับ padding และ border */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-/* Media Query สำหรับ Mobile */
-@media (max-width: 768px) {
+/* Media Query สำหรับ Mobile - iPhone and smaller devices */
+@media (max-width: 767px) {
   .login-form {
-    padding: 15px;
+    padding: 12px;
+    font-size: 1rem; /* ลดขนาดฟอนต์เพื่อให้เหมาะสมกับมือถือ */
+  }
+
+  .form-group input {
+    padding: 10px;
+    font-size: 1rem; /* ลดขนาดฟอนต์ */
+  }
+
+  button {
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  /* เพิ่มการกำหนดความกว้างของ card-login */
+  .card-login {
+    width: 90%;
+    margin: 0 auto; /* ให้ card อยู่ตรงกลาง */
+  }
+
+  /* ป้องกันการล้นจากความยาวของเนื้อหาหรือภาพ */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* Media Query สำหรับ iPhone 6/7/8 - Portrait (375px) */
+@media (max-width: 375px) {
+  .login-form {
+    padding: 12px;
+  }
+
+  .form-group input {
+    padding: 8px;
+    font-size: 1rem;
+  }
+
+  button {
+    padding: 10px;
+    font-size: 1rem;
+  }
+
+  .card-login {
+    width: 95%;
+  }
+}
+
+/* Media Query สำหรับ iPhone 6/7/8 - Landscape (667px) */
+@media (max-width: 667px) and (orientation: landscape) {
+  .login-form {
+    padding: 12px;
+  }
+
+  .form-group input {
+    padding: 10px;
+    font-size: 1rem;
+  }
+
+  button {
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  .card-login {
+    width: 85%; /* กำหนดความกว้างสำหรับหน้าจอแนวนอน */
+  }
+}
+
+/* Media Query สำหรับ iPad (768px to 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .login-form {
+    padding: 18px;
   }
 
   .form-group input {
@@ -15,6 +91,31 @@
     padding: 14px;
     font-size: 1.1rem;
   }
+
+  .card-login {
+    width: 70%;
+  }
+}
+
+/* Media Query สำหรับ iPad Pro (1024px - 1366px) */
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .login-form {
+    padding: 22px;
+  }
+
+  .form-group input {
+    padding: 14px;
+    font-size: 1.2rem;
+  }
+
+  button {
+    padding: 16px;
+    font-size: 1.2rem;
+  }
+
+  .card-login {
+    width: 60%;
+  }
 }
 
 /* Media Query สำหรับ Desktop */
@@ -22,5 +123,13 @@
   .login-form {
     max-width: 450px;
   }
-}
 
+  /* ปรับขนาดของตัวอักษร */
+  .form-group input {
+    font-size: 1.1rem;
+  }
+
+  button {
+    font-size: 1.1rem;
+  }
+}

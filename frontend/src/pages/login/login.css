@@ -1,65 +1,56 @@
-/* ทำให้คอนเทนเนอร์ของหน้า Login จัดตำแหน่งตรงกลาง */
-.login-container {
+
+
+/* ตั้งค่าพื้นหลังของหน้า login */
+.login-wrapper .login-page {
+  background-color: #C2F4FF; /* เปลี่ยนสีพื้นหลังตามต้องการ */
+  height: 100vh;  /* ความสูงของหน้าเต็มจอ */
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #f4f4f9;
-  margin: 0;
-}
-
-/* ฟอร์ม Login */
-.login-form {
-  width: 100%;
-  max-width: 400px;
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box; /* เพิ่มเพื่อให้ padding ไม่ทำให้ขนาดเกิน */
-}
-
-/* สไตล์สำหรับหัวข้อฟอร์ม */
-.login-form h2 {
+  flex-direction: column;
   text-align: center;
+}
+
+
+.login-wrapper .card-login {
+  width: 450px;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(180deg, #C2F4FF, #ffffff); /* Gradient from #C2F4FF to white */
+}
+
+.login-wrapper .login-logo {
+  width: 50%;
   margin-bottom: 20px;
-  color: #333;
 }
 
-/* สไตล์สำหรับแต่ละ input */
-.form-group {
-  margin-bottom: 15px;
+.login-wrapper h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000000;
 }
 
-.form-group label {
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 5px;
-  color: #555;
+.login-wrapper h2 {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
 }
 
-.form-group input {
+.login-wrapper .login-button {
   width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box; /* เพิ่มเพื่อให้ padding ไม่ทำให้ขนาดเกิน */
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #007bff;
+  background: linear-gradient(180deg, #86D2E2, #90c5ff); /* Gradient from bottom to top */
   color: white;
   border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 15px;
+  padding: 10px 0;
+  font-size: 16px;
+  margin-bottom: 20px;
+  transition: background 0.3s ease; /* Smooth transition on hover */
 }
 
-button:hover {
-  background-color: #0056b3;
+.login-wrapper .login-button:hover {
+  background: linear-gradient(180deg, #2a5a8e, #86D2E2); /* Reverse gradient effect on hover */
 }
 
+.login-wrapper a {
+  color: #2a5a8e;
+}
