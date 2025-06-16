@@ -4,12 +4,16 @@ import UserRoutes from "./UserRoutes";    // เส้นทางสำหร�
 import LoginRoutes from "./LoginRoutes";  // เส้นทางสำหรับ Login
 
 function ConfigRoutes() {
+  // ลบข้อมูลจาก localStorage
+  // localStorage.removeItem("isLogin");
+  // localStorage.removeItem("role");
+
   const isLoggedIn = localStorage.getItem("isLogin") === "true";  // ตรวจสอบสถานะการล็อกอิน
   const role = localStorage.getItem("role");  // ตรวจสอบบทบาทของผู้ใช้ (admin, user)
 
   console.log("isLoggedIn:", isLoggedIn);  // ตรวจสอบว่า isLoggedIn เป็น true หรือ false
   console.log("role:", role);  // ตรวจสอบว่า role เป็น admin หรือ user
-
+  
   let routes: RouteObject[] = [];
 
   if (isLoggedIn) {
