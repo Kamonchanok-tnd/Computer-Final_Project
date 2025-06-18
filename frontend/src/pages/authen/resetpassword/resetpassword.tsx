@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
 
-import { RequestPasswordReset } from "../../services/https/login";
+import { RequestPasswordReset } from "../../../services/https/login";
 import { MailOutlined } from "@ant-design/icons";
 import "./forgot-password.css"; // ไฟล์ CSS แยกต่างหากสำหรับการจัดการรูปแบบ
 

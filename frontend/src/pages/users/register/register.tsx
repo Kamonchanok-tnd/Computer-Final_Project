@@ -14,9 +14,10 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { CreateUser } from "../../services/https/login";
-import { UsersInterface } from "../../interfaces/IUser";
-import logo from "../../assets/login.png";
+import { UsersInterface } from "../../../interfaces/IUser";
+import { CreateUser } from "../../../services/https/login";
+
+import logo from "../../../assets/login.png";
 
 function SignUpPages() {
   const navigate = useNavigate();

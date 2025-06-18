@@ -1,8 +1,8 @@
 // ตรวจสอบให้แน่ใจว่า LoginRoutes ถูกต้อง
 import { RouteObject } from "react-router-dom";
 // import LoginPage from "../pages/LoginPage";  // สมมติว่ามีหน้า LoginPage
-import SignInPages from "../pages/login/login";
-import SignUpPages from "../pages/register/register";
+import SignInPages from "../pages/authen/login/login";
+import SignUpPages from "../pages/users/register/register";
 const LoginRoutes = (): RouteObject[] => {
   return [
     {

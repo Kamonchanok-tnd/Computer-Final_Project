@@ -18,6 +18,12 @@ const AdminSettings = () => {
   const goToCreateAdmin = () => {
     navigate("/admin/create"); // Change the route to your create admin page
   };
+  const goToDashboardAdmin = () => {
+    navigate("/admin/dashboard"); // Change the route to your create admin page
+  };
+  const goToEditAdmin = () => {
+    navigate("/admin/edit/:id"); // Change the route to your create admin page
+  };
 
   return (
     <div>
@@ -33,6 +39,13 @@ const AdminSettings = () => {
       <Button onClick={goToCreateAdmin} type="default" style={{ marginTop: "20px", marginLeft: "10px" }}>
         ไปหน้า Create Admin
       </Button>
+
+      <Button onClick={goToDashboardAdmin} type="default" style={{ marginTop: "20px", marginLeft: "10px" }}>
+        ไปหน้า Dashboard Admin
+      </Button>
+      {/* <Button onClick={goToEditAdmin} type="default" style={{ marginTop: "20px", marginLeft: "10px" }}>
+        ไปหน้า Edit Admin
+      </Button> */}
     </div>
   );
 };

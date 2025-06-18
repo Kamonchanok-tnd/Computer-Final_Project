@@ -14,8 +14,8 @@ import {
   Select,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { UsersInterface } from "../../interfaces/IUser";
-import { GetUsersById, UpdateUsersById } from "../../services/https/login";
+import { UsersInterface } from "../../../interfaces/IUser";
+import { GetUsersById, UpdateUsersById } from "../../../services/https/login";
 import { useNavigate, Link } from "react-router-dom";
 import dayjs from "dayjs";
 

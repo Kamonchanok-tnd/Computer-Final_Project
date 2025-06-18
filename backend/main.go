@@ -55,6 +55,9 @@ func main() {
        router.Use(middlewares.Authorizes("admin"))
        // เพิ่ม route สำหรับการสร้าง Admin
 	    router.POST("/create-admin", admin.CreateAdmin)
+        router.GET("/admin", admin.GetAllAdmin)
+        router.PUT("/admin/:id", admin.EditAdmin)
+        router.GET("/admin/:id", admin.GetAdminById)
     //    router.PUT("/user/:id", users.Update)
     //    router.GET("/users", users.GetAll)
     //    // router.GET("/user/:id", users.Get)

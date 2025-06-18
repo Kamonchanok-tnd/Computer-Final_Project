@@ -7,7 +7,9 @@ import { lazy } from "react";
 
 const AdminDashboard = Loadable(lazy(() => import("../pages/dashboard/admindashboard")));
 const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsetting")));
-const CreateAdmin = Loadable(lazy(() => import("../pages/create_admin/createadmin")));
+const CreateAdmin = Loadable(lazy(() => import("../pages/admin/create_admin/createadmin")));
+const DashboardAdmin = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard")));
+const EditAdmin = Loadable(lazy(() => import("../pages/admin/edit_admin/EditAdmin")));
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
   return [
@@ -26,6 +28,14 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/admin/create",
           element: <CreateAdmin />, // หน้า Settings ของ Admin
+        },
+        {
+          path: "/admin/dashboard",
+          element: <DashboardAdmin />, // หน้า Settings ของ Admin
+        },
+        {
+           path: "/admin/edit/:id",
+          element: <EditAdmin />, // หน้า Settings ของ Admin
         },
       ],
     },

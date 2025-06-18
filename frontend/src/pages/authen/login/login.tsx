@@ -1,10 +1,10 @@
 import { Button, Card, Form, Input, message, Flex, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
-import { SignIn } from "../../services/https/login";
-import { SignInInterface } from "../../interfaces/SignIn";
-import logo from "../../assets/login.png";
+import { SignIn } from "../../../services/https/login";
+import { SignInInterface } from "../../../interfaces/SignIn";
+import logo from "../../../assets/login.png";
 import "./login.css"; // Create a separate CSS file for styling
-import "../../responsive/responsive.css";
+
 
 function SignInPages() {
   const navigate = useNavigate();
