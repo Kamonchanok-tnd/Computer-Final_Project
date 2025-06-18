@@ -11,59 +11,47 @@ import {
   DatePicker,
   Select,
 } from "antd";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { GetGender, CreateUser } from "../../services/https/login";
+import { CreateUser } from "../../services/https/login";
 import { UsersInterface } from "../../interfaces/IUser";
-import logo from "../../../assets/logo.png";
+import logo from "../../assets/login.png";
 
 function SignUpPages() {
   const navigate = useNavigate();
-  const [messageApi, contextHolder] = message.useMessage();
-  const [gender, setGender] = useState<{ ID: number; gender: string }[]>([]); // เก็บ gender ในรูปแบบ { ID, gender }
+  
+  // สร้าง hook สำหรับแสดงข้อความ
+  const [messageApi, contextHolder] = message.useMessage(); // ใช้ message API แสดงข้อความ
 
-  const onGetGender = async () => {
-    let res = await GetGender();
-    if (res.status === 200) {
-      setGender(res.data); // Assuming response has { ID, gender }
-    } else {
-      messageApi.open({
-        type: "error",
-        content: "ไม่พบข้อมูลเพศ",
-      });
-      setTimeout(() => {
-        navigate("/customer");
-      }, 2000);
-    }
-  };
+  const genderOptions = [
+    { value: 'Male', label: 'ชาย' },
+    { value: 'Female', label: 'หญิง' },
+    { value: 'Other', label: 'อื่นๆ' },
+  ];
 
   const onFinish = async (values: UsersInterface) => {
+    values.Role = "user";  // ตั้งค่า Role เป็น "user" โดยอัตโนมัติ
+
     let res = await CreateUser(values);
 
     if (res.status === 201) {
-      messageApi.open({
-        type: "success",
-        content: res.data.message,
-      });
+      // เรียกใช้ message API สำหรับแสดงข้อความสำเร็จ
+      messageApi.success('ลงทะเบียนสำเร็จ!');
       setTimeout(function () {
-        navigate("/");
+        navigate("/"); // นำทางไปหน้า login หลังจากสมัครสำเร็จ
       }, 2000);
     } else {
-      messageApi.open({
-        type: "error",
-        content: res.data.error,
-      });
+      // เรียกใช้ message API สำหรับแสดงข้อความผิดพลาด
+      messageApi.error(res.data.error);
     }
   };
 
-  useEffect(() => {
-    onGetGender();
-  }, []);
-
   return (
     <>
+      {/* ต้องมีการแสดง message API */}
       {contextHolder}
+
       <Flex justify="center" align="center" className="login">
         <Card className="card-login" style={{ width: 600 }}>
           <Row align={"middle"} justify={"center"}>
@@ -81,26 +69,12 @@ function SignUpPages() {
                 <Row gutter={[16, 0]} align={"middle"}>
                   <Col xs={24} sm={24} md={24} lg={24} xl={24}>
                     <Form.Item
-                      label="ชื่อจริง"
-                      name="first_name"
+                      label="ชื่อผู้ใช้งาน"
+                      name="username"
                       rules={[
                         {
                           required: true,
-                          message: "กรุณากรอกชื่อ !",
-                        },
-                      ]}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} sm={24} md={24} lg={24} xl={24}>
-                    <Form.Item
-                      label="นามสกุล"
-                      name="last_name"
-                      rules={[
-                        {
-                          required: true,
-                          message: "กรุณากรอกนามสกุล !",
+                          message: "กรุณากรอกชื่อผู้ใช้งาน !",
                         },
                       ]}
                     >
@@ -146,7 +120,7 @@ function SignUpPages() {
                       rules={[
                         {
                           required: true,
-                          message: "กรุณาเลือกวัน/เดือน/ปี เกิด !",
+                          message: "กรุณากรอกวันเกิด !",
                         },
                       ]}
                     >
@@ -175,7 +149,7 @@ function SignUpPages() {
                   <Col xs={24} sm={24} md={24} lg={12} xl={12}>
                     <Form.Item
                       label="เพศ"
-                      name="Gender"  // ใช้ Gender แทน gender_id
+                      name="gender"  // ใช้ชื่อ "gender"
                       rules={[
                         {
                           required: true,
@@ -187,12 +161,42 @@ function SignUpPages() {
                         defaultValue=""
                         style={{ width: "100%" }}
                       >
-                        {gender?.map((item) => (
-                          <Select.Option key={item?.ID} value={item?.gender}>
-                            {item?.gender}
+                        {genderOptions.map((item) => (
+                          <Select.Option key={item.value} value={item.value}>
+                            {item.label}
                           </Select.Option>
                         ))}
                       </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                    <Form.Item
+                      label="เบอร์โทรศัพท์"
+                      name="phone_number"
+                      rules={[
+                        {
+                          required: true,
+                          message: "กรุณากรอกเบอร์โทรศัพท์ !",
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                    <Form.Item
+                      label="Facebook (ไม่จำเป็น)"
+                      name="facebook"
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+                    <Form.Item
+                      label="Line (ไม่จำเป็น)"
+                      name="line"
+                    >
+                      <Input />
                     </Form.Item>
                   </Col>
                   <Col xs={24} sm={24} md={24} lg={24} xl={24}>

@@ -28,18 +28,55 @@ async function GetUsers() {
     .then((res) => res)
     .catch((e) => e.response);
 }
-async function GetUsersById(id: string) {
-  return await axios
-    .get(`${apiUrl}/user/${id}`, requestOptions)
-    .then((res) => res)
-    .catch((e) => e.response);
-}
+const GetUsersById = async (id: string) => {
+  const token = localStorage.getItem("token");  // ดึง token จาก localStorage
+  console.log("Token:", token); // เพิ่ม log เพื่อตรวจสอบว่า token มาไหม
+
+  if (!token) {
+    console.error("Token not found");
+    return null; // ถ้าไม่มี token ให้หยุดการทำงาน
+  }
+
+  const requestOptions = {
+    headers: {
+      "Authorization": `Bearer ${token}`,  // เพิ่ม Authorization header ด้วย token
+    },
+  };
+
+  try {
+    const response = await axios.get(`${apiUrl}/user/${id}`, requestOptions); // URL ที่เหมาะสม
+    return response;  // ส่งผลลัพธ์เมื่อได้รับข้อมูล
+  } catch (error: any) {
+    console.error("Error fetching user:", error); // เพิ่ม log สำหรับการแสดง error
+    return error.response;  // คืนค่าเมื่อเกิดข้อผิดพลาด
+  }
+};
+
+
+
+
 async function UpdateUsersById(id: string, data: UsersInterface) {
-  return await axios
-    .put(`${apiUrl}/user/${id}`, data, requestOptions)
-    .then((res) => res)
-    .catch((e) => e.response);
+  const token = localStorage.getItem("token");  // ดึง token จาก localStorage
+  if (!token) {
+    console.error("Token not found");
+    return null; // ถ้าไม่มี token ให้หยุดการทำงาน
+  }
+
+  const requestOptions = {
+    headers: {
+      "Authorization": `Bearer ${token}`,  // เพิ่ม Authorization header ด้วย token
+    },
+  };
+
+  try {
+    const response = await axios.put(`${apiUrl}/user/${id}`, data, requestOptions); // URL ที่เหมาะสม
+    return response;  // ส่งผลลัพธ์เมื่อได้รับการตอบกลับ
+  } catch (error: any) {
+    console.error("Error updating user:", error);  // เพิ่ม log สำหรับการแสดง error
+    return error.response;  // คืนค่าเมื่อเกิดข้อผิดพลาด
+  }
 }
+
 async function DeleteUsersById(id: string) {
   return await axios
     .delete(`${apiUrl}/user/${id}`, requestOptions)
@@ -52,6 +89,21 @@ async function CreateUser(data: UsersInterface) {
     .then((res) => res)
     .catch((e) => e.response);
 }
+// ฟังก์ชันขอรีเซ็ตรหัสผ่าน
+async function RequestPasswordReset(email: string) {
+  return await axios
+    .post(`${apiUrl}/forgot-password`, { email }, requestOptions)
+    .then((res) => res)
+    .catch((e) => e.response);
+}
+
+// ฟังก์ชันรีเซ็ตรหัสผ่าน
+async function ResetPassword(token: string, newPassword: string) {
+  return await axios
+    .post(`${apiUrl}/reset-password`, { token, newPassword }, requestOptions)
+    .then((res) => res)
+    .catch((e) => e.response);
+}
 export {
   SignIn,
   GetGender,
@@ -60,4 +112,6 @@ export {
   UpdateUsersById,
   DeleteUsersById,
   CreateUser,
+  RequestPasswordReset,
+  ResetPassword,
 };

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 type Users struct {
@@ -15,6 +16,11 @@ type Users struct {
 	Role        string `json:"role"`
 	Age         int    `json:"age"`
 	Gender      string `json:"gender"`
+
+	// เพิ่ม attributes สำหรับการรีเซ็ตรหัสผ่าน
+	ResetToken          string    `json:"reset_token"`
+	ResetTokenExpiry    time.Time `json:"reset_token_expiry"`
+
 	
 
 	// ความสัมพันธ์ One-to-Many กับ Feedback, Like, Mirror, AssessmentResult, Questionnaire, WordHealingContent, ChatRoom

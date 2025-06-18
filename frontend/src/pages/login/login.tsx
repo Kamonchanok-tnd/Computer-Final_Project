@@ -23,6 +23,7 @@ function SignInPages() {
       localStorage.setItem("page", "dashboard");
       localStorage.setItem("token_type", res.data.token_type);
       localStorage.setItem("token", res.data.token);
+       console.log(res.data.token);
       localStorage.setItem("id", res.data.id);
 
       // Route based on user role
@@ -80,6 +81,8 @@ function SignInPages() {
                       เข้าสู่ระบบ
                     </Button>
                     หรือ <a onClick={() => navigate("/signup")}>สร้างบัญชีใหม่</a>
+                    <br />
+                    <a href="/forgot-password" className="forgot-password-link">ลืมรหัสผ่าน?</a> {/* เพิ่มลิงก์ลืมรหัสผ่าน */}
                   </Form.Item>
                 </Form>
               </Col>

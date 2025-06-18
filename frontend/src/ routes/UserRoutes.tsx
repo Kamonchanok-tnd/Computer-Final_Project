@@ -6,6 +6,8 @@ import { Navigate } from "react-router-dom";
 
 const UserDashboard = Loadable(lazy(() => import("../pages/dashboard/userdashbord")));
 const UserProfile = Loadable(lazy(() => import("../pages/dashboard/userprofile")));
+const EditProfile = Loadable(lazy(() => import("../pages/edit_user/edituser")));
+
 
 const UserRoutes =(isLoggedIn: boolean): RouteObject[] => {
   return [
@@ -20,6 +22,10 @@ const UserRoutes =(isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/user/profile",
           element: <UserProfile />, // หน้าโปรไฟล์ของ User
+        },
+        {
+          path: "/user/edit-profile",
+          element: <EditProfile />, // หน้าโปรไฟล์ของ User
         },
       ],
     },

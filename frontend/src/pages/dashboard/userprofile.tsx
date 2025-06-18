@@ -25,6 +25,12 @@ const UserProfile = () => {
     navigate("/");
   };
 
+  // ฟังก์ชันสำหรับไปหน้าแก้ไขข้อมูล
+  const handleEditProfile = () => {
+    // นำทางไปยังหน้าแก้ไขโปรไฟล์
+    navigate("/user/edit-profile");
+  };
+
   return (
     <div>
       <h2>User Profile</h2>
@@ -38,10 +44,19 @@ const UserProfile = () => {
       ) : (
         <p>Loading your profile...</p>
       )}
-      
+
       {/* ปุ่มออกจากระบบ */}
       <Button onClick={handleLogout} type="primary" style={{ marginTop: "20px" }}>
         ออกจากระบบ
+      </Button>
+
+      {/* ปุ่มแก้ไขข้อมูล */}
+      <Button
+        onClick={handleEditProfile}
+        type="default"
+        style={{ marginTop: "20px", marginLeft: "10px" }}
+      >
+        แก้ไขข้อมูล
       </Button>
     </div>
   );

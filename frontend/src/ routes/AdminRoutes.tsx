@@ -7,6 +7,7 @@ import { lazy } from "react";
 
 const AdminDashboard = Loadable(lazy(() => import("../pages/dashboard/admindashboard")));
 const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsetting")));
+const CreateAdmin = Loadable(lazy(() => import("../pages/create_admin/createadmin")));
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
   return [
@@ -21,6 +22,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/admin/settings",
           element: <AdminSettings />, // หน้า Settings ของ Admin
+        },
+        {
+          path: "/admin/create",
+          element: <CreateAdmin />, // หน้า Settings ของ Admin
         },
       ],
     },

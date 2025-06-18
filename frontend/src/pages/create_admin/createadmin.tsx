@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   Space,
   Button,
@@ -13,69 +12,29 @@ import {
   InputNumber,
   Select,
 } from "antd";
+import { useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
-import { UsersInterface } from "../../../interfaces/IUser";
-import { GetGender, GetUsersById, UpdateUsersById } from "../../../services/https/login";
-import { useNavigate, Link, useParams } from "react-router-dom";
-import dayjs from "dayjs";
+import { UsersInterface } from "../../interfaces/IUser";
+import { CreateUser } from "../../services/https/login";
+import { useNavigate, Link } from "react-router-dom";
 
-function CustomerEdit() {
+function CreateAdmin() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: any }>();
   const [messageApi, contextHolder] = message.useMessage();
-  const [gender, setGender] = useState<{ ID: number, gender: string }[]>([]); // Update this to match your gender data structure
-  const [form] = Form.useForm();
-
-  const onGetGender = async () => {
-    let res = await GetGender();
-    if (res.status === 200) {
-      setGender(res.data); // Assuming response has { ID, gender }
-    } else {
-      messageApi.open({
-        type: "error",
-        content: "ไม่พบข้อมูลเพศ",
-      });
-      setTimeout(() => {
-        navigate("/customer");
-      }, 2000);
-    }
-  };
-
-  const getUserById = async (id: string) => {
-    let res = await GetUsersById(id);
-    if (res.status === 200) {
-      form.setFieldsValue({
-        first_name: res.data.first_name,
-        last_name: res.data.last_name,
-        email: res.data.email,
-        birthday: dayjs(res.data.birthday),
-        age: res.data.age,
-        gender: res.data.gender, // Assuming gender is returned as a string
-      });
-    } else {
-      messageApi.open({
-        type: "error",
-        content: "ไม่พบข้อมูลผู้ใช้",
-      });
-      setTimeout(() => {
-        navigate("/customer");
-      }, 2000);
-    }
-  };
+  const [gender] = useState([{ ID: 1, gender: "ชาย" }, { ID: 2, gender: "หญิง" }, { ID: 3, gender: "อื่นๆ" }]); // Static gender data
 
   const onFinish = async (values: UsersInterface) => {
-    let payload = {
-      ...values,
-      gender: values.Gender, // Use Gender directly from the form
-    };
+    // Add role as 'admin' here
+    const userData = { ...values, role: "admin" };
 
-    const res = await UpdateUsersById(id, payload);
-    if (res.status === 200) {
+    let res = await CreateUser(userData);
+
+    if (res.status === 201) {
       messageApi.open({
         type: "success",
         content: res.data.message,
       });
-      setTimeout(() => {
+      setTimeout(function () {
         navigate("/customer");
       }, 2000);
     } else {
@@ -86,20 +45,14 @@ function CustomerEdit() {
     }
   };
 
-  useEffect(() => {
-    onGetGender();
-    getUserById(id);
-  }, []);
-
   return (
     <div>
       {contextHolder}
       <Card>
-        <h2>แก้ไขข้อมูล ผู้ดูแลระบบ</h2>
+        <h2>เพิ่มข้อมูล ผู้ดูแลระบบ</h2>
         <Divider />
         <Form
           name="basic"
-          form={form}
           layout="vertical"
           onFinish={onFinish}
           autoComplete="off"
@@ -107,26 +60,12 @@ function CustomerEdit() {
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={24} md={24} lg={24} xl={12}>
               <Form.Item
-                label="ชื่อจริง"
-                name="first_name"
+                label="ชื่อผู้ใช้"
+                name="username"
                 rules={[
                   {
                     required: true,
-                    message: "กรุณากรอกชื่อ !",
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
-              <Form.Item
-                label="นามสกุล"
-                name="last_name"
-                rules={[
-                  {
-                    required: true,
-                    message: "กรุณากรอกนามสกุล !",
+                    message: "กรุณากรอกชื่อผู้ใช้ !",
                   },
                 ]}
               >
@@ -145,6 +84,34 @@ function CustomerEdit() {
                   {
                     required: true,
                     message: "กรุณากรอกอีเมล !",
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
+              <Form.Item
+                label="รหัสผ่าน"
+                name="password"
+                rules={[
+                  {
+                    required: true,
+                    message: "กรุณากรอกรหัสผ่าน !",
+                  },
+                ]}
+              >
+                <Input.Password />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
+              <Form.Item
+                label="หมายเลขโทรศัพท์"
+                name="phone_number"
+                rules={[
+                  {
+                    required: true,
+                    message: "กรุณากรอกหมายเลขโทรศัพท์ !",
                   },
                 ]}
               >
@@ -187,7 +154,7 @@ function CustomerEdit() {
             <Col xs={24} sm={24} md={24} lg={24} xl={12}>
               <Form.Item
                 label="เพศ"
-                name="Gender"  // Use Gender here to match the UsersInterface
+                name="gender" // Use 'gender' that matches the UsersInterface
                 rules={[
                   {
                     required: true,
@@ -197,8 +164,8 @@ function CustomerEdit() {
               >
                 <Select defaultValue="" style={{ width: "100%" }}>
                   {gender?.map((item) => (
-                    <Select.Option key={item.ID} value={item.gender}>
-                      {item.gender}
+                    <Select.Option key={item?.ID} value={item?.gender}>
+                      {item?.gender}
                     </Select.Option>
                   ))}
                 </Select>
@@ -219,7 +186,7 @@ function CustomerEdit() {
                     htmlType="submit"
                     icon={<PlusOutlined />}
                   >
-                    บันทึก
+                    ยืนยัน
                   </Button>
                 </Space>
               </Form.Item>
@@ -231,4 +198,4 @@ function CustomerEdit() {
   );
 }
 
-export default CustomerEdit;
+export default CreateAdmin;

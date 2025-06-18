@@ -14,88 +14,76 @@ import {
   Select,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { UsersInterface } from "../../../interfaces/IUser";
-import { GetGender, GetUsersById, UpdateUsersById } from "../../../services/https/login";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { UsersInterface } from "../../interfaces/IUser";
+import { GetUsersById, UpdateUsersById } from "../../services/https/login";
+import { useNavigate, Link } from "react-router-dom";
 import dayjs from "dayjs";
 
-function CustomerEdit() {
+function UserEdit() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: any }>();
   const [messageApi, contextHolder] = message.useMessage();
-  const [gender, setGender] = useState<{ ID: number, gender: string }[]>([]); // Update this to match your gender data structure
   const [form] = Form.useForm();
 
-  const onGetGender = async () => {
-    let res = await GetGender();
-    if (res.status === 200) {
-      setGender(res.data); // Assuming response has { ID, gender }
-    } else {
+  const userId = localStorage.getItem("id");
+
+  useEffect(() => {
+    if (!userId) {
       messageApi.open({
         type: "error",
-        content: "ไม่พบข้อมูลเพศ",
+        content: "ไม่พบข้อมูลผู้ใช้",
       });
-      setTimeout(() => {
-        navigate("/customer");
-      }, 2000);
+      navigate("/login"); // ถ้าไม่พบ id ให้กลับไปที่หน้า login
+    } else {
+      getUserById(userId); // ดึงข้อมูลของผู้ใช้ที่มี id ตรงกับ userId
     }
-  };
+  }, [userId]);
 
   const getUserById = async (id: string) => {
     let res = await GetUsersById(id);
-    if (res.status === 200) {
+    if (res?.status === 200) {
       form.setFieldsValue({
-        first_name: res.data.first_name,
-        last_name: res.data.last_name,
+        username: res.data.username,
         email: res.data.email,
-        birthday: dayjs(res.data.birthday),
+        phone_number: res.data.phone_number,
+        birthday: dayjs(res.data.birthday),  // แปลงเป็น dayjs สำหรับ DatePicker
         age: res.data.age,
-        gender: res.data.gender, // Assuming gender is returned as a string
+        gender: res.data.gender,
+        facebook: res.data.facebook,
+        line: res.data.line,
       });
     } else {
       messageApi.open({
         type: "error",
         content: "ไม่พบข้อมูลผู้ใช้",
       });
-      setTimeout(() => {
-        navigate("/customer");
-      }, 2000);
     }
   };
 
   const onFinish = async (values: UsersInterface) => {
-    let payload = {
+    const payload = {
       ...values,
-      gender: values.Gender, // Use Gender directly from the form
+      gender: values.Gender, // ใช้ gender ที่ได้จากฟอร์ม
     };
 
-    const res = await UpdateUsersById(id, payload);
+    const res = await UpdateUsersById(userId as string, payload);
     if (res.status === 200) {
       messageApi.open({
         type: "success",
-        content: res.data.message,
+        content: res.data.message || "แก้ไขข้อมูลสำเร็จ",  // ถ้าไม่มีข้อความใน res.data.message ให้ใช้ข้อความ "แก้ไขข้อมูลสำเร็จ"
       });
-      setTimeout(() => {
-        navigate("/customer");
-      }, 2000);
     } else {
       messageApi.open({
         type: "error",
-        content: res.data.error,
+        content: res.data.error || "เกิดข้อผิดพลาดในการแก้ไขข้อมูล",  // ถ้าไม่มีข้อความใน res.data.error ให้ใช้ข้อความ "เกิดข้อผิดพลาดในการแก้ไขข้อมูล"
       });
     }
   };
-
-  useEffect(() => {
-    onGetGender();
-    getUserById(id);
-  }, []);
 
   return (
     <div>
       {contextHolder}
       <Card>
-        <h2>แก้ไขข้อมูล ผู้ดูแลระบบ</h2>
+        <h2>แก้ไขข้อมูล ผู้ใช้งาน</h2>
         <Divider />
         <Form
           name="basic"
@@ -107,26 +95,12 @@ function CustomerEdit() {
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={24} md={24} lg={24} xl={12}>
               <Form.Item
-                label="ชื่อจริง"
-                name="first_name"
+                label="ชื่อผู้ใช้งาน"
+                name="username"
                 rules={[
                   {
                     required: true,
-                    message: "กรุณากรอกชื่อ !",
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
-              <Form.Item
-                label="นามสกุล"
-                name="last_name"
-                rules={[
-                  {
-                    required: true,
-                    message: "กรุณากรอกนามสกุล !",
+                    message: "กรุณากรอกชื่อผู้ใช้งาน !",
                   },
                 ]}
               >
@@ -151,7 +125,21 @@ function CustomerEdit() {
                 <Input />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
+            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
+              <Form.Item
+                label="เบอร์โทรศัพท์"
+                name="phone_number"
+                rules={[
+                  {
+                    required: true,
+                    message: "กรุณากรอกเบอร์โทรศัพท์ !",
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
               <Form.Item
                 label="วัน/เดือน/ปี เกิด"
                 name="birthday"
@@ -165,7 +153,7 @@ function CustomerEdit() {
                 <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
+            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
               <Form.Item
                 label="อายุ"
                 name="age"
@@ -184,24 +172,38 @@ function CustomerEdit() {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
+            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
               <Form.Item
                 label="เพศ"
-                name="Gender"  // Use Gender here to match the UsersInterface
+                name="gender"
                 rules={[
                   {
                     required: true,
-                    message: "กรุณาเลือกเพศ !",
+                    message: "กรุณากรอกเพศ !",
                   },
                 ]}
               >
-                <Select defaultValue="" style={{ width: "100%" }}>
-                  {gender?.map((item) => (
-                    <Select.Option key={item.ID} value={item.gender}>
-                      {item.gender}
-                    </Select.Option>
-                  ))}
+                <Select style={{ width: "100%" }}>
+                  <Select.Option value="Male">ชาย</Select.Option>
+                  <Select.Option value="Female">หญิง</Select.Option>
+                  <Select.Option value="Other">อื่นๆ</Select.Option>
                 </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+              <Form.Item
+                label="Facebook (ไม่จำเป็น)"
+                name="facebook"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
+              <Form.Item
+                label="Line (ไม่จำเป็น)"
+                name="line"
+              >
+                <Input />
               </Form.Item>
             </Col>
           </Row>
@@ -209,7 +211,7 @@ function CustomerEdit() {
             <Col style={{ marginTop: "40px" }}>
               <Form.Item>
                 <Space>
-                  <Link to="/customer">
+                  <Link to="/user/profile">
                     <Button htmlType="button" style={{ marginRight: "10px" }}>
                       ยกเลิก
                     </Button>
@@ -231,4 +233,4 @@ function CustomerEdit() {
   );
 }
 
-export default CustomerEdit;
+export default UserEdit;

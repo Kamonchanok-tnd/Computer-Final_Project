@@ -5,9 +5,12 @@ import (
    "strings"
    "sukjai_project/services"
    "github.com/gin-gonic/gin"
+//    "log" // เพิ่มการนำเข้าคำสั่ง log
+//    "fmt"
+"strconv"
 )
 
-// Authorizes - ตรวจสอบ Role ใน JWT token
+/// Authorizes - ตรวจสอบ Role ใน JWT token
 func Authorizes(requiredRole string) gin.HandlerFunc {
    return func(c *gin.Context) {
        // ดึงข้อมูล token จาก Authorization header
@@ -23,12 +26,12 @@ func Authorizes(requiredRole string) gin.HandlerFunc {
            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Incorrect Format of Authorization Token"})
            return
        }
-
+       
        clientToken = strings.TrimSpace(extractedToken[1])
 
        // ตรวจสอบ Token
        jwtWrapper := services.JwtWrapper{
-           SecretKey: "SvNQpBN8y3qlVrsGAYYWoJJk56LtzFHx",  // ใช้ SecretKey จาก environment variable
+           SecretKey: "SvNQpBN8y3qlVrsGAYYWoJJk56LtzFHx", 
            Issuer:    "AuthService",
        }
 
@@ -38,14 +41,25 @@ func Authorizes(requiredRole string) gin.HandlerFunc {
            return
        }
 
-       // ตรวจสอบ Role
-       if claims.Role != requiredRole {
+       if claims == nil {
+           c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Claims are nil"})
+           return
+       }
+
+       // แปลง c.Param("id") จาก string เป็น uint
+       userIDParam, err := strconv.ParseUint(c.Param("id"), 10, 32) // ใช้ ParseUint
+       if err != nil {
+           c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid ID parameter"})
+           return
+       }
+
+       // ตรวจสอบ Role และ ID ของผู้ใช้
+       if claims.Role != requiredRole && uint(userIDParam) != claims.ID && requiredRole != "any" {
            c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
            return
        }
 
-       // ถ้าผ่านการตรวจสอบให้ดำเนินการต่อ
-       c.Set("userID", claims.ID) // ใช้ claims.ID แทน
+       c.Set("userID", claims.ID)
        c.Set("userRole", claims.Role)
 
        c.Next()

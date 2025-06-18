@@ -5,6 +5,11 @@ import (
    "github.com/gin-gonic/gin"
    "sukjai_project/config"
    "sukjai_project/entity"
+   "sukjai_project/services"
+//    "fmt"
+   "os"
+   "log"  // เพิ่มการใช้ log
+//    "strconv" 
 )
 
 func GetAll(c *gin.Context) {
@@ -24,56 +29,130 @@ func GetAll(c *gin.Context) {
 }
 
 func Get(c *gin.Context) {
-   ID := c.Param("id")
-   var user entity.Users
-   db := config.DB()
-   // ค้นหาผู้ใช้ตาม ID โดยไม่ต้อง Preload "Gender"
-   results := db.First(&user, ID)
-   if results.Error != nil {
-       c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-       return
-   }
-   if user.ID == 0 {
-       c.JSON(http.StatusNoContent, gin.H{"message": "User not found"})
-       return
-   }
-   c.JSON(http.StatusOK, user)
+    // รับค่า Authorization header
+    token := c.GetHeader("Authorization")
+
+    // เพิ่ม Log เพื่อตรวจสอบ token ที่ได้รับ
+    log.Printf("Received Authorization Header: %v", token)
+
+    // ตรวจสอบว่า token ไม่เป็นค่าว่าง
+    if token == "" {
+        log.Println("No Authorization header provided")  // พิมพ์ log หากไม่มี token
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "No Authorization header provided"})
+        return
+    }
+
+    // ตรวจสอบว่า token เริ่มต้นด้วย Bearer หรือไม่
+    if len(token) < 7 || token[:7] != "Bearer " {
+        log.Println("Authorization header is malformed")  // พิมพ์ log หาก token ไม่ถูกต้อง
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is malformed"})
+        return
+    }
+
+    token = token[7:] // ตัดคำว่า "Bearer " ออก
+
+    // ตรวจสอบและ validate token
+    jwtWrapper := services.JwtWrapper{
+        SecretKey:       os.Getenv("JWT_SECRET_KEY"),  // ใช้ key ที่ถูกต้อง
+        Issuer:          "AuthService",
+        ExpirationHours: 24,
+    }
+
+    claims, err := jwtWrapper.ValidateToken(token)
+    if err != nil {
+        log.Printf("Invalid or expired token: %v", err)  // พิมพ์ log เมื่อเกิด error ในการ validate token
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+        return
+    }
+
+    log.Printf("Token validated successfully, claims: %v", claims)  // พิมพ์ log เมื่อ token ถูกต้อง
+
+    // ถ้า token ถูกต้อง, ดำเนินการค้นหาผู้ใช้
+    ID := c.Param("id")
+    var user entity.Users
+    db := config.DB()
+
+    // ค้นหาผู้ใช้ตาม ID
+    results := db.First(&user, ID)
+    if results.Error != nil {
+        log.Printf("User not found: %v", results.Error)  // พิมพ์ log หากไม่พบผู้ใช้
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    // ส่งข้อมูลผู้ใช้กลับไป
+    c.JSON(http.StatusOK, user)
 }
 
+
 func Update(c *gin.Context) {
-   var user entity.Users
-   UserID := c.Param("id")
-   db := config.DB()
-   result := db.First(&user, UserID)
-   if result.Error != nil {
-       c.JSON(http.StatusNotFound, gin.H{"error": "User ID not found"})
-       return
-   }
+	// รับค่า Authorization header
+	token := c.GetHeader("Authorization")
 
-   // Bind the incoming request payload to user
-   if err := c.ShouldBindJSON(&user); err != nil {
-       c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request, unable to map payload"})
-       return
-   }
+	// เพิ่ม Log เพื่อตรวจสอบ token ที่ได้รับ
+	log.Printf("Received Authorization Header: %v", token)
 
-   // Check if the password is being updated, if so hash it
-   if user.Password != "" {
-       hashedPassword, err := config.HashPassword(user.Password)
-       if err != nil {
-           c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
-           return
-       }
-       user.Password = hashedPassword
-   }
+	// ตรวจสอบว่า token ไม่เป็นค่าว่าง
+	if token == "" {
+		log.Println("No Authorization header provided")  // พิมพ์ log หากไม่มี token
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No Authorization header provided"})
+		return
+	}
 
-   // Save the updated user
-   result = db.Save(&user)
-   if result.Error != nil {
-       c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update user"})
-       return
-   }
+	// ตรวจสอบว่า token เริ่มต้นด้วย Bearer หรือไม่
+	if len(token) < 7 || token[:7] != "Bearer " {
+		log.Println("Authorization header is malformed")  // พิมพ์ log หาก token ไม่ถูกต้อง
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is malformed"})
+		return
+	}
 
-   c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
+	token = token[7:] // ตัดคำว่า "Bearer " ออก
+
+	// ตรวจสอบและ validate token
+	jwtWrapper := services.JwtWrapper{
+		SecretKey:       os.Getenv("JWT_SECRET_KEY"),  // ใช้ key ที่ถูกต้อง
+		Issuer:          "AuthService",
+		ExpirationHours: 24,
+	}
+
+	claims, err := jwtWrapper.ValidateToken(token)
+	if err != nil {
+		log.Printf("Invalid or expired token: %v", err)  // พิมพ์ log เมื่อเกิด error ในการ validate token
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		return
+	}
+
+	log.Printf("Token validated successfully, claims: %v", claims)  // พิมพ์ log เมื่อ token ถูกต้อง
+
+	// ถ้า token ถูกต้อง, ดำเนินการอัปเดตข้อมูลผู้ใช้
+	ID := c.Param("id")
+	var user entity.Users
+	db := config.DB()
+
+	// ค้นหาผู้ใช้ตาม ID
+	results := db.First(&user, ID)
+	if results.Error != nil {
+		log.Printf("User not found: %v", results.Error)  // พิมพ์ log หากไม่พบผู้ใช้
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Binding JSON data (จาก body ของ request) ไปยัง struct
+	if err := c.ShouldBindJSON(&user); err != nil {
+		log.Printf("Error binding data: %v", err)  // พิมพ์ log หากไม่สามารถ bind ข้อมูล
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	// อัปเดตข้อมูลผู้ใช้ในฐานข้อมูล
+	if err := db.Save(&user).Error; err != nil {
+		log.Printf("Error updating user: %v", err)  // พิมพ์ log หากไม่สามารถอัปเดตข้อมูลได้
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		return
+	}
+
+	// ส่งข้อมูลผู้ใช้ที่อัปเดตแล้วกลับไป
+	c.JSON(http.StatusOK, user)
 }
 
 func Delete(c *gin.Context) {
