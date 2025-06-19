@@ -7,16 +7,16 @@ import { Navigate } from "react-router-dom";
 const UserDashboard = Loadable(lazy(() => import("../pages/dashboard/userdashbord")));
 const UserProfile = Loadable(lazy(() => import("../pages/dashboard/userprofile")));
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
-
-
+const Home = Loadable(lazy(() => import("../pages/homeuser/homeuser")));
 const UserRoutes =(isLoggedIn: boolean): RouteObject[] => {
   return [
     {
-      path: "/user",  // เส้นทางของ User
-      element: isLoggedIn ? <FullLayout /> : <Navigate to="/" />, // Layout สำหรับ User
+      path: "/user", // เส้นทางของ User
+      element: isLoggedIn ? <Home /> : <Navigate to="/" />, // แสดงหน้า Home หรือไปหน้า Login หากยังไม่ได้ล็อกอิน
       children: [
+        
         {
-          index: true,  // เส้นทางหลักของ User
+          path: "/user/profile",
           element: <UserDashboard />, // หน้า Dashboard ของ User
         },
         {
@@ -30,6 +30,7 @@ const UserRoutes =(isLoggedIn: boolean): RouteObject[] => {
       ],
     },
   ];
+  
 };
 
 export default UserRoutes;

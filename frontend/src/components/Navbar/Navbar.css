@@ -1,0 +1,72 @@
+/* ซ่อนเมนู horizontal ในมือถือ */
+@media (max-width: 768px) {
+  .ant-menu-horizontal {
+    display: none;
+  }
+  .mobile-menu {
+    display: block !important; /* แสดงไอคอนแฮมเบอร์เกอร์ */
+  }
+  .desktop-logout {
+    display: none; /* ซ่อนปุ่ม Logout ในมือถือ */
+  }
+}
+
+/* แสดงเมนู horizontal บน Desktop */
+@media (min-width: 768px) {
+  .ant-menu-horizontal {
+    display: flex !important;
+  }
+  .mobile-menu {
+    display: none !important; /* ซ่อนแฮมเบอร์เกอร์ใน Desktop */
+  }
+  .desktop-logout {
+    margin-left: auto; /* ขยับ Logout ไปทางขวา */
+  }
+}
+
+/* CSS สำหรับ Navbar */
+
+/* เปลี่ยนสีพื้นหลังของ Header */
+.navbar-header {
+  background-color: #82b0ba;
+}
+
+/* จัดการการแสดงผลใน Desktop */
+.desktop-menu {
+  background-color: #66a9b8;
+  display: flex;
+  justify-content: flex-start; /* ให้เมนูแสดงไปทางซ้าย */
+}
+
+/* จัดการสีของปุ่ม Logout */
+.logout-button {
+  color: #fff;
+  background-color: #e74c3c;
+  border: none; /* ลบขอบของปุ่ม */
+}
+
+/* เปลี่ยนสีเมื่อ hover บนปุ่ม Logout */
+.logout-button:hover {
+  background-color: #c0392b;
+}
+
+/* การแสดงผลปุ่มเมนูในมือถือ */
+.mobile-menu {
+  display: block;
+}
+
+/* การแสดงผลของ Drawer ในมือถือ */
+.mobile-drawer {
+  width: 250px;
+}
+
+/* จัดสไตล์ของเมนูในมือถือ */
+.mobile-menu-list {
+  background-color: #e7e8ea;
+}
+
+/* สีของเมนู Item เมื่อ Hover */
+.ant-menu-item:hover {
+  background-color: #62b2d1 !important; /* เปลี่ยนสีเมื่อ hover เมนู */
+  color: #fff !important; /* เปลี่ยนสีข้อความเมื่อ hover */
+}
