@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { RequestPasswordReset } from "../../../services/https/login";
 import { MailOutlined } from "@ant-design/icons";
-import "./forgot-password.css"; // ไฟล์ CSS แยกต่างหากสำหรับการจัดการรูปแบบ
+
 
 
 const { Title, Text } = Typography;
