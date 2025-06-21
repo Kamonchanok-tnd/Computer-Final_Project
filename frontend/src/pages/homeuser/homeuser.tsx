@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Button, Row, Col, Card, message} from "antd";
+import React, { useState } from "react";
+import { Button, Row, Col, Card, message } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import Navbar from "../../components/Navbar/Navbar";
+
 export const logout = () => {
   localStorage.removeItem("token"); // ลบ token ออกจาก localStorage
   localStorage.removeItem("token_type"); // ลบ token_type (หากมี)
@@ -11,15 +12,20 @@ export const logout = () => {
 function Home() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-const handleLogout = () => {
+
+  const handleLogout = () => {
     // ลบข้อมูลทั้งหมดจาก localStorage
     localStorage.clear();
     message.success("Logged out successfully");
     // นำทางไปที่หน้า Login
-    navigate("/")
-};
+    navigate("/");
+  };
+
   // ฟังก์ชันล็อกเอาต์
-  
+  const handleEditProfile = () => {
+    // นำทางไปยังหน้าแก้ไขโปรไฟล์
+    navigate("/user/edit-profile");
+  };
 
   return (
     <>
@@ -38,6 +44,13 @@ const handleLogout = () => {
               style={{ marginTop: "20px" }}
             >
               Logout
+            </Button>
+            <Button
+              onClick={handleEditProfile}
+              type="default"
+              style={{ marginTop: "20px", marginLeft: "10px" }}
+            >
+              แก้ไขข้อมูล
             </Button>
           </Card>
         </Col>

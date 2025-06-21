@@ -4,7 +4,7 @@ import { Layout, Menu, Button } from "antd"; // เพิ่ม Button
 const { Header, Content, Footer, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 
-const FullLayout = () => {
+const AdminLayout = () => {
   const location = useLocation(); // ใช้ useLocation เพื่อให้เมนูถูกเลือกตามเส้นทางที่กำลังใช้งาน
   const selectedKey = location.pathname;
   const navigate = useNavigate();
@@ -32,11 +32,11 @@ const FullLayout = () => {
             selectedKeys={[selectedKey]}  // เลือกเมนูตามเส้นทางปัจจุบัน
             style={{ height: "100%", borderRight: 0 }}
           >
-            <Menu.Item key="/superadmin">
-              <Link to="/superadmin/dashboard">Dashboard</Link>
+            <Menu.Item key="/admin">
+              <Link to="/admin/dashboard">Dashboard</Link>
             </Menu.Item>
-            <Menu.Item key="/superadmin/settings">
-              <Link to="/superadmin/settings">Settings</Link>
+            <Menu.Item key="/admin/edityourself">
+              <Link to="/admin/edityourself">Settings</Link>
             </Menu.Item>
             {/* <Menu.Item key="/user">
               <Link to="/user">User Dashboard</Link>
@@ -63,4 +63,4 @@ const FullLayout = () => {
   );
 };
 
-export default FullLayout;
+export default AdminLayout;

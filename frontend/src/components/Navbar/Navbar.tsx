@@ -25,13 +25,14 @@ const Navbar: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="logo" />
           {/* Desktop Menu */}
-          <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']} >
-            <Menu.Item key="1">Home</Menu.Item>
-            <Menu.Item key="2">About</Menu.Item>
-            <Menu.Item key="3">Services</Menu.Item>
-            <Menu.Item key="4">Contact</Menu.Item>
+          <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']}>
+            <Menu.Item key="1" onClick={() => navigate('/home')}>Home</Menu.Item>
+            <Menu.Item key="2" onClick={() => navigate('/user/edit-profile')}>Edit</Menu.Item>
+            <Menu.Item key="3" onClick={() => navigate('/services')}>Services</Menu.Item>
+            <Menu.Item key="4" onClick={() => navigate('/contact')}>Contact</Menu.Item>
+            
             {/* Logout Button for Desktop */}
-            <Menu.Item key="5" onClick={handleLogout} style={{ float: 'right' }}>
+            <Menu.Item key="4" onClick={handleLogout} style={{ float: 'right' }}>
               Logout
             </Menu.Item>
           </Menu>

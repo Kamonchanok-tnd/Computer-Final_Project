@@ -5,7 +5,10 @@ import (
    "github.com/gin-gonic/gin"
    "sukjai_project/config"
    "sukjai_project/entity"
+//    "sukjai_project/middlewares"
    "log"
+//    "strconv"
+"fmt"
 )
 
 // GetAllAdmin retrieves all users with role 'admin' from the 'users' table
@@ -29,17 +32,33 @@ func GetAllAdmin(c *gin.Context) {
 
 // EditAdmin updates an admin's information by ID
 func EditAdmin(c *gin.Context) {
-    var admin entity.Users
-    db := config.DB()  // Initialize the database connection
+    // Get the userID and userRole from context after the token has been validated
+    userID := c.GetString("userID") // Get user ID from the validated token
+    userRole := c.GetString("userRole") // Get user role (admin or superadmin)
+    log.Println("User ID from context in controller: ", userID)
+	log.Println("User Role from context in controller: ", userRole)
+	log.Println("ID from URL in Controller: ", c.Param("id"))
 
-    // Bind JSON body to the admin object
-    if err := c.ShouldBindJSON(&admin); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+
+    // Get admin ID from URL
+    id := c.Param("id")
+
+    // เพิ่มการแปลง types สำหรับการเปรียบเทียบ
+    if fmt.Sprint(userID) != id && userRole != "superadmin" {
+        c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this admin's data"})
         return
     }
 
-    // Get admin ID from the URL
-    id := c.Param("id")
+    // Continue with the update logic
+    var admin entity.Users
+    db := config.DB()
+
+    // Bind JSON body to admin object
+    if err := c.ShouldBindJSON(&admin); err != nil {
+        log.Println("Error binding JSON:", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
 
     // Find the admin by ID in the database
     var existingAdmin entity.Users
@@ -55,18 +74,18 @@ func EditAdmin(c *gin.Context) {
         return
     }
 
-    // Check if the current user has 'admin' role
-    if existingAdmin.Role != "admin" {
-        c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this admin"})
-        return
-    }
-
     // Update the admin's information with new data
     existingAdmin.Username = admin.Username
     existingAdmin.Email = admin.Email
     existingAdmin.PhoneNumber = admin.PhoneNumber
-    existingAdmin.Age = admin.Age
+    existingAdmin.Age = admin.Age  // age is already int, no need for strconv.Atoi
     existingAdmin.Gender = admin.Gender
+
+    // Optional: Update ResetToken and ResetTokenExpiry if they are provided
+    if admin.ResetToken != "" {
+        existingAdmin.ResetToken = admin.ResetToken
+        existingAdmin.ResetTokenExpiry = admin.ResetTokenExpiry
+    }
 
     // Save the updated admin data to the database
     if err := db.Save(&existingAdmin).Error; err != nil {
@@ -82,7 +101,6 @@ func EditAdmin(c *gin.Context) {
         "message": "Admin updated successfully",
     })
 }
-
 
 // GetAdminById retrieves a user (admin) information by ID from the 'users' table
 func GetAdminById(c *gin.Context) {
@@ -113,5 +131,121 @@ func GetAdminById(c *gin.Context) {
         "status":  "success",
         "data":    user,
         "message": "User retrieved successfully",
+    })
+}
+
+// DeleteAdmin deletes an admin by ID
+func DeleteAdmin(c *gin.Context) {
+    // Get the userRole from context after the token has been validated
+    userRole := c.GetString("userRole") // Get user role (superadmin)
+
+    // Get admin ID from URL
+    id := c.Param("id")
+
+    // Check if the user is a superadmin
+    if userRole != "superadmin" {
+        c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to delete this admin"})
+        return
+    }
+
+    // Initialize the database connection
+    db := config.DB()
+
+    // Find the admin by ID in the database
+    var admin entity.Users
+    result := db.Where("id = ?", id).First(&admin)
+
+    if result.Error != nil {
+        if result.Error.Error() == "record not found" {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Admin not found"})
+            return
+        }
+        log.Println("Error fetching admin:", result.Error)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch admin"})
+        return
+    }
+
+    // Delete the admin from the database
+    if err := db.Delete(&admin).Error; err != nil {
+        log.Println("Error deleting admin:", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete admin"})
+        return
+    }
+
+    // Respond with a success message
+    c.JSON(http.StatusOK, gin.H{
+        "status":  "success",
+        "message": "Admin deleted successfully",
+    })
+}
+
+func EditAdminYourself(c *gin.Context) {
+	 // Get the userID and userRole from context after the token has been validated
+    userID := c.GetString("userID") // Get user ID from the validated token
+    userRole := c.GetString("userRole") // Get user role (admin or superadmin)
+    log.Println("User ID from context in controller: ", userID)
+	log.Println("User Role from context in controller: ", userRole)
+	log.Println("ID from URL in Controller: ", c.Param("id"))
+
+
+    // Get admin ID from URL
+    id := c.Param("id")
+
+    // เพิ่มการแปลง types สำหรับการเปรียบเทียบ
+    if fmt.Sprint(userID) != id && userRole != "admin" {
+        c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this admin's data"})
+        return
+    }
+
+    // Continue with the update logic
+    var admin entity.Users
+    db := config.DB()
+
+    // Bind JSON body to admin object
+    if err := c.ShouldBindJSON(&admin); err != nil {
+        log.Println("Error binding JSON:", err)
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+        return
+    }
+
+    // Find the admin by ID in the database
+    var existingAdmin entity.Users
+    result := db.Where("id = ?", id).First(&existingAdmin)
+
+    if result.Error != nil {
+        if result.Error.Error() == "record not found" {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Admin not found"})
+            return
+        }
+        log.Println("Error fetching admin:", result.Error)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch admin"})
+        return
+    }
+
+    // Update the admin's information with new data
+    existingAdmin.Username = admin.Username
+    existingAdmin.Email = admin.Email
+    existingAdmin.PhoneNumber = admin.PhoneNumber
+    existingAdmin.Age = admin.Age  // age is already int, no need for strconv.Atoi
+    existingAdmin.Gender = admin.Gender
+
+    // Optional: Update ResetToken and ResetTokenExpiry if they are provided
+    if admin.ResetToken != "" {
+        existingAdmin.ResetToken = admin.ResetToken
+        existingAdmin.ResetTokenExpiry = admin.ResetTokenExpiry
+    }
+
+    // Save the updated admin data to the database
+    if err := db.Save(&existingAdmin).Error; err != nil {
+        log.Println("Error updating admin:", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update admin"})
+        return
+    }
+
+    // Respond with the updated admin data
+    c.JSON(http.StatusOK, gin.H{
+        "status":  "success",
+        "data":    existingAdmin,
+        "message": "Admin updated successfully",
     })
 }

@@ -143,10 +143,15 @@ func SetupInitialData() {
 	if err != nil {
 		log.Fatalf("Error hashing user password: %v", err)
 	}
+	superadminPassword, err := HashPassword("superadmin123")
+	if err != nil {
+		log.Fatalf("Error hashing user password: %v", err)
+	}
 
 	// เพิ่มข้อมูลในตาราง Users โดยใช้ FirstOrCreate
 	var adminUser entity.Users
 	var regularUser entity.Users
+	var superAdmin entity.Users
 
 	// ตรวจสอบว่า admin มีอยู่ในฐานข้อมูลหรือไม่
 	if err := db.Where("username = ?", "admin").First(&adminUser).Error; err != nil {
@@ -175,6 +180,19 @@ func SetupInitialData() {
 			Gender:      "Female", 
 			PhoneNumber: "0987654321", 
 			Facebook:    "user_fb",
+		})
+	}
+	if err := db.Where("username = ?", "superadmin").First(&superAdmin).Error; err != nil {
+		// เพิ่มข้อมูล user ถ้ายังไม่มี
+		db.Create(&entity.Users{
+			Username:    "superadmin", 
+			Email:       "superadmin@example.com", 
+			Password:    superadminPassword, 
+			Role:        "superadmin", 
+			Age:         21, 
+			Gender:      "Female", 
+			PhoneNumber: "0987654321", 
+			Facebook:    "superadmin_fb",
 		})
 	}
 }

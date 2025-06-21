@@ -11,6 +11,8 @@ function EditAdmin() {
   const navigate = useNavigate();
   const { id } = useParams();  // Get ID from URL params
   const [form] = Form.useForm(); // Create the form instance
+  const [messageApi, contextHolder] = message.useMessage(); // เพิ่ม messageApi
+
 
   useEffect(() => {
     // Fetch admin data using ID from URL
@@ -43,29 +45,41 @@ function EditAdmin() {
   };
 
   const handleSubmit = async (values: AdminInterface) => {
-    if (!admin) return;
+  if (!admin) {
+    message.error("ข้อมูลแอดมินไม่พร้อมใช้งาน.");
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const updatedAdmin = { ...admin, ...values };  // Merge existing data with updated values
-      console.log("Updated admin data:", updatedAdmin); // Log updated data before sending it
+  const updatedAdmin = { ...admin, ...values };
+  updatedAdmin.age = parseInt(updatedAdmin.age.toString(), 10); 
 
-      const response = await updateAdminById(admin.ID, updatedAdmin);
+  console.log('ข้อมูลที่อัปเดต:', updatedAdmin);
 
-      if (response.status === 200) {
-        message.success("Admin updated successfully");
-        navigate("/admin/dashboard");  // Redirect back to admin dashboard
-      } else {
-        message.error("Failed to update admin.");
-      }
-    } catch (error) {
-      console.error("Error updating admin:", error);
-      message.error("Error occurred while updating admin.");
-    } finally {
-      setLoading(false);
+  try {
+    const response = await updateAdminById(admin.ID, updatedAdmin);
+
+    console.log('การตอบกลับจาก API:', response);
+
+    if (response && response.status === 'success') {
+      messageApi.success("อัปเดตข้อมูลแอดมินสำเร็จ");
+
+      // ใช้ setTimeout เพื่อให้แน่ใจว่า message แสดงก่อนที่จะแปลงหน้า
+      setTimeout(() => {
+        navigate("/superadmin/dashboard"); // เปลี่ยนเส้นทางหลังจากแสดงข้อความสำเร็จ
+      }, 1500);  // รอ 1.5 วินาที
+    } else {
+      messageApi.error("ไม่สามารถอัปเดตข้อมูลแอดมินได้");
     }
-  };
+
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลแอดมิน:", error);
+    message.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลแอดมิน.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (formLoading) {
     return (
@@ -81,6 +95,8 @@ function EditAdmin() {
   }
 
   return (
+    <>
+    {contextHolder}
     <Row justify="center" style={{ marginTop: "20px" }}>
       <Col span={12}>
         <h2>Edit Admin</h2>
@@ -138,7 +154,7 @@ function EditAdmin() {
               <Button type="primary" htmlType="submit" loading={loading}>
                 Save
               </Button>
-              <Button onClick={() => navigate("/admin/dashboard")}>
+              <Button onClick={() => navigate("/superadmin/dashboard")}>
                 Cancel
               </Button>
             </Space>
@@ -146,6 +162,7 @@ function EditAdmin() {
         </Form>
       </Col>
     </Row>
+    </>
   );
 }
 

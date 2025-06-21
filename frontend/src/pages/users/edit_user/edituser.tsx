@@ -211,7 +211,7 @@ function UserEdit() {
             <Col style={{ marginTop: "40px" }}>
               <Form.Item>
                 <Space>
-                  <Link to="/user/profile">
+                  <Link to="/user">
                     <Button htmlType="button" style={{ marginRight: "10px" }}>
                       ยกเลิก
                     </Button>

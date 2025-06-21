@@ -57,11 +57,21 @@ func main() {
 	    router.POST("/create-admin", admin.CreateAdmin)
         router.GET("/admin", admin.GetAllAdmin)
         router.PUT("/admin/:id", admin.EditAdmin)
-        router.GET("/admin/:id", admin.GetAdminById)
+        router.GET("/admin/:id", admin.GetAdminById) 
+        router.PUT("/adminyourself/:id", admin.EditAdminYourself)
     //    router.PUT("/user/:id", users.Update)
     //    router.GET("/users", users.GetAll)
     //    // router.GET("/user/:id", users.Get)
     //    router.DELETE("/user/:id", users.Delete)
+
+        // Routes for admins only
+    router.Use(middlewares.Authorizes("superadmin")) // Superadmin can delete admin
+    router.DELETE("/admin/:id", admin.DeleteAdmin)  // เพิ่ม route สำหรับลบ Admin
+
+
+
+
+
    }
 
    userRouter := r.Group("/")

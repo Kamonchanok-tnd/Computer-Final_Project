@@ -30,6 +30,9 @@ function SignInPages() {
       let redirectPath = "/";
 
       switch (res.data.role) {
+        case "superadmin":
+          redirectPath = "/superadmin";
+          break;
         case "admin":
           redirectPath = "/admin";
           break;

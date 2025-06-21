@@ -1,5 +1,6 @@
 import { AdminInterface } from "../../../interfaces/IAdmin";
-import { SignInInterface } from "../../../interfaces/SignIn";
+
+import { message } from "antd";  // นำเข้า message จาก antd
 
 const apiUrl = "http://localhost:8000";
 
@@ -108,11 +109,87 @@ export const updateAdminById = async (id: string, updatedData: AdminInterface) =
       console.error(`Error: ${response.status} - ${response.statusText}`);
       throw new Error(`Error: ${response.status} - ${response.statusText}`);
     }
+    console.log("Response Status:", response.status);
+console.log("Response Text:", response.statusText);
+
 
     const data = await response.json(); // Parse the response JSON data
+    console.log('Response Data:', data);
     return data; // Return the updated data
   } catch (error) {
     console.error("Error updating admin:", error);
+    throw error;
+  }
+};
+export const deleteAdminById = async (id: string) => {
+  const token = localStorage.getItem('token');
+  const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+  if (!token || !tokenType) {
+    throw new Error('Authorization token is missing');
+  }
+
+  const requestOptions = {
+    method: 'DELETE',
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `${tokenType} ${token}`,
+    },
+  };
+
+  try {
+    const response = await fetch(`${apiUrl}/admin/${id}`, requestOptions);
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data; // Return the response data (confirmation of deletion)
+  } catch (error) {
+    console.error('Error deleting admin:', error);
+    throw error;
+  }
+};
+
+// services/https/admin.ts
+export const updateAdminYourselfById = async (id: string, updatedData: AdminInterface) => {
+  try {
+    // Retrieve the token from localStorage
+    const token = localStorage.getItem("token"); // Assuming you store your token in localStorage
+    const tokenType = localStorage.getItem("token_type") || "Bearer"; // Default to Bearer if token type is not available
+
+    if (!token) {
+      throw new Error("Authorization token is missing");
+    }
+
+    // Log the token for debugging
+    console.log("Authorization token:", token);
+
+    const response = await fetch(`${apiUrl}/adminyourself/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${tokenType} ${token}`, // Add Bearer token to Authorization header
+      },
+      body: JSON.stringify(updatedData), // Send updated data in the request body
+    });
+
+    if (!response.ok) {
+      console.error(`Error: ${response.status} - ${response.statusText}`);
+      message.error(`Failed to update admin. Status: ${response.status}`); // Error message
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const data = await response.json(); // Parse the response JSON data
+    console.log("API response:", data);
+
+    // If successful, return the updated data and show success message
+    message.success("Admin updated successfully");
+    return data;
+  } catch (error) {
+    console.error("Error updating admin:", error);
+    message.error("Error occurred while updating admin."); // Show error message
     throw error;
   }
 };

@@ -25,7 +25,7 @@ function CreateAdmin() {
 
   const onFinish = async (values: UsersInterface) => {
     // Add role as 'admin' here
-    const userData = { ...values, role: "admin" };
+    const userData = { ...values, role: "superadmin", };
 
     let res = await CreateUser(userData);
 
@@ -35,7 +35,7 @@ function CreateAdmin() {
         content: res.data.message,
       });
       setTimeout(function () {
-        navigate("/customer");
+        navigate("/superadmin");
       }, 2000);
     } else {
       messageApi.open({
@@ -176,7 +176,7 @@ function CreateAdmin() {
             <Col style={{ marginTop: "40px" }}>
               <Form.Item>
                 <Space>
-                  <Link to="/customer">
+                  <Link to="/superadmin">
                     <Button htmlType="button" style={{ marginRight: "10px" }}>
                       ยกเลิก
                     </Button>

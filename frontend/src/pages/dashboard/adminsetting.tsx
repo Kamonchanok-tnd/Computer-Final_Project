@@ -16,13 +16,13 @@ const AdminSettings = () => {
 
   // ฟังก์ชันสำหรับไปหน้า createadmin
   const goToCreateAdmin = () => {
-    navigate("/admin/create"); // Change the route to your create admin page
+    navigate("/superadmin/create"); // Change the route to your create admin page
   };
   const goToDashboardAdmin = () => {
-    navigate("/admin/dashboard"); // Change the route to your create admin page
+    navigate("/superadmin/dashboard"); // Change the route to your create admin page
   };
   const goToEditAdmin = () => {
-    navigate("/admin/edit/:id"); // Change the route to your create admin page
+    navigate("super/admin/edit/:id"); // Change the route to your create admin page
   };
 
   return (

@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Space, Table, Button, Col, Row, Divider, message } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { DeleteUsersById } from "../../../services/https/login";
+
 import { getAllAdmins } from "../../../services/https/admin";
 import { AdminInterface } from "../../../interfaces/IAdmin";  // นำเข้า AdminInterface
 import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import { deleteAdminById } from "../../../services/https/admin";
 
 function DashboardAdmin() {
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ function DashboardAdmin() {
           <Button
             type="primary"
             icon={<DeleteOutlined />}
-            onClick={() => navigate(`/admin/edit/${record.ID}`)}
+            onClick={() => navigate(`/superadmin/edit/${record.ID}`)}
           >
             แก้ไขข้อมูล
           </Button>
@@ -82,7 +83,7 @@ function DashboardAdmin() {
   ];
 
   const deleteUserById = async (id: string) => {
-    let res = await DeleteUsersById(id);
+    let res = await deleteAdminById(id);
     if (res.status === 200) {
       messageApi.open({
         type: "success",
@@ -133,7 +134,7 @@ function DashboardAdmin() {
         </Col>
         <Col span={12} style={{ textAlign: "end", alignSelf: "center" }}>
           <Space>
-            <Link to="/admin/create">
+            <Link to="/superadmin/create">
               <Button type="primary" icon={<PlusOutlined />}>
                 สร้างข้อมูล
               </Button>

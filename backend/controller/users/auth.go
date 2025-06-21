@@ -68,10 +68,15 @@ func SignUp(c *gin.Context) {
         return
     }
 
-    // ตรวจสอบ Role ว่ามีค่าเป็น "admin" หรือ "user" เท่านั้น
-    if payload.Role != "admin" && payload.Role != "user" {
+    // ตรวจสอบ Role ว่ามีค่าเป็น "superadmin" หรือ "user" เท่านั้น
+    if payload.Role != "superadmin" && payload.Role != "user" {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
         return
+    }
+
+    // หาก role เป็น superadmin ให้เปลี่ยน role เป็น admin
+    if payload.Role == "superadmin" {
+        payload.Role = "admin"  // เปลี่ยนเป็น admin
     }
 
     // ตรวจสอบความปลอดภัยของรหัสผ่าน เช่น ความยาวขั้นต่ำ 6 ตัว
@@ -95,7 +100,7 @@ func SignUp(c *gin.Context) {
         Facebook:   payload.Facebook,
         Line:       payload.Line,
         PhoneNumber: payload.PhoneNumber,
-        Role:       payload.Role,
+        Role:       payload.Role, // บันทึก role เป็น admin หากเป็น superadmin
         Age:        payload.Age, 
         Gender:     payload.Gender,
     }
