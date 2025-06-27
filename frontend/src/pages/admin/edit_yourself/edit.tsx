@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Form, Input, Button, Space, Row, Col, Spin, message } from "antd";
+import { Form, Input, Button, Space, Row, Col, Spin, message, Select } from "antd";
 import { useNavigate } from "react-router-dom";
 import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminYourselfById } from "../../../services/https/admin";
@@ -49,9 +49,9 @@ function EditYourself() {
       console.log("API response:", response);
 
       if (response.status === 200 || response.status === 'success') {
-        messageApi.success("Admin updated successfully");
+        messageApi.success("แก้ไขข้อมูล สำเร็จ!");
         setTimeout(() => {
-          navigate("/superadmin/dashboard");
+          navigate("/admin");
         }, 1000);
       } else {
         messageApi.error(`Failed to update admin. Status: ${response.status}`);
@@ -124,12 +124,17 @@ function EditYourself() {
               <Input type="number" />
             </Form.Item>
 
+            {/* เปลี่ยนจาก Input เป็น Select สำหรับเพศ */}
             <Form.Item
               label="Gender"
               name="gender"
               rules={[{ required: true, message: "Please select the gender!" }]}
             >
-              <Input />
+              <Select placeholder="Select Gender">
+                <Select.Option value="Male">ชาย</Select.Option>
+                <Select.Option value="Female">หญิง</Select.Option>
+                <Select.Option value="Other">อื่นๆ</Select.Option>
+              </Select>
             </Form.Item>
 
             <Form.Item>
@@ -137,7 +142,7 @@ function EditYourself() {
                 <Button type="primary" htmlType="submit" loading={loading}>
                   Save
                 </Button>
-                <Button onClick={() => navigate("/superadmin/dashboard")}>
+                <Button onClick={() => navigate("/admin")}>
                   Cancel
                 </Button>
               </Space>

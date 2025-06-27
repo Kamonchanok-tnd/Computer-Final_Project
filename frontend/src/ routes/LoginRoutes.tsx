@@ -4,6 +4,8 @@ import { RouteObject } from "react-router-dom";
 import SignInPages from "../pages/authen/login/login";
 import SignUpPages from "../pages/users/register/register";
 import ForgotPasswordPage from "../pages/authen/resetpassword/resetpassword";
+import ValidateUuidPage from "../pages/authen/resetpassword/validateUuid";
+import ResetPasswordPage from "../pages/authen/resetpassword/newpassword";
 const LoginRoutes = (): RouteObject[] => {
   return [
     {
@@ -16,7 +18,15 @@ const LoginRoutes = (): RouteObject[] => {
     },
     {
       path: "/forgot-password",  // เส้นทางสำหรับหน้า สมัครสมาชิก
-      element: <ForgotPasswordPage />,  // หน้า Signup
+      element: <ForgotPasswordPage />,  // หน้า Signup 
+    },
+    {
+      path: "/reset-password",  // เส้นทางสำหรับหน้า สมัครสมาชิก
+      element: <ValidateUuidPage />,  // หน้า Signup /reset-password
+    },
+    {
+      path: "/update-password",  // เส้นทางสำหรับหน้า สมัครสมาชิก
+      element: <ResetPasswordPage/>,  // หน้า Signup /reset-password
     },
   ];
 };

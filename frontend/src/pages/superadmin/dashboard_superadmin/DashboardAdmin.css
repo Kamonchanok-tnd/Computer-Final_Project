@@ -1,0 +1,141 @@
+/* Container สำหรับ Dashboard Admin */
+.dashboard-admin-container {
+  padding: 20px;
+  background-color: #f5f5f5; /* สีพื้นหลัง */
+}
+
+/* สำหรับการจัดระเบียบ Header */
+.dashboard-admin-container .header-container {
+  margin-bottom: 20px;
+}
+
+/* การเพิ่มระยะห่างและจัดตำแหน่งในส่วนของข้อความและปุ่ม */
+.dashboard-admin-container .page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* ปรับตำแหน่งปุ่มและการจัดระเบียบ */
+.dashboard-admin-container .space-container {
+  margin-bottom: 20px;
+}
+
+/* จัดการสไตล์ Divider */
+.dashboard-admin-container .ant-divider {
+  margin: 20px 0;
+}
+
+/* การตั้งค่าสไตล์ของปุ่ม Create */
+.dashboard-admin-container .create-button {
+  background-color: #FFA500;
+  color: white;
+}
+
+.dashboard-admin-container .create-button:hover {
+  background-color: #e68900;
+}
+
+/* จัดสไตล์ปุ่ม Edit และ Delete */
+.dashboard-admin-container .edit-button {
+  background-color: #FFA500;
+  color: white;
+}
+
+.dashboard-admin-container .edit-button:hover {
+  background-color: #e68900;
+}
+
+.dashboard-admin-container .delete-button {
+  background-color: #DC143C;
+  color: white;
+}
+
+.dashboard-admin-container .delete-button:hover {
+  background-color: #b90e2d;
+}
+
+/* ทำให้หน้า Responsive สำหรับขนาดหน้าจอเล็ก */
+@media (max-width: 1200px) {
+  .dashboard-admin-container .page-title {
+    font-size: 20px; /* ลดขนาดข้อความในหน้าจอที่เล็กลง */
+  }
+
+  .dashboard-admin-container .create-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .dashboard-admin-container .edit-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .dashboard-admin-container .delete-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .dashboard-admin-container .space-container {
+    margin-bottom: 15px;
+  }
+}
+
+/* ทำให้หน้า Responsive สำหรับมือถือ */
+@media (max-width: 768px) {
+  .dashboard-admin-container .header-container {
+    display: block;
+    text-align: center; /* จัดข้อความใน header ให้อยู่กลาง */
+  }
+
+  .dashboard-admin-container .page-title {
+    font-size: 18px; /* ลดขนาดข้อความสำหรับมือถือ */
+  }
+
+  .dashboard-admin-container .create-button {
+    font-size: 14px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .dashboard-admin-container .ant-table {
+    font-size: 12px; /* ลดขนาดตัวอักษรในตาราง */
+  }
+
+  .dashboard-admin-container .ant-table-thead th,
+  .dashboard-admin-container .ant-table-tbody td {
+    padding: 8px; /* ปรับระยะห่างในตาราง */
+  }
+
+  .dashboard-admin-container .space-container {
+    display: block;
+    margin-bottom: 10px;
+  }
+}
+
+/* สำหรับมือถือขนาดเล็กมาก (Portrait) */
+@media (max-width: 480px) {
+  .dashboard-admin-container .page-title {
+    font-size: 16px; /* ลดขนาดข้อความลง */
+  }
+
+  .dashboard-admin-container .create-button {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .dashboard-admin-container .edit-button {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .dashboard-admin-container .delete-button {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .dashboard-admin-container .ant-table {
+    font-size: 12px;
+    overflow-x: auto; /* ทำให้สามารถเลื่อนตารางได้ในแนวนอน */
+  }
+}

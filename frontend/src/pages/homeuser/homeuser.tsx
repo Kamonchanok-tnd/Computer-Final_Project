@@ -1,60 +1,87 @@
 import React, { useState } from "react";
-import { Button, Row, Col, Card, message } from "antd";
 import { useNavigate } from "react-router-dom";
-
 import Navbar from "../../components/Navbar/Navbar";
-
+import "./homeuser.css"
+import logo from "../../assets/login.png";
 export const logout = () => {
-  localStorage.removeItem("token"); // ลบ token ออกจาก localStorage
-  localStorage.removeItem("token_type"); // ลบ token_type (หากมี)
+  localStorage.removeItem("token");
+  localStorage.removeItem("token_type");
 };
 
 function Home() {
-  const [loading, setLoading] = useState(false);
+  const [feeling, setFeeling] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // ลบข้อมูลทั้งหมดจาก localStorage
     localStorage.clear();
-    message.success("Logged out successfully");
-    // นำทางไปที่หน้า Login
     navigate("/");
   };
 
-  // ฟังก์ชันล็อกเอาต์
-  const handleEditProfile = () => {
-    // นำทางไปยังหน้าแก้ไขโปรไฟล์
-    navigate("/user/edit-profile");
+  const handleFeelingChange = (emoji: string) => {
+    setFeeling(emoji);
   };
 
   return (
     <>
-      {/* ใส่ Navbar ลงในหน้า Home */}
-      <Navbar /> 
+      <Navbar />
+      <div className="home-page">
+       
 
-      <Row justify="center" style={{ marginTop: "20px" }}>
-        <Col span={12}>
-          <Card title="Welcome to the Home Page" bordered={false} style={{ width: "100%" }}>
-            <p>Welcome to the user portal. We are happy to have you here!</p>
+        <div className="feeling-question">
+          <h2>วันนี้คุณรู้สึกอย่างไร?</h2>
+          <div className="emoji-container">
+            <span
+              className={`emoji ${feeling === "😊" ? "selected" : ""}`}
+              onClick={() => handleFeelingChange("😊")}
+            >
+              😊
+            </span>
+            <span
+              className={`emoji ${feeling === "😐" ? "selected" : ""}`}
+              onClick={() => handleFeelingChange("😐")}
+            >
+              😐
+            </span>
+            <span
+              className={`emoji ${feeling === "😞" ? "selected" : ""}`}
+              onClick={() => handleFeelingChange("😞")}
+            >
+              😞
+            </span>
+          </div>
+        </div>
 
-            <Button 
-              type="primary" 
-              onClick={handleLogout} 
-              loading={loading} 
-              style={{ marginTop: "20px" }}
-            >
-              Logout
-            </Button>
-            <Button
-              onClick={handleEditProfile}
-              type="default"
-              style={{ marginTop: "20px", marginLeft: "10px" }}
-            >
-              แก้ไขข้อมูล
-            </Button>
-          </Card>
-        </Col>
-      </Row>
+        <div className="activity-container">
+
+          <h1>แบบสอบถาม</h1>
+          <div>
+            <img src={logo} alt="กิจกรรม 1" />
+            <h3>กิจกรรม 1</h3>
+          </div>
+          <div>
+            <img src={logo} alt="กิจกรรม 2" />
+            <h3>กิจกรรม 2</h3>
+          </div>
+          <div>
+            <img src={logo} alt="กิจกรรม 3" />
+            <h3>กิจกรรม 3</h3>
+          </div>
+        </div>
+        <div className="content">
+          <h1>กิจกรรมต่างๆ</h1>
+          <div>
+            <img src={logo} alt="กิจกรรม 1" />
+            <h3>กิจกรรม 1</h3>
+          </div>
+          <div>
+            <img src={logo} alt="กิจกรรม 1" />
+            <h3>กิจกรรม 2</h3>
+          </div>
+
+        </div>
+
+        
+      </div>
     </>
   );
 }

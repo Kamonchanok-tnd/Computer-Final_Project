@@ -32,7 +32,7 @@ function UserEdit() {
         type: "error",
         content: "ไม่พบข้อมูลผู้ใช้",
       });
-      navigate("/login"); // ถ้าไม่พบ id ให้กลับไปที่หน้า login
+      navigate("/"); // ถ้าไม่พบ id ให้กลับไปที่หน้า login
     } else {
       getUserById(userId); // ดึงข้อมูลของผู้ใช้ที่มี id ตรงกับ userId
     }

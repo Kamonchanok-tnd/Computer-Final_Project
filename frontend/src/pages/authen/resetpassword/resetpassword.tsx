@@ -17,24 +17,33 @@ const ForgotPasswordPage: React.FC = () => {
 
   // จัดการการส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของผู้ใช้
   const handleEmailSubmit = async () => {
-    if (!email) return messageApi.error("กรุณากรอกอีเมลของคุณ");
+  if (!email) {
+    console.log("Email is empty, returning error.");
+    return messageApi.error("กรุณากรอกอีเมลของคุณ");
+  }
 
-    setLoading(true);
-    try {
-      // ใช้ฟังก์ชัน RequestPasswordReset จาก service
-      const response = await RequestPasswordReset(email);
-      if (response.status === 200) {
-        messageApi.success("ส่งรหัสยืนยันไปที่อีเมลของคุณแล้ว");
-        setTimeout(() => navigate("/reset-password"), 1500); // หลังจากส่งสำเร็จจะนำทางไปยังหน้าตั้งรหัสผ่านใหม่
-      } else {
-        messageApi.error(response.data.error || "ไม่สามารถส่งรหัสยืนยันได้");
-      }
-    } catch (error) {
-      messageApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    console.log("Sending request to reset password for email:", email);
+
+    // ใช้ฟังก์ชัน RequestPasswordReset จาก service
+    const response = await RequestPasswordReset(email);
+
+    console.log("Response from backend:", response); // log ดู response จาก Backend
+
+    if (response.status === 200) {
+      messageApi.success("ส่งรหัสยืนยันไปที่อีเมลของคุณแล้ว");
+      setTimeout(() => navigate("/reset-password"), 1500); // หลังจากส่งสำเร็จจะนำทางไปยังหน้าตั้งรหัสผ่านใหม่
+    } else {
+      messageApi.error(response.data.error || "ไม่สามารถส่งรหัสยืนยันได้");
     }
-  };
+  } catch (error) {
+    console.log("Error during password reset request:", error); // log ข้อผิดพลาดหากเกิดขึ้น
+    messageApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>
@@ -80,7 +89,7 @@ const ForgotPasswordPage: React.FC = () => {
           </Form>
           <Text style={{ textAlign: "center" }}>
             หรือ{" "}
-            <a onClick={() => navigate("/login")} style={{ color: "#0288d1" }}>
+            <a onClick={() => navigate("/")} style={{ color: "#0288d1" }}>
               กลับสู่หน้าล็อกอิน
             </a>
           </Text>

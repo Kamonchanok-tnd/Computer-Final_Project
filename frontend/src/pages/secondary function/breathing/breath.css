@@ -1,0 +1,126 @@
+.breathing-page {
+  background-color: #e0f7fa;
+  padding: 20px;
+  margin: 0; /* ลบ margin ที่อาจทำให้มีช่องว่าง */
+  display: flex; /* ใช้ flexbox */
+  flex-direction: column; /* จัดแนวให้เป็นคอลัมน์ */
+  justify-content: center; /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+  align-items: center; /* จัดให้อยู่ตรงกลางในแนวนอน */
+  height: 100vh; /* กำหนดความสูงของหน้าให้เต็มหน้าจอ */
+}
+
+.breathing-page h1 {
+  font-size: 50px; /* เพิ่มขนาดฟอนต์คำว่า 'ฝึกหายใจ' */
+  color: #356ea4; /* สีของข้อความ */
+  font-weight: bold;
+  display: flex; /* ใช้ flexbox */
+  align-items: center; /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+  gap: 20px; /* เพิ่มระยะห่างระหว่างรูปและข้อความ */
+  z-index: 10;
+}
+
+.breathing-page .breathing-exercise {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%; /* ทำให้ส่วนนี้เต็มพื้นที่ */
+  justify-content: flex-start; /* จัดตำแหน่งให้ข้อความอยู่ข้างบน */
+}
+
+.breathing-page .breathing-exercise h3 {
+  font-size: 24px; /* ขนาดฟอนต์ของหัวข้อ */
+  font-weight: bold;
+  margin-bottom: 40px; /* เพิ่มระยะห่างระหว่างหัวข้อและวงกลม */
+  color: #333; /* สีของข้อความ */
+}
+
+.breathing-page .circle {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #ffffff, #00bfff); /* ไล่สีจากขาวไปฟ้า */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #00bfff;
+  margin: 20px 0;
+  animation: pulse 2s infinite;
+  position: relative;
+  box-shadow: 0px 0px 15px rgba(0, 191, 255, 0.5); /* หมอกสีฟ้าอ่อน */
+  top: 25%;
+}
+
+/* เพิ่มเอฟเฟกต์หมอกให้กับวงกลม */
+.breathing-page .circle::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5), rgba(0, 191, 255, 0.3)); /* หมอกสีขาว-ฟ้า */
+  top: 0;
+  left: 0;
+  box-shadow: 0px 0px 25px rgba(0, 191, 255, 0.5);
+}
+
+.breathing-page .circle::after {
+  content: "";
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff, #00bfff); /* ไล่สีจากขาวไปฟ้า */
+  top: 15%;
+  left: 15%;
+  box-shadow: 0px 0px 20px rgba(0, 191, 255, 0.5); /* หมอกสีฟ้าอ่อน */
+}
+
+/* ให้ span อยู่เหนือวงกลม */
+.breathing-page .circle span {
+  position: absolute;
+  z-index: 1; /* ให้ข้อความอยู่เหนือวงกลม */
+  font-size: 32px; /* ขนาดฟอนต์ของข้อความ */
+  font-weight: bold;
+  color: #00bfff; /* สีข้อความ */
+  text-align: center;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .circle {
+    width: 250px;
+    height: 250px;
+    font-size: 28px;
+  }
+
+  .circle::before {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .circle {
+    width: 200px;
+    height: 200px;
+    font-size: 24px;
+  }
+
+  .circle::before {
+    width: 100%;
+    height: 100%;
+  }
+}

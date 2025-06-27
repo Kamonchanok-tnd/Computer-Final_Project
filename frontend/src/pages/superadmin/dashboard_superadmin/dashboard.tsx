@@ -8,6 +8,7 @@ import { AdminInterface } from "../../../interfaces/IAdmin";  // นำเข้
 import { Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { deleteAdminById } from "../../../services/https/admin";
+import './DashboardAdmin.css';
 
 function DashboardAdmin() {
   const navigate = useNavigate();
@@ -126,24 +127,24 @@ function DashboardAdmin() {
   };
 
   return (
-    <>
+     <div className="dashboard-admin-container"> {/* เพิ่ม className ครอบทั้งหมด */}
       {contextHolder}
-      <Row>
+      <Row className="header-container">
         <Col span={12}>
-          <h2>จัดการข้อมูลสมาชิก</h2>
+          <h2 className="page-title">จัดการข้อมูลผู้ดูแลระบบ</h2>
         </Col>
         <Col span={12} style={{ textAlign: "end", alignSelf: "center" }}>
-          <Space>
+          <Space className="space-container">
             <Link to="/superadmin/create">
-              <Button type="primary" icon={<PlusOutlined />}>
+              <Button className="create-button" icon={<PlusOutlined />}>
                 สร้างข้อมูล
               </Button>
             </Link>
           </Space>
         </Col>
       </Row>
-      <Divider />
-      <div style={{ marginTop: 20 }}>
+      <Divider className="ant-divider" />
+      <div className="layout-container">
         <Table
           rowKey="ID"
           columns={columns}
@@ -151,7 +152,7 @@ function DashboardAdmin() {
           style={{ width: "100%", overflow: "scroll" }}
         />
       </div>
-    </>
+    </div>
   );
 }
 

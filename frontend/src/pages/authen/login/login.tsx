@@ -14,7 +14,7 @@ function SignInPages() {
     let res = await SignIn(values);
 
     if (res.status === 200) {
-      messageApi.success("Sign-in successful");
+      messageApi.success("เข้าสู่ระบบ สำเร็จ!");
 
       // Save data after login
       localStorage.setItem("isLogin", "true");
@@ -40,7 +40,7 @@ function SignInPages() {
           redirectPath = "/user";
           break;
         default:
-          redirectPath = "/login";
+          redirectPath = "/";
       }
 
       setTimeout(() => {

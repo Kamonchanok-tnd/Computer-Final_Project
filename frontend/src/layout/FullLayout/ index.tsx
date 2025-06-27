@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { Layout, Menu, Button } from "antd"; // เพิ่ม Button
+import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
+import { MenuOutlined } from '@ant-design/icons'; // นำเข้า MenuOutlined สำหรับ hamburger icon
 const { Header, Content, Footer, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
+import './FullLayout.css'; // นำเข้าไฟล์ CSS
 
 const FullLayout = () => {
   const location = useLocation(); // ใช้ useLocation เพื่อให้เมนูถูกเลือกตามเส้นทางที่กำลังใช้งาน
   const selectedKey = location.pathname;
   const navigate = useNavigate();
+  
+  const [drawerVisible, setDrawerVisible] = useState(false); // การเปิด/ปิด Drawer
+  const [collapsed, setCollapsed] = useState(false); // เพื่อจัดการการยุบของ Sider
 
   const handleLogout = () => {
     // ลบข้อมูลทั้งหมดจาก localStorage
@@ -17,20 +22,42 @@ const FullLayout = () => {
     navigate("/");
   };
 
+  const showDrawer = () => {
+    setDrawerVisible(true); // เปิด Drawer
+  };
+
+  const onClose = () => {
+    setDrawerVisible(false); // ปิด Drawer
+  };
+
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div className="logo" style={{ color: "white", fontSize: 20 }}>Suk Jai</div>
-        <Button onClick={handleLogout} type="primary" style={{ marginTop: "20px", float: 'right' }}>
+    <Layout className="layout" style={{ minHeight: "100vh" }}>
+      <Header className="layout-header">
+        {/* ปุ่ม Hamburger อยู่ทางซ้ายของ Suk Jai */}
+        <Button 
+          type="primary" 
+          icon={<MenuOutlined />}  // ใช้ MenuOutlined แสดงสามขีด
+          onClick={showDrawer} 
+          className="layout-hamburger-button"
+        />
+        <div className="layout-logo">Suk Jai</div>
+        <Button onClick={handleLogout} type="primary" className="layout-logout-button">
           ออกจากระบบ
         </Button>
       </Header>
       <Layout>
-        <Sider width={200} style={{ background: "#fff" }}>
+        <Sider 
+          width={200} 
+          className="layout-sider" 
+          collapsible 
+          collapsed={collapsed} 
+          onCollapse={(value) => setCollapsed(value)} // การยุบ/ขยาย Sider
+          breakpoint="lg" // ใช้ breakpoint ให้ Sider ยุบในขนาดที่กำหนด
+        >
           <Menu
             mode="inline"
             selectedKeys={[selectedKey]}  // เลือกเมนูตามเส้นทางปัจจุบัน
-            style={{ height: "100%", borderRight: 0 }}
+            className="layout-menu"
           >
             <Menu.Item key="/superadmin">
               <Link to="/superadmin/dashboard">Dashboard</Link>
@@ -38,25 +65,35 @@ const FullLayout = () => {
             <Menu.Item key="/superadmin/settings">
               <Link to="/superadmin/settings">Settings</Link>
             </Menu.Item>
-            {/* <Menu.Item key="/user">
-              <Link to="/user">User Dashboard</Link>
-            </Menu.Item>
-            <Menu.Item key="/user/profile">
-              <Link to="/user/profile">User Profile</Link>
-            </Menu.Item> */}
           </Menu>
         </Sider>
-        <Layout style={{ padding: "0 24px 24px" }}>
-          <Content
-            style={{
-              padding: 24,
-              margin: 0,
-              minHeight: 280,
-            }}
+
+        <Drawer
+          title="Menu"
+          placement="left"
+          closable={true}
+          onClose={onClose}
+          visible={drawerVisible}
+        >
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]} // เลือกเมนูตามเส้นทางปัจจุบัน
+            className="layout-menu"
           >
+            <Menu.Item key="/superadmin">
+              <Link to="/superadmin/dashboard">Dashboard</Link>
+            </Menu.Item>
+            <Menu.Item key="/superadmin/settings">
+              <Link to="/superadmin/settings">Settings</Link>
+            </Menu.Item>
+          </Menu>
+        </Drawer>
+
+        <Layout className="layout-content-layout">
+          <Content className="layout-content">
             <Outlet /> {/* ช่องว่างที่จะแสดงเนื้อหาย่อย */}
           </Content>
-          <Footer style={{ textAlign: "center" }}>My App ©2025</Footer>
+          <Footer className="layout-footer">My App ©2025</Footer>
         </Layout>
       </Layout>
     </Layout>
