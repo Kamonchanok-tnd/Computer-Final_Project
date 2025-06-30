@@ -1,0 +1,44 @@
+/* CSS สำหรับ DashboardAdmin */
+.dashboard-admin-container {
+  padding: 20px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.table-container {
+  margin-top: 20px;
+  overflow-x: auto; /* สำหรับการเลื่อนตารางถ้าเนื้อหามาก */
+}
+
+.admin-table {
+  width: 100%;
+  border: 1px solid #ddd; /* กำหนดขอบให้ตาราง */
+  border-radius: 8px;
+}
+
+.admin-table .ant-table-thead > tr > th {
+  background-color: #f0f0f0; /* สีพื้นหลังของ header */
+  text-align: center;
+  font-weight: bold;
+}
+
+.admin-table .ant-table-tbody > tr > td {
+  text-align: center;
+}
+
+/* ปรับปรุงปุ่ม logout */
+.layout-logout-button {
+  margin-top: 20px;
+  float: right;
+  background-color: rgb(255, 59, 59);
+  border: none;
+  color: white;
+}
+
+.layout-logout-button:hover {
+  background-color: rgb(255, 99, 99); /* เปลี่ยนสีเมื่อ hover */
+}
