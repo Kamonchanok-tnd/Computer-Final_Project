@@ -6,6 +6,7 @@ import HomePage from "../pages/secondary function/audio content home/audiohome";
 import BreathingPage from "../pages/secondary function/breathing/breath";
 
 import MeditationPage from "../pages/secondary function/meditation/meditation";
+import ChatSpace from "../pages/Chat-space/chat";
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
 const Home = Loadable(lazy(() => import("../pages/homeuser/homeuser")));
@@ -33,6 +34,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
       path: "/user/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
       element: isLoggedIn ? <MeditationPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
     },
+    {
+      path: "/user/chat", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <ChatSpace /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    }
   ];
 };
 
