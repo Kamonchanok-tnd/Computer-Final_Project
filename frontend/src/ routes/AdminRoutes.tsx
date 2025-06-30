@@ -2,7 +2,7 @@ import { RouteObject } from "react-router-dom";
 
 import { Navigate } from "react-router-dom";
 import AdminLayout from "../layout/AdminLayout";
-import Loadable from "../components/third-patry/Loadable";
+import Loadable from "../components/loading/Loadable";
 import { lazy } from "react";
 // import EditYourself from "../pages/admin/edit_yourself/edit";
 const AdminDashboard = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard_admin")));
