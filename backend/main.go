@@ -6,6 +6,7 @@ import (
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
 	"sukjai_project/controller/admin"
+	controller "sukjai_project/controller/chat_space"
 	"sukjai_project/controller/resettoken"
 	"sukjai_project/controller/users"
 	"sukjai_project/middlewares"
@@ -58,7 +59,8 @@ func main() {
     r.POST("/forgot-password", users.ForgotPasswordController)
     r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
-   
+    r.POST("/gemini", controller.GeminiHistory)
+    r.GET("/conversation/:id", controller.GetConversationHistory)
     // Protect routes with role-based access
     router := r.Group("/")
     {
