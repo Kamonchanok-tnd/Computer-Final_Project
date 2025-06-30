@@ -43,7 +43,7 @@ function DashboardAdmin() {
       key: "index",
     },
     {
-      title: "Username",
+      title: "ชื่อผู้ใช้",
       dataIndex: "username",
       key: "username",
     },

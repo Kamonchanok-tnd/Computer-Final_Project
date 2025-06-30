@@ -1,0 +1,57 @@
+/* CSS สำหรับ EditAdmin */
+.edit-admin-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+.edit-admin-row {
+  margin-top: 20px;
+}
+
+.edit-admin-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  padding: 40px;
+}
+
+.edit-admin-form {
+  max-width: 700px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-input {
+  width: 100%;
+  padding: 2px;
+  /* border-radius: 4px;
+  border: 1px solid #ddd; */
+}
+
+.form-input:focus {
+  border-color: #40a9ff;
+}
+
+.submit-button {
+  width: 120px;
+  margin-right: 10px;
+}
+
+.cancel-button {
+  width: 120px;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 50px 0;
+}
+
+.loading-container h3 {
+  font-size: 18px;
+  color: #666;
+}
