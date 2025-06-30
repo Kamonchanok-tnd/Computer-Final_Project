@@ -2,7 +2,7 @@ import { RouteObject } from "react-router-dom";
 import FullLayout from "../layout/FullLayout/ index";
 import { Navigate } from "react-router-dom";
 
-import Loadable from "../components/third-patry/Loadable";
+import Loadable from "../components/loading/Loadable";
 import { lazy } from "react";
 // import CreateAdmin from "../pages/superadmin/create_admin/createadmin";
 // import DashboardAdmin from "../pages/superadmin/dashboard_admin/dashboard";

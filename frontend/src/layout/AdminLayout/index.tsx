@@ -19,7 +19,7 @@ const AdminLayout = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' , background: 'blue'}}>
         <div className="logo" style={{ color: "white", fontSize: 20 }}>Suk Jai</div>
         <Button onClick={handleLogout} type="primary" style={{ marginTop: "20px", float: 'right' }}>
           ออกจากระบบ
@@ -38,12 +38,12 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/edityourself">
               <Link to="/admin/edityourself">Settings</Link>
             </Menu.Item>
-            {/* <Menu.Item key="/user">
-              <Link to="/user">User Dashboard</Link>
+            <Menu.Item key="">
+              <Link to="/superadmin/settings">Chat</Link>
             </Menu.Item>
-            <Menu.Item key="/user/profile">
-              <Link to="/user/profile">User Profile</Link>
-            </Menu.Item> */}
+            <Menu.Item key="">
+              <Link to="/superadmin/settings">questionnaire</Link>
+            </Menu.Item>
           </Menu>
         </Sider>
         <Layout style={{ padding: "0 24px 24px" }}>

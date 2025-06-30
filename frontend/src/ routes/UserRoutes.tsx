@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { RouteObject } from "react-router-dom";
-import Loadable from "../components/third-patry/Loadable";
+import Loadable from "../components/loading/Loadable";
 import { Navigate } from "react-router-dom";
 import HomePage from "../pages/secondary function/audio content home/audiohome";
 import BreathingPage from "../pages/secondary function/breathing/breath";
