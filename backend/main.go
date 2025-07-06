@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
+    
 	"sukjai_project/controller/admin"
 	controller "sukjai_project/controller/chat_space"
-	"sukjai_project/controller/resettoken"
-	"sukjai_project/controller/users"
-	"sukjai_project/middlewares"
+    "sukjai_project/controller/resettoken"
+    "sukjai_project/controller/users"
+    "sukjai_project/middlewares"
+    "sukjai_project/controller/prompt"
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -61,6 +63,8 @@ func main() {
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
     r.POST("/gemini", controller.GeminiHistory)
     r.GET("/conversation/:id", controller.GetConversationHistory)
+   
+    
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -69,6 +73,10 @@ func main() {
         router.GET("/admin", admin.GetAllAdmin)
         router.GET("/admin/:id", admin.GetAdminById) 
         router.PUT("/adminyourself/:id", admin.EditAdminYourself)
+        router.POST("/admin/prompt", prompt.CreatePrompt)
+        router.GET("/admin/getprompt", prompt.GetAllPrompts)
+
+    
         
         // Routes for superadmin only
         router.Use(middlewares.Authorizes("superadmin"))
