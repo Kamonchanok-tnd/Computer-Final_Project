@@ -1,7 +1,7 @@
 // types/IPrompt.ts
 
 export interface IPrompt {
-  id?: number; 
+  ID?: number; 
   objective: string;
   persona?: string;
   tone?: string;

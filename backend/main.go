@@ -73,10 +73,15 @@ func main() {
         router.GET("/admin", admin.GetAllAdmin)
         router.GET("/admin/:id", admin.GetAdminById) 
         router.PUT("/adminyourself/:id", admin.EditAdminYourself)
-        router.POST("/admin/prompt", prompt.CreatePrompt)
-        router.GET("/admin/getprompt", prompt.GetAllPrompts)
 
-    
+        router.POST("/admin/prompt", prompt.CreatePrompt)
+        router.GET("/admin/prompt", prompt.GetAllPrompts)
+        router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
+        router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
+        router.POST("/admin/prompt/use/:id", prompt.UsePrompt)
+        router.GET("/admin/prompt/:id", prompt.GetPromptByID)
+
+
         
         // Routes for superadmin only
         router.Use(middlewares.Authorizes("superadmin"))

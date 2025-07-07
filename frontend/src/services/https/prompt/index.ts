@@ -1,39 +1,30 @@
-import axios from 'axios'
-import { IPrompt } from '../../../interfaces/IPrompt'
-
-const API_URL = import.meta.env.VITE_API_URL;
-const token = localStorage.getItem("token");
-
-console.log("API_URL:", API_URL)
-console.log
+import api from '../../../interceptors/axios';
+import { IPrompt } from '../../../interfaces/IPrompt';
 
 export const createPrompt = async (prompt: Omit<IPrompt, 'id'>): Promise<IPrompt> => {
-  const response = await axios.post<IPrompt>(`${API_URL}/admin/prompt`,prompt,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  );
-  return response.data;
-}
-
-export const getPrompts = async (): Promise<IPrompt[]> => {
-  const response = await axios.get<IPrompt[]>(`${API_URL}/admin/getprompt`,
-     {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  );
+  const response = await api.post<IPrompt>('/admin/prompt', prompt);
   return response.data;
 };
 
+export const updatePrompt = async (id: number, prompt: Omit<IPrompt, 'id'>): Promise<IPrompt> => {
+  const response = await api.put<IPrompt>(`/admin/prompt/${id}`, prompt);
+  return response.data;
+};
 
 export const deletePrompt = async (id: number): Promise<void> => {
-}
+  await api.delete(`/admin/prompt/${id}`);
+};
 
-export const updatePrompt = async (id: number, prompt: Partial<IPrompt>): Promise<IPrompt> => {
-  const response = await axios.put<IPrompt>(`${API_URL}/${id}`, prompt)
-  return response.data
-}
+export const getPrompts = async (): Promise<IPrompt[]> => {
+  const response = await api.get<IPrompt[]>('/admin/prompt');
+  return response.data;
+};
+
+export const getPromptByID = async (id: number): Promise<IPrompt> => {
+  const response = await api.get<IPrompt>(`/admin/prompt/${id}`);
+  return response.data;
+};
+
+export const usePrompt = async (id: number): Promise<void> => {
+  await api.post(`/admin/prompt/use/${id}`);
+};
