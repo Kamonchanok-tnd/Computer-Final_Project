@@ -10,6 +10,8 @@ const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsettin
 // const CreateAdmin = Loadable(lazy(() => import("../pages/admin/create_admin/createadmin")));
 // const DashboardAdmin = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard")));
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
+const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
+
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
   return [
@@ -25,6 +27,12 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
           path: "/admin/edityourself",
           element: <EditYourself />, // หน้า Settings ของ Admin
         },
+        {
+          path: "prompt",  // เส้นทางสำหรับจัดการ Prompt
+          element: <PromptAdminPage />,
+        }
+
+
         // {
         //   path: "/admin/create",
         //   element: <CreateAdmin />, // หน้า Settings ของ Admin
