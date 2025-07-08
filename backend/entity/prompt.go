@@ -5,11 +5,11 @@ import (
 
 type Prompt struct {
 	gorm.Model
-	Objective string 
-	Persona   string
-	Tone      string
-	Instruction string
-	Constraint  string
-	Context     string
-	IsUsing       bool   
+	Objective string `json:"objective"`
+	Persona     string    `json:"persona"`
+	Tone        string    `json:"tone"`
+	Instruction string    `json:"instruction"`
+	Constraint  string    `json:"constraint"`
+	Context     string    `json:"context"`
+	IsUsing     bool      `json:"is_using"`  
 }

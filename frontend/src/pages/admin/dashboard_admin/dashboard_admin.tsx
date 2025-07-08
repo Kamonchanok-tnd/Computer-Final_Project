@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { Space, Table, Button, Col, Row, Divider, message } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 
 import { getAllAdmins } from "../../../services/https/admin";
 import { AdminInterface } from "../../../interfaces/IAdmin";  // นำเข้า AdminInterface
-import { Link } from "react-router-dom";
-
+import "./dashboard_admin.css"
 function DashboardAdmin() {
   const [users, setUsers] = useState<AdminInterface[]>([]); // ใช้ AdminInterface
   const [messageApi, contextHolder] = message.useMessage();
@@ -22,7 +20,7 @@ function DashboardAdmin() {
       key: "index",
     },
     {
-      title: "Username",
+      title: "ชื่อผู้ใช้",
       dataIndex: "username",
       key: "username",
     },
@@ -78,20 +76,21 @@ function DashboardAdmin() {
   return (
     <>
       {contextHolder}
-      <Row>
-        <Col span={12}>
-          <h2>จัดการข้อมูลสมาชิก</h2>
-        </Col>
-       
-      </Row>
-      <Divider />
-      <div style={{ marginTop: 20 }}>
-        <Table
-          rowKey="ID"
-          columns={columns}
-          dataSource={users}
-          style={{ width: "100%", overflow: "scroll" }}
-        />
+      <div className="dashboard-admin-container">
+        <Row>
+          <Col span={12}>
+            <h2 className="page-title">จัดการข้อมูลสมาชิก</h2>
+          </Col>
+        </Row>
+        <Divider />
+        <div className="table-container">
+          <Table
+            rowKey="ID"
+            columns={columns}
+            dataSource={users}
+            className="admin-table"
+          />
+        </div>
       </div>
     </>
   );

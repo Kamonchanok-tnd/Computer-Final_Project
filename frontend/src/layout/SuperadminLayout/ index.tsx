@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { MenuOutlined } from '@ant-design/icons'; // นำเข้า MenuOutlined สำหรับ hamburger icon
+import { MenuOutlined, DashboardOutlined, SettingOutlined } from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
 const { Header, Content, Footer, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 import './FullLayout.css'; // นำเข้าไฟล์ CSS
@@ -39,8 +39,9 @@ const FullLayout = () => {
           icon={<MenuOutlined />}  // ใช้ MenuOutlined แสดงสามขีด
           onClick={showDrawer} 
           className="layout-hamburger-button"
+          
         />
-        <div className="layout-logo">Suk Jai</div>
+        <div className="layout-logo">SUKJAI SUT</div>
         <Button onClick={handleLogout} type="primary" className="layout-logout-button">
           ออกจากระบบ
         </Button>
@@ -59,10 +60,10 @@ const FullLayout = () => {
             selectedKeys={[selectedKey]}  // เลือกเมนูตามเส้นทางปัจจุบัน
             className="layout-menu"
           >
-            <Menu.Item key="/superadmin">
+            <Menu.Item key="/superadmin" icon={<DashboardOutlined />}>
               <Link to="/superadmin/dashboard">Dashboard</Link>
             </Menu.Item>
-            <Menu.Item key="/superadmin/settings">
+            <Menu.Item key="/superadmin/settings" icon={<SettingOutlined />}>
               <Link to="/superadmin/settings">Settings</Link>
             </Menu.Item>
           </Menu>
@@ -80,10 +81,10 @@ const FullLayout = () => {
             selectedKeys={[selectedKey]} // เลือกเมนูตามเส้นทางปัจจุบัน
             className="layout-menu"
           >
-            <Menu.Item key="/superadmin">
+            <Menu.Item key="/superadmin" icon={<DashboardOutlined />}>
               <Link to="/superadmin/dashboard">Dashboard</Link>
             </Menu.Item>
-            <Menu.Item key="/superadmin/settings">
+            <Menu.Item key="/superadmin/settings" icon={<SettingOutlined />}>
               <Link to="/superadmin/settings">Settings</Link>
             </Menu.Item>
           </Menu>
@@ -93,7 +94,6 @@ const FullLayout = () => {
           <Content className="layout-content">
             <Outlet /> {/* ช่องว่างที่จะแสดงเนื้อหาย่อย */}
           </Content>
-          <Footer className="layout-footer">My App ©2025</Footer>
         </Layout>
       </Layout>
     </Layout>

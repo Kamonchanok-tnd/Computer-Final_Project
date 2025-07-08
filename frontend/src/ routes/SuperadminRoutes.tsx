@@ -1,13 +1,13 @@
 import { RouteObject } from "react-router-dom";
-import FullLayout from "../layout/FullLayout/ index";
+import FullLayout from "../layout/SuperadminLayout/ index";
 import { Navigate } from "react-router-dom";
 
-import Loadable from "../components/third-patry/Loadable";
+import Loadable from "../components/loading/Loadable";
 import { lazy } from "react";
 // import CreateAdmin from "../pages/superadmin/create_admin/createadmin";
 // import DashboardAdmin from "../pages/superadmin/dashboard_admin/dashboard";
 // import EditAdmin from "../pages/superadmin/edit_admin/EditAdmin";
-const AdminDashboard = Loadable(lazy(() => import("../pages/dashboard/admindashboard")));
+// const AdminDashboard = Loadable(lazy(() => import("../pages/dashboard/admindashboard")));
 const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsetting")));
 const CreateAdmin = Loadable(lazy(() => import("../pages/superadmin/create_admin/createadmin")));
 const DashboardAdmin = Loadable(lazy(() => import("../pages/superadmin/dashboard_superadmin/dashboard")));
@@ -22,7 +22,7 @@ const SuperadminRoutes = (isLoggedIn: boolean): RouteObject[] => {
       children: [
         {
           index: true,
-          element: <AdminDashboard />, // หน้า Dashboard ของ Admin
+          element: <DashboardAdmin />, // หน้า Dashboard ของ Admin
         },
         {
           path: "/superadmin/settings",

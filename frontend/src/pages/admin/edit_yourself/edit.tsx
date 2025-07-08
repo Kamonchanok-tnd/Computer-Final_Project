@@ -3,7 +3,7 @@ import { Form, Input, Button, Space, Row, Col, Spin, message, Select } from "ant
 import { useNavigate } from "react-router-dom";
 import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminYourselfById } from "../../../services/https/admin";
-
+import "./edit.css"
 function EditYourself() {
   const [admin, setAdmin] = useState<AdminResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -66,7 +66,7 @@ function EditYourself() {
 
   if (formLoading) {
     return (
-      <div style={{ textAlign: "center", padding: "50px 0" }}>
+      <div className="loading-container">
         <Spin size="large" />
         <h3>กำลังโหลดข้อมูล...</h3>
       </div>
@@ -80,76 +80,77 @@ function EditYourself() {
   return (
     <>
       {contextHolder} {/* เพิ่ม contextHolder ใน JSX */}
-      <Row justify="center" style={{ marginTop: "20px" }}>
-        <Col span={12}>
-          <h2>Edit Your Information</h2>
-          <Form
-            form={form}
-            onFinish={handleSubmit}
-            layout="vertical"
-            style={{ maxWidth: "500px", margin: "0 auto" }}
-          >
-            <Form.Item
-              label="Username"
-              name="username"
-              rules={[{ required: true, message: "Please input the username!" }]}
+      <div className="edit-yourself-container">
+        <Row justify="center" style={{ marginTop: "20px" }}>
+          <Col span={12}>
+            <h2 className="page-title">แก้ไขข้อมูล</h2>
+            <Form
+              form={form}
+              onFinish={handleSubmit}
+              layout="vertical"
+              className="edit-form"
             >
-              <Input />
-            </Form.Item>
+              <Form.Item
+                label="ชื่อผู้ใช้"
+                name="username"
+                rules={[{ required: true, message: "Please input the username!" }]}
+              >
+                <Input className="form-input" />
+              </Form.Item>
 
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                { required: true, message: "Please input the email!" },
-                { type: "email", message: "Please input a valid email!" },
-              ]}
-            >
-              <Input />
-            </Form.Item>
+              <Form.Item
+                label="อีเมล"
+                name="email"
+                rules={[
+                  { required: true, message: "Please input the email!" },
+                  { type: "email", message: "Please input a valid email!" },
+                ]}
+              >
+                <Input className="form-input" />
+              </Form.Item>
 
-            <Form.Item
-              label="Phone Number"
-              name="phone_number"
-              rules={[{ required: true, message: "Please input the phone number!" }]}
-            >
-              <Input />
-            </Form.Item>
+              <Form.Item
+                label="เบอร์โทรศัพท์"
+                name="phone_number"
+                rules={[{ required: true, message: "Please input the phone number!" }]}
+              >
+                <Input className="form-input" />
+              </Form.Item>
 
-            <Form.Item
-              label="Age"
-              name="age"
-              rules={[{ required: true, message: "Please input the age!" }]}
-            >
-              <Input type="number" />
-            </Form.Item>
+              <Form.Item
+                label="อายุ"
+                name="age"
+                rules={[{ required: true, message: "Please input the age!" }]}
+              >
+                <Input type="number" className="form-input" />
+              </Form.Item>
 
-            {/* เปลี่ยนจาก Input เป็น Select สำหรับเพศ */}
-            <Form.Item
-              label="Gender"
-              name="gender"
-              rules={[{ required: true, message: "Please select the gender!" }]}
-            >
-              <Select placeholder="Select Gender">
-                <Select.Option value="Male">ชาย</Select.Option>
-                <Select.Option value="Female">หญิง</Select.Option>
-                <Select.Option value="Other">อื่นๆ</Select.Option>
-              </Select>
-            </Form.Item>
+              <Form.Item
+                label="เพศ"
+                name="gender"
+                rules={[{ required: true, message: "Please select the gender!" }]}
+              >
+                <Select className="form-input" placeholder="Select Gender">
+                  <Select.Option value="Male">ชาย</Select.Option>
+                  <Select.Option value="Female">หญิง</Select.Option>
+                  <Select.Option value="Other">อื่นๆ</Select.Option>
+                </Select>
+              </Form.Item>
 
-            <Form.Item>
-              <Space>
-                <Button type="primary" htmlType="submit" loading={loading}>
-                  Save
-                </Button>
-                <Button onClick={() => navigate("/admin")}>
-                  Cancel
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Col>
-      </Row>
+              <Form.Item>
+                <Space>
+                  <Button type="primary" htmlType="submit" loading={loading}>
+                    Save
+                  </Button>
+                  <Button onClick={() => navigate("/admin")}>
+                    Cancel
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Col>
+        </Row>
+      </div>
     </>
   );
 }
