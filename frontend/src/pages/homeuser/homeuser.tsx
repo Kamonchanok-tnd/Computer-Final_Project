@@ -23,7 +23,7 @@ function Home() {
 
   return (
     <>
-      <Navbar />
+      
       <div className="home-page">
        
 

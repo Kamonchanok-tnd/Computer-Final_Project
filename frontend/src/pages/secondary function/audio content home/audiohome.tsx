@@ -11,7 +11,7 @@ const HomePage: React.FC = () => {
 
   return (
     <>
-    <Navbar /> 
+    
     <div className="home-page">
        
       <h1>สวัสดี</h1>

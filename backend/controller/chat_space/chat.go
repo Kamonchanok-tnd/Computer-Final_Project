@@ -141,15 +141,23 @@ func GeminiHistory(c *gin.Context) {
 
 func CreateChatRoom(c *gin.Context) {//เอาไว้สร้าง ห้อง chat
 	db := config.DB()
-	resault := db.Create(&entity.ChatRoom{
+	var chatRoom entity.ChatRoom
+	if err := c.ShouldBindJSON(&chatRoom); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	newChatRoom := entity.ChatRoom{
 		StartDate: time.Now(),
-	})
+		UID:       chatRoom.UID,
+	}
+
+	resault := db.Create(&newChatRoom)
 	if resault.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": resault.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "create chat room success"})
+	c.JSON(http.StatusOK, gin.H{"message": "create chat room success", "id": newChatRoom.ID})
 
 }
 
