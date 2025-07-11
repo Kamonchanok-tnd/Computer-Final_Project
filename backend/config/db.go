@@ -232,6 +232,7 @@ func SeedChatRooms(db *gorm.DB) {
 		room := entity.ChatRoom{
 			StartDate: time.Now(),
 			EndDate:   time.Now().Add(30 * time.Minute),
+			IsClose:   false,
 			UID:   1,
 		}
 		db.Create(&room)

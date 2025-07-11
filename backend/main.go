@@ -63,8 +63,8 @@ func main() {
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
     r.POST("/gemini", controller.GeminiHistory)
     r.GET("/conversation/:id", controller.GetConversationHistory)
-   
-    
+    r.POST("/new-chat", controller.CreateChatRoom)
+    r.PATCH("/end-chat/:id", controller.EndChatRoom)
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -96,6 +96,9 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
+        
+        //chat space
+        
     }
 
     r.GET("/", func(c *gin.Context) {
