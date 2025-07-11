@@ -179,7 +179,7 @@
   color:#9fcdfe;
 }
 
-.login-wrapper.card-login h2 {
+.login-wrapper .card-login h2 {
   font-size: 1.75rem; /* Increase font size of h2 */
   margin-bottom: 20px;
   color:#2a5a8e;
