@@ -64,7 +64,9 @@ function Headers() {
       };
     return (
         <>
-         <Layout>
+         <Layout style={
+          { border: '1px solid #f0f0f0',}
+         }>
     
       <Header
         style={{
@@ -76,6 +78,7 @@ function Headers() {
           justifyContent: 'space-between',
           alignItems: 'center',
           backgroundColor: '#ffffff',
+          boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.02)',
           padding: '0 24px',
          
         }}

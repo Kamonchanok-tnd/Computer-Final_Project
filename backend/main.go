@@ -64,6 +64,7 @@ func main() {
     r.POST("/gemini", controller.GeminiHistory)
     r.GET("/conversation/:id", controller.GetConversationHistory)
     r.POST("/new-chat", controller.CreateChatRoom)
+    r.PATCH("/end-chat/:id", controller.EndChatRoom)
     // Protect routes with role-based access
     router := r.Group("/")
     {

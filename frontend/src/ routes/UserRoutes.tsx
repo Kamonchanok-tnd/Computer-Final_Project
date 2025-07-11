@@ -44,8 +44,12 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         },
         {
           path: "/chat", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <ChatSpace /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+          element: isLoggedIn ? <ChatSpace isNewChatDefault={true}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
+        {
+          path: "/chat/:chatroom_id", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+          element: isLoggedIn ? <ChatSpace isNewChatDefault={false}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+        }
       ],
     },
     // {

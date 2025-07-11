@@ -175,16 +175,17 @@ func EndChatRoom(c *gin.Context) {//เอาไว้สิ้นสุด ห�
        return
    }
    chatRoom.EndDate = time.Now()
+   chatRoom.IsClose = true
    result = db.Save(&chatRoom)
    if result.Error != nil {
 
        c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
        return
    }
-   c.JSON(http.StatusOK, gin.H{"message": "Updated successful"})
+   c.JSON(http.StatusOK, gin.H{"message": "Updated successful","data":chatRoom})
     
 
-	return //เอาไว้สิ้นสุด ห้อง chat
+	 //เอาไว้สิ้นสุด ห้อง chat
 }
 
 func GetActivePrompt(db *gorm.DB) (*entity.Prompt, error) {
