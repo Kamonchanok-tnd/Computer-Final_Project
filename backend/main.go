@@ -10,6 +10,7 @@ import (
 	controller "sukjai_project/controller/chat_space"
     "sukjai_project/controller/resettoken"
     "sukjai_project/controller/users"
+    "sukjai_project/controller/meditation"
     "sukjai_project/middlewares"
     "sukjai_project/controller/prompt"
 
@@ -81,6 +82,9 @@ func main() {
         router.POST("/admin/prompt/use/:id", prompt.UsePrompt)
         router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
+        
+
+
 
         
         // Routes for superadmin only
@@ -96,6 +100,9 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
+        router.GET("/sounds/meditation", meditation.GetMeditationSounds)
+
+        
         
         //chat space
         

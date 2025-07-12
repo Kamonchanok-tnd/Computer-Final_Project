@@ -18,6 +18,12 @@ function Headers() {
   const [open, setOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('');
 
+  // Handle Logout function should be declared before it's used
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/"); // Navigate to home or login page
+  };
+
   const dropdownItems: MenuProps['items'] = [
     {
       key: '1',
@@ -32,10 +38,11 @@ function Headers() {
       key: '2',
       label: (
         <div className="text-sm text-rose-600 font-medium ">
-          Profile
+          Logout
         </div>
       ),
-      icon: <LogOut size={20} color='red' />
+      icon: <LogOut size={20} color='red' />,
+      onClick: handleLogout, // เพิ่มการเรียกฟังก์ชัน handleLogout
     }
   ];
 
@@ -56,12 +63,6 @@ function Headers() {
     navigate(path);
     setActiveMenu(menuKey);
     setOpen(false); // ปิด drawer เมื่อคลิกเมนูใน mobile
-  };
-
-  // Handle Logout
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/"); // Navigate to home or login page
   };
 
   return (

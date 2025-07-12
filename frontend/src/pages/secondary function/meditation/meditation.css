@@ -1,85 +1,77 @@
 .meditation-page {
-  background-color: #9aeffa;
+  background-color: #C2F4FF;
   padding: 20px;
-  margin: 0; /* ลบ margin เพื่อไม่ให้มีช่องว่างที่ขอบ */
+  margin: 0;
+  height: auto; /* Full screen height */
 }
 
 .meditation-page h1 {
-  font-size: 50px; /* เพิ่มขนาดฟอนต์คำว่า 'นั่งสมาธิ' */
-  color: #333; /* สีของข้อความ */
+  font-size: 50px;
+  color: #333;
   font-weight: bold;
-  display: flex; /* ใช้ flexbox */
-  align-items: center; /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-  gap: 20px; /* เพิ่มระยะห่างระหว่างรูปและข้อความ */
+  display: flex;
+  justify-content: center;  /* จัดให้อยู่ตรงกลางในแนวนอน */
+  align-items: center;      /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+  text-align: center;       /* ทำให้ข้อความอยู่กลางแนวนอน */
+  gap: 40px;
+  height: 100%;             /* หากคุณต้องการให้ h1 ครอบคลุมความสูงทั้งหมด */
+  padding: 15px;
 }
+
 
 .meditation-page .meditation-session {
   display: flex;
-  flex-direction: column;
-  gap: 30px; /* เพิ่มระยะห่างระหว่างการ์ด */
-  align-items: center;
-  height: 100%; /* ทำให้เนื้อหาภายในเต็มพื้นที่ */
+  flex-wrap: wrap; /* ทำให้การ์ดสามารถอยู่ในแถวเดียวกันได้ */
+  gap: 50px; /* ระยะห่างระหว่างการ์ด */
+  justify-content: center; /* จัดให้การ์ดอยู่ตรงกลาง */
 }
 
 .meditation-page .session-card {
-  background-color: #80deea;
-  padding: 35px; /* เพิ่ม padding เพื่อให้การ์ดใหญ่ขึ้น */
+  background-color: white; /* พื้นหลังเป็นสีขาว */
   border-radius: 15px;
-  width: 100%; /* ให้การ์ดเต็มหน้าจอ */
-  max-width: 600px; /* จำกัดความกว้างสูงสุด */
-  height: 350px; /* เพิ่มความสูงของการ์ด */
+  width: 60%; /* ปรับการ์ดให้มีความกว้าง 100% ในแต่ละแถว */
+  height: 350px;
   text-align: center;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between; /* ทำให้เนื้อหาภายในการ์ดจัดเรียงได้ดี */
-  position: relative; /* ทำให้สามารถวางปุ่มและข้อความในตำแหน่งที่ต้องการ */
-}
-
-.meditation-page .session-card h3 {
-  font-size: 26px; /* ปรับขนาดฟอนต์ให้ใหญ่ขึ้น */
-  color: #333;
-  font-weight: bold;
+  position: relative;
+  
 }
 
 .meditation-page .session-image {
-  width: 40%; /* กำหนดให้รูปภาพแสดงที่ 80% ของการ์ด */
-  height: auto; /* คงอัตราส่วนของภาพ */
-  margin-bottom: 20px; /* เพิ่มระยะห่างใต้รูป */
+  width: 370px;
+  height: 250px;
+  object-fit: cover; /* ทำให้รูปภาพพอดีกับกรอบ */
+  border-radius: 15px 15px 0 0; /* ทำให้มุมบนซ้าย-ขวาของรูปภาพกลม */
 }
 
-.meditation-page audio {
-  margin-top: 10px;
-  width: 80%;
-}
-
-.meditation-page .session-info {
-  display: flex; /* ใช้ flexbox */
-  flex-direction: column; /* ทำให้ข้อมูลในแนวตั้ง */
-  align-items: flex-start; /* จัดให้ชื่อคลิปอยู่ซ้าย */
-  position: absolute;
-  bottom: 30px; /* วางข้อความไว้ที่มุมล่าง */
-  left: 20px; /* ห่างจากขอบซ้าย */
-  width: 80%; /* ให้ครอบคลุมพื้นที่ภายในการ์ด */
+.meditation-page .session-description {
+  background-color: white;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  border-radius: 0 0 15px 15px;
+  text-align: left;
+  display: flex; /* ใช้ flexbox เพื่อจัดเรียงชื่อคลิป, ระยะเวลา และปุ่มเล่นในแถวเดียว */
+  justify-content: space-between; /* ให้ชื่อคลิปกับระยะเวลาชิดซ้าย ปุ่มเล่นชิดขวา */
+  align-items: center; /* จัดให้องค์ประกอบอยู่ตรงกลางแนวตั้ง */
 }
 
 .meditation-page .clip-title {
-  font-size: 20px; /* ขนาดฟอนต์ชื่อคลิป */
+  font-size: 20px;
   font-weight: bold;
-  display: inline-block; /* ให้ชื่อคลิปอยู่ในบรรทัดเดียวกับปุ่ม */
+  flex-grow: 1; /* ชื่อคลิปขยายเต็มพื้นที่ที่เหลือ */
 }
 
 .meditation-page .clip-duration {
-  font-size: 16px; /* ขนาดฟอนต์ของนาทีคลิป */
-  color: rgba(0, 0, 0, 0.6); /* ใช้สีจางๆ */
-  margin-top: 5px; /* ระยะห่างระหว่างชื่อคลิปและนาที */
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.6);
+  margin-left: 15px; /* ระยะห่างระหว่างชื่อคลิปและระยะเวลา */
 }
 
 .meditation-page .play-button {
-  position: absolute;
-  bottom: 60px; /* อยู่ด้านล่างสุด */
-  right: 40px; /* อยู่ขวาสุด */
   background-color: #4caf50;
   color: white;
   border: none;
@@ -91,30 +83,21 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  margin-left: 15px; /* ให้มีระยะห่างจากชื่อคลิป */
 }
 
 .meditation-page .play-button:hover {
   background-color: #45a049;
 }
 
-/* ทำให้การ์ดและรูปภาพ responsive */
+/* สำหรับความละเอียดต่ำ */
 @media (max-width: 768px) {
   .session-card {
-    width: 90%; /* ลดขนาดการ์ดเมื่อหน้าจอเล็กลง */
+    width: 100%; /* ให้การ์ดเต็มหน้าจอในขนาดหน้าจอที่เล็กลง */
     padding: 25px;
-    height: 280px; /* เพิ่มความสูงของการ์ด */
   }
-
   .session-image {
-    width: 80%; /* ลดขนาดรูปให้พอเหมาะกับหน้าจอเล็ก */
-  }
-
-  .meditation-page h1 {
-    font-size: 45px; /* ลดขนาดฟอนต์หัวข้อในหน้าจอเล็ก */
-  }
-
-  .meditation-page .session-info {
-    width: 90%; /* ให้ครอบคลุมพื้นที่ในการ์ด */
+    width: 80%;
   }
 }
 
@@ -122,18 +105,8 @@
   .session-card {
     width: 100%; /* ให้การ์ดเต็มหน้าจอในมือถือ */
     padding: 20px;
-    height: 250px; /* ลดความสูงการ์ด */
   }
-
   .session-image {
-    width: 90%; /* ให้รูปภาพมีขนาดพอเหมาะในมือถือ */
-  }
-
-  .meditation-page h1 {
-    font-size: 40px; /* ปรับขนาดฟอนต์หัวข้อในมือถือ */
-  }
-
-  .meditation-page .session-info {
-    width: 90%; /* ให้ครอบคลุมพื้นที่ในการ์ด */
+    width: 90%;
   }
 }
