@@ -129,7 +129,7 @@ func SetupDatabase() {
 		log.Fatalf("Error migrating database: %v", err)
 	}
 	fmt.Println("Database migration completed successfully!")
-	SetupInitialData()
+	SetupInitialData(db)
 	SeedSendTypes(db)
 	SeedChatRooms(db)
 	SeedConversations(db)
@@ -139,7 +139,7 @@ func SetupDatabase() {
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
 // เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
-func SetupInitialData() {
+func SetupInitialData(db *gorm.DB) {
 	// แฮชรหัสผ่านก่อนบันทึก
 	adminPassword, err := HashPassword("admin123")
 	if err != nil {
@@ -201,7 +201,50 @@ func SetupInitialData() {
 			Facebook:    "superadmin_fb",
 		})
 	}
+
+	// เพิ่มข้อมูลประเภทเสียง
+    var SoundTypes = []entity.SoundType{
+        {Type: "asmr"},
+        {Type: "สมาธิ"},
+        {Type: "สวดมนต์"},
+    }
+
+    // เพิ่มข้อมูลประเภทเสียงลงในฐานข้อมูล
+    for _, SoundType := range SoundTypes {
+        if err := db.Where("type = ?", SoundType.Type).First(&SoundType).Error; err != nil {
+            db.Create(&SoundType)
+            fmt.Printf("SendType %s created.\n", SoundType.Type)
+        }
+    }
+
+    // ตรวจสอบว่า "สมาธิ" มีอยู่ในตาราง SendType หรือไม่
+    var meditationType entity.SoundType
+    if err := db.Where("type = ?", "สมาธิ").First(&meditationType).Error; err != nil {
+        log.Fatalf("Error finding 'สมาธิ' sound type: %v", err)
+    }
+
+    // ตรวจสอบว่า "admin" มีอยู่ในตาราง Users หรือไม่
+    var user entity.Users
+    if err := db.Where("role = ?", "admin").First(&user).Error; err != nil {
+        log.Fatalf("Error finding user: %v", err)
+    }
+
+    // เพิ่มข้อมูล Sound (เสียงประเภท สมาธิ)
+    sounds := []entity.Sound{
+        {Name: "Meditation Sound 1", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+        {Name: "Meditation Sound 2", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+        {Name: "Meditation Sound 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+    }
+
+    // เพิ่มข้อมูลเสียงลงในฐานข้อมูล
+    for _, sound := range sounds {
+        if err := db.Where("sound = ?", sound.Sound).First(&sound).Error; err != nil {
+            db.Create(&sound)
+            fmt.Printf("Sound %s created.\n", sound.Name)
+        }
+    }
 }
+
 
 func SeedSendTypes(db *gorm.DB) {
 	var count int64
@@ -360,4 +403,6 @@ func SeedHealjaiPrompt(db *gorm.DB) error {
 	}
 
 	return nil
+
+
 }
