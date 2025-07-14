@@ -1,0 +1,58 @@
+/* ✅ พื้นหลังของฟอร์ม */
+.edit-questionnaire-form {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 24px;
+  border-radius: 12px;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 12px
+    ),
+    linear-gradient(to bottom right, #87CEFA, #b0e0e6) !important;
+  background-size: auto, cover;
+  background-repeat: repeat;
+  background-position: 0 0;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ Label ของแต่ละฟิลด์ */
+.edit-questionnaire-form .ant-form-item-label > label {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #2f2f2f !important;
+}
+
+/* ✅ ช่องกรอกข้อความ Input และ TextArea */
+.edit-questionnaire-form .ant-input,
+.edit-questionnaire-form .ant-input-number-input,
+.edit-questionnaire-form .ant-input-textarea {
+  font-size: 15px !important;
+  padding: 10px !important;
+  border-radius: 8px !important;
+}
+
+/* ✅ ช่องกรอกจำนวน (InputNumber) wrapper */
+.edit-questionnaire-form .ant-input-number {
+  width: 100% !important;
+  border-radius: 8px !important;
+}
+
+/* ✅ ปุ่มบันทึก */
+.edit-questionnaire-form .ant-btn-primary {
+  font-size: 16px !important;
+  font-weight: bold !important;
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+  border-radius: 8px !important;
+  height: 45px !important;
+  transition: all 0.3s ease !important;
+}
+
+/* ✅ ปุ่มตอน hover */
+.edit-questionnaire-form .ant-btn-primary:hover {
+  background-color: #40a9ff !important;
+  border-color: #40a9ff !important;
+}

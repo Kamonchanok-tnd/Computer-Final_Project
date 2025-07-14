@@ -6,6 +6,7 @@ import (
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
 	"sukjai_project/controller/admin"
+    "sukjai_project/controller/questionnaire"
 	controller "sukjai_project/controller/chat_space"
 	"sukjai_project/controller/resettoken"
 	"sukjai_project/controller/users"
@@ -61,14 +62,31 @@ func main() {
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
     r.POST("/gemini", controller.GeminiHistory)
     r.GET("/conversation/:id", controller.GetConversationHistory)
+
+    
+
     // Protect routes with role-based access
     router := r.Group("/")
     {
         // Routes for admins only
         router.Use(middlewares.Authorizes("admin"))
+
         router.GET("/admin", admin.GetAllAdmin)
         router.GET("/admin/:id", admin.GetAdminById) 
         router.PUT("/adminyourself/:id", admin.EditAdminYourself)
+
+
+        router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
+        router.GET("/questions", questionnaire.GetAllQuestions)                            // route ดึงคำถามทั้งหมด
+        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงคำถามทั้งหมด
+        router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
+        router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+        router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
+        router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
+        router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
+        router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
+        
+     
         
         // Routes for superadmin only
         router.Use(middlewares.Authorizes("superadmin"))

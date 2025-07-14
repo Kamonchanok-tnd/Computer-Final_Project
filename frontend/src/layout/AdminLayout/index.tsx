@@ -68,8 +68,8 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/chat" icon={<MessageOutlined />}>
               <Link to="/admin/chat">Chat</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/questionnaire" icon={<SettingOutlined />}>
-              <Link to="/admin/questionnaire">Questionnaire</Link>
+            <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
+              <Link to="/admin/questionnairePage">Questionnaire</Link>
             </Menu.Item>
           </Menu>
         </Sider>
