@@ -1,4 +1,5 @@
 export interface UsersInterface {
+  id?: number;           // ID ที่มาจากฐานข้อมูล (อาจจะไม่จำเป็นในกรณีที่สร้างใหม่)
   Username: string;      // ชื่อผู้ใช้งาน
   Password: string;      // รหัสผ่าน
   Email: string;         // อีเมล์

@@ -8,7 +8,7 @@ type Questionnaire struct {
 	Description       string
 	Quantity          int
 	UID               uint
-
 	Users      Users      `gorm:"foreignKey:UID"`
-	Questions []Question  `gorm:"foreignKey:QuID"`
+	Questions []Question  `gorm:"foreignKey:QuID;references:ID;constraint:OnDelete:CASCADE;"`
 }
+

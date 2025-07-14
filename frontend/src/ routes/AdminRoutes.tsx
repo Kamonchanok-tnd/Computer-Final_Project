@@ -13,41 +13,66 @@ const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/ed
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
 
 
+import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
+import QuestionPage from "../pages/admin/questionnaire/home/questionPage";
+import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
+import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
+// const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
+// const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
+
 const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
-  return [
-    {
-      path: "/admin",  // เส้นทางของ Admin
-      element: isLoggedIn ? <AdminLayout /> : <Navigate to="/" />,  // ใช้ FullLayout ถ้าเป็นผู้ใช้ที่ล็อกอิน
-      children: [
+    return [
         {
-          index: true,
-          element: <AdminDashboard />, // หน้า Dashboard ของ Admin
+            path: "/admin", // เส้นทางของ Admin
+            element: isLoggedIn ? <AdminLayout /> : <Navigate to="/" />, // ใช้ FullLayout ถ้าเป็นผู้ใช้ที่ล็อกอิน
+            children: [
+                {
+                    index: true,
+                    element: <AdminDashboard />, // หน้า Dashboard ของ Admin
+                },
+                {
+                    path: "/admin/edityourself",
+                    element: <EditYourself />, // หน้า Settings ของ Admin
+                },
+                // {
+                //   path: "/admin/create",
+                //   element: <CreateAdmin />, // หน้า Settings ของ Admin
+                // },
+                // {
+                //   path: "/admin/dashboard",
+                //   element: <DashboardAdmin />, // หน้า Settings ของ Admin
+                // },
+                // {
+                //    path: "/admin/edit/:id",
+                //   element: <EditAdmin />, // หน้า Settings ของ Admin
+                // },
+                {
+                    path: "/admin/questionnairePage",        // หน้าจัดการเเบบทดสอบ
+                    element: <QuestionnairePage />,
+                },
+                {
+                    path: "/admin/questionPage",             // หน้าจัดการคำถาม
+                    element: <QuestionPage />,
+                },
+                {
+                    path: "/admin/createQuestionnaire",     // หน้าสร้างเเบบทดสอบ
+                    element: <FormStepInfo />,
+                },
+                {
+                    path: "/admin/createQuestion",         // หน้าสร้างคำถาม
+                    element: <FormStepQuestion />,
+                },
+                {
+                    path: "/admin/edityourself",
+                    element: <EditYourself />, // หน้า Settings ของ Admin
+                },
+                {
+                    path: "prompt",  // เส้นทางสำหรับจัดการ Prompt
+                    element: <PromptAdminPage />,
+                }
+            ],
         },
-        {
-          path: "/admin/edityourself",
-          element: <EditYourself />, // หน้า Settings ของ Admin
-        },
-        {
-          path: "prompt",  // เส้นทางสำหรับจัดการ Prompt
-          element: <PromptAdminPage />,
-        }
-
-
-        // {
-        //   path: "/admin/create",
-        //   element: <CreateAdmin />, // หน้า Settings ของ Admin
-        // },
-        // {
-        //   path: "/admin/dashboard",
-        //   element: <DashboardAdmin />, // หน้า Settings ของ Admin
-        // },
-        // {
-        //    path: "/admin/edit/:id",
-        //   element: <EditAdmin />, // หน้า Settings ของ Admin
-        // },
-      ],
-    },
-  ];
+    ]
 };
 
 export default AdminRoutes;

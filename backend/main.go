@@ -7,6 +7,7 @@ import (
 	"sukjai_project/config"
     
 	"sukjai_project/controller/admin"
+    "sukjai_project/controller/questionnaire"
 	controller "sukjai_project/controller/chat_space"
     "sukjai_project/controller/resettoken"
     "sukjai_project/controller/users"
@@ -71,6 +72,7 @@ func main() {
     {
         // Routes for admins only
         router.Use(middlewares.Authorizes("admin"))
+
         router.GET("/admin", admin.GetAllAdmin)
         router.GET("/admin/:id", admin.GetAdminById) 
         router.PUT("/adminyourself/:id", admin.EditAdminYourself)
@@ -86,6 +88,19 @@ func main() {
 
 
 
+
+
+        router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
+        router.GET("/questions", questionnaire.GetAllQuestions)                            // route ดึงคำถามทั้งหมด
+        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงคำถามทั้งหมด
+        router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
+        router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+        router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
+        router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
+        router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
+        router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
+        
+     
         
         // Routes for superadmin only
         router.Use(middlewares.Authorizes("superadmin"))
