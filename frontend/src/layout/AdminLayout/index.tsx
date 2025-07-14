@@ -40,7 +40,7 @@ const AdminLayout = () => {
           onClick={showDrawer} 
           className="layout-hamburger-button"
         />
-        <div className="layout-logo">Suk Jai</div>
+        <div className="layout-logo">SUT SUKJAI</div>
         <Button onClick={handleLogout} type="primary" className="layout-logout-button">
           ออกจากระบบ
         </Button>
