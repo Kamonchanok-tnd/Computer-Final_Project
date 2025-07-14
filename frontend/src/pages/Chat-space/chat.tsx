@@ -1,14 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Trash2, Settings, Moon, Sun } from 'lucide-react';
-import { ChatGemini, GetChat } from '../../services/https/Chat/index';
+import { Send, Bot, User, Trash2, Settings, Moon, Sun,Mic, Plus, ChevronLeft } from 'lucide-react';
+import { ChatGemini, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
 import type { IConversation } from '../../interfaces/IConversation';
+import HistoryChat from '../../components/Chat.tsx/HistoryChat';
+import NewChatWelcome from '../../components/Chat.tsx/NewChatWelcome';
+import { useNavigate, useParams } from 'react-router-dom';
+import { IChatRoom } from '../../interfaces/IChatRoom';
+import ChatHeader from '../../components/Chat.tsx/ChatHeader';
+import ChatInput from '../../components/Chat.tsx/ChatInput';
 
 
-interface ChatbotProps {}
-
+interface ChatbotProps {
+  isNewChatDefault?: boolean;
+}
 // API Configuration
 
-const ChatSpace: React.FC<ChatbotProps> = () => {
+const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   const [messages, setMessages] = useState<IConversation[]>([]); // สร้าง state สําหรับข้อความ
   const [inputText, setInputText] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -19,23 +26,31 @@ const ChatSpace: React.FC<ChatbotProps> = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [isNewChat, setIsNewChat] = useState<boolean>(isNewChatDefault?.isNewChatDefault ?? false);
+  const navigate = useNavigate();
+  const { chatroom_id } = useParams();
+  const [chatRoomID, setChatRoomID] = useState<number | null>(chatroom_id ? Number(chatroom_id) : null);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
  
   async function getmessage(id: number) {
-    const message = await GetChat();
+    const message = await GetChat(id);
     setMessages(message);
+    console.log("old chat: ",message);
   }
 
   useEffect(() => {
     scrollToBottom();
-    getmessage(1);
+    if (chatRoomID !== null) {
+      getmessage(chatRoomID);
+    }
   }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [typingText]);
+    
+  }, [typingText, messages]);
 
   // API Functions
 
@@ -81,36 +96,47 @@ const ChatSpace: React.FC<ChatbotProps> = () => {
 
   const handleSendMessage = async (): Promise<void> => {
     if (!inputText.trim()) return;
-
+  
+    let currentRoomID = chatRoomID;
+  
+    if (!chatRoomID) {
+      const data: IChatRoom = { uid: 1 };
+      const res = await NewChat(data);
+      console.log("chatroom: ", res.id);
+      currentRoomID = res.id;
+      setChatRoomID(res.id);
+      setIsNewChat(false);
+    
+    }
+  
     const userMessage: IConversation = {
       message: inputText,
-      chatroom_id: 1,
-      stid: 1
+      chatroom_id: currentRoomID ?? 1,
+      stid: 1,
     };
-
-    
-    setMessages(prev => [...prev, userMessage]);
+  
+    setMessages((prev) => [...prev, userMessage]);
     setInputText('');
-
-    let responseText: string;
-
- 
-      // เรียก API จริง
-      const apiResponse = await ChatGemini(userMessage);
-      console.log('api: ',apiResponse.message);
-      responseText = apiResponse.message;
-   
-
-    // แสดง typing animation
+    setIsNewChat(false);
+  
+    
+    if (!chatRoomID) {
+      navigate(`/chat/${currentRoomID}`);
+    }
+  
+    const apiResponse = await ChatGemini(userMessage);
+    const responseText = apiResponse.message;
+  
     await simulateTyping(responseText, (finalText) => {
-        const botResponse: IConversation = {
-          message: finalText,
-          chatroom_id: 1, // or some other valid value
-          stid: 2 // or some other valid value
-        };
-        setMessages(prev => [...prev, botResponse]);
-      });
+      const botResponse: IConversation = {
+        message: finalText,
+        chatroom_id: currentRoomID ?? 1,
+        stid: 2,
+      };
+      setMessages((prev) => [...prev, botResponse]);
+    });
   };
+  
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -127,19 +153,17 @@ const ChatSpace: React.FC<ChatbotProps> = () => {
     setIsTyping(false);
     setTypingText('');
     
-    // setMessages([
-    //   {
-    //     id: '1',
-    //     text: 'สวัสดีครับ! ผมเป็น AI Assistant พร้อมช่วยเหลือคุณ มีอะไรให้ช่วยไหมครับ?',
-    //     sender: 'bot',
-    //     timestamp: new Date()
-    //   }
-    // ]);
+    
   };
 
-  const toggleApiMode = (): void => {
-    setIsApiMode(!isApiMode);
-  };
+  async function Close() {
+    console.log("chatroom: ", chatRoomID);
+    // await CloseChat(Number(chatRoomID));
+    
+  }
+
+  
+
 
   const formatTime = (date: Date): string => {
     return date.toLocaleTimeString('th-TH', { 
@@ -151,219 +175,58 @@ const ChatSpace: React.FC<ChatbotProps> = () => {
   const toggleDarkMode = (): void => {
     setIsDarkMode(!isDarkMode);
   };
+  const newChat = (): void => {
+
+      if (chatRoomID) {
+        Close(); // เรียก API ปิดห้องแชทก่อน
+        console.log('Closed chatroom:', chatRoomID);
+      }
+      
+    setIsNewChat(!isNewChat);
+    setMessages([]);   
+    setChatRoomID(null);   
+    navigate('/chat');
+  };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 overflow-auto ${
+    <div className={`min-h-[calc(100vh-64px)] transition-colors duration-300 overflow-auto 
+       flex justify-center items-center sm:px-4 
+      ${
       isDarkMode 
-        ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900' 
-        : 'bg-gradient-to-br from-[#C8F3FD]  to-[#DAF8FF]'
+        ? 'bg-gradient-to-br  from-gray-900 via-purple-900 to-gray-900' 
+        : 'bg-[#F4FFFF]'
     }`}>
-      <div className="container mx-auto max-w-full h-screen flex flex-col p-4  ">
+
+      
+      <div className="border border-gray-200 shadow-md rounded-xl container  duration-300 mx-auto max-w-full  h-[90vh]  flex flex-col justify-between">
         {/* Header */}
-        <div className={`rounded-t-2xl p-6 shadow-lg backdrop-blur-sm bg-white duration-300 ${
-          isDarkMode 
-            ? 'bg-gray-800/80 border-gray-700' 
-            : 'bg-white/80 border-gray-200'
-        } border-b`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className={`p-3 rounded-full ${
-                isDarkMode ? 'bg-purple-600' : 'bg-indigo-600'
-              }`}>
-                <Bot className="w-6 h-6 text-white rounded-2xl" />
-              </div>
-              <div>
-                <h1 className={`text-xl font-bold ${
-                  isDarkMode ? 'text-white' : 'text-gray-800'
-                }`}>
-                  Heal JAI
-                </h1>
-                <p className={`text-sm ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-600'
-                }`}>
-                  พร้อมช่วยเหลือคุณตลอด 24 ชั่วโมง
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={toggleApiMode}
-                className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
-                  isApiMode
-                    ? isDarkMode 
-                      ? 'bg-green-600 text-white' 
-                      : 'bg-green-500 text-white'
-                    : isDarkMode 
-                      ? 'bg-gray-600 text-gray-300' 
-                      : 'bg-gray-300 text-gray-600'
-                }`}
-                title={isApiMode ? 'กำลังใช้ API จริง' : 'กำลังใช้โหมดจำลอง'}
-              >
-                {isApiMode ? 'API Mode' : 'Demo Mode'}
-              </button>
-              <button
-                onClick={toggleDarkMode}
-                className={`p-2 rounded-lg transition-colors ${
-                  isDarkMode 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                }`}
-                title={isDarkMode ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-              <button
-                onClick={clearChat}
-                className={`p-2 rounded-lg transition-colors ${
-                  isDarkMode 
-                    ? 'bg-red-600/20 hover:bg-red-600/30 text-red-400' 
-                    : 'bg-red-50 hover:bg-red-100 text-red-600'
-                }`}
-                title="ล้างการสนทนา"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
+        <ChatHeader isDarkMode={isDarkMode} onNewChat={newChat} onClearChat={Close} />
         {/* Messages Area */}
-        <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${
-          isDarkMode ? 'bg-gray-800/40' : 'bg-white/40'
-        } backdrop-blur-sm`}>
-          {messages.map((message) => (
-            <div
-              key={message.ID}
-              className={`flex items-start space-x-3 animate-in slide-in-from-bottom-2 duration-300 ${
-                message.stid === 1 ? 'flex-row-reverse space-x-reverse' : ''
-              }`}
-            >
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                message.stid === 1
-                  ? isDarkMode ? 'bg-blue-600' : 'bg-[#675DFF]'
-                  : isDarkMode ? 'bg-purple-600' : 'bg-indigo-500'
-              }`}>
-                {message.stid === 1 ? (
-                  <User className="w-4 h-4 text-white" />
-                ) : (
-                  <Bot className="w-4 h-4 text-white" />
-                )}
-              </div>
-              <div className={`max-w-xs lg:max-w-md ${
-                message.stid === 1? 'text-right' : 'text-left'
-              }`}>
-                <div className={`px-4 py-3 rounded-2xl shadow-sm ${
-                  message.stid === 1
-                    ? isDarkMode 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-[#675DFF] text-white'
-                    : isDarkMode 
-                      ? 'bg-gray-700 text-gray-100 border border-gray-600' 
-                      : 'bg-white text-gray-800 border border-gray-200'
-                } ${message.stid === 1 ? 'rounded-br-md' : 'rounded-bl-md'}`}>
-                  <p className="text-sm leading-relaxed">{message.message}</p>
-                </div>
-                <p className={`text-xs mt-1 ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                } ${message.stid === 1 ? 'text-right' : 'text-left'}`}>
-                  {/* {formatTime()} */}
-                </p>
-              </div>
-            </div>
-          ))}
-          
-          {/* Typing Indicator with Real-time Text */}
-          {isTyping && (
-            <div className="flex items-start space-x-3 animate-in slide-in-from-bottom-2 duration-300">
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                isDarkMode ? 'bg-purple-600' : 'bg-indigo-500'
-              }`}>
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className={`max-w-xs lg:max-w-md`}>
-                <div className={`px-4 py-3 rounded-2xl rounded-bl-md shadow-sm ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border border-gray-600 text-gray-100' 
-                    : 'bg-white border border-gray-200 text-gray-800'
-                }`}>
-                  {typingText ? (
-                    <div>
-                      <p className="text-sm leading-relaxed">{typingText}</p>
-                      <div className="flex space-x-1 mt-2">
-                        <div className={`w-1 h-4 animate-pulse ${
-                          isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
-                        }`}></div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex space-x-1">
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${
-                        isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
-                      }`} style={{ animationDelay: '0ms' }}></div>
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${
-                        isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
-                      }`} style={{ animationDelay: '150ms' }}></div>
-                      <div className={`w-2 h-2 rounded-full animate-bounce ${
-                        isDarkMode ? 'bg-gray-400' : 'bg-gray-500'
-                      }`} style={{ animationDelay: '300ms' }}></div>
-                    </div>
-                  )}
-                </div>
-                <p className={`text-xs mt-1 text-left ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  {typingText ? 'กำลังพิมพ์...' : 'กำลังคิด...'}
-                </p>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
+          {
+            isNewChat ? (
+              <NewChatWelcome  />
+            ) : (
+              <HistoryChat
+                messages={messages}
+                isTyping={isTyping}
+                typingText={typingText}
+                isDarkMode={isDarkMode}
+                messagesEndRef={messagesEndRef}
+              />
+            )
+          }
+        
         {/* Input Area */}
-        <div className={`rounded-b-2xl p-4 border-t backdrop-blur-sm transition-colors duration-300 ${
-          isDarkMode 
-            ? 'bg-gray-800/80 border-gray-700' 
-            : 'bg-white/80 border-gray-200'
-        }`}>
-          <div className="flex items-center space-x-3">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="พิมพ์ข้อความของคุณ..."
-              className={`flex-1 px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-colors ${
-                isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-purple-500' 
-                  : 'bg-gray-50 border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-indigo-500'
-              }`}
-              disabled={isTyping}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputText.trim() || isTyping}
-              className={`p-3 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 ${
-                !inputText.trim() || isTyping
-                  ? isDarkMode 
-                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : isDarkMode 
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg' 
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg'
-              }`}
-              title="ส่งข้อความ"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          </div>
-          <p className={`text-xs mt-2 text-center ${
-            isDarkMode ? 'text-gray-400' : 'text-gray-500'
-          }`}>
-            กด Enter เพื่อส่งข้อความ • {isApiMode ? 'เชื่อมต่อกับ API จริง' : 'โหมดจำลอง'} • React + TypeScript
-          </p>
-        </div>
+          <ChatInput
+    inputText={inputText}
+    setInputText={setInputText}
+    onSend={handleSendMessage}
+    onKeyPress={handleKeyPress}
+    isTyping={isTyping}
+    isDarkMode={isDarkMode}
+    inputRef={inputRef as React.RefObject<HTMLInputElement>}
+  />
+
       </div>
     </div>
   );

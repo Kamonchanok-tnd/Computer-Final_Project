@@ -21,11 +21,12 @@ const Navbar: React.FC = () => {
 
   return (
     <Layout>
-      <Header className='navbar-header '> {/* เปลี่ยนสีพื้นหลัง Navbar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Header className='navbar-header bg-white '> {/* เปลี่ยนสีพื้นหลัง Navbar */}
+        <div style={{  justifyContent: 'space-between', alignItems: 'center' }}
+        className='bg-white'>
           <div className="logo" />
           {/* Desktop Menu */}
-          <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']}>
+          <Menu theme="light" mode="horizontal" defaultSelectedKeys={['1']}>
             <Menu.Item key="1" onClick={() => navigate('/user')}>Home</Menu.Item>
             <Menu.Item key="2" onClick={() => navigate('/user/edit-profile')}>Edit</Menu.Item>
             <Menu.Item key="3" onClick={() => navigate('/user/audiohome')}>Sound</Menu.Item>

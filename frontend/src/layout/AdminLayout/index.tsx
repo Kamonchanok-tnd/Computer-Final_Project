@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined } from '@ant-design/icons'; // นำเข้าไอคอน Dashboard, Setting, และ Chat
+import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined  } from '@ant-design/icons'; // นำเข้าไอคอน Dashboard, Setting, และ Chat
 const { Header, Content, Footer, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 import './index.css'; // นำเข้าไฟล์ CSS
@@ -40,7 +40,7 @@ const AdminLayout = () => {
           onClick={showDrawer} 
           className="layout-hamburger-button"
         />
-        <div className="layout-logo">Suk Jai</div>
+        <div className="layout-logo">SUT SUKJAI</div>
         <Button onClick={handleLogout} type="primary" className="layout-logout-button">
           ออกจากระบบ
         </Button>
@@ -70,6 +70,9 @@ const AdminLayout = () => {
             </Menu.Item>
             <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
               <Link to="/admin/questionnairePage">Questionnaire</Link>
+            </Menu.Item>
+            <Menu.Item key="/admin/prompt" icon={<CommentOutlined   />}>
+              <Link to="/admin/prompt">Prompt AI</Link>
             </Menu.Item>
           </Menu>
         </Sider>

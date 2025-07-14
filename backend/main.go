@@ -5,12 +5,15 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
+    
 	"sukjai_project/controller/admin"
     "sukjai_project/controller/questionnaire"
 	controller "sukjai_project/controller/chat_space"
-	"sukjai_project/controller/resettoken"
-	"sukjai_project/controller/users"
-	"sukjai_project/middlewares"
+    "sukjai_project/controller/resettoken"
+    "sukjai_project/controller/users"
+    "sukjai_project/controller/meditation"
+    "sukjai_project/middlewares"
+    "sukjai_project/controller/prompt"
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -62,9 +65,8 @@ func main() {
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
     r.POST("/gemini", controller.GeminiHistory)
     r.GET("/conversation/:id", controller.GetConversationHistory)
-
-    
-
+    r.POST("/new-chat", controller.CreateChatRoom)
+    r.PATCH("/end-chat/:id", controller.EndChatRoom)
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -74,6 +76,18 @@ func main() {
         router.GET("/admin", admin.GetAllAdmin)
         router.GET("/admin/:id", admin.GetAdminById) 
         router.PUT("/adminyourself/:id", admin.EditAdminYourself)
+
+        router.POST("/admin/prompt", prompt.CreatePrompt)
+        router.GET("/admin/prompt", prompt.GetAllPrompts)
+        router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
+        router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
+        router.POST("/admin/prompt/use/:id", prompt.UsePrompt)
+        router.GET("/admin/prompt/:id", prompt.GetPromptByID)
+
+        
+
+
+
 
 
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
@@ -101,6 +115,12 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
+        router.GET("/sounds/meditation", meditation.GetMeditationSounds)
+
+        
+        
+        //chat space
+        
     }
 
     r.GET("/", func(c *gin.Context) {
