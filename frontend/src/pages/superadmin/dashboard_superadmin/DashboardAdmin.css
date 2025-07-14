@@ -14,6 +14,7 @@
   font-size: 24px;
   font-weight: bold;
   color: #333;
+  
 }
 
 /* ปรับตำแหน่งปุ่มและการจัดระเบียบ */
@@ -33,7 +34,8 @@
 }
 
 .dashboard-admin-container .create-button:hover {
-  background-color: #e68900;
+  background-color: #e68900 !important;
+  color: white !important;
 }
 
 /* จัดสไตล์ปุ่ม Edit และ Delete */
@@ -43,7 +45,7 @@
 }
 
 .dashboard-admin-container .edit-button:hover {
-  background-color: #e68900;
+  background-color: #e68900 ;
 }
 
 .dashboard-admin-container .delete-button {
