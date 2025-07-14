@@ -1,0 +1,92 @@
+/* ✅ พื้นที่หลักของหน้า QuestionnairePage */
+.questionnaire-page-container {
+  padding: 20px;
+}
+
+/* ✅ หัวเรื่องด้านบน */
+.questionnaire-page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* ✅ ปุ่ม "สร้างแบบทดสอบ" (ปกติ) */
+.questionnaire-create-btn.ant-btn-primary {
+  background-color: #87CDFA !important; /* ฟ้าอ่อน */
+  border: none;
+  font-weight: 600;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+/* ✅ เมื่อเอาเมาส์ไปแตะ */
+.questionnaire-create-btn.ant-btn-primary:hover {
+  background-color: #8ee58f !important; /* เขียวพาสเทล */
+  color: white;
+}
+
+/* ✅ Modal */
+.questionnaire-modal .ant-modal-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.questionnaire-modal .ant-form-item-label > label {
+  font-weight: 500;
+  color: #555;
+}
+
+.questionnaire-modal .ant-input,
+.questionnaire-modal .ant-input-textarea {
+  border-radius: 6px;
+}
+
+.questionnaire-modal .ant-modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.questionnaire-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+/* ✅ ตาราง */
+.questionnaire-table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.questionnaire-table-container .ant-table-thead > tr > th {
+  background-color: #87CDFA;  /*สีของหัวตาราง*/
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.questionnaire-table-container .ant-table-tbody > tr > td {
+  text-align: center;
+  font-size: 13px;
+  padding: 12px 8px;
+}
+
+/* ✅ ปุ่ม Logout (ถ้ามี) */
+.questionnaire-logout-button {
+  margin-top: 20px;
+  float: right;
+  background-color: rgb(255, 59, 59);
+  border: none;
+  color: white;
+}
+
+.questionnaire-logout-button:hover {
+  background-color: rgb(255, 99, 99);
+}
+
+/* ✅ ซ่อน Layout เดิมที่ไม่ใช้แล้ว */
+.card-scroll-container,
+.card-item,
+.questionnaire-card {
+  display: none;
+}

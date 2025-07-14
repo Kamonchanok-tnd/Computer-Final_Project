@@ -24,6 +24,8 @@ function Headers() {
     navigate("/"); // Navigate to home or login page
   };
 
+  
+
   const dropdownItems: MenuProps['items'] = [
     {
       key: '1',
@@ -33,6 +35,9 @@ function Headers() {
         </div>
       ),
       icon: <User size={20} color='#666' />,
+      onClick: () => {
+      navigate('/edit-profile'); // เพิ่มการนำทางไปยังหน้า UserEdit
+    }
     },
     {
       key: '2',
