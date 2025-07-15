@@ -123,8 +123,21 @@ func main() {
         router.GET("/assessment/Criteria", assessment.GetAllCriteria)
         router.GET("/assessment/Questions", assessment.GetAllQuestions)
         router.GET("/assessment/Questionnaires", assessment.GetAllQuestionnaires)
-        router.GET("/assessment/Scores", assessment.GetAllScores)
-       
+        router.GET("/assessment/Transaction", assessment.GetAllTransaction)
+        router.GET("/assessment/AnswerOptions/:id", assessment.GetAnswerOptionByID)
+        router.GET("/assessment/AssessmentAnswers/:id", assessment.GetAssessmentAnswerByID)
+        router.GET("/assessment/AssessmentResults/:id", assessment.GetAssessmentResultByID)
+        router.GET("/assessment/Calculations/:id", assessment.GetCalculationByID)
+        router.GET("/assessment/Criteria/:id", assessment.GetCriteriaByID)
+        router.GET("/assessment/Questions/:id", assessment.GetQuestionByID)
+        router.GET("/assessment/Questionnaires/:id", assessment.GetQuestionnaireByID)
+        router.GET("/assessment/Transactions/:id", assessment.GetTransactionByID)
+        router.POST("/assessment/result", assessment.CreateAssessmentResult)
+        router.POST("/assessment/answer", assessment.SubmitAssessmentAnswer)
+        router.POST("/assessment/finish/:id", assessment.FinishAssessment)
+
+
+
         //chat space
         
     }
