@@ -1,0 +1,70 @@
+/* ✅ พื้นที่หลักของหน้า QuestionPage */
+.question-page-container {
+  padding: 20px;
+}
+
+/* ✅ หัวเรื่องด้านบน */
+.question-page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* ✅ ปุ่ม "สร้างแบบทดสอบ" */
+.question-create-btn.ant-btn-primary {
+  background-color: #87CDFA !important;
+  border: none;
+  font-weight: 600;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.question-create-btn.ant-btn-primary:hover {
+  background-color: #8ee58f !important;
+  color: white;
+}
+
+/* ✅ Modal ยืนยันการลบคำถาม */
+.question-modal .ant-modal-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.question-modal .ant-modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+/* ✅ ตารางคำถาม */
+.question-table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.question-table-container .ant-table-thead > tr > th {
+  background-color: #87CDFA;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.question-table-container .ant-table-tbody > tr > td {
+  text-align: center;
+  font-size: 13px;
+  padding: 12px 8px;
+}
+
+/* ✅ ปุ่ม Logout (ถ้ามีในอนาคต) */
+.question-logout-button {
+  margin-top: 20px;
+  float: right;
+  background-color: rgb(255, 59, 59);
+  border: none;
+  color: white;
+}
+
+.question-logout-button:hover {
+  background-color: rgb(255, 99, 99);
+}

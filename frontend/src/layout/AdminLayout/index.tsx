@@ -40,7 +40,7 @@ const AdminLayout = () => {
           onClick={showDrawer} 
           className="layout-hamburger-button"
         />
-        <div className="layout-logo">Suk Jai</div>
+        <div className="layout-logo">SUT SUKJAI</div>
         <Button onClick={handleLogout} type="primary" className="layout-logout-button">
           ออกจากระบบ
         </Button>
@@ -68,8 +68,8 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/chat" icon={<MessageOutlined />}>
               <Link to="/admin/chat">Chat</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/questionnaire" icon={<SettingOutlined />}>
-              <Link to="/admin/questionnaire">Questionnaire</Link>
+            <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
+              <Link to="/admin/questionnairePage">Questionnaire</Link>
             </Menu.Item>
             <Menu.Item key="/admin/prompt" icon={<CommentOutlined   />}>
               <Link to="/admin/prompt">Prompt AI</Link>

@@ -1,0 +1,100 @@
+.form-step-info-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 50vh;
+  width: 100%;
+  max-width: 1000px;
+  margin: 40px auto 0;
+  padding: 24px 16px;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 12px
+    ),
+    linear-gradient(to bottom right, #87CEFA, #b0e0e6);
+  background-size: auto, cover;
+  background-repeat: repeat;
+  background-position: 0 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+.form-step-info-title {
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.ant-input,
+.ant-input-number,
+.ant-input-textarea {
+  border-radius: 6px;
+  font-size: 20px;
+}
+
+@media (max-width: 480px) {
+  .form-step-info-title {
+    font-size: 20px;
+  }
+
+  .ant-input,
+  .ant-input-number,
+  .ant-input-textarea {
+    font-size: 20px;
+  }
+}
+
+.form-step-info-container .ant-form-item-label > label {
+  font-size: 20px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* ✅ ปุ่มทั้งหมด */
+.questionnaire-create-btn {
+  font-size: 20px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.3s ease;
+  width: fit-content;
+}
+
+/* ✅ ปุ่ม "สร้างแบบทดสอบ" */
+.submit-btn {
+  background-color: #87CEFA !important;
+  color: #000 !important;
+}
+
+.submit-btn:hover {
+  background-color: #8ee58f !important;
+  color: #000;
+}
+
+/* ✅ ปุ่ม "ยกเลิก" */
+.cancel-btn {
+  background-color: #87CEFA !important;
+  color: #000;
+}
+
+.cancel-btn:hover {
+  background-color: #8ee58f !important;
+  color: black;
+}
+
+/* ✅ จัดตำแหน่งปุ่ม */
+.questionnaire-button-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}

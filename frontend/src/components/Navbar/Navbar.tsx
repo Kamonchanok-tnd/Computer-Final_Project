@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   const handleLogout = () => {
     // ลบข้อมูลทั้งหมดจาก localStorage
     localStorage.clear();
-    
+    sessionStorage.clear();
     // นำทางไปที่หน้า Login
     navigate("/")
   };

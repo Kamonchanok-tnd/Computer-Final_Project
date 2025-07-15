@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
 import { MenuOutlined, DashboardOutlined, SettingOutlined } from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Content, Footer, } = Layout;
 import { useNavigate } from "react-router-dom";
 import './FullLayout.css'; // นำเข้าไฟล์ CSS
 
@@ -41,13 +41,13 @@ const FullLayout = () => {
           className="layout-hamburger-button"
           
         />
-        <div className="layout-logo">SUKJAI SUT</div>
-        <Button onClick={handleLogout} type="primary" className="layout-logout-button">
+        <div className="layout-logo">SUT SUKJAI</div>
+        <Button onClick={handleLogout} type="primary" className="layout-logout-button1">
           ออกจากระบบ
         </Button>
       </Header>
       <Layout>
-        <Sider 
+        {/* <Sider 
           width={200} 
           className="layout-sider" 
           collapsible 
@@ -67,7 +67,7 @@ const FullLayout = () => {
               <Link to="/superadmin/settings">Settings</Link>
             </Menu.Item>
           </Menu>
-        </Sider>
+        </Sider> */}
 
         <Drawer
           title="Menu"

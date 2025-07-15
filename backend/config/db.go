@@ -20,7 +20,6 @@ func DB() *gorm.DB {
 	return db
 }
 
-
 //แบบ docker
 // ConnectionDB - เชื่อมต่อกับฐานข้อมูล PostgreSQL
 // func ConnectionDB() {
@@ -129,17 +128,18 @@ func SetupDatabase() {
 		log.Fatalf("Error migrating database: %v", err)
 	}
 	fmt.Println("Database migration completed successfully!")
-	SetupInitialData()
+	SetupInitialData(db)
 	SeedSendTypes(db)
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
-	
+	SeedQuestionnaires(db)
+
 }
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
 // เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
-func SetupInitialData() {
+func SetupInitialData(db *gorm.DB) {
 	// แฮชรหัสผ่านก่อนบันทึก
 	adminPassword, err := HashPassword("admin123")
 	if err != nil {
@@ -201,7 +201,50 @@ func SetupInitialData() {
 			Facebook:    "superadmin_fb",
 		})
 	}
+
+	// เพิ่มข้อมูลประเภทเสียง
+    var SoundTypes = []entity.SoundType{
+        {Type: "asmr"},
+        {Type: "สมาธิ"},
+        {Type: "สวดมนต์"},
+    }
+
+    // เพิ่มข้อมูลประเภทเสียงลงในฐานข้อมูล
+    for _, SoundType := range SoundTypes {
+        if err := db.Where("type = ?", SoundType.Type).First(&SoundType).Error; err != nil {
+            db.Create(&SoundType)
+            fmt.Printf("SendType %s created.\n", SoundType.Type)
+        }
+    }
+
+    // ตรวจสอบว่า "สมาธิ" มีอยู่ในตาราง SendType หรือไม่
+    var meditationType entity.SoundType
+    if err := db.Where("type = ?", "สมาธิ").First(&meditationType).Error; err != nil {
+        log.Fatalf("Error finding 'สมาธิ' sound type: %v", err)
+    }
+
+    // ตรวจสอบว่า "admin" มีอยู่ในตาราง Users หรือไม่
+    var user entity.Users
+    if err := db.Where("role = ?", "admin").First(&user).Error; err != nil {
+        log.Fatalf("Error finding user: %v", err)
+    }
+
+    // เพิ่มข้อมูล Sound (เสียงประเภท สมาธิ)
+    sounds := []entity.Sound{
+        {Name: "Meditation Sound 1", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+        {Name: "Meditation Sound 2", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+        {Name: "Meditation Sound 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+    }
+
+    // เพิ่มข้อมูลเสียงลงในฐานข้อมูล
+    for _, sound := range sounds {
+        if err := db.Where("sound = ?", sound.Sound).First(&sound).Error; err != nil {
+            db.Create(&sound)
+            fmt.Printf("Sound %s created.\n", sound.Name)
+        }
+    }
 }
+
 
 func SeedSendTypes(db *gorm.DB) {
 	var count int64
@@ -360,4 +403,103 @@ func SeedHealjaiPrompt(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func SeedQuestionnaires(db *gorm.DB) {
+	// หาผู้ใช้ admin
+	var admin entity.Users
+	if err := db.Where("username = ?", "admin").First(&admin).Error; err != nil {
+		log.Fatalf("ไม่พบผู้ใช้ admin: %v", err)
+	}
+
+	// == 1. แบบประเมิน 2Q ==
+	questions2Q := []string{
+		"ใน 2 สัปดาห์ที่ผ่านมา รวมวันนี้ ท่านรู้สึก หดหู่ เศร้า หรือท้อแท้สิ้นหวัง หรือไม่",
+		"ใน 2 สัปดาห์ที่ผ่านมา รวมวันนี้ ท่านรู้สึก เบื่อ ทำอะไรก็ไม่เพลิดเพลิน หรือไม่",
+	}
+	options2Q := []entity.AnswerOption{
+		{Description: "มี", Point: 1},
+		{Description: "ไม่มี", Point: 0},
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 2Q", "ใช้คัดกรองเบื้องต้น", 2, admin.ID, questions2Q, options2Q)
+
+	// == 2. แบบประเมิน 9Q ==
+	questions9Q := []string{
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการเบื่อ ไม่สนใจอยากทำอะไร",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการไม่สบายใจ ซึมเศร้า ท้อแท้",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการหลับยาก หรือหลับ ๆ ตื่น ๆ หรือหลับมากไป",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการเหนื่อยง่าย หรือ ไม่ค่อยมีแรง",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการเบื่ออาหาร หรือ กินมากเกินไป",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านรู้สึกไม่ดีกับตัวเอง คิดว่าตัวเองล้มเหลว หรือทำให้คนอื่นผิดหวัง",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการสมาธิไม่ดีเวลาทำอะไร เช่น ดูทีวี ฟังวิทยุ หรือทำงาน",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการพูดช้า ทำอะไรช้าจนคนอื่นสังเกตเห็น หรือกระสับกระส่าย",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีความคิดทำร้ายตนเอง หรือคิดว่าถ้าตายไปคงจะดี",
+	}
+	options9Q := []entity.AnswerOption{
+		{Description: "ไม่มีเลย", Point: 0},
+		{Description: "เป็นบางวัน (1–7 วัน)", Point: 1},
+		{Description: "เป็นบ่อย (>7 วัน)", Point: 2},
+		{Description: "เป็นทุกวัน", Point: 3},
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 9Q", "ใช้วัดความรุนแรงของอาการ", 9, admin.ID, questions9Q, options9Q)
+
+	// == 3. แบบวัดระดับสติ State Mindfulness Scale (ฉบับย่อ) ==
+	questionsMindfulness := []string{
+		"ฉันรู้สึกว่ามันยากที่จะจดจ่อกับสิ่งที่กำลังเกิดขึ้น",
+		"ฉันทำอะไรไปโดยไม่ได้ใส่ใจกับสิ่งนั้น",
+		"ฉันหมกมุ่นอยู่กับอนาคตหรืออดีต",
+		"ฉันทำอะไรไปแบบอัตโนมัติโดยไม่ได้ตระหนักถึงสิ่งที่ทำ",
+		"ฉันรีบทำอะไรบางอย่างโดยไม่ได้ตั้งใจจริงๆ",
+	}
+	optionsMindfulness := []entity.AnswerOption{
+		{Description: "เกือบตลอดเวลา", Point: 1},
+		{Description: "บ่อยมาก", Point: 2},
+		{Description: "ค่อนข้างบ่อย", Point: 3},
+		{Description: "เป็นบางครั้ง", Point: 4},
+		{Description: "แทบไม่เคย", Point: 5},
+		{Description: "ไม่เคย", Point: 6},
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับสติ (State Mindfulness)", "ประเมินระดับสติในขณะปัจจุบัน", 5, admin.ID, questionsMindfulness, optionsMindfulness)
+
+	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness")
+}
+
+func insertQuestionnaireWithQuestionsAndOptions(
+	db *gorm.DB,
+	name string,
+	description string,
+	quantity int,
+	uid uint,
+	questionTexts []string,
+	options []entity.AnswerOption,
+) {
+	questionnaire := entity.Questionnaire{
+		NameQuestionnaire: name,
+		Description:       description,
+		Quantity:          quantity,
+		UID:               uid,
+	}
+
+	if err := db.Create(&questionnaire).Error; err != nil {
+		log.Fatalf("ไม่สามารถสร้างแบบประเมิน %s: %v", name, err)
+	}
+
+	for _, qText := range questionTexts {
+		question := entity.Question{
+			NameQuestion: qText,
+			QuID:         questionnaire.ID,
+		}
+		if err := db.Create(&question).Error; err != nil {
+			log.Fatalf("ไม่สามารถสร้างคำถาม: %v", err)
+		}
+		for _, opt := range options {
+			opt.QID = question.ID
+			if err := db.Create(&opt).Error; err != nil {
+				log.Fatalf("ไม่สามารถสร้างตัวเลือก: %v", err)
+			}
+		}
+	}
 }
