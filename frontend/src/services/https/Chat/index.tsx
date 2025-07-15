@@ -2,11 +2,12 @@ import { IChatRoom } from "../../../interfaces/IChatRoom";
 import { IConversation } from "../../../interfaces/IConversation";
 
 const apiUrl = import.meta.env.VITE_API_URL;
-
+const Authorization = localStorage.getItem("token");
+const Bearer = localStorage.getItem("token_type");
 export async function ChatGemini(data: IConversation) {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
-
+  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
   const raw = JSON.stringify(data);
 
   const requestOptions = {
@@ -29,19 +30,23 @@ export async function ChatGemini(data: IConversation) {
 }
 
 export async function GetChat(id: number) {
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
+  
+
+  if (!Authorization || !Bearer) {
+    console.error("Missing token or token_type in localStorage");
+    return;
+  }
 
   const requestOptions = {
     method: "GET",
-    headers: myHeaders,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `${Bearer} ${Authorization}`,
+    },
   };
 
   try {
-    const response = await fetch(
-      `${apiUrl}/conversation/${id}`,
-      requestOptions
-    );
+    const response = await fetch(`${apiUrl}/conversation/${id}`, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {
@@ -49,10 +54,11 @@ export async function GetChat(id: number) {
   }
 }
 
+
 export async function NewChat(data: IChatRoom) {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
-
+  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
   const raw = JSON.stringify(data);
 
   const requestOptions = {
@@ -77,6 +83,7 @@ export async function NewChat(data: IChatRoom) {
 export async function CloseChat(id: number) {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
   const requestOptions = {
     method: "PATCH",
     headers: myHeaders,
@@ -84,7 +91,7 @@ export async function CloseChat(id: number) {
 
   try {
     const response = await fetch(
-      `${apiUrl}//end-chat/${id}`,
+      `${apiUrl}/end-chat/${id}`,
       requestOptions
     );
     const result = await response.json();

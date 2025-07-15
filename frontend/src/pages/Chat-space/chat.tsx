@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Send, Bot, User, Trash2, Settings, Moon, Sun,Mic, Plus, ChevronLeft } from 'lucide-react';
 import { ChatGemini, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
 import type { IConversation } from '../../interfaces/IConversation';
@@ -8,12 +8,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { IChatRoom } from '../../interfaces/IChatRoom';
 import ChatHeader from '../../components/Chat.tsx/ChatHeader';
 import ChatInput from '../../components/Chat.tsx/ChatInput';
+import { Modal } from 'antd';
 
 
 interface ChatbotProps {
   isNewChatDefault?: boolean;
 }
 // API Configuration
+
 
 const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   const [messages, setMessages] = useState<IConversation[]>([]); // สร้าง state สําหรับข้อความ
@@ -30,6 +32,8 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   const navigate = useNavigate();
   const { chatroom_id } = useParams();
   const [chatRoomID, setChatRoomID] = useState<number | null>(chatroom_id ? Number(chatroom_id) : null);
+  const [modal, contextHolder] = Modal.useModal();
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -158,7 +162,11 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
 
   async function Close() {
     console.log("chatroom: ", chatRoomID);
-    // await CloseChat(Number(chatRoomID));
+    await CloseChat(Number(chatRoomID));
+    setIsNewChat(!isNewChat);
+    setMessages([]);   
+    setChatRoomID(null);  
+    navigate('/chat');
     
   }
 
@@ -176,16 +184,30 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     setIsDarkMode(!isDarkMode);
   };
   const newChat = (): void => {
-
       if (chatRoomID) {
-        Close(); // เรียก API ปิดห้องแชทก่อน
-        console.log('Closed chatroom:', chatRoomID);
+        modal.confirm({
+          title: 'เริ่มแชทใหม่?',
+          content: 'ห้องแชทปัจจุบันจะถูกปิด และเริ่มการสนทนาใหม่ คุณแน่ใจหรือไม่?',
+          okText: 'ยืนยัน',
+          cancelText: 'ยกเลิก',
+          onOk: async () => {
+            await Close(); // ปิดห้องแชทปัจจุบัน
+            console.log('Closed chatroom:', chatRoomID);
+          },
+          okButtonProps: {
+            style: {
+              backgroundColor:'var(--color-regal-blue)', // Tailwind: green-500
+              borderColor: 'var(--color-regal-blue)',
+              color: '#fff'
+            }
+          },
+          cancelButtonProps: {
+            className: 'custom-cancel-button'
+          },
+        
+        });
       }
-      
-    setIsNewChat(!isNewChat);
-    setMessages([]);   
-    setChatRoomID(null);   
-    navigate('/chat');
+    
   };
 
   return (
@@ -197,7 +219,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
         : 'bg-[#F4FFFF]'
     }`}>
 
-      
+{contextHolder}
       <div className="border border-gray-200 shadow-md rounded-xl container  duration-300 mx-auto max-w-full  h-[90vh]  flex flex-col justify-between">
         {/* Header */}
         <ChatHeader isDarkMode={isDarkMode} onNewChat={newChat} onClearChat={Close} />

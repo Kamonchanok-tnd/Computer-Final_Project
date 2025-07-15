@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { createContext } from 'react';
 import { ChevronLeft, Bot, Plus, Trash2 } from 'lucide-react';
-
+import './custom.css'
 interface ChatHeaderProps {
   isDarkMode: boolean;
   onNewChat: () => void;
   onClearChat: () => void;
+ 
 }
 
+
 function ChatHeader({ isDarkMode, onNewChat, onClearChat }: ChatHeaderProps) {
+
   return (
     <div
     className={` sm:rounded-t-2xl md:p-2 px-4 py-2 backdrop-blur-sm duration-300 ${
