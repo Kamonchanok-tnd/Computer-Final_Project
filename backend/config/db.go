@@ -134,7 +134,7 @@ func SetupDatabase() {
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
 	SeedQuestionnaires(db)
-
+	SeedCriteriaAndCalculations(db)
 }
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
@@ -464,7 +464,29 @@ func SeedQuestionnaires(db *gorm.DB) {
 
 	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับสติ (State Mindfulness)", "ประเมินระดับสติในขณะปัจจุบัน", 5, admin.ID, questionsMindfulness, optionsMindfulness)
 
-	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness")
+	// == 4. แบบวัดระดับความสุข คะแนน 0-10 ==
+	questionsHappinessLevel := []string{
+		"ขณะนี้ คุณให้คะแนนความสุขตนเองเท่าไร",
+	}
+
+	optionsHappinessLevel := []entity.AnswerOption{
+		{Description: "0", Point: 0},
+		{Description: "1", Point: 1},
+		{Description: "2", Point: 2},
+		{Description: "3", Point: 3},
+		{Description: "4", Point: 4},
+		{Description: "5", Point: 5},
+		{Description: "6", Point: 6},
+		{Description: "7", Point: 7},
+		{Description: "8", Point: 8},
+		{Description: "9", Point: 9},
+		{Description: "10", Point: 10},
+
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับความสุข คะแนน 0-10", "วัดระดับความสุขในขณะปัจจุบัน", 1, admin.ID, questionsHappinessLevel, optionsHappinessLevel)
+
+	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness, HappinessLevel")
 }
 
 func insertQuestionnaireWithQuestionsAndOptions(
@@ -502,4 +524,105 @@ func insertQuestionnaireWithQuestionsAndOptions(
 			}
 		}
 	}
+}
+
+// SeedCriteriaAndCalculations - เพิ่มข้อมูลเริ่มต้นในตาราง Criteria และ Calculation
+func SeedCriteriaAndCalculations(db *gorm.DB) {
+	// Seed Criteria
+	criterias := []entity.Criteria{
+		{Description: "ปกติ ไม่เป็นโรคซึมเศร้า", CriteriaScore: 0},
+		{Description: "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า", CriteriaScore: 1}, // Note: CriteriaScore for range will be handled in logic
+		{Description: "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก", CriteriaScore: 7},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับน้อย", CriteriaScore: 12},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", CriteriaScore: 18},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", CriteriaScore: 19},
+		{Description: "ขาดสติ ในขณะนั้น", CriteriaScore: 3},
+		{Description: "มีสติ อยู่กับปัจจุบัน", CriteriaScore: 6},
+		{Description: "ไม่มีความสุขเลย", CriteriaScore: 0},
+		{Description: "มีความสุขน้อยที่สุด", CriteriaScore: 2},
+		{Description: "มีความสุขน้อย", CriteriaScore: 4},
+		{Description: "มีความสุขปานกลาง", CriteriaScore: 6},
+		{Description: "มีความสุขมาก", CriteriaScore: 8},
+		{Description: "มีความสุขมากที่สุด", CriteriaScore: 10},
+	}
+
+	for _, c := range criterias {
+		var existingCriteria entity.Criteria
+		if err := db.Where("description = ?", c.Description).First(&existingCriteria).Error; err != nil {
+			// ถ้าไม่มี ให้สร้างใหม่
+			if err := db.Create(&c).Error; err != nil {
+				log.Fatalf("ไม่สามารถสร้าง Criteria: %v", err)
+			}
+		}
+	}
+	fmt.Println("✅ Seeded Criterias")
+
+	// Fetch Questionnaire IDs
+	var q2Q entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบคัดกรองโรคซึมเศร้า 2Q").First(&q2Q).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน 2Q: %v", err)
+	}
+
+	var q9Q entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบคัดกรองโรคซึมเศร้า 9Q").First(&q9Q).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน 9Q: %v", err)
+	}
+
+	var qMindfulness entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบวัดระดับสติ (State Mindfulness)").First(&qMindfulness).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน State Mindfulness: %v", err)
+	}
+
+	var qHappinessLevel entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบวัดระดับความสุข คะแนน 0-10").First(&qHappinessLevel).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน แบบวัดระดับความสุข คะแนน 0-10: %v", err)
+	}
+
+	// Fetch Criteria IDs
+	var c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14 entity.Criteria
+	db.Where("description = ?", "ปกติ ไม่เป็นโรคซึมเศร้า").First(&c1)
+	db.Where("description = ?", "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า").First(&c2)
+	db.Where("description = ?", "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก").First(&c3)
+	db.Where("description = ?", "มีอาการของโรคซึมเศร้า ระดับน้อย").First(&c4)
+	db.Where("description = ?", "มีอาการของโรคซึมเศร้า ระดับปานกลาง").First(&c5)
+	db.Where("description = ?", "มีอาการของโรคซึมเศร้า ระดับรุนแรง").First(&c6)
+	db.Where("description = ?", "ขาดสติ ในขณะนั้น").First(&c7)
+	db.Where("description = ?", "มีสติ อยู่กับปัจจุบัน").First(&c8)
+	db.Where("description = ?", "ไม่มีความสุขเลย").First(&c9)
+	db.Where("description = ?", "มีความสุขน้อยที่สุด").First(&c10)
+	db.Where("description = ?", "มีความสุขน้อย").First(&c11)
+	db.Where("description = ?", "มีความสุขปานกลาง").First(&c12)
+	db.Where("description = ?", "มีความสุขมาก").First(&c13)
+	db.Where("description = ?", "มีความสุขมากที่สุด").First(&c14)
+
+
+	// Seed Calculations
+	calculations := []entity.Calculation{
+		{CID: c1.ID, QuID: q2Q.ID},
+		{CID: c2.ID, QuID: q2Q.ID},
+		{CID: c3.ID, QuID: q9Q.ID},
+		{CID: c4.ID, QuID: q9Q.ID},
+		{CID: c5.ID, QuID: q9Q.ID},
+		{CID: c6.ID, QuID: q9Q.ID},
+		{CID: c7.ID, QuID: qMindfulness.ID},
+		{CID: c8.ID, QuID: qMindfulness.ID},
+		{CID: c9.ID, QuID: qHappinessLevel.ID},
+		{CID: c10.ID, QuID: qHappinessLevel.ID},
+		{CID: c11.ID, QuID: qHappinessLevel.ID},
+		{CID: c12.ID, QuID: qHappinessLevel.ID},
+		{CID: c13.ID, QuID: qHappinessLevel.ID},
+		{CID: c14.ID, QuID: qHappinessLevel.ID},
+
+	}
+
+	for _, calc := range calculations {
+		var existingCalc entity.Calculation
+		if err := db.Where("cid = ? AND quid = ?", calc.CID, calc.QuID).First(&existingCalc).Error; err != nil {
+			// ถ้าไม่มี ให้สร้างใหม่
+			if err := db.Create(&calc).Error; err != nil {
+				log.Fatalf("ไม่สามารถสร้าง Calculation: %v", err)
+			}
+		}
+	}
+	fmt.Println("✅ Seeded Calculations")
 }
