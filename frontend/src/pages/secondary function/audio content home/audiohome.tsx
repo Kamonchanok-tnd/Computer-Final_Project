@@ -1,7 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom"; // นำเข้า useNavigate
 import "./audiohome.css";
-import Navbar from "../../../components/Navbar/Navbar";
+import smile from "../../../assets/maditaion.jpg"; // รูปภาพสำหรับกิจกรรม "สวดมนต์"
+import meditationImage from "../../../assets/prey.jpg"; // รูปภาพสำหรับกิจกรรม "ทำสมาธิ"
+import asmrImage from "../../../assets/maditaion.jpg"; // รูปภาพสำหรับกิจกรรม "ASMR"
+import breathInImage from "../../../assets/prey.jpg"; // รูปภาพสำหรับกิจกรรม "ฝึกหายใจ"
+import userImage from "../../../assets/user.png"; // รูปคนสวัสดี
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate(); // เรียกใช้งาน useNavigate
 
@@ -11,29 +16,36 @@ const HomePage: React.FC = () => {
 
   return (
     <>
-    <Navbar /> 
-    <div className="home-page">
-       
-      <h1>สวัสดี</h1>
-       <div className="topic activity-card" >
-          <h3>กิจกรรมผ่อนคลาย</h3>
+      <div className="home-page">
+        {/* ส่วนของหัวข้อและรูปคน */}
+        <div className="header-section">
+          <img src={userImage} alt="User" />
+          <div>
+            <h1>สวัสดี!</h1>
+            <p>ลองเล่นกิจกรรมผ่อนคลายของเรา เพื่อความสงบและฟื้นฟูจิตใจ</p>
+          </div>
         </div>
-      <div className="activity-cards">
-       
-        <div className="activity-card" onClick={() => handleNavigate("/chanting")}>
-          <h3>สวดมนต์</h3>
-        </div>
-        <div className="activity-card" onClick={() => handleNavigate("/user/meditation")}>
-          <h3>ทำสมาธิ</h3>
-        </div>
-        <div className="activity-card" onClick={() => handleNavigate("/asmr")}>
-          <h3>ASMR</h3>
-        </div>
-        <div className="activity-card" onClick={() => handleNavigate("/user/breath-in")}>
-          <h3>ฝึกหายใจ</h3>
+
+        {/* ส่วนของกิจกรรม */}
+        <div className="activity-cards">
+          <div className="activity-card" onClick={() => handleNavigate("/chanting")}>
+            <img src={smile} alt="สวดมนต์" />
+            <p>ร่วมสวดมนต์เพื่อความสงบและผ่อนคลายจิตใจ</p>
+          </div>
+          <div className="activity-card" onClick={() => handleNavigate("/meditation")}>
+            <img src={meditationImage} alt="ทำสมาธิ" />
+            <p>ฝึกสมาธิเพื่อการผ่อนคลายและการฟื้นฟูจิตใจ</p>
+          </div>
+          <div className="activity-card" onClick={() => handleNavigate("/asmr")}>
+            <img src={asmrImage} alt="ASMR" />
+            <p>รับฟังเสียงที่ผ่อนคลายจิตใจผ่าน ASMR</p>
+          </div>
+          <div className="activity-card" onClick={() => handleNavigate("/breath-in")}>
+            <img src={breathInImage} alt="ฝึกหายใจ" />
+            <p>ฝึกการหายใจเพื่อความสงบและการลดความเครียด</p>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

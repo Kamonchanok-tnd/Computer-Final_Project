@@ -1,88 +1,33 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/Navbar/Navbar";
-import "./homeuser.css"
-import logo from "../../assets/login.png";
-export const logout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("token_type");
-};
+import React, { useEffect, useState } from "react";
+import ChatBan from "../../components/Home/ChatBan";
+import Question from "../../components/Home/Question";
+import Activity from "../../components/Home/Activity";
+import Footer from "../../components/Home/Footer";
+import MoodPopup from "../../components/assessment/MoodPopup"; // ✅ นำเข้า popup
 
 function Home() {
-  const [feeling, setFeeling] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [showPopup, setShowPopup] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
+  useEffect(() => {
+    const alreadyShown = sessionStorage.getItem("mood_popup_shown");
 
-  const handleFeelingChange = (emoji: string) => {
-    setFeeling(emoji);
-  };
+    if (!alreadyShown) {
+      // ✅ แสดง popup ครั้งแรกเท่านั้น
+      setShowPopup(true);
+      sessionStorage.setItem("mood_popup_shown", "true");
+    }
+  }, []);
 
   return (
-    <>
-      <Navbar />
-      <div className="home-page">
-       
+    <div className="bg-[#F4FFFF] relative">
+      {/* ✅ Popup เด้งทันทีเมื่อยังไม่เคยแสดง */}
+      {showPopup && <MoodPopup />}
 
-        <div className="feeling-question">
-          <h2>วันนี้คุณรู้สึกอย่างไร?</h2>
-          <div className="emoji-container">
-            <span
-              className={`emoji ${feeling === "😊" ? "selected" : ""}`}
-              onClick={() => handleFeelingChange("😊")}
-            >
-              😊
-            </span>
-            <span
-              className={`emoji ${feeling === "😐" ? "selected" : ""}`}
-              onClick={() => handleFeelingChange("😐")}
-            >
-              😐
-            </span>
-            <span
-              className={`emoji ${feeling === "😞" ? "selected" : ""}`}
-              onClick={() => handleFeelingChange("😞")}
-            >
-              😞
-            </span>
-          </div>
-        </div>
-
-        <div className="activity-container">
-
-          <h1>แบบสอบถาม</h1>
-          <div>
-            <img src={logo} alt="กิจกรรม 1" />
-            <h3>กิจกรรม 1</h3>
-          </div>
-          <div>
-            <img src={logo} alt="กิจกรรม 2" />
-            <h3>กิจกรรม 2</h3>
-          </div>
-          <div>
-            <img src={logo} alt="กิจกรรม 3" />
-            <h3>กิจกรรม 3</h3>
-          </div>
-        </div>
-        <div className="content">
-          <h1>กิจกรรมต่างๆ</h1>
-          <div>
-            <img src={logo} alt="กิจกรรม 1" />
-            <h3>กิจกรรม 1</h3>
-          </div>
-          <div>
-            <img src={logo} alt="กิจกรรม 1" />
-            <h3>กิจกรรม 2</h3>
-          </div>
-
-        </div>
-
-        
-      </div>
-    </>
+      <ChatBan />
+      <Question />
+      <Activity />
+      <Footer />
+    </div>
   );
 }
 
