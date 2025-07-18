@@ -42,32 +42,49 @@ export default function PromptForm({ extraButtons, editingPrompt, onFinishEdit }
     }
   };
 
+  const textAreaStyle = {
+    height: 140,
+    maxHeight: 140,
+    overflow: 'auto',
+    resize: 'none' as const,
+  };
+
   return (
     <div className="bg-white sm:rounded-xl sm:shadow-lg sm:p-6 p-2 rounded-md">
-      <h2 className="text-xl mb-4 flex items-center gap-2 text-[#2c3e50]">
-        <EditOutlined />
-        {editingPrompt ? 'แก้ไข Prompt' : 'เพิ่ม Prompt ใหม่'}
-      </h2>
-
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ช่องกรอกชื่อ Prompt พร้อมไอคอนในกล่อง */}
+        <Form.Item
+          name="name"
+          className="mb-4"
+          rules={[{ required: true }]}
+        >
+          <Input
+            size="large"
+            bordered={false}
+            placeholder="เช่น GreetingBot หรือ ChatHelper"
+            className="text-xl font-semibold"
+            prefix={<EditOutlined className="text-[#2c3e50]" />}
+          />
+        </Form.Item>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Form.Item label={<><AimOutlined /> Objective</>} name="objective" rules={[{ required: true }]}>
-            <TextArea rows={2} />
+            <TextArea rows={5} style={textAreaStyle} />
           </Form.Item>
           <Form.Item label={<><UserOutlined /> Persona</>} name="persona">
-            <TextArea rows={2} />
+            <TextArea rows={5} style={textAreaStyle} />
           </Form.Item>
           <Form.Item label={<><BgColorsOutlined /> Tone</>} name="tone">
-            <TextArea rows={2} />
+            <TextArea rows={5} style={textAreaStyle} />
           </Form.Item>
           <Form.Item label={<><FileTextOutlined /> Instruction</>} name="instruction">
-            <TextArea rows={2} />
+            <TextArea rows={5} style={textAreaStyle} />
           </Form.Item>
           <Form.Item label={<><StopOutlined /> Constraint</>} name="constraint">
-            <TextArea rows={2} />
+            <TextArea rows={5} style={textAreaStyle} />
           </Form.Item>
           <Form.Item label={<><GlobalOutlined /> Context</>} name="context">
-            <TextArea rows={2} />
+            <TextArea rows={5} style={textAreaStyle} />
           </Form.Item>
         </div>
 
