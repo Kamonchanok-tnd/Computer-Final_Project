@@ -7,7 +7,7 @@
   font-family: "Prompt", sans-serif;
 
   /* ✅ แก้ไขตรงนี้ */
-  height: 100dvh; /* ใช้ dvh แทน vh บนมือถือบางรุ่น */
+  height: 100vh; /* ใช้ dvh แทน vh บนมือถือบางรุ่น */
   overflow: hidden; /* ไม่ให้ container scroll ทั้งหน้า */
 
   display: flex;              /* ทำให้เป็น layout แบบ flex */

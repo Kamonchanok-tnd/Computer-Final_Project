@@ -183,12 +183,14 @@ export const deleteQuestion = async (id: number) => {
 export const deleteAnswer = async (
   id: number
 ): Promise<any> => {
-  const apiUrl = "YOUR_API_URL"; // เปลี่ยนเป็น URL ของคุณ
   try {
+   
+    const token = localStorage.getItem("token");
     const response = await fetch(`${apiUrl}/deleteanswer/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
       },
     });
 
