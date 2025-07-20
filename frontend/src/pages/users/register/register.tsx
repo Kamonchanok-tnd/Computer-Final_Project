@@ -50,6 +50,7 @@ function SignUpPages() {
 
   return (
     <>
+    <div className="resgister">
       {/* ต้องมีการแสดง message API */}
       {contextHolder}
 
@@ -219,6 +220,7 @@ function SignUpPages() {
           </Row>
         </Card>
       </Flex>
+      </div>
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 export interface IPrompt {
   ID?: number; 
+  name: string;
   objective: string;
   persona?: string;
   tone?: string;

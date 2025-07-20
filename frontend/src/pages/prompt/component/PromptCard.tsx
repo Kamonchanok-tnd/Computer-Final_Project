@@ -2,6 +2,7 @@ import { Button, Card, Tag, Typography, Tooltip } from 'antd';
 import { CheckCircleTwoTone, StarTwoTone, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { IPrompt } from '../../../interfaces/IPrompt';
 
+//แก้ไขตอนmobile fullscreen
 const { Paragraph, Text } = Typography;
 
 interface PromptCardProps {
@@ -19,7 +20,7 @@ export default function PromptCard({ prompt, onUse, onEdit, onDelete, onExpand }
         <div className="flex items-center justify-between gap-2 font-semibold text-base w-full">
           <div className="flex items-center gap-2 overflow-hidden flex-1">
             <StarTwoTone twoToneColor="#eb2f96" />
-            <span className="truncate block w-full">{prompt.objective || 'ไม่มีหัวข้อ'}</span>
+            <span className="truncate block w-full">{prompt.name || 'ไม่มีหัวข้อ'}</span>
           </div>
           <div className="flex items-center gap-1">
             <Tooltip title="ดูทั้งหมด">
@@ -36,7 +37,7 @@ export default function PromptCard({ prompt, onUse, onEdit, onDelete, onExpand }
       size="small"
     >
       <Paragraph className="text-sm text-gray-700 mb-1">
-        <Text strong>Persona:</Text> {prompt.persona || 'ไม่ระบุ'}
+        <Text strong>Objective:</Text> {prompt.objective || 'ไม่ระบุ'}
       </Paragraph>
 
       <div className="flex gap-4 mt-2">

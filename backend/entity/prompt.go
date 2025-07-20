@@ -5,6 +5,7 @@ import (
 
 type Prompt struct {
 	gorm.Model
+	Name 	  string    `json:"name"`
 	Objective string `json:"objective"`
 	Persona     string    `json:"persona"`
 	Tone        string    `json:"tone"`

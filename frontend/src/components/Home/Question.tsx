@@ -2,27 +2,28 @@ import { ChevronRight } from 'lucide-react'
 import q2 from '../../assets/q2.jpg'
 import q1 from '../../assets/q1.jpg'
 import q3 from '../../assets/maditaion.jpg'
+import q4 from '../../assets/q4.jpg'
 const card =[
     {
         id:1,
-        name:"แบบคัดกรองโรคซึมเศร้า",
+        name:"แบบคัดกรองโรคซึมเศร้า 2 Q",
         image:q1
     },
     {
         id:2,
-        name:"แบบคัดกรองโรคซึมเศร้า 8 Q",
+        name:"แบบคัดกรองโรคซึมเศร้า 9 Q",
         image:q2,
     },
     {
         id:3,
-        name:"แบบคัดกรองโรคซึมเศร้า 8 Q",
+        name:"แบบวัดระดับสติ (State Mindfulness Scale)",
         image:q3,
     },
     {
         id:4,
-        name:"แบบคัดกรองโรคซึมเศร้า 8 Q",
-        image:q2,
-    }
+        name:"แบบประเมินตระหนักรู้ในตนเอง",
+        image:q4,
+    } 
 ]
 
 function Question (){

@@ -12,8 +12,11 @@ import (
     "sukjai_project/controller/resettoken"
     "sukjai_project/controller/users"
     "sukjai_project/controller/meditation"
+     "sukjai_project/controller/breathing"
     "sukjai_project/middlewares"
     "sukjai_project/controller/prompt"
+    "sukjai_project/controller/assessment"
+
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -88,11 +91,7 @@ func main() {
         router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
         router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
         router.POST("/admin/prompt/use/:id", prompt.UsePrompt)
-        router.GET("/admin/prompt/:id", prompt.GetPromptByID)
-
-        
-
-
+        router.GET("/admin/prompt/:id", prompt.GetPromptByID)  
 
 
 
@@ -110,6 +109,9 @@ func main() {
         router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
      
         
+
+        router.POST("/videos", meditation.CreateVideo)
+        router.GET("/sound-types", meditation.GetSoundTypes)
      
         
         // Routes for superadmin only
@@ -125,10 +127,32 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
-        router.GET("/sounds/meditation", meditation.GetMeditationSounds)
+        userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
+        userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
 
-        
-        
+        //assessment
+        router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
+        router.GET("/assessment/AssessmentAnswers", assessment.GetAllAssessmentAnswers)
+        router.GET("/assessment/AssessmentResults", assessment.GetAllAssessmentResults)
+        router.GET("/assessment/Calculations", assessment.GetAllCalculations)
+        router.GET("/assessment/Criteria", assessment.GetAllCriteria)
+        router.GET("/assessment/Questions", assessment.GetAllQuestions)
+        router.GET("/assessment/Questionnaires", assessment.GetAllQuestionnaires)
+        router.GET("/assessment/Transaction", assessment.GetAllTransaction)
+        router.GET("/assessment/AnswerOptions/:id", assessment.GetAnswerOptionByID)
+        router.GET("/assessment/AssessmentAnswers/:id", assessment.GetAssessmentAnswerByID)
+        router.GET("/assessment/AssessmentResults/:id", assessment.GetAssessmentResultByID)
+        router.GET("/assessment/Calculations/:id", assessment.GetCalculationByID)
+        router.GET("/assessment/Criteria/:id", assessment.GetCriteriaByID)
+        router.GET("/assessment/Questions/:id", assessment.GetQuestionByID)
+        router.GET("/assessment/Questionnaires/:id", assessment.GetQuestionnaireByID)
+        router.GET("/assessment/Transactions/:id", assessment.GetTransactionByID)
+        router.POST("/assessment/result", assessment.CreateAssessmentResult)
+        router.POST("/assessment/answer", assessment.SubmitAssessmentAnswer)
+        router.POST("/assessment/finish/:id", assessment.FinishAssessment)
+
+
+
         //chat space
         
     }

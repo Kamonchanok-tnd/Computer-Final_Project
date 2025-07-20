@@ -59,7 +59,7 @@
 }
 
 /* สไตล์สำหรับปุ่ม Hamburger */
-.layout .layout-hamburger-button {
+.layout1 .layout-hamburger-button {
   display: none;
   position: absolute;
   top: 20px;

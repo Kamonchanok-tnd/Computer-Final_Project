@@ -65,8 +65,9 @@ html, body {
 
 /* ✅ หัวข้อคำถาม */
 .form-step-question-title {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 600;
+  text-align: center;
   color: #333;
   margin-bottom: 20px;
   text-align: left;
@@ -75,24 +76,28 @@ html, body {
   gap: 12px;
 }
 
-/* ✅ ช่องกรอก */
-.form-step-question-input,
-.form-step-answer-input,
-.form-step-score-input {
-  font-size: 18px;
-  padding: 10px;
+/* ✅ ช่องกรอกข้อมูล */
+.form-step-question-input,      /* ช่องกรอกคำถาม */
+.form-step-answer-input,        /* ช่องกรอกคำตอบ */
+.form-step-score-input {        /* ช่องกรอกคะแนน */
+  font-size: 20px;
 }
 
-.form-step-answer-input {
+.form-step-question-input {
+  width: 100%;
+  font-size: 20px;
+}
+
+.form-step-question-container .form-step-answer-input {
   flex: 1;
 }
 
 .form-step-score-input {
-  width: 120px;
-  text-align: center;
+  width: 100px;
+  font-size: 20px;
 }
 
-/* ✅ รายการคำตอบ */
+/* ✅ กล่องห่อรายการคำตอบ ให้ scroll ได้ */
 .answers-list-wrapper {
   max-height: 300px;
   overflow-y: auto;
@@ -100,18 +105,19 @@ html, body {
   padding-right: 6px;
 }
 
+/* ✅ scrollbar แคบและดูเรียบ */
 .answers-list-wrapper::-webkit-scrollbar {
   width: 6px;
 }
-.answers-list-wrapper::-webkit-scrollbar-thumb {
+.form-step-question-container .answers-list-wrapper::-webkit-scrollbar-thumb {
   background: #aaa;
   border-radius: 3px;
 }
-.answers-list-wrapper::-webkit-scrollbar-track {
+.form-step-question-container .answers-list-wrapper::-webkit-scrollbar-track {
   background: #f0f0f0;
 }
 
-/* ✅ ปุ่มเพิ่มคำตอบ */
+/* ✅ ปุ่มเพิ่มตัวเลือก */
 .form-step-add-btn {
   margin-top: 12px;
   background-color: #87CEFA !important;
@@ -124,25 +130,24 @@ html, body {
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.form-step-add-btn:hover,
-.form-step-nav-btns button:hover {
-  background-color: #5bc0de !important;
-  transform: translateY(-2px);
+.form-step-add-btn:hover {
+  background-color: #8ee58f !important; /* เขียวเข้ม */
 }
 
-.form-step-add-btn:active,
-.form-step-nav-btns button:active {
-  background-color: #4aa3c7 !important;
+.form-step-add-btn:active {
+  background-color: #8ee58f !important; /* เขียวเข้มอีกระดับตอนกด */
 }
 
-/* ✅ ปุ่มบันทึก */
+/* ✅ ปุ่มข้อก่อนหน้า / ข้อต่อไป / บันทึก */
 .form-step-nav-btns {
-  margin-top: 0px;
+  margin-top: 20px;
   text-align: center;
 }
+
 .form-step-nav-btns button {
-  background-color: #1E90FF !important;
-  color: #fff;
+  background-color: #87CEFA !important; /* ฟ้าเข้ม */
+  color: #000000;
+  border: none;
   font-size: 20px;
   border-radius: 8px;
   padding: 14px 40px;
@@ -151,23 +156,19 @@ html, body {
 }
 
 .form-step-nav-btns button:hover {
-  background-color: #4682B4 !important;
-  transform: translateY(-2px);
+  background-color: #8ee58f !important; /* ฟ้าเข้มขึ้น */
 }
 
-/* ✅ ปรับ label ของ AntD */
-.ant-form-item-label > label,
-.question-label-item label {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
+.form-step-nav-btns button:active {
+  background-color: #8ee58f !important; /* ฟ้าเข้มสุดตอนคลิก */
 }
 
-/* ✅ Divider ข้อความ */
-.ant-divider-inner-text {
-  font-size: 18px;
-  font-weight: 600;
-  color: #000;
+/* ✅ ข้อความโหลด */
+.form-step-loading {
+  text-align: center;
+  margin-top: 60px;
+  font-size: 16px;
+  color: #999;
 }
 
 /* ✅ Responsive */
@@ -189,7 +190,39 @@ html, body {
   }
   .form-step-add-btn,
   .form-step-nav-btns button {
-    font-size: 16px;
-    padding: 10px;
+    font-size: 14px;
   }
+}
+
+/* ✅ ทำให้ modal แสดงบนสุดเสมอ */
+.ant-modal-root {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+/* ✅ ป้องกัน body ถูกซ่อน scrollbar */
+body {
+  overflow: auto !important;
+}
+
+
+/* ✅ ปรับขนาดชื่อช่องกรอก (label) ใน Ant Design */
+.ant-form-item-label > label {
+  font-size: 20px;     /* ✅ ขนาดตัวอักษรของ label */
+  font-weight: 500;    /* ✅ น้ำหนักฟอนต์ */
+  color: #333;         /* ✅ สีตัวอักษร */
+}
+
+/* ✅ ปรับขนาดตัวอักษรของ Divider */
+.ant-divider-inner-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+}
+
+/* ✅ ทำให้ label "คำถาม" ใหญ่ขึ้น */
+.question-label-item label {
+  font-size: 20px !important;
+  font-weight: 600;
+  color: #111;
 }
