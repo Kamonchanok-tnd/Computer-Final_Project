@@ -1,82 +1,112 @@
-/* ✅ ส่วนครอบทั้งหมดของฟอร์มคำถาม */
-.form-step-question-container {
-  padding: 40px 16px;
-  background-color: #F5F5F5;
-  min-height: 100vh; /* เต็มหน้าจอแนวตั้ง */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+/* ✅ ปิด scroll ทั้งหน้า */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Arial', sans-serif;
 }
 
-/* ✅ กล่องฟอร์มคำถามแต่ละข้อ */
-.form-step-question-container .form-step-question-box {
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.05) 1px,
-      transparent 1px,
-      transparent 12px
-    ),
-    linear-gradient(to bottom right, #87CEFA, #b0e0e6); /* พื้นหลังแบบไล่สี + ลาย diagonal */
-  background-size: auto, cover;
-  background-repeat: repeat;
-  background-position: 0 0;
+/* ✅ container ใหญ่สุด */
+.form-step-question-container {
+  height: 90vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #F5F5F5;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow: hidden; /* ห้าม scroll container */
+}
 
-  font-size: 20px;
+/* ✅ กล่องฟอร์มแบบ scroll ได้ */
+.form-step-question-box {
+  background: linear-gradient(135deg, #87CEFA 0%, #b0e0e6 100%);
   max-width: 1000px;
   width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   padding: 32px;
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  margin-top: 40px;
 
-  max-height: 80vh;         /* จำกัดความสูงของกล่อง */
-  overflow-y: auto;         /* ให้เลื่อนเมื่อมีข้อมูลยาวเกิน */
+   padding-bottom: 80px; /* ✅ เพิ่ม padding ล่างให้ปุ่มไม่โดนตัด */
+
+  max-height: calc(100vh - 48px); /* ✅ ลบ padding container */
+  overflow-y: auto; /* ✅ scroll ได้เฉพาะกล่องนี้ */
+  scrollbar-width: thin;
+  scrollbar-color: #87CEFA #f0f0f0;
+}
+
+.form-step-question-box::-webkit-scrollbar {
+  width: 8px;
+}
+.form-step-question-box::-webkit-scrollbar-thumb {
+  background: #87CEFA;
+  border-radius: 4px;
+}
+.form-step-question-box::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+/* ✅ กล่องคำถามแต่ละข้อ */
+.question-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.question-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 /* ✅ หัวข้อคำถาม */
-.form-step-question-container .form-step-question-title {
+.form-step-question-title {
   font-size: 30px;
   font-weight: 600;
   text-align: center;
   color: #333;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* ✅ ช่องกรอกข้อมูล */
-.form-step-question-container .form-step-question-input,      /* ช่องกรอกคำถาม */
-.form-step-question-container .form-step-answer-input,        /* ช่องกรอกคำตอบ */
-.form-step-question-container .form-step-score-input {        /* ช่องกรอกคะแนน */
+.form-step-question-input,      /* ช่องกรอกคำถาม */
+.form-step-answer-input,        /* ช่องกรอกคำตอบ */
+.form-step-score-input {        /* ช่องกรอกคะแนน */
   font-size: 20px;
 }
 
-.form-step-question-container .form-step-question-input {
+.form-step-question-input {
   width: 100%;
   font-size: 20px;
 }
 
 .form-step-question-container .form-step-answer-input {
   flex: 1;
-  font-size: 20px;
 }
 
-.form-step-question-container .form-step-score-input {
+.form-step-score-input {
   width: 100px;
   font-size: 20px;
 }
 
 /* ✅ กล่องห่อรายการคำตอบ ให้ scroll ได้ */
-.form-step-question-container .answers-list-wrapper {
+.answers-list-wrapper {
   max-height: 300px;
   overflow-y: auto;
   margin-bottom: 16px;
-  padding-right: 4px;
+  padding-right: 6px;
 }
 
 /* ✅ scrollbar แคบและดูเรียบ */
-.form-step-question-container .answers-list-wrapper::-webkit-scrollbar {
+.answers-list-wrapper::-webkit-scrollbar {
   width: 6px;
 }
 .form-step-question-container .answers-list-wrapper::-webkit-scrollbar-thumb {
@@ -88,71 +118,76 @@
 }
 
 /* ✅ ปุ่มเพิ่มตัวเลือก */
-.form-step-question-container .form-step-add-btn {
+.form-step-add-btn {
   margin-top: 12px;
-  background-color: #87CEFA !important; /* เขียว */
+  background-color: #87CEFA !important;
   color: #000000;
   border: none;
-  font-size: 20px;
-  padding: 24px 16px;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.form-step-question-container .form-step-add-btn:hover {
+.form-step-add-btn:hover {
   background-color: #8ee58f !important; /* เขียวเข้ม */
 }
 
-.form-step-question-container .form-step-add-btn:active {
+.form-step-add-btn:active {
   background-color: #8ee58f !important; /* เขียวเข้มอีกระดับตอนกด */
 }
 
 /* ✅ ปุ่มข้อก่อนหน้า / ข้อต่อไป / บันทึก */
-.form-step-question-container .form-step-nav-btns {
+.form-step-nav-btns {
   margin-top: 20px;
   text-align: center;
 }
 
-.form-step-question-container .form-step-nav-btns button {
+.form-step-nav-btns button {
   background-color: #87CEFA !important; /* ฟ้าเข้ม */
   color: #000000;
   border: none;
   font-size: 20px;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
+  border-radius: 8px;
+  padding: 14px 40px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.form-step-question-container .form-step-nav-btns button:hover {
+.form-step-nav-btns button:hover {
   background-color: #8ee58f !important; /* ฟ้าเข้มขึ้น */
 }
 
-.form-step-question-container .form-step-nav-btns button:active {
+.form-step-nav-btns button:active {
   background-color: #8ee58f !important; /* ฟ้าเข้มสุดตอนคลิก */
 }
 
 /* ✅ ข้อความโหลด */
-.form-step-question-container .form-step-loading {
+.form-step-loading {
   text-align: center;
   margin-top: 60px;
   font-size: 16px;
   color: #999;
 }
 
-/* ✅ ปรับขนาดให้แสดงดีในมือถือ */
-@media (max-width: 576px) {
+/* ✅ Responsive */
+@media (max-width: 768px) {
+  .form-step-question-title {
+    font-size: 20px;
+  }
   .form-step-question-box {
     padding: 20px;
-    margin-top: 20px;
   }
+  .form-step-score-input {
+    width: 90px;
+  }
+}
 
+@media (max-width: 576px) {
   .form-step-question-title {
     font-size: 18px;
   }
-
-  .form-step-score-input {
-    width: 80px;
-  }
-
   .form-step-add-btn,
   .form-step-nav-btns button {
     font-size: 14px;
@@ -160,33 +195,33 @@
 }
 
 /* ✅ ทำให้ modal แสดงบนสุดเสมอ */
-.form-step-question-container .ant-modal-root {
+.ant-modal-root {
   z-index: 9999 !important;
   position: fixed !important;
 }
 
 /* ✅ ป้องกัน body ถูกซ่อน scrollbar */
-.form-step-question-container body {
+body {
   overflow: auto !important;
 }
 
 
 /* ✅ ปรับขนาดชื่อช่องกรอก (label) ใน Ant Design */
-.form-step-question-container .ant-form-item-label > label {
+.ant-form-item-label > label {
   font-size: 20px;     /* ✅ ขนาดตัวอักษรของ label */
   font-weight: 500;    /* ✅ น้ำหนักฟอนต์ */
   color: #333;         /* ✅ สีตัวอักษร */
 }
 
 /* ✅ ปรับขนาดตัวอักษรของ Divider */
-.form-step-question-container .ant-divider-inner-text {
+.ant-divider-inner-text {
   font-size: 20px;
   font-weight: 600;
   color: #000;
 }
 
 /* ✅ ทำให้ label "คำถาม" ใหญ่ขึ้น */
-.form-step-question-container .question-label-item label {
+.question-label-item label {
   font-size: 20px !important;
   font-weight: 600;
   color: #111;

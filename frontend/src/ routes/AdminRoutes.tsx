@@ -17,6 +17,7 @@ import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePa
 import QuestionPage from "../pages/admin/questionnaire/home/questionPage";
 import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
 import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
+import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
 
@@ -61,6 +62,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                     path: "/admin/createQuestion",         // หน้าสร้างคำถาม
                     element: <FormStepQuestion />,
+                },
+                 {
+                    path: "/admin/editQuestionnaire",     // หน้าสร้างเเบบทดสอบ
+                    element: <EditQuestionnaire/>,
                 },
                 {
                     path: "/admin/edityourself",
