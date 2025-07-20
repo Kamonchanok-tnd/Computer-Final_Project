@@ -17,7 +17,9 @@
   flex-shrink: 1;
   min-width: 0;
   overflow: hidden;
+  padding-left: 10px;  /* เว้นช่องทางซ้ายเพิ่ม */
 }
+
 
 /* โลโก้ */
 .layout .layout-logo {
@@ -37,12 +39,13 @@
   border: none;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 8px;          /* เพิ่ม padding ให้ใหญ่ขึ้น */
+  margin-right: 10px;    /* เพิ่มช่องว่างด้านขวา */
   font-size: 18px;
   flex-shrink: 0; /* ไม่ย่อขนาด */
-  cursor: pointer;
-  z-index: 1000;
+ 
 }
+
 
 /* ปุ่ม Logout */
 .layout .layout-logout-button {

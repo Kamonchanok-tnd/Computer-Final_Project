@@ -1,74 +1,83 @@
 import React, { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
-import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined,BookOutlined  } from '@ant-design/icons'; // นำเข้าไอคอน Dashboard, Setting, และ Chat
-const { Header, Content, Footer, Sider } = Layout;
-import { useNavigate } from "react-router-dom";
-import './index.css'; // นำเข้าไฟล์ CSS
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
+import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined, BookOutlined, UserOutlined } from '@ant-design/icons';
+const { Header, Content, Sider } = Layout;
+import './index.css';
 
 const AdminLayout = () => {
-  const location = useLocation(); // ใช้ useLocation เพื่อให้เมนูถูกเลือกตามเส้นทางที่กำลังใช้งาน
+  const location = useLocation();
   const selectedKey = location.pathname;
   const navigate = useNavigate();
-  
-  const [drawerVisible, setDrawerVisible] = useState(false); // การเปิด/ปิด Drawer
-  const [collapsed, setCollapsed] = useState(false); // เพื่อจัดการการยุบของ Sider
+
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => {
-    // ลบข้อมูลทั้งหมดจาก localStorage
     localStorage.clear();
-    
-    // นำทางไปที่หน้า Login
     navigate("/");
   };
 
-  const showDrawer = () => {
-    setDrawerVisible(true); // เปิด Drawer
+  const handleEditProfile = () => {
+    navigate("/admin/edityourself");
   };
 
-  const onClose = () => {
-    setDrawerVisible(false); // ปิด Drawer
-  };
+  const showDrawer = () => setDrawerVisible(true);
+  const onClose = () => setDrawerVisible(false);
+
+  // เมนู Dropdown สำหรับ Avatar
+  const userMenu = (
+    <Menu>
+      <Menu.Item key="editProfile" onClick={handleEditProfile} >
+        <Link to="/admin/edityourself">แก้ไขข้อมูลส่วนตัว</Link>
+      </Menu.Item>
+      <Menu.Item key="logout" onClick={handleLogout} danger>
+        ออกจากระบบ
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <Layout className="layout" style={{ minHeight: "100vh" }}>
       <Header className="layout-header">
-        {/* ปุ่ม Hamburger อยู่ทางซ้ายของ Suk Jai */}
-        <Button 
-          type="primary" 
-          icon={<MenuOutlined />}  // ใช้ MenuOutlined แสดงสามขีด
-          onClick={showDrawer} 
-          className="layout-hamburger-button"
-        />
-        <div className="layout-logo">SUT SUKJAI</div>
-        <Button onClick={handleLogout} type="primary" className="layout-logout-button">
-          ออกจากระบบ
-        </Button>
-      </Header>
+  <div className="layout-header-left">
+  <Button 
+    type="primary" 
+    icon={<MenuOutlined />}  
+    onClick={showDrawer} 
+    className="layout-hamburger-button"
+  />
+  <div className="layout-logo">SUT SUKJAI</div>
+</div>
+
+
+  <Dropdown overlay={userMenu} trigger={['click']}>
+    <Avatar size="large" icon={<UserOutlined />} style={{ cursor: 'pointer' }} />
+  </Dropdown>
+</Header>
+
+
       <Layout>
         <Sider 
           width={200} 
           className="layout-sider" 
           collapsible 
           collapsed={collapsed} 
-          onCollapse={(value) => setCollapsed(value)} // การยุบ/ขยาย Sider
-          breakpoint="lg" // ใช้ breakpoint ให้ Sider ยุบในขนาดที่กำหนด
+          onCollapse={(value) => setCollapsed(value)} 
+          breakpoint="lg"
         >
           <Menu
             mode="inline"
-            selectedKeys={[selectedKey]}  // เลือกเมนูตามเส้นทางปัจจุบัน
+            selectedKeys={[selectedKey]}
             className="layout-menu"
           >
             <Menu.Item key="/admin" icon={<DashboardOutlined />}>
               <Link to="/admin">Dashboard</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/edityourself" icon={<SettingOutlined />}>
-              <Link to="/admin/edityourself">Settings</Link>
-            </Menu.Item>
             <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
               <Link to="/admin/questionnairePage">Questionnaire</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/prompt" icon={<CommentOutlined   />}>
+            <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
               <Link to="/admin/prompt">Prompt AI</Link>
             </Menu.Item>
             <Menu.Item key="/admin/meditation" icon={<BookOutlined />}>
@@ -86,7 +95,7 @@ const AdminLayout = () => {
         >
           <Menu
             mode="inline"
-            selectedKeys={[selectedKey]} // เลือกเมนูตามเส้นทางปัจจุบัน
+            selectedKeys={[selectedKey]}
             className="layout-menu"
           >
             <Menu.Item key="/admin" icon={<DashboardOutlined />}>
@@ -106,9 +115,8 @@ const AdminLayout = () => {
 
         <Layout className="layout-content-layout">
           <Content className="layout-content">
-            <Outlet /> {/* ช่องว่างที่จะแสดงเนื้อหาย่อย */}
+            <Outlet />
           </Content>
-          
         </Layout>
       </Layout>
     </Layout>
