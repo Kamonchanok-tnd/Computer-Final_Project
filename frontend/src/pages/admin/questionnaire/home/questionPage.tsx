@@ -1,9 +1,21 @@
-// import React, { useEffect, useState } from "react";
-
 import React, { useEffect, useState } from "react";
-import {Button,Modal,Row,Col,Spin,Alert,Table,message,Space,Input,} from "antd";
-import {DeleteOutlined,SettingOutlined,} from "@ant-design/icons";
-import {getAllQuestions,getAllQuestionnaires,deleteQuestion,updateQuestion } from "../../../../services/https/questionnaire";
+import {
+  Button,
+  Modal,
+  Row,
+  Col,
+  Spin,
+  Alert,
+  Table,
+  message,
+  Space,
+} from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+import {
+  getAllQuestions,
+  getAllQuestionnaires,
+  deleteQuestion,
+} from "../../../../services/https/questionnaire";
 import { Question } from "../../../../interfaces/IQuestion";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 import { useNavigate } from "react-router-dom";
@@ -17,11 +29,6 @@ const QuestionPage: React.FC = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedQuestionToDelete, setSelectedQuestionToDelete] = useState<Question | null>(null);
   const [isDeleteSuccessModalVisible, setIsDeleteSuccessModalVisible] = useState(false);
-
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [selectedQuestionToEdit, setSelectedQuestionToEdit] = useState<Question | null>(null);
-  const [editedName, setEditedName] = useState("");
-  const [isEditSuccessModalVisible, setIsEditSuccessModalVisible] = useState(false); // ✅ Modal แก้ไขสำเร็จ
 
   const navigate = useNavigate();
 
@@ -63,24 +70,6 @@ const QuestionPage: React.FC = () => {
     }
   };
 
-  const showEditModal = (question: Question) => {
-    setSelectedQuestionToEdit(question);
-    setEditedName(question.nameQuestion);
-    setEditModalVisible(true);
-  };
-
-  const handleConfirmEdit = async () => {
-    if (!selectedQuestionToEdit) return;
-    try {
-      await updateQuestion(selectedQuestionToEdit.id!, editedName);
-      setEditModalVisible(false);
-      setIsEditSuccessModalVisible(true); // ✅ แสดง Modal สำเร็จ
-      await loadQuestions();
-    } catch (error) {
-      message.error("ไม่สามารถแก้ไขคำถามได้");
-    }
-  };
-
   const questionColumns = [
     {
       title: "ชื่อคำถาม",
@@ -102,7 +91,6 @@ const QuestionPage: React.FC = () => {
       render: (_: any, record: Question) => (
         <Space>
           <Button danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)} />
-          <Button icon={<SettingOutlined />} onClick={() => showEditModal(record)} />
         </Space>
       ),
     },
@@ -184,38 +172,6 @@ const QuestionPage: React.FC = () => {
         centered
       >
         <p style={{ textAlign: "center" }}>ลบข้อมูลคำถามเรียบร้อยแล้ว!</p>
-      </Modal>
-
-      {/* ✅ Modal แก้ไขคำถาม */}
-      <Modal
-        title="แก้ไขชื่อคำถาม"
-        open={editModalVisible}
-        onOk={handleConfirmEdit}
-        onCancel={() => setEditModalVisible(false)}
-        okText="บันทึก"
-        cancelText="ยกเลิก"
-        centered
-        className="question-modal"
-      >
-        <p>กรอกชื่อคำถามใหม่:</p>
-        <Input
-          value={editedName}
-          onChange={(e) => setEditedName(e.target.value)}
-          placeholder="ชื่อคำถามใหม่"
-        />
-      </Modal>
-
-      {/* ✅ Modal แก้ไขสำเร็จ */}
-      <Modal
-        title="แก้ไขคำถามเรียบร้อยแล้ว"
-        open={isEditSuccessModalVisible}
-        onOk={() => setIsEditSuccessModalVisible(false)}
-        onCancel={() => setIsEditSuccessModalVisible(false)}
-        okText="ตกลง"
-        className="questionnaire-modal"
-        centered
-      >
-        <p style={{ textAlign: "center" }}>บันทึกการเเก้ไขข้อมูลคำถามเรียบร้อยแล้ว!</p>
       </Modal>
     </div>
   );

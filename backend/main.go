@@ -67,6 +67,12 @@ func main() {
     r.GET("/conversation/:id", controller.GetConversationHistory)
     r.POST("/new-chat", controller.CreateChatRoom)
     r.PATCH("/end-chat/:id", controller.EndChatRoom)
+
+
+
+    // router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
+
+
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -95,10 +101,14 @@ func main() {
         router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงคำถามทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
         router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+        
         router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
         router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
+        router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
+
+        router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)                // route สำหรับดึงค่าเก่าเเบบทดสอบ 
         router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
-        router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
+     
         
      
         
@@ -144,3 +154,5 @@ func CORSMiddleware() gin.HandlerFunc {
        c.Next()
    }
 }
+
+
