@@ -1,5 +1,5 @@
 .breathing-page {
-  background-color: #e0f7fa;
+   background: linear-gradient(to top, #248785, #e0f7fa);
   padding: 20px;
   margin: 0; /* ลบ margin ที่อาจทำให้มีช่องว่าง */
   display: flex; /* ใช้ flexbox */
@@ -86,6 +86,8 @@
   color: #00bfff; /* สีข้อความ */
   text-align: center;
 }
+
+
 
 @keyframes pulse {
   0% {

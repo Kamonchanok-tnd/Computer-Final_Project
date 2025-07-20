@@ -23,6 +23,7 @@ function SignInPages() {
       localStorage.setItem("token", res.data.token);
       console.log("token",res.data.token)
       localStorage.setItem("id", res.data.id);
+      console.log("id",res.data.id)
 
       let redirectPath = "/";
 

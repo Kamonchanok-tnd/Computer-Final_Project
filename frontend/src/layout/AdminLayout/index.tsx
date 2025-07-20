@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined  } from '@ant-design/icons'; // นำเข้าไอคอน Dashboard, Setting, และ Chat
+import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined,BookOutlined  } from '@ant-design/icons'; // นำเข้าไอคอน Dashboard, Setting, และ Chat
 const { Header, Content, Footer, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 import './index.css'; // นำเข้าไฟล์ CSS
@@ -65,14 +65,14 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/edityourself" icon={<SettingOutlined />}>
               <Link to="/admin/edityourself">Settings</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/chat" icon={<MessageOutlined />}>
-              <Link to="/admin/chat">Chat</Link>
-            </Menu.Item>
             <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
               <Link to="/admin/questionnairePage">Questionnaire</Link>
             </Menu.Item>
             <Menu.Item key="/admin/prompt" icon={<CommentOutlined   />}>
               <Link to="/admin/prompt">Prompt AI</Link>
+            </Menu.Item>
+            <Menu.Item key="/admin/meditation" icon={<BookOutlined />}>
+              <Link to="/admin/meditation">Meditation</Link>
             </Menu.Item>
           </Menu>
         </Sider>

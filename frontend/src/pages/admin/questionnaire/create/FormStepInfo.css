@@ -24,7 +24,7 @@
   box-sizing: border-box;
 }
 
-.form-step-info-title {
+.form-step-info-container .form-step-info-title {
   font-size: 30px;
   font-weight: bold;
   margin-bottom: 20px;
@@ -32,9 +32,9 @@
   text-align: center;
 }
 
-.ant-input,
-.ant-input-number,
-.ant-input-textarea {
+.form-step-info-container .ant-input,
+.form-step-info-container .ant-input-number,
+.form-step-info-container .ant-input-textarea {
   border-radius: 6px;
   font-size: 20px;
 }
@@ -44,9 +44,9 @@
     font-size: 20px;
   }
 
-  .ant-input,
-  .ant-input-number,
-  .ant-input-textarea {
+  .form-step-info-container .ant-input,
+  .form-step-info-container .ant-input-number,
+  .form-step-info-container .ant-input-textarea {
     font-size: 20px;
   }
 }
@@ -58,7 +58,7 @@
 }
 
 /* ✅ ปุ่มทั้งหมด */
-.questionnaire-create-btn {
+.form-step-info-container .questionnaire-create-btn {
   font-size: 20px;
   font-weight: 600;
   padding: 12px 24px;
@@ -69,29 +69,29 @@
 }
 
 /* ✅ ปุ่ม "สร้างแบบทดสอบ" */
-.submit-btn {
+.form-step-info-container .submit-btn {
   background-color: #87CEFA !important;
   color: #000 !important;
 }
 
-.submit-btn:hover {
+.form-step-info-container .submit-btn:hover {
   background-color: #8ee58f !important;
   color: #000;
 }
 
 /* ✅ ปุ่ม "ยกเลิก" */
-.cancel-btn {
+.form-step-info-container .cancel-btn {
   background-color: #87CEFA !important;
   color: #000;
 }
 
-.cancel-btn:hover {
+.form-step-info-container .cancel-btn:hover {
   background-color: #8ee58f !important;
   color: black;
 }
 
 /* ✅ จัดตำแหน่งปุ่ม */
-.questionnaire-button-wrapper {
+.form-step-info-container .questionnaire-button-wrapper {
   display: flex;
   flex-direction: row;
   gap: 12px;

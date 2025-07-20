@@ -12,6 +12,7 @@ import (
     "sukjai_project/controller/resettoken"
     "sukjai_project/controller/users"
     "sukjai_project/controller/meditation"
+     "sukjai_project/controller/breathing"
     "sukjai_project/middlewares"
     "sukjai_project/controller/prompt"
     "sukjai_project/controller/assessment"
@@ -98,6 +99,9 @@ func main() {
         router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
         router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
         
+
+        router.POST("/videos", meditation.CreateVideo)
+        router.GET("/sound-types", meditation.GetSoundTypes)
      
         
         // Routes for superadmin only
@@ -113,7 +117,8 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
-        router.GET("/sounds/meditation", meditation.GetMeditationSounds)
+        userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
+        userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
 
         //assessment
         router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)

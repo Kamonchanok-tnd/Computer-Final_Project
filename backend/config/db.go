@@ -168,7 +168,7 @@ func SetupInitialData(db *gorm.DB) {
 			Password:    adminPassword, 
 			Role:        "admin", 
 			Age:         30, 
-			Gender:      "Male", 
+			Gender:      "ผู้ชาย", 
 			PhoneNumber: "1234567890", 
 			Facebook:    "admin_fb",
 		})
@@ -183,7 +183,7 @@ func SetupInitialData(db *gorm.DB) {
 			Password:    userPassword, 
 			Role:        "user", 
 			Age:         25, 
-			Gender:      "Female", 
+			Gender:      "ผู้หญิง", 
 			PhoneNumber: "0987654321", 
 			Facebook:    "user_fb",
 		})
@@ -196,7 +196,7 @@ func SetupInitialData(db *gorm.DB) {
 			Password:    superadminPassword, 
 			Role:        "superadmin", 
 			Age:         21, 
-			Gender:      "Female", 
+			Gender:      "ผู้หญิง", 
 			PhoneNumber: "0987654321", 
 			Facebook:    "superadmin_fb",
 		})
@@ -207,6 +207,7 @@ func SetupInitialData(db *gorm.DB) {
         {Type: "asmr"},
         {Type: "สมาธิ"},
         {Type: "สวดมนต์"},
+		{Type: "ฝึกหายใจ"},
     }
 
     // เพิ่มข้อมูลประเภทเสียงลงในฐานข้อมูล
@@ -223,6 +224,11 @@ func SetupInitialData(db *gorm.DB) {
         log.Fatalf("Error finding 'สมาธิ' sound type: %v", err)
     }
 
+	var breathingType entity.SoundType
+    if err := db.Where("type = ?", "ฝึกหายใจ").First(&breathingType).Error; err != nil {
+        log.Fatalf("Error finding 'ฝึกสมาธิ' sound type: %v", err)
+    }
+
     // ตรวจสอบว่า "admin" มีอยู่ในตาราง Users หรือไม่
     var user entity.Users
     if err := db.Where("role = ?", "admin").First(&user).Error; err != nil {
@@ -234,7 +240,12 @@ func SetupInitialData(db *gorm.DB) {
         {Name: "Meditation Sound 1", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
         {Name: "Meditation Sound 2", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
         {Name: "Meditation Sound 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+
+		// เสียงฝึกหายใจใหม่
+    	{Name: "Breathing Sound 1", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "", STID: breathingType.ID, UID: user.ID},
+    	{Name: "Breathing Sound 2", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "", STID: breathingType.ID, UID: user.ID},
     }
+
 
     // เพิ่มข้อมูลเสียงลงในฐานข้อมูล
     for _, sound := range sounds {
