@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined, BookOutlined, UserOutlined } from '@ant-design/icons';
+import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined, SmileOutlined, UserOutlined,CustomerServiceOutlined} from '@ant-design/icons';
 const { Header, Content, Sider } = Layout;
 import './index.css';
 
@@ -80,8 +80,11 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
               <Link to="/admin/prompt">Prompt AI</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/meditation" icon={<BookOutlined />}>
+            <Menu.Item key="/admin/meditation" icon={<SmileOutlined />}> 
               <Link to="/admin/meditation">Meditation</Link>
+            </Menu.Item>
+            <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
+              <Link to="/admin/sounds">Sounds</Link>
             </Menu.Item>
           </Menu>
         </Sider>

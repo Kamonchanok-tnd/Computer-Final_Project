@@ -118,39 +118,19 @@ const BreathingPage: React.FC = () => {
   }
 
   return (
-    <div className="breathing-page" style={{ position: "relative" }}>
+    <div className="breathing-page" >
       <h1>ฝึกหายใจ</h1>
 
       {/* ปุ่มเลือกเพลงมุมขวาบน */}
-      <div
-        style={{
-          position: "absolute",
-          top: 20,
-          right: 20,
-          display: "flex",
-          gap: 10,
-          backgroundColor: "rgba(255,255,255,0.8)",
-          padding: 10,
-          borderRadius: 8,
-          boxShadow: "0 0 5px rgba(0,0,0,0.2)",
-          zIndex: 10,
-        }}
-      >
+      <div className="sound-selector">
         {sounds.map((sound) => (
           <button
             key={sound.id}
             onClick={() => handleChangeSong(sound.id)}
-            style={{
-              padding: "5px 10px",
-              borderRadius: 4,
-              border: currentVideoId === sound.id ? "2px solid #00796b" : "1px solid #ccc",
-              backgroundColor: currentVideoId === sound.id ? "#b2dfdb" : "#f0f0f0",
-              cursor: "pointer",
-              fontWeight: currentVideoId === sound.id ? "bold" : "normal",
-            }}
+            className={`sound-btn ${currentVideoId === sound.id ? "active" : ""}`}
             title={sound.title}
           >
-            🎵
+            🎵 {sound.title}
           </button>
         ))}
       </div>
@@ -161,15 +141,17 @@ const BreathingPage: React.FC = () => {
         </div>
       </div>
 
-      {!started ? (
-        <button onClick={handleStart} style={{ marginRight: 10, padding: "10px 20px" }}>
-          เริ่ม
-        </button>
-      ) : (
-        <button onClick={handleStop} style={{ padding: "10px 20px" }}>
-          หยุด
-        </button>
-      )}
+      <div className="control-buttons">
+        {!started ? (
+          <button onClick={handleStart} className="btn start-btn">
+            ▶ เริ่ม
+          </button>
+        ) : (
+          <button onClick={handleStop} className="btn stop-btn">
+            ■ หยุด
+          </button>
+        )}
+      </div>
 
       {/* iframe YouTube แบบซ่อน */}
       <iframe

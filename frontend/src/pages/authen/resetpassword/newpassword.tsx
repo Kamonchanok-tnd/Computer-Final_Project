@@ -3,6 +3,7 @@ import { Form, Input, Button, message } from "antd";
 
 import { useNavigate } from "react-router-dom";
 import { resetPassword } from "../../../services/https/resetpassword";
+import "./newpassword.css";
 
 const ResetPasswordPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState(""); // รหัสผ่านใหม่
@@ -12,39 +13,37 @@ const ResetPasswordPage: React.FC = () => {
   const [messageApi] = message.useMessage();
 
   const handlePasswordReset = async () => {
-  if (newPassword !== confirmPassword) {
-    return messageApi.error("รหัสผ่านไม่ตรงกัน");
-  }
-
-  setLoading(true);
-  try {
-    const userId = localStorage.getItem("userId");
-    console.log("userid",userId)
-    const jwtToken = localStorage.getItem("jwt");  // ดึง jwt จาก localStorage
-    console.log("jwt",jwtToken)
-
-    if (!userId || !jwtToken) {
-      messageApi.error("ไม่พบข้อมูลผู้ใช้หรือไม่พบ token");
-      return;
+    if (newPassword !== confirmPassword) {
+      return messageApi.error("รหัสผ่านไม่ตรงกัน");
     }
 
-    const response = await resetPassword(Number(userId), newPassword, jwtToken); // เปลี่ยนรหัสผ่านโดยใช้ userId และ jwt
-    if (response.status === 200) {
-      messageApi.success("ตั้งรหัสผ่านใหม่สำเร็จ");
-      navigate("/"); // นำทางไปที่หน้า Login
-    } else {
-      messageApi.error(response.data.error || "ไม่สามารถตั้งรหัสผ่านใหม่ได้");
-    }
-  } catch (error) {
-    messageApi.error("เกิดข้อผิดพลาดในการตั้งรหัสผ่านใหม่");
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const userId = localStorage.getItem("userId");
+      const jwtToken = localStorage.getItem("jwt");  // ดึง jwt จาก localStorage
 
+      if (!userId || !jwtToken) {
+        messageApi.error("ไม่พบข้อมูลผู้ใช้หรือไม่พบ token");
+        return;
+      }
+
+      const response = await resetPassword(Number(userId), newPassword, jwtToken); // เปลี่ยนรหัสผ่านโดยใช้ userId และ jwt
+      if (response.status === 200) {
+        messageApi.success("ตั้งรหัสผ่านใหม่สำเร็จ");
+        navigate("/"); // นำทางไปที่หน้า Login
+      } else {
+        messageApi.error(response.data.error || "ไม่สามารถตั้งรหัสผ่านใหม่ได้");
+      }
+    } catch (error) {
+      messageApi.error("เกิดข้อผิดพลาดในการตั้งรหัสผ่านใหม่");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div>
+    <div className="reset-password-wrapper">
+    <div className="reset-password-container">
       <Form layout="vertical" onFinish={handlePasswordReset}>
         <Form.Item
           label="รหัสผ่านใหม่"
@@ -88,6 +87,7 @@ const ResetPasswordPage: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
+    </div>
     </div>
   );
 };
