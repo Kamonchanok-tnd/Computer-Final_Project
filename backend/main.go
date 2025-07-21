@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
-    
-	"sukjai_project/controller/admin"
-    "sukjai_project/controller/questionnaire"
-	controller "sukjai_project/controller/chat_space"
-    "sukjai_project/controller/resettoken"
-    "sukjai_project/controller/users"
-    "sukjai_project/controller/meditation"
-     "sukjai_project/controller/breathing"
-    "sukjai_project/middlewares"
-    "sukjai_project/controller/prompt"
-    "sukjai_project/controller/assessment"
 
+	"sukjai_project/controller/admin"
+	"sukjai_project/controller/assessment"
+	"sukjai_project/controller/breathing"
+	controller "sukjai_project/controller/chat_space"
+	"sukjai_project/controller/meditation"
+	"sukjai_project/controller/prompt"
+	"sukjai_project/controller/questionnaire"
+	"sukjai_project/controller/resettoken"
+	"sukjai_project/controller/sounds"
+	"sukjai_project/controller/users"
+	"sukjai_project/middlewares"
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -112,6 +112,11 @@ func main() {
 
         router.POST("/videos", meditation.CreateVideo)
         router.GET("/sound-types", meditation.GetSoundTypes)
+
+
+       
+        router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
+
      
         
         // Routes for superadmin only

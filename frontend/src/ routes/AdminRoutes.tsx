@@ -12,6 +12,7 @@ const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsettin
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
 import VideoForm from "../pages/admin/meditation/meditation";
+import SoundListPage from "../pages/admin/sounds/soundslist";
 
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import QuestionPage from "../pages/admin/questionnaire/home/questionPage";
@@ -79,6 +80,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                     path: "/admin/meditation",  // เส้นทางสำหรับจัดการ Prompt
                     element: <VideoForm/>,
+                },
+                {
+                    path: "/admin/sounds",  // เส้นทางสำหรับจัดการ Prompt
+                    element: <SoundListPage/>,
                 },
             ],
         },
