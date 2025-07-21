@@ -6,7 +6,8 @@ import (
 	"sukjai_project/config"
 	"sukjai_project/entity"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm" 
+	"gorm.io/gorm"
+	"time"
 )
 
 // ✅ ฟังก์ชันสำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
@@ -51,9 +52,7 @@ func DeleteQuestionnaire(c *gin.Context) {
 }
 
 
-
-
-// ✅ ฟังก์ชันสำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตค่าจำนวนข้อ
+// ✅ ฟังก์ชันสำหรับลบคำถามและคำตอบ พร้อมอัปเดตจำนวนข้อ
 func DeleteQuestion(c *gin.Context) {
 	id := c.Param("id")
 	db := config.DB()
@@ -62,6 +61,7 @@ func DeleteQuestion(c *gin.Context) {
 	fmt.Println("➡️ เริ่มลบคำถามแบบ Soft Delete พร้อมคำตอบ และอัปเดตจำนวนข้อ")
 
 	var question entity.Question
+	// ค้นหาคำถาม
 	if err := tx.First(&question, id).Error; err != nil {
 		fmt.Println("❌ ไม่พบคำถาม:", err)
 		tx.Rollback()
@@ -69,7 +69,7 @@ func DeleteQuestion(c *gin.Context) {
 		return
 	}
 
-	// 1. ลบ (Soft Delete) คำตอบทั้งหมดของคำถามนี้
+	// 1. ลบคำตอบทั้งหมดของคำถามนี้ (Soft Delete)
 	if err := tx.Where("q_id = ?", id).Delete(&entity.AnswerOption{}).Error; err != nil {
 		fmt.Println("❌ ลบคำตอบไม่สำเร็จ:", err)
 		tx.Rollback()
@@ -77,7 +77,7 @@ func DeleteQuestion(c *gin.Context) {
 		return
 	}
 
-	// 2. ลบ (Soft Delete) คำถามนี้
+	// 2. ลบคำถามนี้ (Soft Delete)
 	if err := tx.Delete(&question).Error; err != nil {
 		fmt.Println("❌ ลบคำถามไม่สำเร็จ:", err)
 		tx.Rollback()
@@ -85,7 +85,7 @@ func DeleteQuestion(c *gin.Context) {
 		return
 	}
 
-	// 3. อัปเดตจำนวนคำถามในแบบทดสอบ (Quantity - 1)
+	// 3. อัปเดตจำนวนคำถามในแบบทดสอบ (ลดจำนวนข้อ -1)
 	if err := tx.Model(&entity.Questionnaire{}).
 		Where("id = ?", question.QuID).
 		UpdateColumn("quantity", gorm.Expr("quantity - ?", 1)).Error; err != nil {
@@ -98,4 +98,30 @@ func DeleteQuestion(c *gin.Context) {
 	tx.Commit()
 	fmt.Println("✅ ลบคำถาม (Soft Delete) และอัปเดตจำนวนข้อเรียบร้อย ID:", id)
 	c.JSON(http.StatusOK, gin.H{"message": "ลบคำถามเรียบร้อยแล้ว"})
+}
+
+
+
+
+// ✅ ฟังก์ชันลบคำตอบจากคำถาม (Soft Delete)
+func DeleteAnswer(c *gin.Context) {
+    answerId := c.Param("id")
+    var answer entity.AnswerOption
+
+    // เชื่อมต่อกับฐานข้อมูล
+    db := config.DB()
+
+    // ค้นหาคำตอบในฐานข้อมูล
+    if err := db.First(&answer, answerId).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"message": "ไม่พบคำตอบ"})
+        return
+    }
+
+    // ทำ Soft Delete (อัปเดต DeletedAt แทนการลบจริง)
+    if err := db.Model(&answer).Update("DeletedAt", time.Now()).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"message": "ไม่สามารถทำการลบคำตอบได้"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "ลบคำตอบสำเร็จ (Soft Delete)"})
 }

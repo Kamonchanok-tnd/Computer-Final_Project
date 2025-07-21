@@ -11,12 +11,14 @@ const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsettin
 // const DashboardAdmin = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard")));
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
-
+import VideoForm from "../pages/admin/meditation/meditation";
+import SoundListPage from "../pages/admin/sounds/soundslist";
 
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import QuestionPage from "../pages/admin/questionnaire/home/questionPage";
 import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
 import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
+import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
 
@@ -62,6 +64,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     path: "/admin/createQuestion",         // หน้าสร้างคำถาม
                     element: <FormStepQuestion />,
                 },
+                 {
+                    path: "/admin/editQuestionnaire",     // หน้าสร้างเเบบทดสอบ
+                    element: <EditQuestionnaire/>,
+                },
                 {
                     path: "/admin/edityourself",
                     element: <EditYourself />, // หน้า Settings ของ Admin
@@ -69,7 +75,16 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                     path: "prompt",  // เส้นทางสำหรับจัดการ Prompt
                     element: <PromptAdminPage />,
-                }
+                },
+                // ระบบ 2
+                {
+                    path: "/admin/meditation",  // เส้นทางสำหรับจัดการ Prompt
+                    element: <VideoForm/>,
+                },
+                {
+                    path: "/admin/sounds",  // เส้นทางสำหรับจัดการ Prompt
+                    element: <SoundListPage/>,
+                },
             ],
         },
     ]

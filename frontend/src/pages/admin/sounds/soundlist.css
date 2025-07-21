@@ -1,0 +1,30 @@
+.sound-list-container {
+  padding: 24px;
+}
+
+.category-section {
+  margin-bottom: 48px;
+}
+
+.category-title {
+  color: #1890ff;
+}
+
+.sound-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s;
+}
+
+.sound-card-body {
+  padding: 16px;
+}
+
+.sound-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.sound-play-button {
+  text-align: right;
+}

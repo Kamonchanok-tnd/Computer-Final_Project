@@ -5,17 +5,18 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
-    
-	"sukjai_project/controller/admin"
-    "sukjai_project/controller/questionnaire"
-	controller "sukjai_project/controller/chat_space"
-    "sukjai_project/controller/resettoken"
-    "sukjai_project/controller/users"
-    "sukjai_project/controller/meditation"
-    "sukjai_project/middlewares"
-    "sukjai_project/controller/prompt"
-    "sukjai_project/controller/assessment"
 
+	"sukjai_project/controller/admin"
+	"sukjai_project/controller/assessment"
+	"sukjai_project/controller/breathing"
+	controller "sukjai_project/controller/chat_space"
+	"sukjai_project/controller/meditation"
+	"sukjai_project/controller/prompt"
+	"sukjai_project/controller/questionnaire"
+	"sukjai_project/controller/resettoken"
+	"sukjai_project/controller/sounds"
+	"sukjai_project/controller/users"
+	"sukjai_project/middlewares"
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -69,6 +70,12 @@ func main() {
     r.GET("/conversation/:id", controller.GetConversationHistory)
     r.POST("/new-chat", controller.CreateChatRoom)
     r.PATCH("/end-chat/:id", controller.EndChatRoom)
+
+
+
+    // router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
+
+
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -93,11 +100,23 @@ func main() {
         router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงคำถามทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
         router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+        
         router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
         router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
+        router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
+
+        router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)                // route สำหรับดึงค่าเก่าเเบบทดสอบ 
         router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
-        router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
+     
         
+
+        router.POST("/videos", meditation.CreateVideo)
+        router.GET("/sound-types", meditation.GetSoundTypes)
+
+
+       
+        router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
+
      
         
         // Routes for superadmin only
@@ -113,7 +132,8 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
-        router.GET("/sounds/meditation", meditation.GetMeditationSounds)
+        userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
+        userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
 
         //assessment
         router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
@@ -163,3 +183,5 @@ func CORSMiddleware() gin.HandlerFunc {
        c.Next()
    }
 }
+
+
