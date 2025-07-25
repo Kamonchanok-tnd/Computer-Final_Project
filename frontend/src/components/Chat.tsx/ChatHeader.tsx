@@ -16,16 +16,14 @@ function ChatHeader({ isDarkMode, onNewChat, onClearChat }: ChatHeaderProps) {
     className={` sm:rounded-t-2xl md:p-2 px-4 py-2 backdrop-blur-sm duration-300 ${
       isDarkMode
         ? 'bg-gray-800/80 border-gray-700'
-        : 'bg-[#FFFF] border-gray-200'
+        : 'bg-white border-gray-200'
     } `}
   ><div>
     
   </div>
-    <div className=" flex items-center justify-between">
+    <div className=" flex items-center justify-between px-2">
       <div className="flex items-center space-x-3">
-        <div>
-          <ChevronLeft className="w-7 h-7 text-regal-blue" />
-        </div>
+       
         <div
           className={`md:p-3 p-2 rounded-full ${
             isDarkMode ? 'bg-purple-600' : 'bg-indigo-600'
@@ -37,7 +35,7 @@ function ChatHeader({ isDarkMode, onNewChat, onClearChat }: ChatHeaderProps) {
         <div>
           <h1
             className={`text-xl font-bold ${
-              isDarkMode ? 'text-white' : 'text-gray-800'
+              isDarkMode ? 'text-white' : 'text-black-word'
             }`}
           >
             Heal JAI
@@ -53,11 +51,11 @@ function ChatHeader({ isDarkMode, onNewChat, onClearChat }: ChatHeaderProps) {
       </div>
       <div className="flex items-center space-x-2">
         <button
-          className="flex items-center md:space-x-2 bg-regal-blue p-2 rounded-lg"
+          className="flex items-center md:space-x-2 bg-button-blue p-2 rounded-lg"
           onClick={onNewChat}
         >
           <Plus className="w-5 h-5 text-white" />
-          <p className="hidden md:inline-block text-white text-md">New Chat</p>
+          <p className="hidden md:inline-block text-white text-md">สร้างแชท</p>
         </button>
         <button
           onClick={onClearChat}
@@ -66,7 +64,7 @@ function ChatHeader({ isDarkMode, onNewChat, onClearChat }: ChatHeaderProps) {
               ? 'bg-red-600/20 hover:bg-red-600/30 text-red-400'
               : 'bg-red-50 hover:bg-red-100 text-red-600'
           }`}
-          title="ล้างการสนทนา"
+          title="ปิดห้องแชท"
         >
           <Trash2 className="w-5 h-5" />
         </button>

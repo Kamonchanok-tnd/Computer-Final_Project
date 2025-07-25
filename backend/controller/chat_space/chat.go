@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"sukjai_project/config"
@@ -243,13 +244,22 @@ func GetRecentChat(c *gin.Context) {
 
 	result := db.
 		Where("is_close = ? AND uid = ?", false, uid).
-		Order("updated_at DESC").
+		Order("created_at DESC").
 		First(&chatRoom)
 
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No active chat room found"})
-		return
-	}
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusOK, gin.H{
+				"has_active": false,
+				"chat_room_id": 0,
+			})
+			return
+		} else if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
 
-	c.JSON(http.StatusOK, chatRoom)
+	c.JSON(http.StatusOK, gin.H{
+		"has_active": true,
+		"chat_room_id": chatRoom.ID,
+	})
 }

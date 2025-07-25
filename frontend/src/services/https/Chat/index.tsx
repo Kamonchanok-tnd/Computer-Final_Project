@@ -5,9 +5,10 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const Authorization = localStorage.getItem("token");
 const Bearer = localStorage.getItem("token_type");
 export async function ChatGemini(data: IConversation) {
+
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
+  myHeaders.append("Authorization", `Bearer ${Authorization}`);
   const raw = JSON.stringify(data);
 
   const requestOptions = {
@@ -58,7 +59,7 @@ export async function GetChat(id: number) {
 export async function NewChat(data: IChatRoom) {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
+  myHeaders.append("Authorization", `Bearer ${Authorization}`);
   const raw = JSON.stringify(data);
 
   const requestOptions = {
@@ -101,3 +102,26 @@ export async function CloseChat(id: number) {
     console.error(error);
   }
 }
+
+export async function RecentChat(id: number) { //เอาไว้ดู ห้อง chat ที่ยัง ไม่จบบทสนทนา
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
+  const requestOptions = {
+    method: "GET",
+    headers: myHeaders,
+  };
+
+  try {
+    const response = await fetch(
+      `${apiUrl}/recent?uid=${id}`,
+      requestOptions
+    );
+    const result = await response.json();
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
