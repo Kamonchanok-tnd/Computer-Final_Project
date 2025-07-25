@@ -66,16 +66,7 @@ func main() {
     r.POST("/forgot-password", users.ForgotPasswordController)
     r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
-    r.POST("/gemini", controller.GeminiHistory)
-    r.GET("/conversation/:id", controller.GetConversationHistory)
-    r.POST("/new-chat", controller.CreateChatRoom)
-    r.PATCH("/end-chat/:id", controller.EndChatRoom)
-
-
-
-    // router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
-
-
+    r.GET("/recent", controller.GetRecentChat)
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -159,7 +150,11 @@ func main() {
 
 
         //chat space
-        
+        userRouter.POST("/gemini", controller.GeminiHistory)
+        userRouter.GET("/conversation/:id", controller.GetConversationHistory)
+        userRouter.POST("/new-chat", controller.CreateChatRoom)
+        userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
+        // userRouter.GET("/recent", controller.GetRecentChat)
     }
 
     r.GET("/", func(c *gin.Context) {

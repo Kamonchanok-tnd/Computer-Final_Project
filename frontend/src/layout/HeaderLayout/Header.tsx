@@ -3,7 +3,8 @@ import { Avatar, Button, Drawer, Dropdown, Layout, theme, type MenuProps } from 
 import { UserOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 const { Header, Content, Footer } = Layout;
-import { Book, House, LogOut, Menu, MessageCircleMore, Music, Plus, Space, User } from 'lucide-react';
+import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus, Space, Sun, User } from 'lucide-react';
+import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
 
 const items = [
   { key: 'home', label: 'Home', path: '/user', icon: <House size={24} /> },
@@ -17,13 +18,14 @@ function Headers() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState('');
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   // Handle Logout function should be declared before it's used
   const handleLogout = () => {
     localStorage.clear();
     navigate("/"); // Navigate to home or login page
   };
-
+ 
   
 
   const dropdownItems: MenuProps['items'] = [
@@ -82,8 +84,8 @@ function Headers() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: '#ffffff',
-            boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.02)',
+            backgroundColor: isDarkMode ? '#0F172A' : '#fff',
+            boxShadow:isDarkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0px 4px 4px rgba(0, 0, 0, 0.02)',
             padding: '0 24px',
           }}
         >
@@ -92,30 +94,61 @@ function Headers() {
               <h1 className='text-black'>Logo</h1>
             </div>
             <ul className='hidden md:flex gap-5'>
-              {items.map((item) => (
-                <li key={item.key}>
-                  <button
-                    onClick={() => handleMenuClick(item.key, item.path)}
-                    className={`px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm 
-                      ${activeMenu === item.key
-                        ? 'bg-[#C8F3FD] text-[#1890ff] '
-                        : 'hover:bg-[#C8F3FD] hover:text-[#1890ff] duration-300'
-                      }`}
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                  {items.map((item) => (
+                    <li key={item.key}>
+                      <button
+                        onClick={() => handleMenuClick(item.key, item.path)}
+                        className={`px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm 
+                          ${
+                            activeMenu === item.key
+                              ? isDarkMode
+                                ? 'bg-button-dark/20 text-blue-word' 
+                                : 'bg-background-button text-blue-word' 
+                              : isDarkMode
+                              ? 'hover:bg-button-dark/20  text-text-dark hover:text-blue-word'
+                              : 'hover:bg-background-button hover:text-blue-word'
+                          }
+                        `} 
+                      >
+                        {item.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
           </div>
           <div className='hidden md:flex gap-4 justify-center items-center'>
             <button
               onClick={() => navigate('/create')}
-              className="flex gap-2 items-center px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm bg-[#9AEDFF]
-             text-white hover:bg-[#C8F3FD]"
+              className="flex gap-2 items-center px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm bg-button-blue
+             text-white hover:bg-button-blue"
             >
               <Plus size={24} />
               Mirror
+            </button>
+            <button
+              onClick={toggleDarkMode}
+              className={`
+                relative inline-flex items-center justify-center
+                w-8 h-8 rounded-full p-2
+                transition-all duration-300 ease-in-out
+                ${isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }
+                focus:outline-none focus:ring-2 focus:ring-offset-2
+                ${isDarkMode? 'focus:ring-yellow-400' : 'focus:ring-blue-500'}
+                shadow-lg 
+                transform  active:scale-95
+              `}
+              aria-label={`Switch to ${isDarkMode ? 'dark' : 'light'} mode`}
+            >
+              <div className="relative w-5 h-5">
+                {isDarkMode? (
+                  <Moon className="w-5 h-5 transition-transform duration-300 rotate-0" />
+                ) : (
+                  <Sun className="w-5 h-5 transition-transform duration-300 rotate-180" />
+                )}
+              </div>
             </button>
             <Dropdown menu={{ items: dropdownItems }}>
               <a onClick={(e) => e.preventDefault()}>
@@ -143,7 +176,7 @@ function Headers() {
                     <button
                       onClick={() => handleMenuClick(item.key, item.path)}
                       className={`w-full text-left px-4 py-2 rounded flex gap-2 ${
-                        activeMenu === item.key ? 'bg-[#C8F3FD] text-[#1890ff]' : 'hover:bg-[#C8F3FD] hover:text-[#1890ff] duration-300'
+                        activeMenu === item.key ? 'bg-background-button text-blue-word' : 'hover:bg-background-button hover:text-blue-word duration-300'
                       }`}
                     >
                       {item.icon}
@@ -153,7 +186,7 @@ function Headers() {
                 </div>
               ))}
               <li>
-                <button className='bg-[#9AEDFF] w-full px-4 py-2 rounded-sm text-white hover:bg-[#C8F3FD]' >
+                <button className='bg-button-blue w-full px-4 py-2 rounded-sm text-white hover:bg-[#C8F3FD]' >
                   <div className='flex items-center gap-2 justify-center'>
                     <Plus size={24} />
                     <p>Create</p>

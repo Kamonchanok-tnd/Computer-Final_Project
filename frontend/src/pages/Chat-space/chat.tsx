@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, createContext } from 'react';
 import { Send, Bot, User, Trash2, Settings, Moon, Sun,Mic, Plus, ChevronLeft } from 'lucide-react';
-import { ChatGemini, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
+import { ChatGemini, CloseChat, GetChat, NewChat, RecentChat } from '../../services/https/Chat/index';
 import type { IConversation } from '../../interfaces/IConversation';
 import HistoryChat from '../../components/Chat.tsx/HistoryChat';
 import NewChatWelcome from '../../components/Chat.tsx/NewChatWelcome';
@@ -8,6 +8,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { IChatRoom } from '../../interfaces/IChatRoom';
 import ChatHeader from '../../components/Chat.tsx/ChatHeader';
 import ChatInput from '../../components/Chat.tsx/ChatInput';
+import { Modal } from 'antd';
+import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
 
 
 interface ChatbotProps {
@@ -15,12 +17,13 @@ interface ChatbotProps {
 }
 // API Configuration
 
+
 const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   const [messages, setMessages] = useState<IConversation[]>([]); // สร้าง state สําหรับข้อความ
   const [inputText, setInputText] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [typingText, setTypingText] = useState<string>('');
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const { isDarkMode } = useDarkMode();
   const [isApiMode, setIsApiMode] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,6 +33,8 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   const navigate = useNavigate();
   const { chatroom_id } = useParams();
   const [chatRoomID, setChatRoomID] = useState<number | null>(chatroom_id ? Number(chatroom_id) : null);
+  const [modal, contextHolder] = Modal.useModal();
+  const Uid = localStorage.getItem('id');
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -40,17 +45,32 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     console.log("old chat: ",message);
   }
 
+  async function recentChat(){
+    // const Uid = localStorage.getItem('id');
+    const message = await RecentChat(Number(Uid));
+    
+    if (message.chat_room_id == 0 && message.has_active == false) {
+      setIsNewChat(true);
+    }
+    else{
+      navigate(`/chat/${message.chat_room_id}`);
+      const activeID = message.chat_room_id;
+      setChatRoomID(activeID);      
+      setIsNewChat(false);
+      navigate(`/chat/${activeID}`);
+      getmessage(activeID);           
+    }
+  }
+
   useEffect(() => {
     scrollToBottom();
-    if (chatRoomID !== null) {
-      getmessage(chatRoomID);
-    }
+    recentChat();
   }, []);
 
   useEffect(() => {
     scrollToBottom();
     
-  }, [typingText, messages]);
+  }, [typingText, messages,isNewChat]);
 
   // API Functions
 
@@ -100,7 +120,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     let currentRoomID = chatRoomID;
   
     if (!chatRoomID) {
-      const data: IChatRoom = { uid: 1 };
+      const data: IChatRoom = { uid: Number(Uid) };
       const res = await NewChat(data);
       console.log("chatroom: ", res.id);
       currentRoomID = res.id;
@@ -158,7 +178,11 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
 
   async function Close() {
     console.log("chatroom: ", chatRoomID);
-    // await CloseChat(Number(chatRoomID));
+    await CloseChat(Number(chatRoomID));
+    setIsNewChat(!isNewChat);
+    setMessages([]);   
+    setChatRoomID(null);  
+    navigate('/chat');
     
   }
 
@@ -172,20 +196,32 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     });
   };
 
-  const toggleDarkMode = (): void => {
-    setIsDarkMode(!isDarkMode);
-  };
+  
   const newChat = (): void => {
-
       if (chatRoomID) {
-        Close(); // เรียก API ปิดห้องแชทก่อน
-        console.log('Closed chatroom:', chatRoomID);
+        modal.confirm({
+          title: 'เริ่มแชทใหม่?',
+          content: 'ห้องแชทปัจจุบันจะถูกปิด และเริ่มการสนทนาใหม่ คุณแน่ใจหรือไม่?',
+          okText: 'ยืนยัน',
+          cancelText: 'ยกเลิก',
+          onOk: async () => {
+            await Close(); // ปิดห้องแชทปัจจุบัน
+            console.log('Closed chatroom:', chatRoomID);
+          },
+          okButtonProps: {
+            style: {
+              backgroundColor:'var(--color-regal-blue)', // Tailwind: green-500
+              borderColor: 'var(--color-regal-blue)',
+              color: '#fff'
+            }
+          },
+          cancelButtonProps: {
+            className: 'custom-cancel-button'
+          },
+        
+        });
       }
-      
-    setIsNewChat(!isNewChat);
-    setMessages([]);   
-    setChatRoomID(null);   
-    navigate('/chat');
+    
   };
 
   return (
@@ -193,12 +229,13 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
        flex justify-center items-center sm:px-4 
       ${
       isDarkMode 
-        ? 'bg-gradient-to-br  from-gray-900 via-purple-900 to-gray-900' 
-        : 'bg-[#F4FFFF]'
+        ? 'bg-background-dark' 
+        : 'bg-background-blue'
     }`}>
 
-      
-      <div className="border border-gray-200 shadow-md rounded-xl container  duration-300 mx-auto max-w-full  h-[90vh]  flex flex-col justify-between">
+{contextHolder}
+      <div className={` shadow-md rounded-xl container border duration-300 mx-auto max-w-full  h-[90vh]  
+      flex flex-col justify-between ${isDarkMode ? ' border-stoke-dark' : 'border-gray-200'}`}>
         {/* Header */}
         <ChatHeader isDarkMode={isDarkMode} onNewChat={newChat} onClearChat={Close} />
         {/* Messages Area */}
