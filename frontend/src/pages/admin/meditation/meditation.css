@@ -1,0 +1,48 @@
+.videoform-container {
+  padding: auto;   /* สูงเต็มหน้าจอ */
+  height: 100vh;
+  
+  
+}
+
+
+
+.videoform-title {
+  margin-top: 15px;
+  margin-left: 30px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  padding: px;
+  /* text-align: center; */
+}
+
+.videoform-box {
+  margin-top: 20px;
+  width: 750px;
+  background-color: #ffffff;
+  padding: 30px 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 20px auto 0 auto; /* อยู่ตรงกลางแนวนอน */
+}
+
+.videoform .ant-form-item {
+  margin-bottom: 24px;
+}
+
+.videoform-label {
+  font-size: 1.125rem;       /* 18px */
+  font-weight: 500;
+  color: #374151;            /* gray-700 */
+}
+
+.videoform-input {
+  font-size: 1rem;           /* 16px */
+}
+
+.videoform-btn-group {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}

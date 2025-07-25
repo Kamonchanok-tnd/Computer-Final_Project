@@ -14,10 +14,12 @@
 /* ✅ ปุ่ม "สร้างแบบทดสอบ" */
 .question-create-btn.ant-btn-primary {
   background-color: #87CDFA !important;
+  font-size: 20px;
   border: none;
   font-weight: 600;
   color: white;
   transition: background-color 0.3s;
+  width: 200px; /* ← กำหนดความกว้างของปุ่ม */
 }
 
 .question-create-btn.ant-btn-primary:hover {

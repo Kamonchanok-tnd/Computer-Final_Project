@@ -107,28 +107,19 @@ export interface QuestionWithAnswers {
   answers: AnswerOption[];
 }
 
+
 export const createQuestions = async (questions: QuestionWithAnswers[]) => {
-  try {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(`${apiUrl}/createQuestions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token || ""}`,
-      },
-      body: JSON.stringify(questions), // ✅ ส่ง array ทั้งชุด
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error creating questions:", error);
-    throw error;
-  }
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${apiUrl}/createQuestions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token || ""}`,
+    },
+    body: JSON.stringify(questions), // ✅ priority จะถูกส่งมาด้วย
+  });
+  if (!response.ok) throw new Error(`Error: ${response.status}`);
+  return response.json();
 };
 
 
@@ -188,49 +179,111 @@ export const deleteQuestion = async (id: number) => {
   }
 };
 
+// ✅ ฟังก์ชันสำหรับลบคำตอบ
+export const deleteAnswer = async (
+  id: number
+): Promise<any> => {
+  try {
+   
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${apiUrl}/deleteanswer/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
+      },
+    });
 
-// ✅ ฟังก์ชันสำหรับอัพเดตเเบบทดสอบ
-export const updateQuestionnaire = async (data: any) => {
-  const token = localStorage.getItem("token");
-  if (!data?.id) throw new Error("Missing questionnaire ID");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "ไม่สามารถลบคำตอบได้");
+    }
 
-  const response = await fetch(`${apiUrl}/updatequestionnaire/${data.id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token || ""}`,
-    },
-    body: JSON.stringify({
-      nameQuestionnaire: data.nameQuestionnaire,
-      description: data.description,
-      quantity: data.quantity,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Update failed:", errorText);
-    throw new Error("Update failed");
+    return await response.json(); // สามารถคืนค่าผลลัพธ์ที่คุณต้องการจาก backend ได้
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการลบคำตอบ", error);
+    throw new Error("เกิดข้อผิดพลาดในการลบคำตอบ");
   }
-
-  return await response.json();
 };
 
-// ✅ ฟังก์ชันสำหรับอัพเดตคำถาม
-export const updateQuestion = async (id: number, nameQuestion: string) => {
-  const token = localStorage.getItem("token");
-  const response = await fetch(`${apiUrl}/updatequestion/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token || ""}`,
-    },
-    body: JSON.stringify({ nameQuestion }), // ✅ ส่งเฉพาะชื่อคำถาม
-  });
 
-  if (!response.ok) {
-    throw new Error("ไม่สามารถแก้ไขคำถามได้");
+
+
+// ✅ ฟังก์ชันสำหรับดึงแบบทดสอบพร้อมคำถามและตัวเลือก
+export const getQuestionnaireById = async (id: number): Promise<Questionnaire> => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${apiUrl}/getquestionnaire/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("❌ Server Response:", response.status, errText);
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    const rawData = await response.json();
+    console.log("📦 rawData จาก backend:", rawData);
+
+    // ✅ แปลงข้อมูลจาก backend ให้ตรงกับ interface
+    const questionnaire: Questionnaire = {
+      id: rawData.ID,
+      nameQuestionnaire: rawData.NameQuestionnaire,
+      description: rawData.Description,
+      quantity: rawData.Quantity,
+      uid: rawData.UID,
+      questions: (rawData.Questions ?? []).map((q: any) => ({
+        id: q.ID,
+        nameQuestion: q.nameQuestion,          // ✅ ชื่อ field เป็นตัวเล็ก
+        quID: q.quID,
+        priority: q.priority,
+        answers: (q.answerOptions ?? []).map((a: any) => ({  // ✅ ต้องใช้ตัวเล็ก
+          id: a.ID,
+          description: a.description,
+          point: a.point,
+        })),
+      })),
+    };
+
+    return questionnaire;
+  } catch (error) {
+    console.error("Error fetching questionnaire:", error);
+    throw error;
   }
-
-  return await response.json();
 };
+
+
+// ✅ ฟังก์ชันสำหรับอัปเดตแบบทดสอบพร้อมคำถามและตัวเลือก
+export const updateQuestionnaire = async (id: number, data: any) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${apiUrl}/updatequestionnaire/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token || ""}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error updating questionnaire: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating questionnaire:", error);
+    throw error;
+  }
+};
+
+
+
+

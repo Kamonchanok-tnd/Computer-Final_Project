@@ -1,58 +1,188 @@
-/* ✅ พื้นหลังของฟอร์ม */
-.edit-questionnaire-form {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* 🟦 พื้นหลังและโครงสร้างหลักของหน้า */
+.edit-questionnaire-container {
+  background: linear-gradient(180deg, #d1eaff, #a6e3e9); /* พื้นหลังไล่สี */
   padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  font-family: "Prompt", sans-serif;
+
+  /* ✅ แก้ไขตรงนี้ */
+  height: 100vh; /* ใช้ dvh แทน vh บนมือถือบางรุ่น */
+  overflow: hidden; /* ไม่ให้ container scroll ทั้งหน้า */
+
+  display: flex;              /* ทำให้เป็น layout แบบ flex */
+  flex-direction: column;
+}
+
+/* 🟨 ส่วนของฟอร์มให้ scroll ได้เฉพาะในส่วนนี้ */
+.questionnaire-form {
+  flex: 1;                    /* กินพื้นที่ที่เหลือของหน้า */
+  overflow-y: auto;           /* ให้ scroll เฉพาะแนวตั้ง */
+  padding-right: 12px;        /* เว้นขวาเพื่อไม่ให้ scrollbar ซ้อนเนื้อหา */
+  max-height: 100%;           /* ไม่เกิน container */
+  scroll-behavior: smooth;
+  border: none;              /* ไม่มีกรอบ */
+  box-shadow: none;          /* ไม่มีเงา */
+}
+
+/* 🟩 หัวข้อฟอร์ม */
+.questionnaire-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 🟦 กล่องคำถามแต่ละอัน */
+.question-card {
+  background: #ffffff;
   border-radius: 12px;
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.05) 1px,
-      transparent 1px,
-      transparent 12px
-    ),
-    linear-gradient(to bottom right, #87CEFA, #b0e0e6) !important;
-  background-size: auto, cover;
-  background-repeat: repeat;
-  background-position: 0 0;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease-in-out;
 }
 
-/* ✅ Label ของแต่ละฟิลด์ */
-.edit-questionnaire-form .ant-form-item-label > label {
-  font-size: 20px !important;
-  font-weight: 600 !important;
-  color: #2f2f2f !important;
+.question-card:hover {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
 }
 
-/* ✅ ช่องกรอกข้อความ Input และ TextArea */
-.edit-questionnaire-form .ant-input,
-.edit-questionnaire-form .ant-input-number-input,
-.edit-questionnaire-form .ant-input-textarea {
-  font-size: 15px !important;
-  padding: 10px !important;
-  border-radius: 8px !important;
+/* 🟩 หัวข้อแต่ละคำถาม */
+.question-card h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12px;
 }
 
-/* ✅ ช่องกรอกจำนวน (InputNumber) wrapper */
-.edit-questionnaire-form .ant-input-number {
-  width: 100% !important;
-  border-radius: 8px !important;
+/* 🟦 ปุ่มลบคำถาม (มุมขวาบน) */
+.question-card .delete-question-btn {
+  position: absolute;
+  top: 16px;
+  right: 50px;
+  background-color: #ff4d4f;
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
-/* ✅ ปุ่มบันทึก */
-.edit-questionnaire-form .ant-btn-primary {
-  font-size: 16px !important;
-  font-weight: bold !important;
-  background-color: #1890ff !important;
-  border-color: #1890ff !important;
-  border-radius: 8px !important;
-  height: 45px !important;
-  transition: all 0.3s ease !important;
+.question-card .delete-question-btn:hover {
+  background-color: #d9363e;
 }
 
-/* ✅ ปุ่มตอน hover */
-.edit-questionnaire-form .ant-btn-primary:hover {
-  background-color: #40a9ff !important;
-  border-color: #40a9ff !important;
+/* ⬜ Drag handle (ไอคอน ☰) */
+.drag-handle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  cursor: grab;
+  font-size: 18px;
+  color: #999;
+}
+
+/* ⬛ Input ของคำถาม */
+.question-card input {
+  font-size: 16px;
+  padding: 10px;
+}
+
+/* ➖ เส้นแบ่ง */
+.ant-divider-horizontal {
+  margin: 16px 0;
+}
+
+/* 🔷 หัวข้อของส่วนตัวเลือก */
+.question-card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+/* 🔸 กล่องรวมตัวเลือก */
+.answers-wrapper {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 🔹 ขนาด input ตัวเลือก */
+.answers-wrapper .ant-input {
+  width: 65%;
+}
+
+.answers-wrapper .ant-input-number {
+  width: 80px;
+}
+
+.answers-wrapper .ant-btn-dangerous {
+  background-color: #ff4d4f;
+  border: none;
+  color: #fff;
+}
+
+.answers-wrapper .ant-btn-dangerous:hover {
+  background-color: #d9363e;
+}
+
+/* 🔺 ปุ่มเพิ่มตัวเลือก */
+.question-card .ant-btn-dashed {
+  border: 2px dashed #40a9ff;
+  color: #1890ff;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+/* ✅ ปุ่มเพิ่มคำถามใหม่ */
+.add-question-btn {
+  border: 2px dashed #52c41a;
+  color: #52c41a;
+  font-weight: 600;
+  font-size: 16px;
+  margin: 20px 0;
+  width: 100%;
+  height: 45px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.add-question-btn:hover {
+  border-color: #389e0d;
+  color: #389e0d;
+}
+
+/* ✅ ปุ่มบันทึกให้ "ติดล่างจอ" */
+.edit-questionnaire-container .ant-btn-primary {
+  position: sticky;         /* ติดกับขอบล่าง */
+  bottom: 0;
+  width: 100%;
+  height: 45px;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #1890ff;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+  margin-top: 12px;
+  z-index: 100;             /* ป้องกันซ้อนกับ scroll */
+}
+
+.edit-questionnaire-container .ant-btn-primary:hover {
+  background-color: #40a9ff;
+}
+
+/* ✅ Modal หลังบันทึก */
+.ant-modal-content {
+  border-radius: 12px;
+  text-align: center;
+}
+
+.ant-modal-title {
+  font-size: 20px;
+  font-weight: bold;
 }
