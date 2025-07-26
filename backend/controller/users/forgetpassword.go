@@ -36,8 +36,9 @@ func ForgotPasswordController(c *gin.Context) {
     fmt.Println("Request received for email:", payload.Email)
 
     // ตรวจสอบว่า user มี reset_token หรือไม่
-    if user.ResetToken == "" || user.ResetTokenExpiry.IsZero() {
-        // ถ้าไม่มี reset_token, สร้างใหม่
+        // ตรวจสอบว่า user มี reset_token หรือไม่ หรือหมดอายุแล้ว
+    if user.ResetToken == "" || user.ResetTokenExpiry.IsZero() || time.Now().After(user.ResetTokenExpiry) {
+        // ถ้าไม่มีหรือหมดอายุแล้ว ให้สร้างใหม่
         resetToken, err := Generate6DigitToken(db)
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถสร้างโทเค็นรีเซ็ตรหัสผ่านได้"})
@@ -53,6 +54,7 @@ func ForgotPasswordController(c *gin.Context) {
             return
         }
     }
+
 
     // ส่งอีเมล
     subject := "โทเค็นสำหรับการรีเซ็ตรหัสผ่านของคุณ"
