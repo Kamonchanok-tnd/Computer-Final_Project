@@ -3,7 +3,6 @@ import { Question } from "../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../interfaces/IAnswerOption";
 
 
-
 const apiUrl = "http://localhost:8000";
 
 // ✅ ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
@@ -39,41 +38,6 @@ export const getAllQuestionnaires = async (): Promise<Questionnaire[]> => {
         console.error("Error fetching questionnaires:", error);
         return [];
     }
-};
-
-
-// ✅ ฟังก์ชันสำหรับดึงคำถามทั้งหมด
-export const getAllQuestions = async (): Promise<Question[]> => {
-  try {
-    const token = localStorage.getItem("token"); // ดึง token ที่เก็บไว้หลัง login
-
-    const response = await fetch(`${apiUrl}/questions`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // แนบ token
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}`);
-    }
-
-    const rawData = await response.json();
-
-    // แปลงข้อมูลดิบให้ตรงกับ interface ของ Frontend
-    const data: Question[] = rawData.map((q: any) => ({
-      id: q.id,
-      nameQuestion: q.nameQuestion,
-      quID: q.quID,
-      questionnaire: q.questionnaire, // กรณี preload มาด้วย
-    }));
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching questions:", error);
-    return [];
-  }
 };
 
 
@@ -210,6 +174,54 @@ export const deleteAnswer = async (
 
 
 // ✅ ฟังก์ชันสำหรับดึงแบบทดสอบพร้อมคำถามและตัวเลือก
+// export const getQuestionnaireById = async (id: number): Promise<Questionnaire> => {
+//   try {
+//     const token = localStorage.getItem("token");
+
+//     const response = await fetch(`${apiUrl}/getquestionnaire/${id}`, {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+
+//     if (!response.ok) {
+//       const errText = await response.text();
+//       console.error("❌ Server Response:", response.status, errText);
+//       throw new Error(`Error: ${response.status}`);
+//     }
+
+//     const rawData = await response.json();
+//     console.log("📦 rawData จาก backend:", rawData);
+
+//     // ✅ แปลงข้อมูลจาก backend ให้ตรงกับ interface
+//     const questionnaire: Questionnaire = {
+//       id: rawData.ID,
+//       nameQuestionnaire: rawData.NameQuestionnaire,
+//       description: rawData.Description,
+//       quantity: rawData.Quantity,
+//       uid: rawData.UID,
+//       questions: (rawData.Questions ?? []).map((q: any) => ({
+//         id: q.ID,
+//         nameQuestion: q.nameQuestion,          // ✅ ชื่อ field เป็นตัวเล็ก
+//         quID: q.quID,
+//         priority: q.priority,
+//         answers: (q.answerOptions ?? []).map((a: any) => ({  // ✅ ต้องใช้ตัวเล็ก
+//           id: a.ID,
+//           description: a.description,
+//           point: a.point,
+//         })),
+//       })),
+//     };
+
+//     return questionnaire;
+//   } catch (error) {
+//     console.error("Error fetching questionnaire:", error);
+//     throw error;
+//   }
+// };
+
 export const getQuestionnaireById = async (id: number): Promise<Questionnaire> => {
   try {
     const token = localStorage.getItem("token");
@@ -240,10 +252,11 @@ export const getQuestionnaireById = async (id: number): Promise<Questionnaire> =
       uid: rawData.UID,
       questions: (rawData.Questions ?? []).map((q: any) => ({
         id: q.ID,
-        nameQuestion: q.nameQuestion,          // ✅ ชื่อ field เป็นตัวเล็ก
+        nameQuestion: q.nameQuestion,
         quID: q.quID,
         priority: q.priority,
-        answers: (q.answerOptions ?? []).map((a: any) => ({  // ✅ ต้องใช้ตัวเล็ก
+        picture: q.picture || null, // ✅ เพิ่มตรงนี้
+        answers: (q.answerOptions ?? []).map((a: any) => ({
           id: a.ID,
           description: a.description,
           point: a.point,
@@ -257,6 +270,7 @@ export const getQuestionnaireById = async (id: number): Promise<Questionnaire> =
     throw error;
   }
 };
+
 
 
 // ✅ ฟังก์ชันสำหรับอัปเดตแบบทดสอบพร้อมคำถามและตัวเลือก

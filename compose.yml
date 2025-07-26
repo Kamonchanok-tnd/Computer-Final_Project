@@ -63,5 +63,12 @@ services:
       - postgres
     restart: unless-stopped
 
+  vbackend:
+    build: ./VBackend
+    container_name: VoiceChatBackend
+    restart: always
+    ports:
+        - "8001:8000"
+
 volumes:
   postgres_data: 

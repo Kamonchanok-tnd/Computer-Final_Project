@@ -12,6 +12,7 @@ import Headers from "../layout/HeaderLayout/Header";
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
+import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
@@ -54,6 +55,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/chat/:chatroom_id", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <ChatSpace isNewChatDefault={false}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+        },
+        {
+          path: "/voice-chat/:id", 
+          element: isLoggedIn ? <VoiceChat /> : <Navigate to="/" />,
         },
 
         //assessment
