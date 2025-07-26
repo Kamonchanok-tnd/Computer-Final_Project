@@ -4,8 +4,8 @@ import "./breath.css";
 import { getBreathingSounds } from "../../../services/https/breathing";
 
 interface Sound {
-  id: string;       // YouTube video ID
-  title: string;    // ชื่อเพลง
+  id: string;
+  title: string;
 }
 
 const BreathingPage: React.FC = () => {
@@ -18,6 +18,9 @@ const BreathingPage: React.FC = () => {
 
   const breathInDuration = 3000;
   const breathOutDuration = 3000;
+
+  const [isBreathing, setIsBreathing] = useState(false);
+  const [breathingText, setBreathingText] = useState("เริ่ม");
 
   const speak = (text: string) => {
     if ("speechSynthesis" in window) {
@@ -40,6 +43,15 @@ const BreathingPage: React.FC = () => {
     }, nextDuration);
   };
 
+  const stopBreathingCycle = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    window.speechSynthesis.cancel();
+    setBreathing("หายใจเข้า");
+  };
+
   const postMessageToPlayer = (command: string) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
@@ -55,8 +67,28 @@ const BreathingPage: React.FC = () => {
     }
   };
 
+  const handleCircleClick = () => {
+    if (isBreathing) {
+      // หยุดการหายใจ
+      setIsBreathing(false);
+      setBreathingText("Start");
+      stopBreathingCycle();
+      postMessageToPlayer("pauseVideo");
+      setStarted(false);
+    } else {
+      // เริ่มการหายใจ
+      setIsBreathing(true);
+      setBreathingText("");
+      startBreathingCycle("หายใจเข้า");
+      postMessageToPlayer("playVideo");
+      setStarted(true);
+    }
+  };
+
   const handleStart = () => {
     if (!started) {
+      setIsBreathing(true);
+      setBreathingText("");
       setStarted(true);
       postMessageToPlayer("playVideo");
       startBreathingCycle("หายใจเข้า");
@@ -64,26 +96,30 @@ const BreathingPage: React.FC = () => {
   };
 
   const handleStop = () => {
+    setIsBreathing(false);
+    setBreathingText("start");
     setStarted(false);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    window.speechSynthesis.cancel();
+    stopBreathingCycle();
     postMessageToPlayer("pauseVideo");
-    setBreathing("หายใจเข้า");
   };
 
   const handleChangeSong = (videoId: string) => {
-    setCurrentVideoId(videoId);
-    if (started) {
-      loadAndPlayVideo(videoId);
-    } else {
-      if (iframeRef.current) {
-        iframeRef.current.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=0&autoplay=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0`;
-      }
-    }
-  };
+  // หยุดรอบหายใจ
+  stopBreathingCycle();
+  // หยุดเสียงเพลงเดิม
+  postMessageToPlayer("pauseVideo");
+  // รีเซ็ตสถานะ
+  setIsBreathing(false);
+  setStarted(false);
+  setBreathingText("เริ่ม");
+
+  // เปลี่ยนเพลงใหม่
+  setCurrentVideoId(videoId);
+  if (iframeRef.current) {
+    iframeRef.current.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=0&autoplay=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0`;
+  }
+};
+
 
   useEffect(() => {
     (async () => {
@@ -103,25 +139,22 @@ const BreathingPage: React.FC = () => {
     })();
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      window.speechSynthesis.cancel();
+      stopBreathingCycle();
       postMessageToPlayer("pauseVideo");
     };
   }, []);
 
-  // ฟังก์ชันแยกเอา YouTube Video ID จาก URL (รองรับทั้ง youtu.be และ youtube.com)
-  function extractYouTubeId(url: string) {
+  const extractYouTubeId = (url: string) => {
     const regExp =
       /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regExp);
     return match ? match[1] : "";
-  }
+  };
 
   return (
-    <div className="breathing-page" >
+    <div className="breathing-page">
       <h1>ฝึกหายใจ</h1>
 
-      {/* ปุ่มเลือกเพลงมุมขวาบน */}
       <div className="sound-selector">
         {sounds.map((sound) => (
           <button
@@ -136,24 +169,15 @@ const BreathingPage: React.FC = () => {
       </div>
 
       <div className="breathing-exercise">
-        <div className="circle">
-          <span>{breathing}</span>
+        <div
+          className={`circle ${isBreathing ? "breathing" : ""}`}
+          onClick={handleCircleClick}
+        >
+          {/* แสดง "เริ่ม" ตอนยังไม่เริ่ม และ "หายใจเข้า" / "หายใจออก" ตอนกำลังหายใจ */}
+          <span>{isBreathing ? breathing : breathingText}</span>
         </div>
       </div>
 
-      <div className="control-buttons">
-        {!started ? (
-          <button onClick={handleStart} className="btn start-btn">
-            ▶ เริ่ม
-          </button>
-        ) : (
-          <button onClick={handleStop} className="btn stop-btn">
-            ■ หยุด
-          </button>
-        )}
-      </div>
-
-      {/* iframe YouTube แบบซ่อน */}
       <iframe
         ref={iframeRef}
         title="YouTube Audio Player"
