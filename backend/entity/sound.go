@@ -9,6 +9,11 @@ type Sound struct {
 	Name      string
 	Sound     string
 	Lyric     string
+	Owner     string
+	Discription string
+	Duration   float64
+	LikeSound uint  `gorm:"default:0"`
+	View      uint  `gorm:"default:0"`
 	STID      uint      // Foreign key สำหรับ SoundType
 	UID       uint      // Foreign key สำหรับ Users
 
