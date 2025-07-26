@@ -66,7 +66,13 @@ func main() {
     r.POST("/forgot-password", users.ForgotPasswordController)
     r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
-    r.GET("/recent", controller.GetRecentChat)
+    // r.POST("/gemini", controller.GeminiHistory)
+    // r.GET("/conversation/:id", controller.GetConversationHistory)
+    // r.POST("/new-chat", controller.CreateChatRoom)
+    // r.PATCH("/end-chat/:id", controller.EndChatRoom)
+
+
+
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -87,8 +93,7 @@ func main() {
 
 
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
-        router.GET("/questions", questionnaire.GetAllQuestions)                            // route ดึงคำถามทั้งหมด
-        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงคำถามทั้งหมด
+        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
         router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
         

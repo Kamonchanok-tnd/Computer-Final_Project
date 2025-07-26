@@ -2,64 +2,92 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  min-height: 50vh;
+  min-height: 85vh;
   width: 100%;
-  max-width: 1000px;
+  max-width: 1680px;
   margin: 40px auto 0;
   padding: 24px 16px;
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.05) 1px,
-      transparent 1px,
-      transparent 12px
-    ),
-    linear-gradient(to bottom right, #87CEFA, #b0e0e6);
-  background-size: auto, cover;
+
+  /* ✅ Gradient + ลายเส้น */
+  background-image:
+    /* เส้นแนวนอนบางๆ */
+    linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+    /* เส้นแนวตั้งบางๆ */
+    linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px),
+    /* Gradient เดิม */
+    linear-gradient(135deg, #87CEFA, #b0e6ca);
+
+  /* ✅ ทำให้เกิดเป็นตารางเรียบร้อย */
+  background-size: 30px 30px, 30px 30px, cover;
+
   background-repeat: repeat;
-  background-position: 0 0;
+
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
 }
 
-.form-step-info-container .form-step-info-title {
-  font-size: 30px;
+
+/* ✅ หัวข้อ */
+.form-step-info-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   color: #333;
-  text-align: center;
 }
 
+/* ✅ ฟอร์มกึ่งกลาง */
+.form-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ant-form-item {
+  width: 80%;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+/* ✅ Label ข้อความใหญ่ขึ้น */
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px; /* ✅ ขนาดใหญ่ */
+  font-weight: 400;
+}
+
+/* ✅ Input + TextArea ใหญ่ขึ้นและสูงขึ้น */
 .form-step-info-container .ant-input,
-.form-step-info-container .ant-input-number,
+.form-step-info-container .ant-input-number {
+  font-size: 20px;
+  padding: 18px 14px;
+  height: 55px;
+  border-radius: 8px;
+}
+
 .form-step-info-container .ant-input-textarea {
-  border-radius: 6px;
   font-size: 20px;
+  padding: 14px;
+  min-height: 120px;
+  border-radius: 8px;
 }
 
-@media (max-width: 480px) {
-  .form-step-info-title {
-    font-size: 20px;
-  }
-
-  .form-step-info-container .ant-input,
-  .form-step-info-container .ant-input-number,
-  .form-step-info-container .ant-input-textarea {
-    font-size: 20px;
-  }
+/* ✅ ปุ่ม */
+.questionnaire-button-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
 }
 
-.form-step-info-container .ant-form-item-label > label {
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
-}
-
-/* ✅ ปุ่มทั้งหมด */
-.form-step-info-container .questionnaire-create-btn {
-  font-size: 20px;
+.questionnaire-create-btn {
+  font-size: 18px;
   font-weight: 600;
   padding: 12px 24px;
   border-radius: 8px;
@@ -68,33 +96,22 @@
   width: fit-content;
 }
 
-/* ✅ ปุ่ม "สร้างแบบทดสอบ" */
-.form-step-info-container .submit-btn {
+.submit-btn {
   background-color: #87CEFA !important;
   color: #000 !important;
 }
 
-.form-step-info-container .submit-btn:hover {
+.submit-btn:hover {
   background-color: #8ee58f !important;
   color: #000;
 }
 
-/* ✅ ปุ่ม "ยกเลิก" */
-.form-step-info-container .cancel-btn {
+.cancel-btn {
   background-color: #87CEFA !important;
   color: #000;
 }
 
-.form-step-info-container .cancel-btn:hover {
+.cancel-btn:hover {
   background-color: #8ee58f !important;
   color: black;
-}
-
-/* ✅ จัดตำแหน่งปุ่ม */
-.form-step-info-container .questionnaire-button-wrapper {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 20px;
 }
