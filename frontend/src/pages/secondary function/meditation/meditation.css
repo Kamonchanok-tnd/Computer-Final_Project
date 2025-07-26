@@ -1,35 +1,36 @@
 .meditation-page {
-  background-color: #C2F4FF;
+  background: linear-gradient(to top, #C2F4FF, #FFFFFF);
   padding: 20px;
   margin: 0;
-  height: auto;
+  height: 100vh;
+  
 }
 
 .meditation-page h1 {
-  font-size: 50px;
+  font-size: 30px;
   color: #333;
   font-weight: bold;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   text-align: center;
-  gap: 40px;
-  height: 100%;
   padding: 15px;
+  margin: 0 auto 30px auto; /* <--- ตรงนี้! */
+  width: fit-content; /* หรือกำหนด % / px ก็ได้ */
+  border-radius: 20px;
+  background-color: #ffffffcc;
+  box-shadow: 0px 4px 10px rgba(0, 180, 216, 0.3);
 }
 
 .meditation-page .meditation-session {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 50px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 40px;
   justify-content: center;
 }
 
 .meditation-page .session-card {
   background-color: white;
   border-radius: 15px;
-  width: 50%;
-  height: 320px; /* ถ้าต้องการให้สูงขึ้น อาจปรับเพิ่มได้ */
+  width: 100%;
+  height: 320px;
   text-align: center;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -49,44 +50,37 @@
 .meditation-page .session-description {
   background-color: white;
   width: 100%;
-  padding: 20px;
+  padding: 15px 20px;
   box-sizing: border-box;
   border-radius: 0 0 15px 15px;
   text-align: left;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 
 .meditation-page .clip-title {
   font-size: 20px;
   font-weight: bold;
-  flex-grow: 1;
   text-align: center;
+  width: 100%;
 }
 
-.meditation-page .clip-duration {
-  font-size: 16px;
-  color: rgba(0, 0, 0, 0.6);
-  margin-left: 15px;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .session-card {
-    width: 100%;
-    padding: 25px;
+  .meditation-page .meditation-session {
+    grid-template-columns: 1fr;
   }
+
+  .session-card {
+    height: auto;
+  }
+
   .session-video {
     height: 200px;
   }
 }
 
 @media (max-width: 480px) {
-  .session-card {
-    width: 100%;
-    padding: 20px;
-  }
   .session-video {
     height: 180px;
   }

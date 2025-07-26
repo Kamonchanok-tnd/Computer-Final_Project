@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
-    
-	"sukjai_project/controller/admin"
-    "sukjai_project/controller/questionnaire"
-	controller "sukjai_project/controller/chat_space"
-    "sukjai_project/controller/resettoken"
-    "sukjai_project/controller/users"
-    "sukjai_project/controller/meditation"
-     "sukjai_project/controller/breathing"
-    "sukjai_project/middlewares"
-    "sukjai_project/controller/prompt"
-    "sukjai_project/controller/assessment"
 
+	"sukjai_project/controller/admin"
+	"sukjai_project/controller/assessment"
+	"sukjai_project/controller/breathing"
+	controller "sukjai_project/controller/chat_space"
+	"sukjai_project/controller/meditation"
+	"sukjai_project/controller/prompt"
+	"sukjai_project/controller/questionnaire"
+	"sukjai_project/controller/resettoken"
+	"sukjai_project/controller/sounds"
+	"sukjai_project/controller/users"
+	"sukjai_project/middlewares"
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -73,6 +73,9 @@ func main() {
 
 
 
+    // router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
+
+
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -108,6 +111,11 @@ func main() {
 
         router.POST("/videos", meditation.CreateVideo)
         router.GET("/sound-types", meditation.GetSoundTypes)
+
+
+       
+        router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
+
      
         
         // Routes for superadmin only
@@ -150,7 +158,11 @@ func main() {
 
 
         //chat space
-        
+        userRouter.POST("/gemini", controller.GeminiHistory)
+        userRouter.GET("/conversation/:id", controller.GetConversationHistory)
+        userRouter.POST("/new-chat", controller.CreateChatRoom)
+        userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
+        // userRouter.GET("/recent", controller.GetRecentChat)
     }
 
     r.GET("/", func(c *gin.Context) {

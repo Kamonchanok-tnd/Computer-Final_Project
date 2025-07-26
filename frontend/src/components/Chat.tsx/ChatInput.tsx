@@ -45,8 +45,8 @@ function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDa
                 ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               : isDarkMode
-              ? 'bg-purple-600 hover:bg-regal-blue text-white '
-              : 'bg-gray-200 hover:bg-regal-blue hover:text-white text-gray-400 '
+              ? 'bg-button-dark/20 hover:bg-button-dark text-text-dark hover:text-white '
+              : 'bg-gray-200 hover:bg-button-blue hover:text-white text-gray-400 '
           }`}
           title="บันทึกเสียง"
         >
@@ -63,8 +63,8 @@ function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDa
                 ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               : isDarkMode
-              ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg'
-              : 'bg-regal-blue hover:bg-regal-blue text-white shadow-lg'
+              ? 'bg-button-dark hover:bg-button-dark text-white shadow-lg'
+              : 'bg-regal-blue hover:bg-button-blue text-white shadow-lg'
           }`}
           title="ส่งข้อความ"
         >

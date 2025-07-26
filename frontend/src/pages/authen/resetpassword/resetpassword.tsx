@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
-
-import { RequestPasswordReset } from "../../../services/https/login";
 import { MailOutlined } from "@ant-design/icons";
+import { RequestPasswordReset } from "../../../services/https/login";
 
-
+import "./ForgotPasswordPage.css"; // <-- เพิ่มไฟล์ CSS แยกสำหรับสไตล์
 
 const { Title, Text } = Typography;
 
@@ -15,44 +14,35 @@ const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
 
-  // จัดการการส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของผู้ใช้
   const handleEmailSubmit = async () => {
-  if (!email) {
-    console.log("Email is empty, returning error.");
-    return messageApi.error("กรุณากรอกอีเมลของคุณ");
-  }
-
-  setLoading(true);
-  try {
-    console.log("Sending request to reset password for email:", email);
-
-    // ใช้ฟังก์ชัน RequestPasswordReset จาก service
-    const response = await RequestPasswordReset(email);
-
-    console.log("Response from backend:", response); // log ดู response จาก Backend
-
-    if (response.status === 200) {
-      messageApi.success("ส่งรหัสยืนยันไปที่อีเมลของคุณแล้ว");
-      setTimeout(() => navigate("/reset-password"), 1500); // หลังจากส่งสำเร็จจะนำทางไปยังหน้าตั้งรหัสผ่านใหม่
-    } else {
-      messageApi.error(response.data.error || "ไม่สามารถส่งรหัสยืนยันได้");
+    if (!email) return messageApi.error("กรุณากรอกอีเมลของคุณ");
+    setLoading(true);
+    try {
+      const response = await RequestPasswordReset(email);
+      if (response.status === 200) {
+        messageApi.success("ส่งรหัสยืนยันไปที่อีเมลของคุณแล้ว");
+        setTimeout(() => navigate("/reset-password"), 1500);
+      } else {
+        messageApi.error(response.data.error || "ไม่สามารถส่งรหัสยืนยันได้");
+      }
+    } catch (error) {
+      messageApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.log("Error during password reset request:", error); // log ข้อผิดพลาดหากเกิดขึ้น
-    messageApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <>
       {contextHolder}
       <div className="forgot-password-wrapper">
         <Card className="forgot-password-card">
-          <Title level={3} style={{ textAlign: "center", marginBottom: 20 }}>
-            ลืมรหัสผ่าน
+          <Title level={3} className="title">
+            🔐 ลืมรหัสผ่าน
           </Title>
+          <Text className="subtitle">
+            กรุณากรอกอีเมลที่คุณใช้สมัครสมาชิก ระบบจะส่งลิงก์เพื่อรีเซ็ตรหัสผ่านให้คุณ
+          </Text>
           <Form layout="vertical" onFinish={handleEmailSubmit}>
             <Form.Item
               label="อีเมล"
@@ -64,10 +54,10 @@ const ForgotPasswordPage: React.FC = () => {
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="กรอกอีเมลของคุณ"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{ borderRadius: 10 }}
+                className="input-field"
               />
             </Form.Item>
             <Form.Item>
@@ -75,24 +65,17 @@ const ForgotPasswordPage: React.FC = () => {
                 type="primary"
                 htmlType="submit"
                 block
-                style={{
-                  borderRadius: 10,
-                  height: 40,
-                  backgroundColor: "#0288d1",
-                  border: "none",
-                }}
+                className="submit-btn"
                 loading={loading}
               >
                 ส่งรหัสยืนยัน
               </Button>
             </Form.Item>
           </Form>
-          <Text style={{ textAlign: "center" }}>
-            หรือ{" "}
-            <a onClick={() => navigate("/")} style={{ color: "#0288d1" }}>
-              กลับสู่หน้าล็อกอิน
-            </a>
-          </Text>
+          <div className="back-to-login">
+            <Text>หรือ </Text>
+            <a onClick={() => navigate("/")}>กลับสู่หน้าล็อกอิน</a>
+          </div>
         </Card>
       </div>
     </>

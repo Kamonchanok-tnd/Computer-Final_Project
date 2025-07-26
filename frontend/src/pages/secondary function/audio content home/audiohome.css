@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   height: auto; /* Full screen height */
-  background-color: #C2F4FF; 
+  background: linear-gradient(to top, #C2F4FF, #FFFFFF);
   
 }
 

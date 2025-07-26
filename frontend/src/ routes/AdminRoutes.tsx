@@ -12,11 +12,13 @@ const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsettin
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
 import VideoForm from "../pages/admin/meditation/meditation";
+import SoundListPage from "../pages/admin/sounds/soundslist";
 
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
 import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
 import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
+import ListSound from "../pages/admin/Listsound/Listsound";
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
 
@@ -75,6 +77,14 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     path: "/admin/meditation",  // เส้นทางสำหรับจัดการ Prompt
                     element: <VideoForm/>,
                 },
+                {
+                    path: "/admin/sounds",  // เส้นทางสำหรับจัดการ Prompt
+                    element: <SoundListPage/>,
+                },
+                {
+                    path :"/admin/listsound",
+                    element: <ListSound/>
+                }
             ],
         },
     ]

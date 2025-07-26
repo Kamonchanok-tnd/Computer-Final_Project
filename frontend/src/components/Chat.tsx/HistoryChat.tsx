@@ -12,10 +12,10 @@ interface ChatMessagesProps {
   function HistoryChat( { messages, isTyping, typingText,  isDarkMode, messagesEndRef }: ChatMessagesProps) {
     return (
         <div className={`  flex-1  md:px-4 space-y-4 h-[70%] duration-300  ${
-            isDarkMode ? 'bg-gray-800/40' :'bg-white'
+            isDarkMode ? 'bg-box-dark' :'bg-white'
           } backdrop-blur-sm`}>
-            <div className="md:px-4 pb-4 h-full scrollbar-hide duration-300
-            overflow-y-auto bg-linear-to-t from-[#C8F3FD] to-[#F4FFFF] rounded-t-2xl ">
+            <div className={`md:px-4 pb-4 h-full scrollbar-hide duration-300
+            overflow-y-auto ${isDarkMode ? 'bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)]' :'bg-linear-to-t from-[#C8F3FD] to-background-blue'} rounded-t-2xl`}>
               <div className="h-full  py-6 sm:px-4 duration-300">
               {messages.map((message) => (
                 <div
@@ -81,10 +81,10 @@ interface ChatMessagesProps {
                   </div>
                   <div className={`max-w-xs lg:max-w-md`}>
                     <div
-                      className={`px-4 py-3 rounded-2xl rounded-bl-md shadow-sm ${
+                      className={`px-4 py-3 rounded-2xl rounded-bl-md  ${
                         isDarkMode
-                          ? 'bg-gray-700 border border-gray-600 text-gray-100'
-                          : 'bg-white border border-gray-200 text-gray-800'
+                          ? 'bg-gray-700   text-gray-100'
+                          : 'bg-white  text-black-word'
                       }`}
                     >
                       {typingText ? (

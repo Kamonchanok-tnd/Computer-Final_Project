@@ -1,68 +1,102 @@
 .breathing-page {
-   background: linear-gradient(to top, #248785, #e0f7fa);
-  padding: 20px;
-  margin: 0; /* ลบ margin ที่อาจทำให้มีช่องว่าง */
-  display: flex; /* ใช้ flexbox */
-  flex-direction: column; /* จัดแนวให้เป็นคอลัมน์ */
-  justify-content: center; /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-  align-items: center; /* จัดให้อยู่ตรงกลางในแนวนอน */
-  height: 100vh; /* กำหนดความสูงของหน้าให้เต็มหน้าจอ */
+  background: linear-gradient(to top, #C2F4FF, #FFFFFF);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #000000;
 }
 
 .breathing-page h1 {
-  font-size: 50px; /* เพิ่มขนาดฟอนต์คำว่า 'ฝึกหายใจ' */
-  color: #356ea4; /* สีของข้อความ */
+  margin-top: 20px;
+  font-size: 30px;
+  color: #333;
   font-weight: bold;
-  display: flex; /* ใช้ flexbox */
-  align-items: center; /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-  gap: 20px; /* เพิ่มระยะห่างระหว่างรูปและข้อความ */
-  z-index: 10;
+  text-align: center;
+  padding: 15px;
+  margin: 10 auto 30px auto; /* <--- ตรงนี้! */
+  width: fit-content; /* หรือกำหนด % / px ก็ได้ */
+  border-radius: 20px;
+  background-color: #ffffffcc;
+  box-shadow: 0px 4px 10px rgba(0, 180, 216, 0.3);
+}
+
+.breathing-page .sound-selector {
+  margin-left: 1100px;
+  flex-direction: column;
+  top: 90px;
+  
+  display: flex;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  max-width: 320px;
+}
+
+.breathing-page .sound-btn {
+  background-color: #b2dfdb;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  white-space: nowrap;
+  color: #000000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.breathing-page .sound-btn:hover {
+  background-color: #b57cc9;
+  color: #fff;
+}
+
+.breathing-page .sound-btn.active {
+  background-color: #b28ad0;
+  color: #a5d6a7;
+  box-shadow: 0 0 12px #b39dc4;
 }
 
 .breathing-page .breathing-exercise {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100%; /* ทำให้ส่วนนี้เต็มพื้นที่ */
-  justify-content: flex-start; /* จัดตำแหน่งให้ข้อความอยู่ข้างบน */
-}
-
-.breathing-page .breathing-exercise h3 {
-  font-size: 24px; /* ขนาดฟอนต์ของหัวข้อ */
-  font-weight: bold;
-  margin-bottom: 40px; /* เพิ่มระยะห่างระหว่างหัวข้อและวงกลม */
-  color: #333; /* สีของข้อความ */
+  justify-content: center;
+  height: 100%;
 }
 
 .breathing-page .circle {
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, #ffffff, #00bfff); /* ไล่สีจากขาวไปฟ้า */
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, #ffffff, #00bfff);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  font-weight: bold;
+  font-size: 36px;
+  font-weight: 700;
   color: #00bfff;
   margin: 20px 0;
-  animation: pulse 2s infinite;
+  animation: pulse 3s ease-in-out infinite;
   position: relative;
-  box-shadow: 0px 0px 15px rgba(0, 191, 255, 0.5); /* หมอกสีฟ้าอ่อน */
-  top: 25%;
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.7);
 }
 
-/* เพิ่มเอฟเฟกต์หมอกให้กับวงกลม */
 .breathing-page .circle::before {
   content: "";
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.5), rgba(0, 191, 255, 0.3)); /* หมอกสีขาว-ฟ้า */
+  background: radial-gradient(circle, rgba(255,255,255,0.6), rgba(0,191,255,0.4));
   top: 0;
   left: 0;
-  box-shadow: 0px 0px 25px rgba(0, 191, 255, 0.5);
+  box-shadow: 0 0 30px rgba(0,191,255,0.7);
 }
 
 .breathing-page .circle::after {
@@ -71,58 +105,107 @@
   width: 70%;
   height: 70%;
   border-radius: 50%;
-  background: radial-gradient(circle, #ffffff, #00bfff); /* ไล่สีจากขาวไปฟ้า */
+  background: radial-gradient(circle, #ffffff, #00bfff);
   top: 15%;
   left: 15%;
-  box-shadow: 0px 0px 20px rgba(0, 191, 255, 0.5); /* หมอกสีฟ้าอ่อน */
+  box-shadow: 0 0 25px rgba(0,191,255,0.7);
 }
 
-/* ให้ span อยู่เหนือวงกลม */
 .breathing-page .circle span {
   position: absolute;
-  z-index: 1; /* ให้ข้อความอยู่เหนือวงกลม */
-  font-size: 32px; /* ขนาดฟอนต์ของข้อความ */
-  font-weight: bold;
-  color: #00bfff; /* สีข้อความ */
+  z-index: 1;
+  font-size: 36px;
+  font-weight: 700;
   text-align: center;
 }
 
-
-
 @keyframes pulse {
-  0% {
+  0%, 100% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
+    transform: scale(1.15);
   }
 }
 
+.breathing-page .control-buttons {
+  margin-top: -10px; /* เลื่อนขึ้นมาให้ใกล้วงกลม */
+  display: flex;
+  gap: 20px;
+}
+
+.breathing-page .btn {
+  margin-top: 5 px;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 40px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.breathing-page .start-btn {
+  background: linear-gradient(45deg, #83d2b2, #a4eda7);
+  color: white;
+}
+
+.breathing-page .start-btn:hover {
+  background: linear-gradient(45deg, #aacbac, #4caf50);
+  box-shadow: 0 6px 15px rgba(67, 160, 71, 0.6);
+}
+
+.breathing-page .stop-btn {
+  background: linear-gradient(45deg, #e53935, #ef5350);
+  color: white;
+}
+
+.breathing-page .stop-btn:hover {
+  background: linear-gradient(45deg, #c62828, #d32f2f);
+  box-shadow: 0 6px 15px rgba(229, 57, 53, 0.6);
+}
+
 @media (max-width: 768px) {
-  .circle {
-    width: 250px;
-    height: 250px;
+  .breathing-page .circle {
+    width: 260px;
+    height: 260px;
     font-size: 28px;
   }
 
-  .circle::before {
-    width: 100%;
-    height: 100%;
+  .breathing-page .circle span {
+    font-size: 28px;
+  }
+
+  .breathing-page .btn {
+    padding: 10px 32px;
+    font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .circle {
+  .breathing-page .circle {
     width: 200px;
     height: 200px;
-    font-size: 24px;
+    font-size: 22px;
   }
 
-  .circle::before {
-    width: 100%;
-    height: 100%;
+  .breathing-page .circle span {
+    font-size: 22px;
+  }
+
+  .breathing-page .btn {
+    padding: 8px 28px;
+    font-size: 14px;
+  }
+
+  .breathing-page .sound-selector {
+    max-width: 260px;
+    padding: 8px 10px;
+  }
+
+  .breathing-page .sound-btn {
+    padding: 5px 10px;
+    font-size: 13px;
   }
 }

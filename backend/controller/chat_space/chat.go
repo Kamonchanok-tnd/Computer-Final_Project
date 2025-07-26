@@ -2,7 +2,9 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"sukjai_project/config"
 	"sukjai_project/entity"
 
@@ -170,10 +172,7 @@ func EndChatRoom(c *gin.Context) {//เอาไว้สิ้นสุด ห�
        c.JSON(http.StatusNotFound, gin.H{"error": "id not found"})
        return
    }
-   if err := c.ShouldBindJSON(&chatRoom); err != nil {
-       c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request, unable to map payload"})
-       return
-   }
+   
    chatRoom.EndDate = time.Now()
    chatRoom.IsClose = true
    result = db.Save(&chatRoom)
@@ -230,4 +229,37 @@ func GetConversationHistory(c *gin.Context) {
 	db := config.DB()
 	db.Where("chat_room_id = ?", c.Param("id")).Find(&conversations)
 	c.JSON(http.StatusOK, conversations)
+}
+
+func GetRecentChat(c *gin.Context) {
+	uidStr := c.Query("uid") // รับจาก query param เช่น /recent-chat?uid=1
+	uid, err := strconv.Atoi(uidStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "uid must be an integer"})
+		return
+	}
+
+	var chatRoom entity.ChatRoom
+	db := config.DB()
+
+	result := db.
+		Where("is_close = ? AND uid = ?", false, uid).
+		Order("created_at DESC").
+		First(&chatRoom)
+
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusOK, gin.H{
+				"has_active": false,
+				"chat_room_id": 0,
+			})
+			return
+		} else if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+
+	c.JSON(http.StatusOK, gin.H{
+		"has_active": true,
+		"chat_room_id": chatRoom.ID,
+	})
 }
