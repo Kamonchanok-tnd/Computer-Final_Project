@@ -73,9 +73,6 @@ func main() {
 
 
 
-    // router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
-
-
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -96,8 +93,7 @@ func main() {
 
 
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
-        router.GET("/questions", questionnaire.GetAllQuestions)                            // route ดึงคำถามทั้งหมด
-        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงคำถามทั้งหมด
+        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
         router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
         

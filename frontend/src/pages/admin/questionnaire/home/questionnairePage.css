@@ -1,93 +1,105 @@
-/* ✅ พื้นที่หลักของหน้า QuestionnairePage */
+/* ✅ ใช้ Scope แค่หน้า QuestionnairePage */
 .questionnaire-page-container {
   padding: 20px;
 }
 
-/* ✅ หัวเรื่องด้านบน */
-.questionnaire-page-title {
-  font-size: 24px;
+/* ✅ หัวข้อ */
+.questionnaire-page-container .questionnaire-page-title {
+  font-size: 28px;
   font-weight: bold;
   color: #333;
   margin-bottom: 16px;
 }
 
-/* ✅ ปุ่ม "สร้างแบบทดสอบ" (ปกติ) */
-.questionnaire-create-btn.ant-btn-primary {
-  background-color: #87CDFA !important; /* ฟ้าอ่อน */
-  border: none;
-  font-weight: 600;
-  color: white;
-  transition: background-color 0.3s;
+/* ✅ ปุ่มทั้งหมดในหน้านี้ */
+.questionnaire-page-container .ant-btn {
+  background-color: #87CDFA !important;
+  color: #000 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  transition: background-color 0.3s ease;
 }
 
-
-/* ✅ เมื่อเอาเมาส์ไปแตะ */
-.questionnaire-create-btn.ant-btn-primary:hover {
-  background-color: #8ee58f !important; /* เขียวพาสเทล */
-  color: white;
+/* ✅ Hover */
+.questionnaire-page-container .ant-btn:hover {
+  background-color: #8EE58F !important;
+  color: #000 !important;
 }
 
-/* ✅ Modal */
-.questionnaire-modal .ant-modal-title {
-  font-size: 20px;
-  font-weight: bold;
+/* ✅ ปุ่ม danger */
+.questionnaire-page-container .ant-btn-dangerous {
+  background-color: #87CDFA !important;
+  color: #000 !important;
 }
 
-.questionnaire-modal .ant-form-item-label > label {
+/* ✅ ปุ่มค้นหาใน Search */
+.questionnaire-page-container .questionnaire-search .ant-input-search-button {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  background-color: #87CDFA !important;
+  color: #000 !important;
+  border: none !important;
+  border-radius: 8px !important;
+}
+
+.questionnaire-page-container .questionnaire-search .ant-input-search-button:hover {
+  background-color: #8EE58F !important;
+  color: #000 !important;
+}
+
+/* ✅ ช่อง Search และ Select */
+.questionnaire-page-container .ant-input,
+.questionnaire-page-container .ant-select-selector {
+  font-size: 18px !important;
   font-weight: 500;
-  color: #555;
-}
-
-.questionnaire-modal .ant-input,
-.questionnaire-modal .ant-input-textarea {
+  color: #000;
   border-radius: 6px;
+  border: 2px solid #87CDFA;
 }
 
-.questionnaire-modal .ant-modal-body {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 12px;
-}
-
-.questionnaire-modal .ant-form-item {
-  margin-bottom: 16px;
+/* ✅ ขนาด Option */
+.questionnaire-page-container .ant-select-item-option-content {
+  font-size: 18px !important;
 }
 
 /* ✅ ตาราง */
-.questionnaire-table-container {
+.questionnaire-page-container .questionnaire-table-container {
   margin-top: 20px;
   overflow-x: auto;
 }
 
-.questionnaire-table-container .ant-table-thead > tr > th {
-  background-color: #87CDFA;  /*สีของหัวตาราง*/
+.questionnaire-page-container .questionnaire-table-container .ant-table-thead > tr > th {
+  background-color: #87CDFA;
   text-align: center;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
 }
 
-.questionnaire-table-container .ant-table-tbody > tr > td {
+.questionnaire-page-container .questionnaire-table-container .ant-table-tbody > tr > td {
   text-align: center;
-  font-size: 13px;
+  font-size: 15px;
   padding: 12px 8px;
 }
 
-/* ✅ ปุ่ม Logout (ถ้ามี) */
-.questionnaire-logout-button {
-  margin-top: 20px;
-  float: right;
-  background-color: rgb(255, 59, 59);
-  border: none;
-  color: white;
+/* ✅ ปุ่มในตาราง */
+.questionnaire-page-container .questionnaire-table-container .ant-btn {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #000 !important;
 }
 
-.questionnaire-logout-button:hover {
-  background-color: rgb(255, 99, 99);
+/* ✅ Modal */
+.questionnaire-page-container .questionnaire-modal .ant-modal-title {
+  font-size: 22px;
+  font-weight: bold;
 }
 
-/* ✅ ซ่อน Layout เดิมที่ไม่ใช้แล้ว */
-.card-scroll-container,
-.card-item,
-.questionnaire-card {
-  display: none;
+.questionnaire-page-container .questionnaire-modal .ant-modal-body {
+  font-size: 18px;
+}
+
+.questionnaire-page-container .questionnaire-modal .ant-modal-footer .ant-btn {
+  font-size: 18px !important;
 }

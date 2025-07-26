@@ -14,7 +14,6 @@ const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
 import VideoForm from "../pages/admin/meditation/meditation";
 
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
-import QuestionPage from "../pages/admin/questionnaire/home/questionPage";
 import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
 import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
 import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
@@ -50,10 +49,6 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                     path: "/admin/questionnairePage",        // หน้าจัดการเเบบทดสอบ
                     element: <QuestionnairePage />,
-                },
-                {
-                    path: "/admin/questionPage",             // หน้าจัดการคำถาม
-                    element: <QuestionPage />,
                 },
                 {
                     path: "/admin/createQuestionnaire",     // หน้าสร้างเเบบทดสอบ
