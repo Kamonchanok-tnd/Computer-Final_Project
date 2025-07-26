@@ -66,14 +66,11 @@ func main() {
     r.POST("/forgot-password", users.ForgotPasswordController)
     r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
-    r.POST("/gemini", controller.GeminiHistory)
-    r.GET("/conversation/:id", controller.GetConversationHistory)
-    r.POST("/new-chat", controller.CreateChatRoom)
-    r.PATCH("/end-chat/:id", controller.EndChatRoom)
+    // r.POST("/gemini", controller.GeminiHistory)
+    // r.GET("/conversation/:id", controller.GetConversationHistory)
+    // r.POST("/new-chat", controller.CreateChatRoom)
+    // r.PATCH("/end-chat/:id", controller.EndChatRoom)
 
-
-
-    // router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
 
 
     // Protect routes with role-based access
