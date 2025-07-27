@@ -5,8 +5,8 @@ import { getMeditationSounds } from "../../../services/https/meditation";
 const MeditationPage: React.FC = () => {
   const [sounds, setSounds] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [likedVideos, setLikedVideos] = useState<{ [key: number]: boolean }>({});
 
-  // ฟังก์ชันดึง YouTube Video ID จากลิงก์
   const extractYouTubeID = (url: string): string => {
     const regExp =
       /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -26,6 +26,13 @@ const MeditationPage: React.FC = () => {
 
     fetchSounds();
   }, []);
+
+  const toggleLike = (id: number) => {
+    setLikedVideos((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   return (
     <div className="meditation-page">
@@ -47,7 +54,15 @@ const MeditationPage: React.FC = () => {
 
               <div className="session-description">
                 <div className="clip-title">{sound.Name}</div>
-                {/* <div className="clip-duration">Duration: {sound.Lyric}</div> */}
+                <button
+  className={`like-button ${likedVideos[sound.ID] ? "liked" : ""}`}
+  onClick={() => toggleLike(sound.ID)}
+  title={likedVideos[sound.ID] ? "Unlike" : "Like"}
+>
+  <span className="heart-icon"></span>
+</button>
+
+
               </div>
             </div>
           ))
