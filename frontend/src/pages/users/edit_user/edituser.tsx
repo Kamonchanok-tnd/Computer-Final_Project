@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Space,
   Button,
@@ -13,17 +13,17 @@ import {
   InputNumber,
   Select,
 } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { SaveOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { UsersInterface } from "../../../interfaces/IUser";
 import { GetUsersById, UpdateUsersById } from "../../../services/https/login";
 import { useNavigate, Link } from "react-router-dom";
 import dayjs from "dayjs";
+import "./UserEdit.css"; // ✅ import CSS
 
 function UserEdit() {
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
-
   const userId = localStorage.getItem("id");
 
   useEffect(() => {
@@ -32,20 +32,20 @@ function UserEdit() {
         type: "error",
         content: "ไม่พบข้อมูลผู้ใช้",
       });
-      navigate("/"); // ถ้าไม่พบ id ให้กลับไปที่หน้า login
+      navigate("/");
     } else {
-      getUserById(userId); // ดึงข้อมูลของผู้ใช้ที่มี id ตรงกับ userId
+      getUserById(userId);
     }
   }, [userId]);
 
   const getUserById = async (id: string) => {
-    let res = await GetUsersById(id);
+    const res = await GetUsersById(id);
     if (res?.status === 200) {
       form.setFieldsValue({
         username: res.data.username,
         email: res.data.email,
         phone_number: res.data.phone_number,
-        birthday: dayjs(res.data.birthday),  // แปลงเป็น dayjs สำหรับ DatePicker
+        birthday: dayjs(res.data.birthday),
         age: res.data.age,
         gender: res.data.gender,
         facebook: res.data.facebook,
@@ -62,171 +62,90 @@ function UserEdit() {
   const onFinish = async (values: UsersInterface) => {
     const payload = {
       ...values,
-      gender: values.Gender, // ใช้ gender ที่ได้จากฟอร์ม
+      gender: values.Gender,
     };
 
     const res = await UpdateUsersById(userId as string, payload);
     if (res.status === 200) {
       messageApi.open({
         type: "success",
-        content: res.data.message || "แก้ไขข้อมูลสำเร็จ",  // ถ้าไม่มีข้อความใน res.data.message ให้ใช้ข้อความ "แก้ไขข้อมูลสำเร็จ"
+        content: res.data.message || "แก้ไขข้อมูลสำเร็จ",
       });
     } else {
       messageApi.open({
         type: "error",
-        content: res.data.error || "เกิดข้อผิดพลาดในการแก้ไขข้อมูล",  // ถ้าไม่มีข้อความใน res.data.error ให้ใช้ข้อความ "เกิดข้อผิดพลาดในการแก้ไขข้อมูล"
+        content: res.data.error || "เกิดข้อผิดพลาดในการแก้ไขข้อมูล",
       });
     }
   };
 
   return (
-    <div>
+    <div className="user-edit-container">
       {contextHolder}
-      <Card>
-        <h2>แก้ไขข้อมูล ผู้ใช้งาน</h2>
-        <Divider />
+      <Card className="user-edit-card" title={<h2 className="user-edit-title">แก้ไขข้อมูล</h2>}>
+        
         <Form
-          name="basic"
           form={form}
           layout="vertical"
           onFinish={onFinish}
           autoComplete="off"
+          className="user-edit-form"
         >
-          <Row gutter={[16, 0]}>
-            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
-              <Form.Item
-                label="ชื่อผู้ใช้งาน"
-                name="username"
-                rules={[
-                  {
-                    required: true,
-                    message: "กรุณากรอกชื่อผู้ใช้งาน !",
-                  },
-                ]}
-              >
-                <Input />
+          <Row gutter={[24, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item label="ชื่อผู้ใช้งาน" name="username" rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้งาน !" }]}>
+                <Input placeholder="ระบุชื่อผู้ใช้งาน" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={12}>
-              <Form.Item
-                label="อีเมล"
-                name="email"
-                rules={[
-                  {
-                    type: "email",
-                    message: "รูปแบบอีเมลไม่ถูกต้อง !",
-                  },
-                  {
-                    required: true,
-                    message: "กรุณากรอกอีเมล !",
-                  },
-                ]}
-              >
-                <Input />
+            <Col xs={24} md={12}>
+              <Form.Item label="อีเมล" name="email" rules={[
+                { type: "email", message: "รูปแบบอีเมลไม่ถูกต้อง !" },
+                { required: true, message: "กรุณากรอกอีเมล !" },
+              ]}>
+                <Input placeholder="example@email.com" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-              <Form.Item
-                label="เบอร์โทรศัพท์"
-                name="phone_number"
-                rules={[
-                  {
-                    required: true,
-                    message: "กรุณากรอกเบอร์โทรศัพท์ !",
-                  },
-                ]}
-              >
-                <Input />
+            <Col xs={24} md={12}>
+              <Form.Item label="เบอร์โทรศัพท์" name="phone_number" rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" }]}>
+                <Input placeholder="0812345678" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-              <Form.Item
-                label="วัน/เดือน/ปี เกิด"
-                name="birthday"
-                rules={[
-                  {
-                    required: true,
-                    message: "กรุณาเลือกวัน/เดือน/ปี เกิด !",
-                  },
-                ]}
-              >
-                <DatePicker style={{ width: "100%" }} />
+          
+            <Col xs={24} md={12}>
+              <Form.Item label="อายุ" name="age" rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}>
+                <InputNumber min={0} max={120} style={{ width: "100%" }} placeholder="ระบุอายุ" />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-              <Form.Item
-                label="อายุ"
-                name="age"
-                rules={[
-                  {
-                    required: true,
-                    message: "กรุณากรอกอายุ !",
-                  },
-                ]}
-              >
-                <InputNumber
-                  min={0}
-                  max={99}
-                  defaultValue={0}
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-              <Form.Item
-                label="เพศ"
-                name="gender"
-                rules={[
-                  {
-                    required: true,
-                    message: "กรุณากรอกเพศ !",
-                  },
-                ]}
-              >
-                <Select style={{ width: "100%" }}>
+            <Col xs={24} md={12}>
+              <Form.Item label="เพศ" name="gender" rules={[{ required: true, message: "กรุณาเลือกเพศ !" }]}>
+                <Select placeholder="เลือกเพศ">
                   <Select.Option value="Male">ชาย</Select.Option>
                   <Select.Option value="Female">หญิง</Select.Option>
                   <Select.Option value="Other">อื่นๆ</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
-              <Form.Item
-                label="Facebook (ไม่จำเป็น)"
-                name="facebook"
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={24} md={24} lg={24} xl={24}>
-              <Form.Item
-                label="Line (ไม่จำเป็น)"
-                name="line"
-              >
-                <Input />
-              </Form.Item>
-            </Col>
+            <Col xs={24} md={12}>
+  <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
+    <Input placeholder="ระบุ Facebook (ถ้ามี)" />
+  </Form.Item>
+</Col>
+<Col xs={24} md={12}>
+  <Form.Item label="Line (ไม่จำเป็น)" name="line">
+    <Input placeholder="ระบุ Line ID (ถ้ามี)" />
+  </Form.Item>
+</Col>
+
           </Row>
-          <Row justify="end">
-            <Col style={{ marginTop: "40px" }}>
-              <Form.Item>
-                <Space>
-                  <Link to="/user">
-                    <Button htmlType="button" style={{ marginRight: "10px" }}>
-                      ยกเลิก
-                    </Button>
-                  </Link>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    icon={<PlusOutlined />}
-                  >
-                    บันทึก
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Col>
-          </Row>
+          <Divider />
+          <div className="user-edit-btn-group">
+            <Link to="/user">
+              <Button icon={<ArrowLeftOutlined />}>ย้อนกลับ</Button>
+            </Link>
+            <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+              บันทึกข้อมูล
+            </Button>
+          </div>
         </Form>
       </Card>
     </div>
