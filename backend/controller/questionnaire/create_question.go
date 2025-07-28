@@ -151,49 +151,7 @@ func CreateQuestionnaire(c *gin.Context) {
 
 }
 
-
-// // ✅ ฟังก์ชันสำหรับสร้างคำถามเเละคำตอบ
-// type QuestionWithAnswers struct {
-// 	Question entity.Question       `json:"question"`
-// 	Answers  []entity.AnswerOption `json:"answers"`
-// }
-
-// func CreateQuestions(c *gin.Context) {
-// 	var input []QuestionWithAnswers
-// 	if err := c.ShouldBindJSON(&input); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": " ❌ ข้อมูลคำถามไม่ถูกต้อง"})
-// 		return
-// 	}
-
-// 	db := config.DB()
-// 	tx := db.Begin()
-
-// 	for _, item := range input {
-// 		q := item.Question
-// 		if err := tx.Create(&q).Error; err != nil {
-// 			tx.Rollback()
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถบันทึกคำถามได้"})
-// 			return
-// 		}
-
-// 		for _, a := range item.Answers {
-// 			a.QID = q.ID
-// 			if err := tx.Create(&a).Error; err != nil {
-// 				tx.Rollback()
-// 				c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถบันทึกคำตอบได้"})
-// 				return
-// 			}
-// 		}
-// 	}
-
-// 	tx.Commit()
-// 	c.JSON(http.StatusOK, gin.H{"message": "บันทึกสำเร็จ"})
-// }
-
-
-
-
-// ✅ ฟังก์ชันสำหรับสร้างคำถามเเละคำตอบเเละลำดับ
+// ✅ ฟังก์ชันสำหรับสร้างคำถาม, คำตอบเเละลำดับ
 type QuestionWithAnswers struct {
 	Question entity.Question       `json:"question"`
 	Answers  []entity.AnswerOption `json:"answers"`

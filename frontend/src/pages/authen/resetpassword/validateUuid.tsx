@@ -1,23 +1,31 @@
+// ✅ ไฟล์ ValidateUuidPage.tsx
 import React, { useState, useEffect } from "react";
 import { Form, Input, Button, message, Typography, Row } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { validateApi } from "../../../services/https/resetpassword";
 import { RequestPasswordReset } from "../../../services/https/login";
 import "./ValidateUuidPage.css";
 
 const { Title, Text } = Typography;
 
-interface ValidateUuidPageProps {
-  email: string;
-}
-
-const ValidateUuidPage: React.FC<ValidateUuidPageProps> = ({ email }) => {
+const ValidateUuidPage: React.FC = () => {
   const [uuid, setUuid] = useState(Array(6).fill(""));
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [timer, setTimer] = useState(5 * 60);
+  const [timer, setTimer] = useState(5 * 60); // 5 นาที
+  const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
-  const [messageApi] = message.useMessage();
+  const location = useLocation();
+  const [email, setEmail] = useState<string | null>(null);
+  console.log("location.state", location.state);
+  console.log("email หน้าตรวจสอบรหัสผ่าน",email)
+  
+
+useEffect(() => {
+  const stateEmail = location.state?.email || null;
+  setEmail(stateEmail);
+}, [location.state]);
+
 
   useEffect(() => {
     if (timer > 0) {
@@ -34,8 +42,8 @@ const ValidateUuidPage: React.FC<ValidateUuidPageProps> = ({ email }) => {
 
   const handleUuidSubmit = async () => {
     const uuidString = uuid.join("");
-    if (!uuidString) {
-      return messageApi.error("กรุณากรอกรหัสยืนยัน");
+    if (uuidString.length < 6) {
+      return messageApi.error("กรุณากรอกรหัสให้ครบ 6 หลัก");
     }
 
     setLoading(true);
@@ -56,26 +64,36 @@ const ValidateUuidPage: React.FC<ValidateUuidPageProps> = ({ email }) => {
     }
   };
 
-  const handleChange = (e: any, index: number) => {
-    const newUuid = [...uuid];
-    newUuid[index] = e.target.value;
-    setUuid(newUuid);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const val = e.target.value;
+    if (/^[0-9a-zA-Z]{0,1}$/.test(val)) {
+      const newUuid = [...uuid];
+      newUuid[index] = val;
+      setUuid(newUuid);
+      if (val && index < 5) {
+        const nextInput = document.getElementById(`uuid-input-${index + 1}`) as HTMLInputElement;
+        nextInput?.focus();
+      }
+    }
   };
 
-  const handleFocusNext = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key !== "Backspace" && uuid[index] !== "" && index < uuid.length - 1) {
-      const nextInput = document.getElementById(`uuid-input-${index + 1}`) as HTMLInputElement;
-      nextInput?.focus();
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === "Backspace" && uuid[index] === "" && index > 0) {
+      const prevInput = document.getElementById(`uuid-input-${index - 1}`) as HTMLInputElement;
+      prevInput?.focus();
     }
   };
 
   const handleResendToken = async () => {
+     console.log("email ใน handleResendToken =", email);
     if (!email) {
+      
       return messageApi.error("ไม่พบอีเมลสำหรับส่งรหัสใหม่");
     }
     setResendLoading(true);
     try {
       const response = await RequestPasswordReset(email);
+
       if (response.status === 200) {
         setTimer(5 * 60);
         messageApi.success("ส่งรหัสยืนยันใหม่ไปที่อีเมลของคุณแล้ว");
@@ -91,6 +109,7 @@ const ValidateUuidPage: React.FC<ValidateUuidPageProps> = ({ email }) => {
 
   return (
     <div className="validate-container">
+      {contextHolder}
       <Row justify="center" style={{ marginBottom: 20 }}>
         <Title level={3}>กรอกรหัสยืนยัน</Title>
       </Row>
@@ -104,9 +123,10 @@ const ValidateUuidPage: React.FC<ValidateUuidPageProps> = ({ email }) => {
                 id={`uuid-input-${index}`}
                 value={value}
                 onChange={(e) => handleChange(e, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
                 maxLength={1}
-                onKeyUp={(e) => handleFocusNext(e, index)}
                 className="uuid-input"
+                autoFocus={index === 0}
               />
             ))}
           </div>
@@ -119,16 +139,21 @@ const ValidateUuidPage: React.FC<ValidateUuidPageProps> = ({ email }) => {
           <Button
             type="link"
             onClick={handleResendToken}
-            className="resend-link"
             loading={resendLoading}
-            disabled={resendLoading}
+            disabled={resendLoading || timer > 0}
           >
             ส่งรหัสใหม่
           </Button>
         </Row>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" block loading={loading} className="submit-btn">
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={loading}
+            className="submit-btn"
+          >
             ตรวจสอบรหัส
           </Button>
         </Form.Item>

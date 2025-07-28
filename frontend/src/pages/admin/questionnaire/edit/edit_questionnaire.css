@@ -1,188 +1,189 @@
-/* 🟦 พื้นหลังและโครงสร้างหลักของหน้า */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Arial', sans-serif;
+}
+
 .edit-questionnaire-container {
-  background: linear-gradient(180deg, #d1eaff, #a6e3e9); /* พื้นหลังไล่สี */
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #F5F5F5;
   padding: 24px;
-  max-width: 1000px;
-  margin: 0 auto;
-  font-family: "Prompt", sans-serif;
-
-  /* ✅ แก้ไขตรงนี้ */
-  height: 100vh; /* ใช้ dvh แทน vh บนมือถือบางรุ่น */
-  overflow: hidden; /* ไม่ให้ container scroll ทั้งหน้า */
-
-  display: flex;              /* ทำให้เป็น layout แบบ flex */
-  flex-direction: column;
+  box-sizing: border-box;
 }
 
-/* 🟨 ส่วนของฟอร์มให้ scroll ได้เฉพาะในส่วนนี้ */
-.questionnaire-form {
-  flex: 1;                    /* กินพื้นที่ที่เหลือของหน้า */
-  overflow-y: auto;           /* ให้ scroll เฉพาะแนวตั้ง */
-  padding-right: 12px;        /* เว้นขวาเพื่อไม่ให้ scrollbar ซ้อนเนื้อหา */
-  max-height: 100%;           /* ไม่เกิน container */
-  scroll-behavior: smooth;
-  border: none;              /* ไม่มีกรอบ */
-  box-shadow: none;          /* ไม่มีเงา */
+.edit-questionnaire-box {
+  background-color: #f5f5f5; /* เปลี่ยนเป็นสีที่คุณต้องการ */
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  max-width: 2000px;
+  width: 100%;
+  padding: 32px;
+  padding-bottom: 80px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #87CEFA #f0f0f0;
 }
 
-/* 🟩 หัวข้อฟอร์ม */
-.questionnaire-form h2 {
+.edit-questionnaire-box::-webkit-scrollbar {
+  width: 8px;
+}
+.edit-questionnaire-box::-webkit-scrollbar-thumb {
+  background: #87CEFA;
+  border-radius: 4px;
+}
+.edit-questionnaire-box::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.edit-questionnaire-box,
+.edit-questionnaire-box .ant-input,
+.edit-questionnaire-box .ant-input-number,
+.edit-questionnaire-box .ant-btn,
+.edit-questionnaire-box .ant-form-item-label > label {
+  font-size: 18px !important;
+  font-weight: 500;
+}
+
+.edit-questionnaire-box h2 {
+  font-size: 26px;
+  font-weight: 700;
   text-align: center;
-  margin-bottom: 20px;
-  font-weight: bold;
-  color: #333;
+  margin-bottom: 16px;
 }
 
-/* 🟦 กล่องคำถามแต่ละอัน */
-.question-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  position: relative;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e0e0e0;
+/* ✅ ปุ่มปกติ (ไม่ใช่ปุ่มลบ) = ฟ้า */
+.edit-questionnaire-box .ant-btn:not(.ant-btn-dangerous) {
+  background-color: #87CEFA !important;
+  color: #000 !important;
+  border: none !important;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* ✅ ปุ่มปกติ hover = เขียว */
+.edit-questionnaire-box .ant-btn:not(.ant-btn-dangerous):hover {
+  background-color: #85bee1 !important;
+  color: #000 !important;
+}
+
+/* ✅ ปุ่มลบ = แดง */
+.edit-questionnaire-box .ant-btn.ant-btn-dangerous {
+  background-color: #ff4d4f !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px;
+}
+
+/* ✅ ปุ่มลบ hover = แดงอ่อน + ขยาย */
+.edit-questionnaire-box .ant-btn.ant-btn-dangerous:hover {
+  background-color: #ff7875 !important; /* แดงอ่อน */
+  color: #fff !important;
+  transform: scale(1.05);
   transition: all 0.2s ease-in-out;
 }
 
-.question-card:hover {
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+/* ✅ Layout ส่วนต่างๆ */
+.bottom-buttons {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-/* 🟩 หัวข้อแต่ละคำถาม */
-.question-card h3 {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 12px;
+.answers-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.answers-header-left {
+  flex: 7;
+}
+.answers-header-right {
+  flex: 2;
+}
+.answers-header-empty {
+  flex: 1;
 }
 
-/* 🟦 ปุ่มลบคำถาม (มุมขวาบน) */
-.question-card .delete-question-btn {
-  position: absolute;
-  top: 16px;
-  right: 50px;
-  background-color: #ff4d4f;
-  color: #fff;
-  border-radius: 8px;
-  border: none;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-size: 14px;
+.answer-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
 }
-
-.question-card .delete-question-btn:hover {
-  background-color: #d9363e;
-}
-
-/* ⬜ Drag handle (ไอคอน ☰) */
-.drag-handle {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  cursor: grab;
-  font-size: 18px;
-  color: #999;
-}
-
-/* ⬛ Input ของคำถาม */
-.question-card input {
-  font-size: 16px;
-  padding: 10px;
-}
-
-/* ➖ เส้นแบ่ง */
-.ant-divider-horizontal {
-  margin: 16px 0;
-}
-
-/* 🔷 หัวข้อของส่วนตัวเลือก */
-.question-card h4 {
+.answer-text {
+  flex: 7;
   font-size: 16px;
   font-weight: 600;
-  color: #555;
-  margin-bottom: 12px;
+}
+.answer-point {
+  flex: 2;
+}
+.answer-delete {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.answer-delete button {
+  width: 100% !important;
+  height: 40px;
 }
 
-/* 🔸 กล่องรวมตัวเลือก */
-.answers-wrapper {
-  margin-bottom: 12px;
+.panel-extra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.drag-icon {
+  cursor: grab;
+}
+
+.question-panel-content {
+  display: flex;
+  gap: 16px;
+  font-weight: 600;
+}
+.question-panel-left {
+  flex: 7;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-/* 🔹 ขนาด input ตัวเลือก */
-.answers-wrapper .ant-input {
-  width: 65%;
-}
-
-.answers-wrapper .ant-input-number {
-  width: 80px;
-}
-
-.answers-wrapper .ant-btn-dangerous {
-  background-color: #ff4d4f;
-  border: none;
-  color: #fff;
-}
-
-.answers-wrapper .ant-btn-dangerous:hover {
-  background-color: #d9363e;
-}
-
-/* 🔺 ปุ่มเพิ่มตัวเลือก */
-.question-card .ant-btn-dashed {
-  border: 2px dashed #40a9ff;
-  color: #1890ff;
-  font-weight: 500;
-  margin-top: 8px;
-}
-
-/* ✅ ปุ่มเพิ่มคำถามใหม่ */
-.add-question-btn {
-  border: 2px dashed #52c41a;
-  color: #52c41a;
+  font-size: 16px;  /* ขนาด font ตัวเลือกเเละคะเเนน */
   font-weight: 600;
+}
+.question-panel-right {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.upload-label {
   font-size: 16px;
-  margin: 20px 0;
-  width: 100%;
-  height: 45px;
-  border-radius: 8px;
-  transition: all 0.2s ease-in-out;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: left;
 }
 
-.add-question-btn:hover {
-  border-color: #389e0d;
-  color: #389e0d;
+/* ✅ Upload ขนาดใหญ่ */
+.full-upload .ant-upload.ant-upload-select-picture-card,
+.full-upload .ant-upload-list-picture-card-container,
+.full-upload .ant-upload-list-item {
+  width: 450px !important;
+  height: 280px !important;
+  margin: 0 auto !important;
 }
-
-/* ✅ ปุ่มบันทึกให้ "ติดล่างจอ" */
-.edit-questionnaire-container .ant-btn-primary {
-  position: sticky;         /* ติดกับขอบล่าง */
-  bottom: 0;
-  width: 100%;
-  height: 45px;
-  font-size: 18px;
-  font-weight: bold;
-  background-color: #1890ff;
-  border-radius: 8px;
-  transition: all 0.3s ease-in-out;
-  margin-top: 12px;
-  z-index: 100;             /* ป้องกันซ้อนกับ scroll */
+.full-upload .ant-upload-list-item img {
+  width: 450px !important;
+  height: 280px !important;
+  
 }
-
-.edit-questionnaire-container .ant-btn-primary:hover {
-  background-color: #40a9ff;
-}
-
-/* ✅ Modal หลังบันทึก */
-.ant-modal-content {
-  border-radius: 12px;
-  text-align: center;
-}
-
-.ant-modal-title {
-  font-size: 20px;
-  font-weight: bold;
+.full-upload {
+  width: 450px !important;
+  height: 280px !important;
 }
