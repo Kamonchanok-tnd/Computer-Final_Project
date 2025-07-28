@@ -135,6 +135,8 @@ func GeminiHistory(c *gin.Context) {
 			ChatRoomID: question.ChatRoomID,
 			STID: 2, // bot
 		})
+		log.Println("question:",question.Message )
+		log.Println("qid:", question.ChatRoomID)
 
 		c.JSON(http.StatusOK, gin.H{"message": res.Candidates[0].Content.Parts[0].Text })
 

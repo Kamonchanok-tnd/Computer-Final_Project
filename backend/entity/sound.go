@@ -10,7 +10,7 @@ type Sound struct {
 	Sound     string
 	Lyric     string
 	Owner     string
-	Discription string
+	Description string
 	Duration   float64
 	LikeSound uint  `gorm:"default:0"`
 	View      uint  `gorm:"default:0"`

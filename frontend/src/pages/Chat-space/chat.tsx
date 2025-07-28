@@ -224,6 +224,19 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     
   };
 
+  async function gotoVoice(){
+    if (isNewChat === false && chatRoomID !== null) {
+      navigate(`/chat/voice-chat/${chatRoomID}`);
+      return;
+    }
+   
+    const data: IChatRoom = { uid: Number(Uid) };
+    const res = await NewChat(data);
+    setChatRoomID(res.id);
+    navigate(`/chat/voice-chat/${chatRoomID}`);
+
+  }
+
   return (
     <div className={`min-h-[calc(100vh-64px)] transition-colors duration-300 overflow-auto 
        flex justify-center items-center sm:px-4 
@@ -241,7 +254,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
         {/* Messages Area */}
           {
             isNewChat ? (
-              <NewChatWelcome  />
+              <NewChatWelcome isDarkMode={isDarkMode} />
             ) : (
               <HistoryChat
                 messages={messages}
@@ -262,6 +275,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     isTyping={isTyping}
     isDarkMode={isDarkMode}
     inputRef={inputRef as React.RefObject<HTMLInputElement>}
+    gotoVoice={gotoVoice}
   />
 
       </div>

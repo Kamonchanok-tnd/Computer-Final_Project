@@ -57,7 +57,7 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           element: isLoggedIn ? <ChatSpace isNewChatDefault={false}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
         {
-          path: "/voice-chat/:id", 
+          path: "/chat/voice-chat/:id", 
           element: isLoggedIn ? <VoiceChat /> : <Navigate to="/" />,
         },
 

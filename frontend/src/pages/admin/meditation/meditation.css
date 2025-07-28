@@ -1,0 +1,17 @@
+.ant-input-outlined:hover {
+    border-color: #5DE2FF;
+   
+}
+.ant-input-outlined:focus {
+    border-color: #5DE2FF;
+    
+}
+.custom-select:hover .ant-select-selector {
+    border-color: #5DE2FF !important;
+  }
+
+
+.ant-select-focused .ant-select-selector {
+    border-color: #5DE2FF !important;
+    box-shadow: none !important; /* Glow effect */    
+  }
