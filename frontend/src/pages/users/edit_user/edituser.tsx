@@ -140,9 +140,9 @@ function UserEdit() {
           <Divider />
           <div className="user-edit-btn-group">
             <Link to="/user">
-              <Button icon={<ArrowLeftOutlined />}>ย้อนกลับ</Button>
+              <Button icon={<ArrowLeftOutlined />} className="btn-back" >ย้อนกลับ</Button>
             </Link>
-            <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+            <Button type="primary" htmlType="submit" icon={<SaveOutlined />} className="btn-save">
               บันทึกข้อมูล
             </Button>
           </div>
