@@ -8,7 +8,16 @@
   --color-black-word:#292D32;
   --color-background-button: #C8F3FD;
   --color-blue-word:#1890ff;
-  
+  --color-subtitle:#686868;
+
+  /* status content */
+  --color-meditaion-back:#CDFCFE;
+  --color-meditation-word:#228A8E;
+  --color-asmr-bg:#CCFFED;
+  --color-asmr-word:#5B8375;
+  --color-pray-bg:#FBF3D8;
+  --color-pray-word:#58470F;
+   
   /* dark mode */
   --color-background-dark:#1B2538;
   --color-header-dark:#0F172A;
@@ -21,7 +30,34 @@
 
   --shadow-dark: 0 4px 6px rgba(0, 0, 0, 0.3);
 
+  --animate-fade-in: fadeInDown 0.5s ease-in-out;
+  --animate-fade-out: fadeOurLeft 0.5s ease-in-out ;
+ 
+  
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+ 
+  @keyframes fadeOurLeft {
+    from {
+      opacity: 1;
+    }
+    to {
+        opacity: 0,
+        transform: "translate3d(-100%, 0, 0)";
+    }
+  }
 }
+
+/* Fade Animation Keyframes */
 
 html, body {
   margin: 0;

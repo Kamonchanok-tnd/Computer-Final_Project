@@ -1,0 +1,17 @@
+.custom-select:hover .ant-select-selector {
+    border-color: #5DE2FF !important;
+  }
+
+
+.ant-select-focused .ant-select-selector {
+    border-color: #5DE2FF !important;
+    box-shadow: none !important; /* Glow effect */    
+  }
+.custom-option .ant-select-item-option-conten:hover {
+   background-color: red; 
+  }
+
+  .ant-select-item-option-selected {
+    background-color: #e6f7ff; /* Changes the background of a selected option in the dropdown */
+    color: #1890ff !important; /* Changes the text color of a selected option */
+  }

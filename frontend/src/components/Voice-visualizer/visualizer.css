@@ -1,0 +1,49 @@
+.visualizer {
+    position: relative;
+    width: 16rem;
+    height: 16rem;
+    border-radius: 9999px;
+    transition: all 0.3s ease-out;
+    transform: scale(var(--scale));
+    background: radial-gradient(
+      circle,
+      rgba(59, 130, 246, var(--opacity)) 0%,
+      rgba(147, 51, 234, calc(var(--opacity) * 0.8)) 40%,
+      rgba(236, 72, 153, calc(var(--opacity) * 0.6)) 70%,
+      transparent 100%
+    );
+    box-shadow:
+      0 0 calc(20px + var(--glow) * 60px) rgba(59, 130, 246, calc(var(--glow) * 0.5)),
+      0 0 calc(40px + var(--glow) * 100px) rgba(147, 51, 234, calc(var(--glow) * 0.3)),
+      0 0 calc(60px + var(--glow) * 140px) rgba(236, 72, 153, calc(var(--glow) * 0.2));
+  }
+  
+  .innerCircle {
+    position: absolute;
+    inset: 1rem;
+    border-radius: 9999px;
+    transition: all 0.25s;
+    transform: scale(var(--inner-scale));
+    background: radial-gradient(
+      circle,
+      rgba(59, 130, 246, calc(var(--opacity) * 0.8)) 0%,
+      rgba(147, 51, 234, calc(var(--opacity) * 0.6)) 50%,
+      transparent 100%
+    );
+  }
+  
+  .centerDot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 2rem;
+    height: 2rem;
+    margin-left: -1rem;
+    margin-top: -1rem;
+    border-radius: 9999px;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, calc(0.6 + var(--glow) * 0.4));
+    transform: scale(var(--dot-scale));
+    box-shadow: 0 0 calc(10px + var(--glow) * 30px) rgba(255, 255, 255, calc(var(--glow) * 0.8));
+  }
+  

@@ -67,6 +67,9 @@ func main() {
     r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
     r.GET("/recent", controller.GetRecentChat)
+   
+   
+
     // Protect routes with role-based access
     router := r.Group("/")
     {
@@ -104,10 +107,14 @@ func main() {
         router.POST("/videos", meditation.CreateVideo)
         router.GET("/sound-types", meditation.GetSoundTypes)
 
+        router.GET("/AllSounds", sounds.GetAllSounds)
+        router.GET("/Sound/:id",sounds.GetSoundByID)
+        router.PATCH("/Sound/Update/:id",sounds.EditSound)
+        router.DELETE("/Sound/Delete/:id",sounds.DeleteSoundByID)
 
        
         router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
-
+      
      
         
         // Routes for superadmin only
