@@ -74,7 +74,6 @@ const QuestionnairePage: React.FC = () => {
     }
   };
 
-  /** ✅ ค้นหาแบบ Real-time */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchText(value);
@@ -85,11 +84,9 @@ const QuestionnairePage: React.FC = () => {
     filterAndSort(value, sortOption);
   };
 
-  /** ✅ ฟังก์ชันรวมการกรอง + เรียง */
   const filterAndSort = (searchValue: string, sortKey: string) => {
     let data = [...questionnaires];
 
-    // ✅ กรองด้วย Search
     if (searchValue.trim() !== "") {
       data = data.filter((q) => {
         const userName = usersMap[q.uid] || "";
@@ -100,7 +97,6 @@ const QuestionnairePage: React.FC = () => {
       });
     }
 
-    // ✅ เรียงตามตัวเลือก
     if (sortKey === "nameAsc") {
       data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire));
     } else if (sortKey === "nameDesc") {
@@ -114,7 +110,6 @@ const QuestionnairePage: React.FC = () => {
     setFilteredQuestionnaires(data);
   };
 
-  /** ✅ เปลี่ยน Sort Option */
   const handleSortChange = (value: string) => {
     setSortOption(value);
     filterAndSort(searchText, value);
@@ -199,7 +194,6 @@ const QuestionnairePage: React.FC = () => {
         </Col>
       </Row>
 
-      {/* ✅ Search + Sort */}
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col span={8}>
           <Search
@@ -247,7 +241,6 @@ const QuestionnairePage: React.FC = () => {
         )}
       </div>
 
-      {/* MODAL ลบ */}
       <Modal
         title="ยืนยันการลบแบบทดสอบ ❌ "
         open={deleteModalVisible}
@@ -265,7 +258,6 @@ const QuestionnairePage: React.FC = () => {
         </p>
       </Modal>
 
-      {/* MODAL ลบสำเร็จ */}
       <Modal
         title="ลบแบบทดสอบเรียบร้อยแล้ว"
         open={isDeleteSuccessModalVisible}
@@ -275,11 +267,10 @@ const QuestionnairePage: React.FC = () => {
         centered
         className="questionnaire-modal"
       >
-        <p style={{ textAlign: "center" }}>✅ลบข้อมูลแบบทดสอบเรียบร้อยแล้ว!</p>
+        <p style={{ textAlign: "center" }}>ลบข้อมูลแบบทดสอบเรียบร้อยแล้ว!</p>
       </Modal>
     </div>
   );
 };
 
 export default QuestionnairePage;
-

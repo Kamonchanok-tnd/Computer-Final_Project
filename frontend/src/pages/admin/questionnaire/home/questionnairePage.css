@@ -11,7 +11,7 @@
   margin-bottom: 16px;
 }
 
-/* ✅ ปุ่มทั้งหมดในหน้านี้ */
+/* ✅ ปุ่มทั้งหมด */
 .questionnaire-page-container .ant-btn {
   background-color: #87CDFA !important;
   color: #000 !important;
@@ -22,15 +22,9 @@
   transition: background-color 0.3s ease;
 }
 
-/* ✅ Hover */
+/* ✅ Hover ปุ่มทั่วไป */
 .questionnaire-page-container .ant-btn:hover {
-  background-color: #8EE58F !important;
-  color: #000 !important;
-}
-
-/* ✅ ปุ่ม danger */
-.questionnaire-page-container .ant-btn-dangerous {
-  background-color: #87CDFA !important;
+  background-color: #85bee1 !important;
   color: #000 !important;
 }
 
@@ -45,7 +39,7 @@
 }
 
 .questionnaire-page-container .questionnaire-search .ant-input-search-button:hover {
-  background-color: #8EE58F !important;
+  background-color: #85bee1 !important;
   color: #000 !important;
 }
 
@@ -102,4 +96,21 @@
 
 .questionnaire-page-container .questionnaire-modal .ant-modal-footer .ant-btn {
   font-size: 18px !important;
+}
+
+/* ✅ ปุ่มลบสีแดง */
+.questionnaire-page-container .ant-btn-dangerous {
+  background-color: #ff4d4f !important;
+  color: #fff !important;
+}
+
+/* ✅ Hover ของปุ่มลบ */
+.questionnaire-page-container .ant-btn-dangerous:hover {
+  background-color: #ff7875 !important;
+  color: #fff !important;
+}
+
+/* ✅ ไอคอน Delete ให้เป็นสีขาว */
+.questionnaire-page-container .ant-btn-dangerous .anticon {
+  color: #fff !important;
 }
