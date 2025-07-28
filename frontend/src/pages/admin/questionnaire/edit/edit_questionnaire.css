@@ -14,43 +14,22 @@ html, body {
   background-color: #F5F5F5;
   padding: 24px;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .edit-questionnaire-box {
-
-   background-image:
-    /* เส้นแนวนอนบางๆ */
-    linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-    /* เส้นแนวตั้งบางๆ */
-    linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px),
-    /* Gradient เดิม */
-    linear-gradient(135deg, #87CEFA, #b0e6ca);
-
-  /* ✅ ทำให้เกิดเป็นตารางเรียบร้อย */
-  background-size: 30px 30px, 30px 30px, cover;
-
-  background-repeat: repeat;
-
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
-
-
-  /* background: linear-gradient(135deg, #87CEFA 0%, #b0e0e6 100%); */
-  max-width: 2000px;
-  width: 100%;
+  background-color: #f5f5f5; /* เปลี่ยนเป็นสีที่คุณต้องการ */
   border-radius: 16px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  max-width: 2000px;
+  width: 100%;
   padding: 32px;
   padding-bottom: 80px;
-  max-height: 100%;
+  max-height: calc(100vh - 48px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #87CEFA #f0f0f0;
 }
 
-/* Scrollbar */
 .edit-questionnaire-box::-webkit-scrollbar {
   width: 8px;
 }
@@ -62,101 +41,149 @@ html, body {
   background: #f0f0f0;
 }
 
-/* ฟอนต์เท่ากัน */
 .edit-questionnaire-box,
 .edit-questionnaire-box .ant-input,
 .edit-questionnaire-box .ant-input-number,
 .edit-questionnaire-box .ant-btn,
-.edit-questionnaire-box .ant-form-item-label > label,
-.edit-questionnaire-box .ant-divider-inner-text {
+.edit-questionnaire-box .ant-form-item-label > label {
   font-size: 18px !important;
   font-weight: 500;
-  color: #000;
 }
 
-/* หัวข้อใหญ่ */
 .edit-questionnaire-box h2 {
-  font-size: 26px !important;
+  font-size: 26px;
   font-weight: 700;
   text-align: center;
   margin-bottom: 16px;
 }
 
-/* ปุ่มทั้งหมด */
-.edit-questionnaire-box .ant-btn {
+/* ✅ ปุ่มปกติ (ไม่ใช่ปุ่มลบ) = ฟ้า */
+.edit-questionnaire-box .ant-btn:not(.ant-btn-dangerous) {
   background-color: #87CEFA !important;
   color: #000 !important;
   border: none !important;
-  font-size: 18px !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
+  font-weight: 600;
+  border-radius: 8px;
 }
-.edit-questionnaire-box .ant-btn:hover {
-  background-color: #8EE58F !important;
+
+/* ✅ ปุ่มปกติ hover = เขียว */
+.edit-questionnaire-box .ant-btn:not(.ant-btn-dangerous):hover {
+  background-color: #85bee1 !important;
   color: #000 !important;
 }
 
-/* ปุ่มเพิ่มคำถาม */
-.add-question-btn {
-  margin-top: 16px;
-  width: 100%;
-  font-weight: 600;
+/* ✅ ปุ่มลบ = แดง */
+.edit-questionnaire-box .ant-btn.ant-btn-dangerous {
+  background-color: #ff4d4f !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 8px;
 }
 
-/* Header ตัวเลือก */
+/* ✅ ปุ่มลบ hover = แดงอ่อน + ขยาย */
+.edit-questionnaire-box .ant-btn.ant-btn-dangerous:hover {
+  background-color: #ff7875 !important; /* แดงอ่อน */
+  color: #fff !important;
+  transform: scale(1.05);
+  transition: all 0.2s ease-in-out;
+}
+
+/* ✅ Layout ส่วนต่างๆ */
+.bottom-buttons {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .answers-header {
   display: flex;
-  align-items: center;
-  height: 40px;
-  padding: 0 8px;
-  font-weight: 600;
+  gap: 8px;
   margin-bottom: 8px;
+  font-weight: 600;
 }
-.answers-header span:nth-child(1) {
+.answers-header-left {
+  flex: 7;
+}
+.answers-header-right {
+  flex: 2;
+}
+.answers-header-empty {
   flex: 1;
 }
-.answers-header span:nth-child(2) {
-  width: 80px;
-}
-.answers-header span:nth-child(3) {
-  width: 60px;
-}
 
-/* แถวตัวเลือก */
 .answer-row {
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
 }
-.answer-row .ant-input {
+.answer-text {
+  flex: 7;
+  font-size: 16px;
+  font-weight: 600;
+}
+.answer-point {
+  flex: 2;
+}
+.answer-delete {
   flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.answer-row .ant-input-number {
-  width: 80px;
-}
-.answer-row .ant-btn {
-  width: 60px;
+.answer-delete button {
+  width: 100% !important;
+  height: 40px;
 }
 
-/* Panel Extra */
 .panel-extra {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
-/* ลำดับ */
-.order-tag {
-  font-size: 16px;
-  font-weight: 500;
-  background: #e6f7ff;
-  border-radius: 6px;
-  padding: 2px 10px;
-}
-
-/* Drag Icon */
 .drag-icon {
   cursor: grab;
-  font-size: 18px;
-  color: #444;
+}
+
+.question-panel-content {
+  display: flex;
+  gap: 16px;
+  font-weight: 600;
+}
+.question-panel-left {
+  flex: 7;
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;  /* ขนาด font ตัวเลือกเเละคะเเนน */
+  font-weight: 600;
+}
+.question-panel-right {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.upload-label {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+/* ✅ Upload ขนาดใหญ่ */
+.full-upload .ant-upload.ant-upload-select-picture-card,
+.full-upload .ant-upload-list-picture-card-container,
+.full-upload .ant-upload-list-item {
+  width: 450px !important;
+  height: 280px !important;
+  margin: 0 auto !important;
+}
+.full-upload .ant-upload-list-item img {
+  width: 450px !important;
+  height: 280px !important;
+  
+}
+.full-upload {
+  width: 450px !important;
+  height: 280px !important;
 }

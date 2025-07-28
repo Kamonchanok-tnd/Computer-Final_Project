@@ -171,57 +171,6 @@ export const deleteAnswer = async (
 };
 
 
-
-
-// ✅ ฟังก์ชันสำหรับดึงแบบทดสอบพร้อมคำถามและตัวเลือก
-// export const getQuestionnaireById = async (id: number): Promise<Questionnaire> => {
-//   try {
-//     const token = localStorage.getItem("token");
-
-//     const response = await fetch(`${apiUrl}/getquestionnaire/${id}`, {
-//       method: "GET",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
-
-//     if (!response.ok) {
-//       const errText = await response.text();
-//       console.error("❌ Server Response:", response.status, errText);
-//       throw new Error(`Error: ${response.status}`);
-//     }
-
-//     const rawData = await response.json();
-//     console.log("📦 rawData จาก backend:", rawData);
-
-//     // ✅ แปลงข้อมูลจาก backend ให้ตรงกับ interface
-//     const questionnaire: Questionnaire = {
-//       id: rawData.ID,
-//       nameQuestionnaire: rawData.NameQuestionnaire,
-//       description: rawData.Description,
-//       quantity: rawData.Quantity,
-//       uid: rawData.UID,
-//       questions: (rawData.Questions ?? []).map((q: any) => ({
-//         id: q.ID,
-//         nameQuestion: q.nameQuestion,          // ✅ ชื่อ field เป็นตัวเล็ก
-//         quID: q.quID,
-//         priority: q.priority,
-//         answers: (q.answerOptions ?? []).map((a: any) => ({  // ✅ ต้องใช้ตัวเล็ก
-//           id: a.ID,
-//           description: a.description,
-//           point: a.point,
-//         })),
-//       })),
-//     };
-
-//     return questionnaire;
-//   } catch (error) {
-//     console.error("Error fetching questionnaire:", error);
-//     throw error;
-//   }
-// };
-
 export const getQuestionnaireById = async (id: number): Promise<Questionnaire> => {
   try {
     const token = localStorage.getItem("token");
