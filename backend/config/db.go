@@ -135,6 +135,7 @@ func SetupDatabase() {
 	SeedHealjaiPrompt(db)
 	SeedQuestionnaires(db)
 	SeedCriteriaAndCalculations(db)
+	SeedBackground(db)
 }
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
@@ -229,6 +230,16 @@ func SetupInitialData(db *gorm.DB) {
         log.Fatalf("Error finding 'ฝึกสมาธิ' sound type: %v", err)
     }
 
+	var chantingType entity.SoundType
+	if err := db.Where("type = ?", "สวดมนต์").First(&chantingType).Error; err != nil {
+		log.Fatalf("Error finding 'สวดมนต์' sound type: %v", err)
+	}
+
+	var asmrType entity.SoundType
+	if err := db.Where("type = ?", "asmr").First(&asmrType).Error; err != nil {
+		log.Fatalf("Error finding 'asmr' sound type: %v", err)
+	}
+
     // ตรวจสอบว่า "admin" มีอยู่ในตาราง Users หรือไม่
     var user entity.Users
     if err := db.Where("role = ?", "admin").First(&user).Error; err != nil {
@@ -244,6 +255,14 @@ func SetupInitialData(db *gorm.DB) {
 		// เสียงฝึกหายใจใหม่
     	{Name: "Breathing Sound 1", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "", STID: breathingType.ID, UID: user.ID},
     	{Name: "Breathing Sound 2", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "", STID: breathingType.ID, UID: user.ID},
+
+		{Name: "พระคาถามหาจักรพรรดิ (9 จบ) | พร้อมคำอ่าน | สวดภาวนาทุกวัน บุญจะส่งผลในทันที" , Sound: "https://youtu.be/2TThc3B1CPI?si=dMDtSih9uBsj_6Cy", Lyric: "" ,Description:"#คาถามหาจักรพรรดิ ตัวคาถาเป็นบทบูชาพระ รจนาโดยหลวงปู่ดู่ พรหมปัญโญ ในคลิปมีคำให้อ่านง่ายขึ้น เหมาะกับยุคที่ใช้สมาร์ทโฟน มือถือในการเปิดสวดมนต์ และเหมาะกับผู้ที่กำลัง #ฝึกสวดมนต์ ด้วยเช่นกัน ท่านสามารถใช้บทสวดมนต์นี้ในการ สวดมนต์ก่อนนอน ตอนเช้าและระหว่างวันได้เช่นกัน เวลาที่เหมาะสมในการสวดพระคาถาบทนี้คือ สองทุ่มครึ่ง หรือเริ่มสวดภาวนาประมาณเวลา 20:20-20:40 น. เพราะเป็นเวลาที่เชื่อว่าเป็นเวลาที่สามแดนโลกธาตุเปิดเชื่อมกันจะทำให้ผลบุญแผ่ไปได้ทันที ผลบุญจะสำเร็จทันตา หากสวดทุกวันจะยิ่งมีพลานุภาพมากขึ้น สามารถเปิดฟังได้ตลอดทั้งวันร่วมกับบทคาถาอื่นๆเพื่อความเป็นสิริมงคล" ,
+		Duration: 135, LikeSound: 100, View: 20,  Owner: "เวสสะเศรษฐี",   STID: chantingType.ID, UID: user.ID},
+		{
+			Name: "บทสวดมนต์ก่อนนอน (แบบย่อ) หนุนนำชีวิต เทวดาคุ้มครอง ชีวิตมีแต่ความสุขความเจริญ",Sound: "https://youtu.be/T80Cb1PKdrU?si=SI0mirxwxGlPJ5QG", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "Dekwat Channel - เด็กวัดแชนแน",
+		},
+
+		
     }
 
 
@@ -636,4 +655,31 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 		}
 	}
 	fmt.Println("✅ Seeded Calculations")
+}
+
+
+func SeedBackground(db *gorm.DB) {
+	backgrounds := []entity.Background{
+		{
+			Name:    "ภูเขายามเช้า",
+			Picture: "maditation.jpg",
+			UID:     1,
+		},
+		{
+			Name:    "ธรรมชาติริมทะเล",
+			Picture: "prey.jpg",
+			UID:     1,
+		},
+		{
+			Name:    "ป่าไม้ร่มรื่น",
+			Picture: "q1.jpg",
+			UID:     1,
+		},
+	}
+
+	for _, bg := range backgrounds {
+		if err := db.Create(&bg).Error; err != nil {
+			log.Printf("ไม่สามารถ seed background ได้: %v", err)
+		}
+	}
 }

@@ -13,6 +13,7 @@ import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
+import ChatingMain from "../pages/secondary function/chanting/chatingMain";
 
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
@@ -59,6 +60,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/chat/voice-chat/:id", 
           element: isLoggedIn ? <VoiceChat /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/chanting",
+          element: isLoggedIn ? <ChatingMain /> : <Navigate to="/" />,
         },
 
         //assessment

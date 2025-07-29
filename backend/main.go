@@ -11,6 +11,7 @@ import (
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
 	"sukjai_project/controller/meditation"
+	"sukjai_project/controller/playlist"
 	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/questionnaire"
 	"sukjai_project/controller/resettoken"
@@ -61,6 +62,7 @@ func main() {
     // }
 
     // Auth Routes
+    r.Static("/BgImage", "./images/background")
     r.POST("/signup", users.SignUp)
     r.POST("/signin", users.SignIn)
     r.POST("/forgot-password", users.ForgotPasswordController)
@@ -110,10 +112,13 @@ func main() {
         router.GET("/Sound/:id",sounds.GetSoundByID)
         router.PATCH("/Sound/Update/:id",sounds.EditSound)
         router.DELETE("/Sound/Delete/:id",sounds.DeleteSoundByID)
-
-       
         router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
-      
+        
+        //Playlist
+        router.POST("/Playlist", playlist.CreatePlaylist)
+        router.GET("/Playlist/:uid", playlist.GetPlaylistByUID)
+        router.DELETE("/Playlist/:id", playlist.DeletePlaylistByID)
+        router.PATCH("/Playlist/:id", playlist.EditPlaylistByID)
      
         
         // Routes for superadmin only
