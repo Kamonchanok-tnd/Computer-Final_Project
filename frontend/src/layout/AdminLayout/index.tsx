@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined, SmileOutlined, UserOutlined,CustomerServiceOutlined} from '@ant-design/icons';
+import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined, SmileOutlined, UserOutlined,CustomerServiceOutlined, QuestionOutlined, MailOutlined} from '@ant-design/icons';
 const { Header, Content, Sider } = Layout;
 import './index.css';
 
@@ -74,7 +74,7 @@ const AdminLayout = () => {
             <Menu.Item key="/admin" icon={<DashboardOutlined />}>
               <Link to="/admin">Dashboard</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
+            <Menu.Item key="/admin/questionnairePage" icon={<QuestionOutlined/>}>
               <Link to="/admin/questionnairePage">Questionnaire</Link>
             </Menu.Item>
             <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
@@ -85,6 +85,9 @@ const AdminLayout = () => {
             </Menu.Item>
             <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
               <Link to="/admin/sounds">Sounds</Link>
+            </Menu.Item>
+            <Menu.Item key="/admin/messagePage" icon={<MailOutlined />}> 
+              <Link to="/admin/messagePage">Message</Link>
             </Menu.Item>
           </Menu>
         </Sider>

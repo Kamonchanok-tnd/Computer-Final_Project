@@ -1,0 +1,51 @@
+/* ✅ Container หลัก */
+.message-page-container {
+  padding: 40px;
+  background-color: #f9fafa;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ✅ ส่วนหัว */
+.message-page-header {
+  margin-bottom: 32px;
+}
+
+/* ✅ หัวข้อใหญ่ */
+.message-page-title {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  gap: 16px;
+}
+
+/* ✅ ไอคอน */
+.message-page-icon {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+
+/* ✅ ปุ่มสร้างบทความ */
+.message-create-btn {
+  font-size: 18px;
+  padding: 6px 20px;
+  font-weight: 600 !important;
+  background-color: #87CDFA;
+  border-color: #87CDFA;
+  border-radius: 6px;
+  color: #000
+}
+
+.message-create-btn:hover,
+.message-create-btn:focus {
+  background-color: #85bee1 !important;
+  border-color: #85bee1 !important;
+  color: #000 !important
+}
+
+
+
