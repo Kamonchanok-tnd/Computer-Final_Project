@@ -245,3 +245,16 @@ func FinishAssessment(c *gin.Context) {
 		"transaction": tx,
 	})
 }
+
+func GetAllQuestionnaireGroups(c *gin.Context) {
+	var groups []entity.QuestionnaireGroup
+
+	// preload แบบสอบถามในแต่ละกลุ่ม
+	if err := config.DB().Preload("Questionnaires").Find(&groups).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลกลุ่มแบบสอบถามได้"})
+		return
+	}
+
+	c.JSON(http.StatusOK, groups)
+}
+
