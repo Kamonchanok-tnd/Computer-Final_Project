@@ -24,3 +24,29 @@ export const fetchAnswerOptions = async (): Promise<AnswerOption[]> => {
   const res = await axiosInstance.get("/assessment/AnswerOptions");
   return res.data;
 };
+
+// ✅ ฟังก์ชันใหม่: ส่งคำตอบ
+export const submitAnswer = async (
+  ARID: number,
+  QID: number,
+  AOID: number,
+  Point: number
+): Promise<void> => {
+  await axiosInstance.post("/assessment/answer", {
+    ARID,
+    QID,
+    AOID,
+    Point,
+  });
+};
+
+// ✅ ฟังก์ชันใหม่: สรุปผล
+export const finishAssessment = async (ARID: number): Promise<void> => {
+  await axiosInstance.post(`/assessment/finish/${ARID}`);
+};
+
+// ✅ เพิ่มฟังก์ชันนี้
+export const createAssessmentResult = async (quID: number): Promise<number> => {
+  const res = await axiosInstance.post("/assessment/result", { QuID: quID });
+  return res.data.ID; // สมมุติว่า backend ส่งกลับ ID ของ result
+};
