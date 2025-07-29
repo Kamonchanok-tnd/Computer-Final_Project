@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Question } from '../../../interfaces/IQuestion';
 import { AnswerOption } from '../../../interfaces/IAnswerOption';
+import { QuestionnaireGroup } from '../../../interfaces/IQuestionnaireGroup';
 
 // ✅ Inline axiosInstance พร้อมแนบ token
 const axiosInstance = axios.create({
@@ -49,4 +50,14 @@ export const finishAssessment = async (ARID: number): Promise<void> => {
 export const createAssessmentResult = async (quID: number): Promise<number> => {
   const res = await axiosInstance.post("/assessment/result", { QuID: quID });
   return res.data.ID; // สมมุติว่า backend ส่งกลับ ID ของ result
+};
+
+export const getAllQuestionnaireGroups = async (): Promise<QuestionnaireGroup[]> => {
+  try {
+    const res = await axiosInstance.get("/questionnaire-groups");
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch questionnaire groups", error);
+    return [];
+  }
 };

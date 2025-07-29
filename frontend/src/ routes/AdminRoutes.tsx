@@ -15,6 +15,7 @@ import VideoForm from "../pages/admin/meditation/meditation";
 import SoundListPage from "../pages/admin/sounds/soundslist";
 
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
+import ManageTestOrder from "../pages/assessment/ManageTestOrder";
 import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
 import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
 import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
@@ -62,9 +63,13 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     path: "/admin/createQuestion",         // หน้าสร้างคำถาม
                     element: <FormStepQuestion />,
                 },
-                 {
+                {
                     path: "/admin/editQuestionnaire",     // หน้าสร้างเเบบทดสอบ
                     element: <EditQuestionnaire/>,
+                },
+                {
+                    path: "/admin/manageTestOrder",     // หน้าสร้างเเบบทดสอบ
+                    element: <ManageTestOrder/>,
                 },
                 {
                     path: "/admin/edityourself",
