@@ -1,244 +1,18 @@
-// import React, { useEffect, useState } from "react";
-// import {Button,Modal,Row,Col,Spin,Alert,Table,message,Space,} from "antd";
-// import {DeleteOutlined,SettingOutlined } from "@ant-design/icons";
-// import {getAllQuestionnaires,deleteQuestionnaire,getAllUsers } from "../../../../services/https/questionnaire";
-// import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
-// import EditQuestionnairePage from "../../../../pages/admin/questionnaire/edit/edit_questionnaire";
-// import { useNavigate } from "react-router-dom";
-// import "./questionnairePage.css";
-
-// const QuestionnairePage: React.FC = () => {
-//   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
-//   const [loadingQuestionnaires, setLoadingQuestionnaires] = useState(true);
-
-//   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-//   const [selectedToDelete, setSelectedToDelete] = useState<Questionnaire | null>(null);
-//   const [isDeleteSuccessModalVisible, setIsDeleteSuccessModalVisible] = useState(false);
-
-//   const [editModalVisible, setEditModalVisible] = useState(false);
-//   const [selectedToEdit, setSelectedToEdit] = useState<Questionnaire | null>(null);
-//   const [isEditSuccessModalVisible, setIsEditSuccessModalVisible] = useState(false);
-
-//   const [usersMap, setUsersMap] = useState<Record<number, string>>({});
-
-//   const navigate = useNavigate();
-
-//   useEffect(() => {
-//     loadQuestionnaires();
-//     loadUsers();
-//   }, []);
-
-//   const loadQuestionnaires = async () => {
-//     setLoadingQuestionnaires(true);
-//     const data = await getAllQuestionnaires();
-//     setQuestionnaires(data);
-//     setLoadingQuestionnaires(false);
-//   };
-
-//   const loadUsers = async () => {
-//     try {
-//       const users = await getAllUsers();
-//       const map: Record<number, string> = {};
-//       users.forEach((user: any) => {
-//         map[user.ID] = user.username;
-//       });
-//       setUsersMap(map);
-//     } catch (error) {
-//       console.error("โหลดข้อมูลผู้ใช้ล้มเหลว:", error);
-//     }
-//   };
-
-//   const showDeleteModal = (questionnaire: Questionnaire) => {
-//     setSelectedToDelete(questionnaire);
-//     setDeleteModalVisible(true);
-//   };
-
-//   const showEditModal = (questionnaire: Questionnaire) => {
-//     setSelectedToEdit(questionnaire);
-//     setEditModalVisible(true);
-//   };
-
-//   const handleConfirmDelete = async () => {
-//     if (!selectedToDelete) return;
-//     try {
-//       await deleteQuestionnaire(selectedToDelete.id!);
-//       setDeleteModalVisible(false);
-//       setIsDeleteSuccessModalVisible(true);
-//       await loadQuestionnaires();
-//     } catch (error) {
-//       message.error("เกิดข้อผิดพลาดในการลบ");
-//     }
-//   };
-
-//   const questionnaireColumns = [
-//     {
-//       title: "ชื่อแบบทดสอบ",
-//       dataIndex: "nameQuestionnaire",
-//       key: "nameQuestionnaire",
-//       align: "center" as const,
-//     },
-//     {
-//       title: "คำอธิบาย",
-//       dataIndex: "description",
-//       key: "description",
-//       align: "center" as const,
-//     },
-//     {
-//       title: "จำนวนข้อ",
-//       dataIndex: "quantity",
-//       key: "quantity",
-//       align: "center" as const,
-//     },
-//     {
-//       title: "ผู้สร้าง",
-//       dataIndex: "uid",
-//       key: "uid",
-//       align: "center" as const,
-//       render: (uid: number) => usersMap[uid] || "ไม่ทราบชื่อ",
-//     },
-//     {
-//       title: "การจัดการ",
-//       key: "actions",
-//       align: "center" as const,
-//       render: (_: any, record: Questionnaire) => (
-//         <Space>
-//           <Button danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)} />
-//           <Button icon={<SettingOutlined />} onClick={() => showEditModal(record)} />
-//         </Space>
-//       ),
-//     },
-//   ];
-
-//   return (
-//     <div className="questionnaire-page-container">
-//       <Row justify="space-between" align="middle">
-//         <Col>
-//           <h2 className="questionnaire-page-title">จัดการแบบทดสอบ (Manage Tests)</h2>
-//         </Col>
-//         <Col>
-//           <Button
-//             className="questionnaire-create-btn"
-//             type="primary"
-//             onClick={() => navigate("/admin/createQuestionnaire")}
-//           >
-//             สร้างแบบทดสอบ
-//           </Button>
-//         </Col>
-//       </Row>
-
-//       <Row gutter={16} style={{ marginTop: 24, marginBottom: 16 }}>
-//         <Col>
-//           <Button type="default" onClick={() => navigate("/admin/questionnairePage")}>
-//             📋 ดูแบบทดสอบทั้งหมด
-//           </Button>
-//         </Col>
-//         <Col>
-//           <Button type="default" onClick={() => navigate("/admin/questionPage")}>
-//             ❓ ดูคำถามทั้งหมด
-//           </Button>
-//         </Col>
-//       </Row>
-
-//       <div>
-//         {loadingQuestionnaires ? (
-//           <Spin tip="กำลังโหลดแบบทดสอบ..." />
-//         ) : questionnaires.length === 0 ? (
-//           <Alert message="ไม่มีแบบทดสอบในระบบ" type="info" showIcon />
-//         ) : (
-//           <div className="questionnaire-table-container">
-//             <Table
-//               columns={questionnaireColumns}
-//               dataSource={questionnaires}
-//               rowKey="id"
-//               bordered
-//               pagination={{ pageSize: 8 }}
-//             />
-//           </div>
-//         )}
-//       </div>
-
-//       {/* MODALS */}
-//       <Modal
-//         title="ยืนยันการลบแบบทดสอบ"
-//         open={deleteModalVisible}
-//         onOk={handleConfirmDelete}
-//         onCancel={() => setDeleteModalVisible(false)}
-//         okText="ยืนยัน"
-//         cancelText="ยกเลิก"
-//         centered
-//         width={600}
-//         className="questionnaire-modal"
-//       >
-//         <p>คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบ:</p>
-//         <p style={{ fontWeight: "bold", fontSize: "18px", color: "#cf1322" }}>
-//           {selectedToDelete?.nameQuestionnaire}
-//         </p>
-//       </Modal>
-
-//       {/* ✅ Modal ลบสำเร็จเหมือน Modal แก้ไข */}
-//       <Modal
-//         title="ลบแบบทดสอบเรียบร้อยแล้ว"
-//         open={isDeleteSuccessModalVisible}
-//         onOk={() => setIsDeleteSuccessModalVisible(false)}
-//         onCancel={() => setIsDeleteSuccessModalVisible(false)}
-//         okText="ตกลง"
-//         centered
-//         className="questionnaire-modal"
-//       >
-//         <p style={{ textAlign: "center" }}>ลบข้อมูลแบบทดสอบเรียบร้อยแล้ว!</p>
-//       </Modal>
-
-//       <Modal
-//         title="แก้ไขแบบทดสอบ"
-//         open={editModalVisible}
-//         onCancel={() => setEditModalVisible(false)}
-//         footer={null}
-//         centered
-//         destroyOnClose
-//         width={600}
-//         className="questionnaire-modal"
-//       >
-//         {selectedToEdit && (
-//           <EditQuestionnairePage
-//             questionnaire={selectedToEdit}
-//             onClose={() => setEditModalVisible(false)}
-//             onSuccess={() => {
-//               loadQuestionnaires();
-//               setIsEditSuccessModalVisible(true);
-//             }}
-//           />
-//         )}
-//       </Modal>
-
-//       <Modal
-//         title="บันทึกสำเร็จ"
-//         open={isEditSuccessModalVisible}
-//         onOk={() => setIsEditSuccessModalVisible(false)}
-//         onCancel={() => setIsEditSuccessModalVisible(false)}
-//         okText="ตกลง"
-//         centered
-//         className="questionnaire-modal"
-//       >
-//         <p style={{ textAlign: "center" }}>บันทึกการแก้ไขข้อมูลแบบทดสอบเรียบร้อยแล้ว!</p>
-//       </Modal>
-//     </div>
-//   );
-// };
-
-// export default QuestionnairePage;
-
-
-
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Row, Col, Spin, Alert, Table, message, Space } from "antd";
+import {Button,Modal,Row,Col,Spin,Alert,Table,message,Space,Input,Select,} from "antd";
 import { DeleteOutlined, SettingOutlined } from "@ant-design/icons";
-import { getAllQuestionnaires, deleteQuestionnaire, getAllUsers } from "../../../../services/https/questionnaire";
+import {getAllQuestionnaires,deleteQuestionnaire,getAllUsers,} from "../../../../services/https/questionnaire";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 import { useNavigate } from "react-router-dom";
+import manageIcon from "../../../../assets/manage.png";
 import "./questionnairePage.css";
+
+const { Search } = Input;
+const { Option } = Select;
 
 const QuestionnairePage: React.FC = () => {
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
+  const [filteredQuestionnaires, setFilteredQuestionnaires] = useState<Questionnaire[]>([]);
   const [loadingQuestionnaires, setLoadingQuestionnaires] = useState(true);
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -246,6 +20,8 @@ const QuestionnairePage: React.FC = () => {
   const [isDeleteSuccessModalVisible, setIsDeleteSuccessModalVisible] = useState(false);
 
   const [usersMap, setUsersMap] = useState<Record<number, string>>({});
+  const [searchText, setSearchText] = useState<string>("");
+  const [sortOption, setSortOption] = useState<string>("default");
 
   const navigate = useNavigate();
 
@@ -258,6 +34,7 @@ const QuestionnairePage: React.FC = () => {
     setLoadingQuestionnaires(true);
     const data = await getAllQuestionnaires();
     setQuestionnaires(data);
+    setFilteredQuestionnaires(data);
     setLoadingQuestionnaires(false);
   };
 
@@ -279,7 +56,6 @@ const QuestionnairePage: React.FC = () => {
     setDeleteModalVisible(true);
   };
 
-  // ✅ แทนที่การเปิด Modal ด้วยการ navigate ไปยังหน้าแก้ไข
   const handleEdit = (questionnaire: Questionnaire) => {
     navigate("/admin/editQuestionnaire", {
       state: { questionnaireId: questionnaire.id },
@@ -296,6 +72,47 @@ const QuestionnairePage: React.FC = () => {
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการลบ");
     }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchText(value);
+    filterAndSort(value, sortOption);
+  };
+
+  const onSearch = (value: string) => {
+    filterAndSort(value, sortOption);
+  };
+
+  const filterAndSort = (searchValue: string, sortKey: string) => {
+    let data = [...questionnaires];
+
+    if (searchValue.trim() !== "") {
+      data = data.filter((q) => {
+        const userName = usersMap[q.uid] || "";
+        return (
+          q.nameQuestionnaire.toLowerCase().includes(searchValue.toLowerCase()) ||
+          userName.toLowerCase().includes(searchValue.toLowerCase())
+        );
+      });
+    }
+
+    if (sortKey === "nameAsc") {
+      data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire));
+    } else if (sortKey === "nameDesc") {
+      data.sort((a, b) => b.nameQuestionnaire.localeCompare(a.nameQuestionnaire));
+    } else if (sortKey === "quantityAsc") {
+      data.sort((a, b) => a.quantity - b.quantity);
+    } else if (sortKey === "quantityDesc") {
+      data.sort((a, b) => b.quantity - a.quantity);
+    }
+
+    setFilteredQuestionnaires(data);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortOption(value);
+    filterAndSort(searchText, value);
   };
 
   const questionnaireColumns = [
@@ -330,8 +147,15 @@ const QuestionnairePage: React.FC = () => {
       align: "center" as const,
       render: (_: any, record: Questionnaire) => (
         <Space>
-          <Button danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)} />
-          <Button icon={<SettingOutlined />} onClick={() => handleEdit(record)} />
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => showDeleteModal(record)}
+          />
+          <Button
+            icon={<SettingOutlined />}
+            onClick={() => handleEdit(record)}
+          />
         </Space>
       ),
     },
@@ -339,9 +163,25 @@ const QuestionnairePage: React.FC = () => {
 
   return (
     <div className="questionnaire-page-container">
-      <Row justify="space-between" align="middle">
+      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
         <Col>
-          <h2 className="questionnaire-page-title">จัดการแบบทดสอบ (Manage Tests)</h2>
+          <h2
+            className="questionnaire-page-title"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              fontSize: "24px",
+              fontWeight: 700
+            }}
+          >
+            <img
+              src={manageIcon}
+              alt="manage icon"
+              style={{ width: 50, height: 50, objectFit: "contain" }}
+            />
+            จัดการแบบทดสอบ
+          </h2>
         </Col>
         <Col>
           <Button
@@ -354,40 +194,55 @@ const QuestionnairePage: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={16} style={{ marginTop: 24, marginBottom: 16 }}>
-        <Col>
-          <Button type="default" onClick={() => navigate("/admin/questionnairePage")}>
-            📋 ดูแบบทดสอบทั้งหมด
-          </Button>
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col span={8}>
+          <Search
+            placeholder="ค้นหาแบบทดสอบหรือผู้สร้าง..."
+            allowClear
+            enterButton="ค้นหา"
+            size="large"
+            value={searchText}
+            onChange={handleSearchChange}
+            onSearch={onSearch}
+            className="questionnaire-search"
+          />
         </Col>
-        <Col>
-          <Button type="default" onClick={() => navigate("/admin/questionPage")}>
-            ❓ ดูคำถามทั้งหมด
-          </Button>
+        <Col span={6}>
+          <Select
+            value={sortOption}
+            onChange={handleSortChange}
+            size="large"
+            style={{ width: "100%" }}
+          >
+            <Option value="default">เรียงลำดับ</Option>
+            <Option value="nameAsc">ชื่อแบบทดสอบ (A → Z)</Option>
+            <Option value="nameDesc">ชื่อแบบทดสอบ (Z → A)</Option>
+            <Option value="quantityAsc">จำนวนข้อ (น้อย → มาก)</Option>
+            <Option value="quantityDesc">จำนวนข้อ (มาก → น้อย)</Option>
+          </Select>
         </Col>
       </Row>
 
       <div>
         {loadingQuestionnaires ? (
           <Spin tip="กำลังโหลดแบบทดสอบ..." />
-        ) : questionnaires.length === 0 ? (
-          <Alert message="ไม่มีแบบทดสอบในระบบ" type="info" showIcon />
+        ) : filteredQuestionnaires.length === 0 ? (
+          <Alert message="ไม่พบแบบทดสอบ" type="info" showIcon />
         ) : (
           <div className="questionnaire-table-container">
             <Table
               columns={questionnaireColumns}
-              dataSource={questionnaires}
+              dataSource={filteredQuestionnaires}
               rowKey="id"
               bordered
-              pagination={{ pageSize: 8 }}
+              pagination={{ pageSize: 10 }}
             />
           </div>
         )}
       </div>
 
-      {/* MODAL ลบ */}
       <Modal
-        title="ยืนยันการลบแบบทดสอบ"
+        title="ยืนยันการลบแบบทดสอบ ❌ "
         open={deleteModalVisible}
         onOk={handleConfirmDelete}
         onCancel={() => setDeleteModalVisible(false)}
@@ -397,13 +252,12 @@ const QuestionnairePage: React.FC = () => {
         width={600}
         className="questionnaire-modal"
       >
-        <p>คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบ:</p>
-        <p style={{ fontWeight: "bold", fontSize: "18px", color: "#cf1322" }}>
+        <p>คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบ?</p>
+        <p style={{ fontWeight: "bold", fontSize: "18px",  textAlign: "center", color: "#cf1322" }}>
           {selectedToDelete?.nameQuestionnaire}
         </p>
       </Modal>
 
-      {/* MODAL ลบสำเร็จ */}
       <Modal
         title="ลบแบบทดสอบเรียบร้อยแล้ว"
         open={isDeleteSuccessModalVisible}

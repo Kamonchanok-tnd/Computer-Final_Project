@@ -102,8 +102,7 @@ func DeleteQuestion(c *gin.Context) {
 
 
 
-
-// ✅ ฟังก์ชันลบคำตอบจากคำถาม (Soft Delete)
+// ✅ ฟังก์ชันลบคำตอบจากคำถาม
 func DeleteAnswer(c *gin.Context) {
     answerId := c.Param("id")
     var answer entity.AnswerOption

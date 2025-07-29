@@ -1,0 +1,13 @@
+/* ในไฟล์ style.css หรือ global.css */
+.custom-cancel-button {
+    color: #6b7280 !important; /* gray-500 */
+    border-color: #d1d5db;     /* gray-300 */
+  }
+  
+  .custom-cancel-button:hover {
+    color: #6b7280 !important;
+    border-color: #9ca3af !important;
+    background-color: #ffffff !important;
+  }
+  
+  

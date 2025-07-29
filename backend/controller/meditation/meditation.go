@@ -76,6 +76,7 @@ func CreateVideo(c *gin.Context) {
 	var newSound entity.Sound
 	if err := c.ShouldBindJSON(&newSound); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		print(err.Error())
 		return
 	}
 

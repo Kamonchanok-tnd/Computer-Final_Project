@@ -15,10 +15,12 @@ import VideoForm from "../pages/admin/meditation/meditation";
 import SoundListPage from "../pages/admin/sounds/soundslist";
 
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
-import QuestionPage from "../pages/admin/questionnaire/home/questionPage";
 import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
 import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
 import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
+import ListSound from "../pages/admin/Listsound/Listsound";
+import EditSound from "../pages/admin/meditation/editSound";
+
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
 
@@ -53,10 +55,6 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     element: <QuestionnairePage />,
                 },
                 {
-                    path: "/admin/questionPage",             // หน้าจัดการคำถาม
-                    element: <QuestionPage />,
-                },
-                {
                     path: "/admin/createQuestionnaire",     // หน้าสร้างเเบบทดสอบ
                     element: <FormStepInfo />,
                 },
@@ -78,13 +76,19 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 },
                 // ระบบ 2
                 {
-                    path: "/admin/meditation",  // เส้นทางสำหรับจัดการ Prompt
+                    path: "/admin/meditation",  
                     element: <VideoForm/>,
                 },
                 {
-                    path: "/admin/sounds",  // เส้นทางสำหรับจัดการ Prompt
-                    element: <SoundListPage/>,
+                    path: "/admin/sounds", //ดูรายการเสียง
+                    element: <ListSound/>,
                 },
+                
+                {
+                    path: "/admin/sounds/:id", //ดูรายการเสียง
+                    element: <EditSound/>,
+                }
+               
             ],
         },
     ]

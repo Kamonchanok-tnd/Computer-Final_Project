@@ -66,15 +66,9 @@ func main() {
     r.POST("/forgot-password", users.ForgotPasswordController)
     r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
     r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
-    r.POST("/gemini", controller.GeminiHistory)
-    r.GET("/conversation/:id", controller.GetConversationHistory)
-    r.POST("/new-chat", controller.CreateChatRoom)
-    r.PATCH("/end-chat/:id", controller.EndChatRoom)
-
-
-
-    // router.PUT("/updatequestion/:id", questionnaire.UpdateQuestion)
-
+    r.GET("/recent", controller.GetRecentChat)
+   
+   
 
     // Protect routes with role-based access
     router := r.Group("/")
@@ -96,8 +90,7 @@ func main() {
 
 
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
-        router.GET("/questions", questionnaire.GetAllQuestions)                            // route ดึงคำถามทั้งหมด
-        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงคำถามทั้งหมด
+        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
         router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
         
@@ -113,10 +106,14 @@ func main() {
         router.POST("/videos", meditation.CreateVideo)
         router.GET("/sound-types", meditation.GetSoundTypes)
 
+        router.GET("/AllSounds", sounds.GetAllSounds)
+        router.GET("/Sound/:id",sounds.GetSoundByID)
+        router.PATCH("/Sound/Update/:id",sounds.EditSound)
+        router.DELETE("/Sound/Delete/:id",sounds.DeleteSoundByID)
 
        
         router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
-
+      
      
         
         // Routes for superadmin only
@@ -159,7 +156,11 @@ func main() {
 
 
         //chat space
-        
+        userRouter.POST("/gemini", controller.GeminiHistory)
+        userRouter.GET("/conversation/:id", controller.GetConversationHistory)
+        userRouter.POST("/new-chat", controller.CreateChatRoom)
+        userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
+        // userRouter.GET("/recent", controller.GetRecentChat)
     }
 
     r.GET("/", func(c *gin.Context) {
