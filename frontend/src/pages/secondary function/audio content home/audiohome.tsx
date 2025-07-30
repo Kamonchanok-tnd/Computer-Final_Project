@@ -28,7 +28,7 @@ const HomePage: React.FC = () => {
 
         {/* ส่วนของกิจกรรม */}
         <div className="activity-cards">
-          <div className="activity-card" onClick={() => handleNavigate("/chanting")}>
+          <div className="activity-card" onClick={() => handleNavigate("/audiohome/chanting")}>
             <img src={smile} alt="สวดมนต์" />
             <p>ร่วมสวดมนต์เพื่อความสงบและผ่อนคลายจิตใจ</p>
           </div>
