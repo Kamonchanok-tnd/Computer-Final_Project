@@ -14,6 +14,7 @@ import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 import ChatingMain from "../pages/secondary function/chanting/chatingMain";
+import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
 
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
@@ -49,8 +50,9 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           path: "/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <MeditationPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
+        
         {
-          path: "/chat", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+          path: "/chat/new", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <ChatSpace isNewChatDefault={true}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
         {
@@ -60,6 +62,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/chat/voice-chat/:id", 
           element: isLoggedIn ? <VoiceChat /> : <Navigate to="/" />,
+        },
+        {
+          path: "/chat",
+          element: isLoggedIn ? <ChatRedirector /> : <Navigate to="/" />,
         },
         {
           path: "/audiohome/chanting",

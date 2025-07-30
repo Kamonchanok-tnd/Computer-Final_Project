@@ -116,6 +116,7 @@ func SetupDatabase() {
 		&entity.Prompt{},
 		&entity.Question{},
 		&entity.Questionnaire{},
+		&entity.QuestionnaireGroup{},
 		&entity.RecentSetting{},
 		&entity.Review{},
 		&entity.SendType{},
@@ -134,6 +135,7 @@ func SetupDatabase() {
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
 	SeedQuestionnaires(db)
+	SeedQuestionnaireGroups(db)
 	SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 }
@@ -682,4 +684,75 @@ func SeedBackground(db *gorm.DB) {
 			log.Printf("ไม่สามารถ seed background ได้: %v", err)
 		}
 	}
+}
+// เพิ่มในไฟล์เดียวกับ SeedQuestionnaires หรือแยกฟังก์ชันใหม่ก็ได้
+func SeedQuestionnaireGroups(db *gorm.DB) {
+	// ดึง Questionnaire ทั้งหมดมาก่อน เพื่อ map หา ID
+	var questionnaires []entity.Questionnaire
+	if err := db.Find(&questionnaires).Error; err != nil {
+		log.Fatalf("ไม่สามารถดึงแบบประเมินทั้งหมด: %v", err)
+	}
+
+	// Map ชื่อ -> entity
+	qMap := make(map[string]entity.Questionnaire)
+	for _, q := range questionnaires {
+		qMap[q.NameQuestionnaire] = q
+	}
+
+	// ===== สร้างกลุ่มแบบประเมิน =====
+	groups := []struct {
+		Name        string
+		Description string
+		QuestionnaireNames []string
+	}{
+		{
+			Name:        "Pre-test",
+			Description: "ก่อนใช้แอปพลิเคชัน",
+			QuestionnaireNames: []string{
+				"แบบวัดระดับความสุข คะแนน 0-10",
+				"แบบวัดระดับสติ (State Mindfulness)",
+				"แบบคัดกรองโรคซึมเศร้า 2Q",
+				"แบบคัดกรองโรคซึมเศร้า 9Q",
+			},
+		},
+		{
+			Name:        "Post-test",
+			Description: "หลังใช้แอปพลิเคชันทันที",
+			QuestionnaireNames: []string{
+				"แบบวัดระดับความสุข คะแนน 0-10",
+				"แบบวัดระดับสติ (State Mindfulness)",
+			},
+		},
+		{
+			Name:        "Post-test2weeks",
+			Description: "หลังใช้แอปพลิเคชัน 2 สัปดาห์",
+			QuestionnaireNames: []string{
+				"แบบวัดระดับความสุข คะแนน 0-10",
+				"แบบวัดระดับสติ (State Mindfulness)",
+				"แบบคัดกรองโรคซึมเศร้า 2Q",
+				"แบบคัดกรองโรคซึมเศร้า 9Q",
+			},
+		},
+	}
+
+	for _, group := range groups {
+		var qs []entity.Questionnaire
+		for _, name := range group.QuestionnaireNames {
+			if q, ok := qMap[name]; ok {
+				qs = append(qs, q)
+			} else {
+				log.Fatalf("❌ ไม่พบแบบสอบถามชื่อ: %s", name)
+			}
+		}
+		qGroup := entity.QuestionnaireGroup{
+			Name: group.Name,
+			Description: group.Description,
+			Questionnaires: qs,
+		}
+		if err := db.Create(&qGroup).Error; err != nil {
+			log.Fatalf("ไม่สามารถสร้างกลุ่มแบบสอบถาม: %v", err)
+		}
+	}
+
+	fmt.Println("✅ Seeded Questionnaire Groups: Pre-test, Post-test, Post-test2weeks")
 }

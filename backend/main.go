@@ -102,7 +102,9 @@ func main() {
 
         router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)                // route สำหรับดึงค่าเก่าเเบบทดสอบ 
         router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
-     
+
+        router.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
+
         
 
         router.POST("/videos", meditation.CreateVideo)
