@@ -45,26 +45,13 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     console.log("old chat: ",message);
   }
 
-  async function recentChat(){
-    // const Uid = localStorage.getItem('id');
-    const message = await RecentChat(Number(Uid));
-    
-    if (message.chat_room_id == 0 && message.has_active == false) {
-      setIsNewChat(true);
-    }
-    else{
-      navigate(`/chat/${message.chat_room_id}`);
-      const activeID = message.chat_room_id;
-      setChatRoomID(activeID);      
-      setIsNewChat(false);
-      navigate(`/chat/${activeID}`);
-      getmessage(activeID);           
-    }
-  }
+
 
   useEffect(() => {
     scrollToBottom();
-    recentChat();
+    if (chatRoomID !== null) {
+      getmessage(chatRoomID);
+    }
   }, []);
 
   useEffect(() => {
@@ -232,8 +219,9 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
    
     const data: IChatRoom = { uid: Number(Uid) };
     const res = await NewChat(data);
+    console.log(" chatroom send: ", res.id);
     setChatRoomID(res.id);
-    navigate(`/chat/voice-chat/${chatRoomID}`);
+    navigate(`/chat/voice-chat/${res.id}`);
 
   }
 
