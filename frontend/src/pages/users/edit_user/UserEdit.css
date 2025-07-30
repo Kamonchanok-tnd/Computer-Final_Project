@@ -32,3 +32,27 @@
   gap: 10px;
   margin-top: 20px;
 }
+
+/* ปุ่มย้อนกลับ */
+.user-edit-container .btn-back {
+  background-color: #d9d9d9; /* สีเทาอ่อน */
+  border-color: #bfbfbf;
+  color: #000;
+}
+
+.user-edit-container .btn-back:hover {
+  background-color: #bfbfbf !important;
+  border-color: #a6a6a6 !important;
+  color: #000 !important;
+}
+
+/* ปุ่มบันทึกข้อมูล */
+.user-edit-container .btn-save {
+  background-color: #96d2df !important; /* เขียว */
+  border-color: #a4d5fd !important;
+}
+
+.user-edit-container .btn-save:hover {
+  background-color: #5cc1d8 !important;
+  border-color: #4bb9d2 !important;
+}

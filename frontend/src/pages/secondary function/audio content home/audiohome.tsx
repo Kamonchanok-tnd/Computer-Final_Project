@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
             <img src={smile} alt="สวดมนต์" />
             <p>ร่วมสวดมนต์เพื่อความสงบและผ่อนคลายจิตใจ</p>
           </div>
-          <div className="activity-card" onClick={() => handleNavigate("/meditation")}>
+          <div className="activity-card" onClick={() => handleNavigate("/audiohome/meditation")}>
             <img src={meditationImage} alt="ทำสมาธิ" />
             <p>ฝึกสมาธิเพื่อการผ่อนคลายและการฟื้นฟูจิตใจ</p>
           </div>
@@ -40,7 +40,7 @@ const HomePage: React.FC = () => {
             <img src={asmrImage} alt="ASMR" />
             <p>รับฟังเสียงที่ผ่อนคลายจิตใจผ่าน ASMR</p>
           </div>
-          <div className="activity-card" onClick={() => handleNavigate("/breath-in")}>
+          <div className="activity-card" onClick={() => handleNavigate("/audiohome/breath-in")}>
             <img src={breathInImage} alt="ฝึกหายใจ" />
             <p>ฝึกการหายใจเพื่อความสงบและการลดความเครียด</p>
           </div>

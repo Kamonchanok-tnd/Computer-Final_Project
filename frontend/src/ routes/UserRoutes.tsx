@@ -4,11 +4,12 @@ import Loadable from "../components/loading/Loadable";
 import { Navigate } from "react-router-dom";
 import HomePage from "../pages/secondary function/audio content home/audiohome";
 import BreathingPage from "../pages/secondary function/breathing/breath";
-
+import MeditationMain from "../pages/secondary function/meditation/meditation";
 import MeditationPage from "../pages/secondary function/meditation/meditation";
 import ChatSpace from "../pages/Chat-space/chat";
 import Headers from "../layout/HeaderLayout/Header";
-
+import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
+import BreathExercise from "../pages/secondary function/breathing/BreathExercise";
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
@@ -40,15 +41,15 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         },
         {
           path: "/audiohome", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <HomePage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+          element: isLoggedIn ? <RelaxActivities /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
         {
-          path: "/breath-in", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+          path: "/audiohome/breath-in", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <BreathingPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
         {
-          path: "/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <MeditationPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+          path: "/audiohome/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+          element: isLoggedIn ? <MeditationMain /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
         
         {
@@ -70,6 +71,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/audiohome/chanting",
           element: isLoggedIn ? <ChatingMain /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/test",
+          element: isLoggedIn ? <BreathExercise /> : <Navigate to="/" />,
         },
 
         //assessment
