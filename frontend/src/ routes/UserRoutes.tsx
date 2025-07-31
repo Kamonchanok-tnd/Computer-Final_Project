@@ -10,6 +10,7 @@ import ChatSpace from "../pages/Chat-space/chat";
 import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
 import BreathExercise from "../pages/secondary function/breathing/BreathExercise";
+import BreathlyMain from "../pages/secondary function/breathing/BreathlyMain";
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
@@ -74,7 +75,7 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         },
         {
           path: "/audiohome/test",
-          element: isLoggedIn ? <BreathExercise /> : <Navigate to="/" />,
+          element: isLoggedIn ? <BreathlyMain /> : <Navigate to="/" />,
         },
 
         //assessment
