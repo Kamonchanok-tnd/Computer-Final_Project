@@ -140,6 +140,8 @@ func SetupDatabase() {
 	SeedBackground(db)
 }
 
+
+
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
 // เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
 func SetupInitialData(db *gorm.DB) {
