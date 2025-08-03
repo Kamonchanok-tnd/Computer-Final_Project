@@ -1,5 +1,6 @@
 import { Modal, Form, Input, Button, message } from "antd";
 import { useState } from "react";
+import { CreatePlaylist } from "../../../../services/https/playlist";
 
 interface ModalPlaylistProps {
   isModalOpen: boolean;
@@ -14,9 +15,11 @@ function ModalPlaylist({ isModalOpen, onClose }: ModalPlaylistProps) {
     try {
       const values = await form.validateFields();
       setLoading(true);
-
+      values.uid = Number(localStorage.getItem("id"));
+      values.bid = 1
       // TODO: ส่งข้อมูลไป backend หรือจัดการตามต้องการ
-      console.log("Submitted Playlist Name:", values.name);
+      console.log("Submitted Playlist Name:", values);
+      await CreatePlaylist(values);
       message.success("สร้างเพลย์ลิสต์สำเร็จ!");
 
       form.resetFields();
@@ -44,15 +47,16 @@ function ModalPlaylist({ isModalOpen, onClose }: ModalPlaylistProps) {
         <div>
           <h1 className="text-xl  text-basic-text mb-4 text-center mt-2">สร้างเพลย์ลิสต์</h1>
         </div>
+
+        <h1 className="text-xl text-basic-text mb-1 text-center">กรุณากรอกชื่อเพลย์ลิสต์</h1>
         <Form.Item
-         
           name="name"
           rules={[{ required: true, message: "กรุณากรอกชื่อเพลย์ลิสต์" }]}
-        > 
-         <h1 className="text-xl  text-basic-text mb-4 text-center">กรุณากรอกชื่อเพลย์ลิสต์</h1>
+        >
           <Input placeholder="เช่น เสียงผ่อนคลายก่อนนอน" />
         </Form.Item>
       </Form>
+
      
       <div className="flex justify-end gap-4 mt-4">
     <button onClick={onClose}>ยกเลิก</button>

@@ -4,10 +4,11 @@ import { Sound } from "../../../../interfaces/ISound";
 interface ChantingContentProps {
     filteredSounds: Sound[];
     extractYouTubeID: (url: string) => string | null;
+    gotoSound: (id: number) => void
 }
 
 
-function ChantingContent({filteredSounds, extractYouTubeID}: ChantingContentProps) {
+function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingContentProps) {
     return  (
         <div>
         <h1 className="text-xl  text-basic-text mb-4">สวดมนต์</h1>
@@ -18,7 +19,7 @@ function ChantingContent({filteredSounds, extractYouTubeID}: ChantingContentProp
 
             return (
               <div
-                key={sound.id}
+                key={sound.ID}
                 className="bg-white w-full h-60 rounded-xl border border-gray-200 "
               >
                 <div className="h-[70%] bg-blue-500 w-full rounded-t-xl relative ">
@@ -28,9 +29,9 @@ function ChantingContent({filteredSounds, extractYouTubeID}: ChantingContentProp
                     className="w-full h-full object-center rounded-t-xl"
                   />
 
-                  <div className="absolute  bottom-[-20px] right-3  w-12 h-12 bg-button-blue flex items-center hover:transform(200) hover:scale-105 duration-300 justify-center rounded-full shadow-sm">
+                  <button onClick={() => gotoSound(Number(sound.ID))} className="absolute  bottom-[-20px] right-3  w-12 h-12 bg-button-blue flex items-center hover:transform(200) hover:scale-105 duration-300 justify-center rounded-full shadow-sm">
                     <Play className="text-white" />
-                  </div>
+                  </button>
                   <div>
                     <Heart className="absolute top-3 right-3 text-white" />
                   </div>

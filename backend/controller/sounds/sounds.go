@@ -32,7 +32,7 @@ func GetSoundsByType(c *gin.Context) {
 }
 
 type SoundWithTypeName struct {
-	ID            uint    `json:"id"`
+	ID            uint    `json:"ID"`
 	Name          string  `json:"name"`
 	Sound         string  `json:"sound"`
 	Lyric         string  `json:"lyric"`
