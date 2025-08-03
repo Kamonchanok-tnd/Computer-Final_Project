@@ -1,7 +1,7 @@
 import { IChatRoom } from "../../../interfaces/IChatRoom";
 import { IConversation } from "../../../interfaces/IConversation";
 
-const apiUrl = import.meta.env.VITE_API_URL;
+export const apiUrl = import.meta.env.VITE_API_URL;
 const Authorization = localStorage.getItem("token");
 const Bearer = localStorage.getItem("token_type");
 export async function ChatGemini(data: IConversation) {

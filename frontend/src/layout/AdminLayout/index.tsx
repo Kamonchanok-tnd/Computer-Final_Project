@@ -80,9 +80,6 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
               <Link to="/admin/prompt">Prompt AI</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/meditation" icon={<SmileOutlined />}> 
-              <Link to="/admin/meditation">Meditation</Link>
-            </Menu.Item>
             <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
               <Link to="/admin/sounds">Sounds</Link>
             </Menu.Item>
@@ -107,14 +104,14 @@ const AdminLayout = () => {
             <Menu.Item key="/admin" icon={<DashboardOutlined />}>
               <Link to="/admin">Dashboard</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/edityourself" icon={<SettingOutlined />}>
-              <Link to="/admin/edityourself">Settings</Link>
+            <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
+              <Link to="/admin/questionnairePage">Questionnaire</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/chat" icon={<MessageOutlined />}>
-              <Link to="/admin/chat">Chat</Link>
+            <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
+              <Link to="/admin/prompt">Prompt AI</Link>
             </Menu.Item>
-            <Menu.Item key="/admin/questionnaire" icon={<SettingOutlined />}>
-              <Link to="/admin/questionnaire">Questionnaire</Link>
+            <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
+              <Link to="/admin/sounds">Sounds</Link>
             </Menu.Item>
           </Menu>
         </Drawer>
