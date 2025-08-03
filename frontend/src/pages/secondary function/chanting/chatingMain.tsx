@@ -5,18 +5,42 @@ import { use, useEffect, useState } from "react";
 import { Sound } from "../../../interfaces/ISound";
 import ChantingContent from "./components/chanting.Content";
 import ModalPlaylist from "./components/modalPlaylist";
+import { GetPlaylistByUID } from "../../../services/https/playlist";
+import { IPlaylist } from "../../../interfaces/IPlaylist";
+import PlaylistContent from "./components/PlaylistContent";
+import { CustomPlaylist } from "../Playlist/Playlist";
+import { useNavigate } from "react-router-dom";
 
 function ChatingMain() {
   const { isDarkMode } = useDarkMode();
   const [chantingSounds, setChantingSounds] = useState<Sound[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [chanting, setChanting] = useState(true);
-  const [playlist, setPlaylist] = useState(true);
+  const [showPlaylist, setShowPlaylist] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  const [playlists, setPlaylists] = useState<CustomPlaylist[]>([]);
+  const uid = localStorage.getItem("id");
+  const navigate = useNavigate();
+
+
+  async function fetchPlaylist() {
+    try {
+        const res = await GetPlaylistByUID(Number(uid));
+      
+        setPlaylists(res);
+        console.log("playlist is: ", res);
+    }
+    catch (error) {
+      console.error("Error fetching playlist:", error);
+    }
+  
+  }
+
   async function fetchChanting() {
     try {
-      const res = await getSoundsByTypeID(3);
-      setChantingSounds(res.sounds); 
+      const res = await getSoundsByTypeID(3); 
+      setChantingSounds(res.sounds); // สำคัญ! ต้องใช้ res.sounds ตามโครงสร้าง
+
     } catch (error) {
       console.error("Error fetching chanting sounds:", error);
     }
@@ -32,15 +56,15 @@ function ChatingMain() {
   );
   function filterAll() {
     setChanting(true);
-    setPlaylist(true);
+    setShowPlaylist(true);
   }
   function filterChanting() {
     setChanting(true);
-    setPlaylist(false);
+    setShowPlaylist(false);
   }
   function filterPlaylist() {
     setChanting(false);
-    setPlaylist(true);
+    setShowPlaylist(true);
   }
 
   const extractYouTubeID = (url: string): string | null => {
@@ -51,11 +75,25 @@ function ChatingMain() {
 
   useEffect(() => {
     console.log(chantingSounds);
-  }, [chantingSounds]);
+  }, [chantingSounds,playlists]);
 
   useEffect(() => {
     fetchChanting();
+    fetchPlaylist();
   }, []);
+
+  function gotoplaylist(id: number) {
+    console.log("id is: ",id);
+    setTimeout(() => {
+      navigate(`/audiohome/Playlist/${id}`);
+    })
+  }
+  function gotoSound(id: number) {
+    console.log("id is: ",id);
+    setTimeout(() => {
+      navigate(`/audiohome/chanting/play/${id}`);
+    })
+  }
 
   return (
     <div
@@ -88,14 +126,13 @@ function ChatingMain() {
           </button>
         </div>
 
-        {
-  openModal && (
-    <ModalPlaylist
-      isModalOpen={openModal}
-      onClose={() => setOpenModal(false)}
-    />
-  )
-}
+          
+     
+        <ModalPlaylist
+          isModalOpen={openModal}
+          onClose={() => setOpenModal(false)}
+        />
+     
 
         {/* filter */}
         <div className="space-x-1">
@@ -104,7 +141,7 @@ function ChatingMain() {
               filterAll();
             }}
             className={`px-4 py-2 rounded-xl duration-300 ${
-              chanting && playlist
+              chanting && showPlaylist
                 ? "bg-background-button text-blue-word"
                 : "bg-transparent text-subtitle"
             }`}
@@ -116,7 +153,7 @@ function ChatingMain() {
               filterPlaylist();
             }}
             className={`px-4 py-2 rounded-xl duration-300 ${
-              !chanting && playlist
+              !chanting && showPlaylist
                 ? "bg-background-button text-blue-word"
                 : "bg-transparent text-subtitle"
             }`}
@@ -128,7 +165,7 @@ function ChatingMain() {
               filterChanting();
             }}
             className={`px-4 py-2 rounded-xl duration-300 ${
-              chanting && !playlist
+              chanting && !showPlaylist
                 ? "bg-background-button text-blue-word"
                 : "bg-transparent text-subtitle"
             }`}
@@ -138,23 +175,13 @@ function ChatingMain() {
         </div>
 
         {/* playlist */}
-        {playlist && (
-          <div>
-            <h1 className="text-xl text-basic-text mb-4">เพลยลิสต์ของฉัน</h1>
-            <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
-              <div className="bg-white w-full h-15 rounded-md border border-gray-200 flex gap-2">
-                <div className="h-full w-18 bg-blue-500 rounded-tl-md rounded-bl-md" />
-                <div className="h-full w-full flex items-center justify-start">
-                  <p className="text-basic-text font-bold">เพลยลิสต์</p>
-                </div>
-              </div>
-            </div>
-          </div>
+        {showPlaylist && (
+         <PlaylistContent Playlist={playlists} GotoPlaylist={gotoplaylist}/>
         )}
 
         {/* chatinting content */}
         {chanting && (
-          <ChantingContent filteredSounds={filteredSounds} extractYouTubeID={extractYouTubeID} />
+          <ChantingContent filteredSounds={filteredSounds} extractYouTubeID={extractYouTubeID} gotoSound={gotoSound} />
         )}
       </div>
     </div>

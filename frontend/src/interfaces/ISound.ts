@@ -1,5 +1,5 @@
 export interface Sound {
-    id: number;
+    ID?: number;
     name?: string;
     sound?: string;
     lyric?: string;

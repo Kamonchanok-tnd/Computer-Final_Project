@@ -15,6 +15,7 @@ import (
 	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/questionnaire"
 	"sukjai_project/controller/resettoken"
+	"sukjai_project/controller/soundplaylist"
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/users"
 	"sukjai_project/middlewares"
@@ -119,8 +120,14 @@ func main() {
         //Playlist
         router.POST("/Playlist", playlist.CreatePlaylist)
         router.GET("/Playlist/:uid", playlist.GetPlaylistByUID)
+        router.GET("/PlaylistByID/:id", playlist.GetPlaylistByID)
         router.DELETE("/Playlist/:id", playlist.DeletePlaylistByID)
         router.PATCH("/Playlist/:id", playlist.EditPlaylistByID)
+
+        //SoundPlaylist
+        router.POST("/CreateSoundPlaylist", soundplaylist.CreateSoundPlaylist)
+        router.GET("/SoundPlaylistByPID/:pid", soundplaylist.GetSoundPlaylistByPID)
+        router.DELETE("/DeleteSoundPlaylist/:id", soundplaylist.DeleteSoundPlaylistByID)
      
         
         // Routes for superadmin only

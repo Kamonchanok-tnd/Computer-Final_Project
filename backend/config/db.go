@@ -262,10 +262,24 @@ func SetupInitialData(db *gorm.DB) {
 		{Name: "Relaxing music", Sound: "https://youtu.be/-c7GHrC8HTY?si=7dqAHDMZoRhL5Uj9", Lyric: "",Description: "เพลงสปาแนวบรรเลงผสมเสียงธรรมชาติ เหมาะสำหรับนวด, ผ่อนคลาย, ทำสมาธิ และสร้างบรรยากาศสงบ",Duration: 300,LikeSound: 100,View: 2000000,Owner: "Spa Music, Relaxing music",STID: breathingType.ID, UID: user.ID},
 		{Name: "Sunny Mornings", Sound: "https://youtu.be/hlWiI4xVXKY?si=56vNV_ddESYwTnkH", Lyric: "",Description:"เป็น เพลงคลายเครียดแนวบรรเลง พาโน, กีตาร์ พร้อมเสียงนกร้อง สร้างบรรยากาศสงบ และเหมาะสำหรับผ่อนคลายหรือทำสมาธิ" ,Duration: 183 , LikeSound: 100, View: 20,  Owner: "Peder B. Helland", STID: breathingType.ID, UID: user.ID},
 
-		{Name: "พระคาถามหาจักรพรรดิ (9 จบ) | พร้อมคำอ่าน | สวดภาวนาทุกวัน บุญจะส่งผลในทันที" , Sound: "https://youtu.be/2TThc3B1CPI?si=dMDtSih9uBsj_6Cy", Lyric: "" ,Description:"#คาถามหาจักรพรรดิ ตัวคาถาเป็นบทบูชาพระ รจนาโดยหลวงปู่ดู่ พรหมปัญโญ ในคลิปมีคำให้อ่านง่ายขึ้น เหมาะกับยุคที่ใช้สมาร์ทโฟน มือถือในการเปิดสวดมนต์ และเหมาะกับผู้ที่กำลัง #ฝึกสวดมนต์ ด้วยเช่นกัน ท่านสามารถใช้บทสวดมนต์นี้ในการ สวดมนต์ก่อนนอน ตอนเช้าและระหว่างวันได้เช่นกัน เวลาที่เหมาะสมในการสวดพระคาถาบทนี้คือ สองทุ่มครึ่ง หรือเริ่มสวดภาวนาประมาณเวลา 20:20-20:40 น. เพราะเป็นเวลาที่เชื่อว่าเป็นเวลาที่สามแดนโลกธาตุเปิดเชื่อมกันจะทำให้ผลบุญแผ่ไปได้ทันที ผลบุญจะสำเร็จทันตา หากสวดทุกวันจะยิ่งมีพลานุภาพมากขึ้น สามารถเปิดฟังได้ตลอดทั้งวันร่วมกับบทคาถาอื่นๆเพื่อความเป็นสิริมงคล" ,
-		Duration: 135, LikeSound: 100, View: 20,  Owner: "เวสสะเศรษฐี",   STID: chantingType.ID, UID: user.ID},
 		{
-			Name: "บทสวดมนต์ก่อนนอน (แบบย่อ) หนุนนำชีวิต เทวดาคุ้มครอง ชีวิตมีแต่ความสุขความเจริญ",Sound: "https://youtu.be/T80Cb1PKdrU?si=SI0mirxwxGlPJ5QG", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "Dekwat Channel - เด็กวัดแชนแน",
+			Name: "บทเมตตาหลวง ทำนองสรภัญญะ",Sound : "https://youtu.be/6i1YyT3fzPs?si=--nqYHK_wzKNtHtb", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "บทกราบพระ 5 ครั้ง",Sound: "https://youtu.be/1TzRW28rhZ4?si=VVMVrd8mKxRGbreb", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "คาถามหาจักรพรรดิ มีคำแปล (ไม่มีโฆษณาคั่นกลาง)",Sound: "https://youtu.be/YgnFJiobS58?si=zEI6yZKEw-eTHr4v", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},{
+			Name:"บทสวด อิติปิโส",Sound: "https://youtu.be/Jkz_iQ8rjz4?si=VSqQDQjE8ripYvMW", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},{
+			Name: "บทสรภัญญะ องค์ใดพระสัมพุทธ",Sound: "https://youtu.be/ftkK-Po2So4?si=eJsOhqRRIvZdIrcu", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "บทสวดสรภัญญะ ปางเมื่อพระองค์ ปะระมะพุธ",Sound: "https://youtu.be/uOtbIwDMz6w?si=8S_xKsVmoYHpD7U9", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "คาถาชินบัญชร พระคาถาชินบัญชร สมเด็จพระพุฒาจารย์ (โต พรหมรังสี) เสถียรพงษ์ วรรณปก",Sound: "https://youtu.be/sqOeFloH6tU?si=VEyGbfdeuytxawPC", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
 		},
 
 		
