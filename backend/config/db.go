@@ -134,11 +134,13 @@ func SetupDatabase() {
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
-	// SeedQuestionnaires(db)
-	// SeedQuestionnaireGroups(db)
-	// SeedCriteriaAndCalculations(db)
+	SeedQuestionnaires(db)
+	SeedQuestionnaireGroups(db)
+	SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 }
+
+
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
 // เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
@@ -250,13 +252,15 @@ func SetupInitialData(db *gorm.DB) {
 
     // เพิ่มข้อมูล Sound (เสียงประเภท สมาธิ)
     sounds := []entity.Sound{
-        {Name: "Meditation Sound 1", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
-        {Name: "Meditation Sound 2", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
-        {Name: "Meditation Sound 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 1-2", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 1-2 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 5000,Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 6-7", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 6-7 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4000,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 3 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4500,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
 
-		// เสียงฝึกหายใจใหม่
-    	{Name: "Breathing Sound 1", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "", STID: breathingType.ID, UID: user.ID},
-    	{Name: "Breathing Sound 2", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "", STID: breathingType.ID, UID: user.ID},
+		// เสียงฝึกหายใจใหม่ 
+    	{Name: "Seed of growth", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "",Description: "เพลงผ่อนคลายสำหรับฝึกหายใจ แนว Ambient เหมาะกับการทำสมาธิ, สร้างสมาธิและฝึกหายใจ",Duration: 60,LikeSound: 90,View: 12000,Owner: "Relaxing Music Channel", STID: breathingType.ID, UID: user.ID},
+    	{Name: "Alpha waves", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "",Description: "คลื่นสมอง Alpha สำหรับการผ่อนคลาย ลดความเครียด และทำสมาธิ",Duration: 120,LikeSound: 95,View: 30000,Owner: "Brainwave Music", STID: breathingType.ID, UID: user.ID},
+		{Name: "Relaxing music", Sound: "https://youtu.be/-c7GHrC8HTY?si=7dqAHDMZoRhL5Uj9", Lyric: "",Description: "เพลงสปาแนวบรรเลงผสมเสียงธรรมชาติ เหมาะสำหรับนวด, ผ่อนคลาย, ทำสมาธิ และสร้างบรรยากาศสงบ",Duration: 300,LikeSound: 100,View: 2000000,Owner: "Spa Music, Relaxing music",STID: breathingType.ID, UID: user.ID},
+		{Name: "Sunny Mornings", Sound: "https://youtu.be/hlWiI4xVXKY?si=56vNV_ddESYwTnkH", Lyric: "",Description:"เป็น เพลงคลายเครียดแนวบรรเลง พาโน, กีตาร์ พร้อมเสียงนกร้อง สร้างบรรยากาศสงบ และเหมาะสำหรับผ่อนคลายหรือทำสมาธิ" ,Duration: 183 , LikeSound: 100, View: 20,  Owner: "Peder B. Helland", STID: breathingType.ID, UID: user.ID},
 
 		{
 			Name: "บทเมตตาหลวง ทำนองสรภัญญะ",Sound : "https://youtu.be/6i1YyT3fzPs?si=--nqYHK_wzKNtHtb", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",

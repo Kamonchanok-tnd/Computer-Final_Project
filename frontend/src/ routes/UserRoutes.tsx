@@ -2,15 +2,15 @@ import { lazy } from "react";
 import { RouteObject } from "react-router-dom";
 import Loadable from "../components/loading/Loadable";
 import { Navigate } from "react-router-dom";
-import HomePage from "../pages/secondary function/audio content home/audiohome";
+
 import BreathingPage from "../pages/secondary function/breathing/breath";
 import MeditationMain from "../pages/secondary function/meditation/meditation";
-import MeditationPage from "../pages/secondary function/meditation/meditation";
+
 import ChatSpace from "../pages/Chat-space/chat";
 import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
-import BreathExercise from "../pages/secondary function/breathing/BreathExercise";
-import BreathlyMain from "../pages/secondary function/breathing/BreathlyMain";
+
+
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
@@ -84,10 +84,6 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           element: isLoggedIn ? <AddSoundPlaylist /> : <Navigate to="/" />,
         },
       
-        {
-          path: "/audiohome/test",
-          element: isLoggedIn ? <BreathlyMain /> : <Navigate to="/" />,
-        },
 
         //assessment
         {
