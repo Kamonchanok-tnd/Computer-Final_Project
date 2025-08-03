@@ -254,9 +254,14 @@ function SignInPages() {
                     <Button type="primary" htmlType="submit" className="login-button">
                       เข้าสู่ระบบ
                     </Button>
-                    หรือ <a onClick={() => navigate("/signup")}>สร้างบัญชีใหม่</a>
-                    <br />
-                    <a href="/forgot-password" className="forgot-password-link">ลืมรหัสผ่าน?</a>
+                   <div className="link-wrapper">
+                  <span className="or-text">หรือ</span>
+                  <div className="link-group">
+                    <a onClick={() => navigate("/signup")}>สร้างบัญชี</a>
+                    <span className="divider">|</span>
+                    <a href="/forgot-password">ลืมรหัสผ่าน</a>
+                  </div>
+                </div>
                   </Form.Item>
                 </Form>
               </Col>
@@ -269,3 +274,94 @@ function SignInPages() {
 }
 
 export default SignInPages;
+
+// import { Button, Card, Form, Input, message } from "antd";
+// import { useNavigate } from "react-router-dom";
+// import { SignIn } from "../../../services/https/login";
+// import { SignInInterface } from "../../../interfaces/SignIn";
+
+// import smile from "../../../assets/รูปปกยิ้ม.jpg.png";
+// import "./login.css";
+
+// function SignInPages() {
+//   const navigate = useNavigate();
+//   const [messageApi, contextHolder] = message.useMessage();
+
+//   const onFinish = async (values: SignInInterface) => {
+//     let res = await SignIn(values);
+
+//     if (res.status === 200) {
+//       messageApi.success("เข้าสู่ระบบ สำเร็จ!");
+//       localStorage.setItem("isLogin", "true");
+//       localStorage.setItem("role", res.data.role);
+//       localStorage.setItem("page", "dashboard");
+//       localStorage.setItem("token_type", res.data.token_type);
+//       localStorage.setItem("token", res.data.token);
+//       localStorage.setItem("id", res.data.id);
+
+//       let redirectPath = "/";
+//       switch (res.data.role) {
+//         case "superadmin": redirectPath = "/superadmin"; break;
+//         case "admin": redirectPath = "/admin"; break;
+//         case "user": redirectPath = "/user"; break;
+//       }
+
+//       setTimeout(() => navigate(redirectPath), 1000);
+//     } else {
+//       messageApi.error(res.data.error);
+//     }
+//   };
+
+//   return (
+//     <>
+//       {contextHolder}
+//       <div className="login-wrapper">
+//         {/* พื้นหลังด้านซ้าย */}
+//         <div className="left-section">
+//           <div className="left-content">
+//             <img className="smiley-image" src={smile} alt="smiley" />
+//           </div>
+//         </div>
+
+//         {/* ฟอร์มด้านขวา */}
+//         <div className="right-section">
+//           <Card className="card-login">
+//             <h1>SUT SUKJAI</h1>
+//             <h2>ยินดีต้อนรับเข้าสู่ระบบ</h2>
+//             <Form name="basic" onFinish={onFinish} autoComplete="off" layout="vertical">
+//               <Form.Item
+//                 label="กรุณากรอกอีเมล"
+//                 name="email"
+//                 rules={[{ required: true, message: "Please input your email!" }]}
+//               >
+//                 <Input size="large" />
+//               </Form.Item>
+//               <Form.Item
+//                 label="กรุณากรอกรหัสผ่าน"
+//                 name="password"
+//                 rules={[{ required: true, message: "Please input your password!" }]}
+//               >
+//                 <Input.Password size="large" />
+//               </Form.Item>
+//               <Form.Item>
+//                 <Button type="primary" htmlType="submit" className="login-button">
+//                   เข้าสู่ระบบ
+//                 </Button>
+//                 <div className="link-wrapper">
+//                   <span className="or-text">หรือ</span>
+//                   <div className="link-group">
+//                     <a onClick={() => navigate("/signup")}>สร้างบัญชี</a>
+//                     <span className="divider">|</span>
+//                     <a href="/forgot-password">ลืมรหัสผ่าน</a>
+//                   </div>
+//                 </div>
+//               </Form.Item>
+//             </Form>
+//           </Card>
+//         </div>
+//       </div>
+//     </>
+//   );
+// }
+
+// export default SignInPages;

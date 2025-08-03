@@ -2,7 +2,7 @@ import { Play, Heart, Eye, Clock } from "lucide-react";
 import { Sound } from "../../../../interfaces/ISound";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { likeSound, checkLikedSound } from "../../../../services/https/sounds"; // ✅ เพิ่มฟังก์ชัน checkLikedSound
+import { likeSound, checkLikedSound, addSoundView } from "../../../../services/https/sounds"; // ✅ import addSoundView
 
 interface BreathingCardProps {
   sound: Sound;
@@ -14,24 +14,24 @@ function BreathingCard({ sound }: BreathingCardProps) {
   const [hours, setHours] = useState("00");
   const [minutes, setMinutes] = useState("00");
   const [seconds, setSeconds] = useState("00");
-  // ✅ เช็คว่าทุกค่าเวลาเป็น 0 หรือไม่
-const isTimeZero = parseInt(hours) === 0 && parseInt(minutes) === 0 && parseInt(seconds) === 0;
 
+  const isTimeZero =
+    parseInt(hours) === 0 &&
+    parseInt(minutes) === 0 &&
+    parseInt(seconds) === 0;
 
-  // ✅ จำนวน like และสถานะ isLiked
   const [likes, setLikes] = useState(sound.like_sound || 0);
   const [isLiked, setIsLiked] = useState(false);
 
-  const realId = sound.id ?? (sound as any).ID;
-  const uid = Number(localStorage.getItem("id")); // ✅ uid ของ user
+  const realId = sound.ID ?? (sound as any).ID;
+  const uid = Number(localStorage.getItem("id"));
 
-  // ✅ โหลดสถานะ isLiked จาก backend
+  // ✅ โหลดสถานะ isLiked
   useEffect(() => {
     const fetchLikeStatus = async () => {
       try {
-        const res = await checkLikedSound(realId, uid); 
-        
-        setIsLiked(res.isLiked); // backend ควรคืน { isLiked: true/false }
+        const res = await checkLikedSound(realId, uid);
+        setIsLiked(res.isLiked);
       } catch (error) {
         console.error("โหลดสถานะหัวใจไม่สำเร็จ:", error);
       }
@@ -39,17 +39,16 @@ const isTimeZero = parseInt(hours) === 0 && parseInt(minutes) === 0 && parseInt(
     if (uid && realId) fetchLikeStatus();
   }, [realId, uid]);
 
-  // ✅ ฟังก์ชันกดหัวใจ toggle
   const handleLike = async () => {
-  if (!realId) return;
-  try {
-    const res = await likeSound(realId, uid); // ✅ backend ส่ง { like_count, liked }
-    setLikes(res.like_count); // ✅ sync จาก backend
-    setIsLiked(res.liked);    // ✅ sync จาก backend
-  } catch (error) {
-    console.error("กดหัวใจไม่สำเร็จ:", error);
-  }
-};
+    if (!realId) return;
+    try {
+      const res = await likeSound(realId, uid);
+      setLikes(res.like_count);
+      setIsLiked(res.liked);
+    } catch (error) {
+      console.error("กดหัวใจไม่สำเร็จ:", error);
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -93,9 +92,27 @@ const isTimeZero = parseInt(hours) === 0 && parseInt(minutes) === 0 && parseInt(
     setMinutes(pad(m));
   };
 
+  // ✅ เรียกตอนกด Start
+  const handleStart = () => {
+    if (!realId) return;
+
+    // ✅ ตั้งเวลาให้ครบ 1 นาทีแล้วอัปเดต view อีกครั้ง
+    setTimeout(() => {
+      addSoundView(realId).catch((err) =>
+        console.error("เพิ่ม view หลัง 1 นาทีไม่สำเร็จ:", err)
+      );
+    }, 60 * 1000);
+
+    navigate("/audiohome/breath-in", {
+      state: {
+        customTime: `${hours}:${minutes}:${seconds}`,
+        videoUrl: sound.sound,
+      },
+    });
+  };
+
   return (
     <div className="bg-gradient-to-t from-[#b3e5fc] to-white w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px]">
-
       {/* รูป + หัวใจ */}
       <div className="w-full rounded-t-xl relative">
         <div
@@ -104,7 +121,7 @@ const isTimeZero = parseInt(hours) === 0 && parseInt(minutes) === 0 && parseInt(
         >
           <Heart
             className={`h-5 w-5 ${isLiked ? "text-red-500" : "text-gray-400"}`}
-            fill={isLiked ? "currentColor" : "none"} // ✅ หัวใจเต็มดวงถ้า isLiked = true
+            fill={isLiked ? "currentColor" : "none"}
           />
         </div>
       </div>
@@ -118,6 +135,10 @@ const isTimeZero = parseInt(hours) === 0 && parseInt(minutes) === 0 && parseInt(
           <p className="text-subtitle text-sm break-words line-clamp-3">
             {sound.description}
           </p>
+          <p className="text-subtitle text-sm break-words line-clamp-3 mt-2">
+            ผู้จัดทำ: {sound.owner}
+          </p>
+
         </div>
 
         {/* ✅ Timer */}
@@ -164,24 +185,17 @@ const isTimeZero = parseInt(hours) === 0 && parseInt(minutes) === 0 && parseInt(
               Instructions
             </button>
             <button
-  onClick={() => {
-    navigate("/audiohome/breath-in", {
-      state: {
-        customTime: `${hours}:${minutes}:${seconds}`,
-        videoUrl: sound.sound,
-      },
-    });
-  }}
-  disabled={isTimeZero} // ✅ ปิดปุ่มถ้าเวลา = 0
-  className={`flex-1 py-2 rounded-md flex items-center justify-center gap-1 text-sm font-medium 
-    ${isTimeZero 
-      ? "bg-gray-300 text-gray-500 cursor-not-allowed"  // ✅ สไตล์ตอนปิด
-      : "bg-button-blue text-white cursor-pointer"}`
-  }
->
-  Start <Play className="w-4 h-4" />
-</button>
-
+              onClick={handleStart}
+              disabled={isTimeZero}
+              className={`flex-1 py-2 rounded-md flex items-center justify-center gap-1 text-sm font-medium 
+                ${
+                  isTimeZero
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-button-blue text-white cursor-pointer"
+                }`}
+            >
+              Start <Play className="w-4 h-4" />
+            </button>
           </div>
 
           {/* view + like */}
@@ -192,9 +206,12 @@ const isTimeZero = parseInt(hours) === 0 && parseInt(minutes) === 0 && parseInt(
                 <p>{sound.view || 0}</p>
               </div>
               <div className="flex gap-1 items-center">
-              <Heart className="text-subtitle h-4 w-4 text-red-500" fill="currentColor" />
-              <p>{likes}</p>
-            </div>
+                <Heart
+                  className="text-subtitle h-4 w-4 text-red-500"
+                  fill="currentColor"
+                />
+                <p>{likes}</p>
+              </div>
             </div>
           </div>
         </div>

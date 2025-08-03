@@ -147,6 +147,7 @@ func main() {
         userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
         userRouter.POST("/sounds/:id/like", sounds.LikeSound)
         userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
+        userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
 
 
         //assessment

@@ -7,7 +7,7 @@ import (
 	"sukjai_project/config" // import config เพื่อเรียก db
 	
 	"sukjai_project/entity" // import entity ของโปรเจค
-
+	"gorm.io/gorm"
 	"github.com/gin-gonic/gin"
 )
 
@@ -219,4 +219,31 @@ func CheckLikedSound(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, gin.H{"isLiked": true})
+}
+
+// ✅ เพิ่มจำนวน view ของเสียง
+func AddSoundView(c *gin.Context) {
+    db := config.DB()
+
+    soundID := c.Param("id")
+
+    // ✅ อัปเดตค่า view + 1 โดยตรง ป้องกัน race condition
+    if err := db.Model(&entity.Sound{}).
+        Where("id = ?", soundID).
+        UpdateColumn("view", gorm.Expr("view + ?", 1)).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update view"})
+        return
+    }
+
+    // ✅ ดึงค่าล่าสุดกลับไปให้ frontend
+    var sound entity.Sound
+    if err := db.First(&sound, soundID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Sound not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "View updated",
+        "view":    sound.View,
+    })
 }
