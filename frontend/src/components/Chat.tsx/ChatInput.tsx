@@ -1,5 +1,6 @@
 import React, { RefObject } from 'react';
 import { Mic, Send } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatInputProps {
   inputText: string;
@@ -9,9 +10,11 @@ interface ChatInputProps {
   isTyping: boolean;
   isDarkMode: boolean;
   inputRef: RefObject<HTMLInputElement>;
+  gotoVoice: () => void;
 }
 
-function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDarkMode, inputRef }: ChatInputProps) {
+function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDarkMode, inputRef, gotoVoice }: ChatInputProps) {
+  const navigate =  useNavigate();
   return (
     <div
       className={` sm:rounded-b-2xl sm:px-10 py-4  backdrop-blur-sm transition-colors duration-300 ${
@@ -48,7 +51,7 @@ function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDa
               ? 'bg-button-dark/20 hover:bg-button-dark text-text-dark hover:text-white '
               : 'bg-gray-200 hover:bg-button-blue hover:text-white text-gray-400 '
           }`}
-          title="บันทึกเสียง"
+          title="บันทึกเสียง" onClick={gotoVoice}
         >
           <Mic className="w-5 h-5" />
         </button>

@@ -111,7 +111,7 @@ const VideoForm: React.FC = () => {
                     rules={[{ required: true, message: 'กรุณากรอกชื่อ' }]}
                   >
                     <Input 
-                      className="h-10 rounded-lg border-gray-300 focus:border-indigo-500" 
+                      className="custom-input h-10 rounded-lg border-gray-300 focus:border-indigo-500 " 
                       placeholder=""
                     />
                   </Form.Item>
@@ -125,6 +125,7 @@ const VideoForm: React.FC = () => {
                     rules={[{ required: true, message: 'กรุณาเลือกประเภทเสียง' }]}
                   >
                     <Select
+                      
                       placeholder=""
                       value={stid}
                       onChange={(value) => {
@@ -132,7 +133,7 @@ const VideoForm: React.FC = () => {
                         form.setFieldsValue({ stid: value });
                       }}
                       allowClear
-                      className="h-10"
+                      className="custom-select h-10"
                       style={{ height: '40px' }}
                     >
                       {soundTypes.map((type) => (
@@ -224,10 +225,10 @@ const VideoForm: React.FC = () => {
                 </div>
                 <label className="text-sm font-medium text-gray-700  mt-6 mb-2">Preview</label>
                 <div 
-                  className=" bg-background-button rounded-lg flex items-center justify-center min-h-[400px]"
+                  className=" bg-background-button/20 border-dashed border-2 border-blue-word rounded-lg flex items-center justify-center min-h-[400px]"
                   ref={previewRef}
                 >
-                  <div className="text-center text-blue-word">
+                  <div className="text-center text-blue-word ">
                     <Play className="w-12 h-12 mx-auto mb-2 text-blue-word" />
                     <p>ใส่ลิงก์ YouTube และกดดูตัวอย่าง</p>
                   </div>

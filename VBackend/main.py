@@ -1,4 +1,3 @@
-
 from gtts import gTTS
 from pythaiasr import asr
 import io
@@ -20,7 +19,7 @@ def get_answer_from_go(text: str,chatRoomID: int, token: str):#เอาไว�
     }
     payload = json.dumps({
         "message": text,
-        "chatRoomID": chatRoomID,#เอาจาก param
+        "chatroom_id": chatRoomID,#เอาจาก param
         "sendTypeID": 1
         })
 
@@ -60,7 +59,7 @@ async def websocket_chat(websocket: WebSocket):
         init_data = await websocket.receive_json()
         chat_room_id = init_data.get("chatRoomID", 1)
         jwt_token = init_data.get("token") 
-        # print("Chat Room ID:", chat_room_id)
+        print("Chat Room ID:", chat_room_id)
         while True:
             data = await websocket.receive_bytes()
             if not data:
