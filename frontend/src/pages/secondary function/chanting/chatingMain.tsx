@@ -16,7 +16,7 @@ function ChatingMain() {
   async function fetchChanting() {
     try {
       const res = await getSoundsByTypeID(3);
-      setChantingSounds(res.sounds); // สำคัญ! ต้องใช้ res.sounds ตามโครงสร้าง
+      setChantingSounds(res.sounds); 
     } catch (error) {
       console.error("Error fetching chanting sounds:", error);
     }

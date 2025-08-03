@@ -138,6 +138,9 @@ func main() {
         userRouter.PUT("/user/:id", users.Update)
         userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
         userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
+        userRouter.POST("/sounds/:id/like", sounds.LikeSound)
+        userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
+
 
         //assessment
         router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)

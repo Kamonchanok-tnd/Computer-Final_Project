@@ -252,13 +252,15 @@ func SetupInitialData(db *gorm.DB) {
 
     // เพิ่มข้อมูล Sound (เสียงประเภท สมาธิ)
     sounds := []entity.Sound{
-        {Name: "Meditation Sound 1", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
-        {Name: "Meditation Sound 2", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
-        {Name: "Meditation Sound 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 1-2", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 1-2 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 5000,Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 6-7", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 6-7 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4000,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 3 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4500,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
 
-		// เสียงฝึกหายใจใหม่
-    	{Name: "Breathing Sound 1", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "", STID: breathingType.ID, UID: user.ID},
-    	{Name: "Breathing Sound 2", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "", STID: breathingType.ID, UID: user.ID},
+		// เสียงฝึกหายใจใหม่ 
+    	{Name: "Seed of growth", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "",Description: "เพลงผ่อนคลายสำหรับฝึกหายใจ แนว Ambient เหมาะกับการทำสมาธิ, สร้างสมาธิและฝึกหายใจ",Duration: 60,LikeSound: 90,View: 12000,Owner: "Relaxing Music Channel", STID: breathingType.ID, UID: user.ID},
+    	{Name: "Alpha waves", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "",Description: "คลื่นสมอง Alpha สำหรับการผ่อนคลาย ลดความเครียด และทำสมาธิ",Duration: 120,LikeSound: 95,View: 30000,Owner: "Brainwave Music", STID: breathingType.ID, UID: user.ID},
+		{Name: "Relaxing music", Sound: "https://youtu.be/-c7GHrC8HTY?si=7dqAHDMZoRhL5Uj9", Lyric: "",Description: "เพลงสปาแนวบรรเลงผสมเสียงธรรมชาติ เหมาะสำหรับนวด, ผ่อนคลาย, ทำสมาธิ และสร้างบรรยากาศสงบ",Duration: 300,LikeSound: 100,View: 2000000,Owner: "Spa Music, Relaxing music",STID: breathingType.ID, UID: user.ID},
+		{Name: "Sunny Mornings", Sound: "https://youtu.be/hlWiI4xVXKY?si=56vNV_ddESYwTnkH", Lyric: "",Description:"เป็น เพลงคลายเครียดแนวบรรเลง พาโน, กีตาร์ พร้อมเสียงนกร้อง สร้างบรรยากาศสงบ และเหมาะสำหรับผ่อนคลายหรือทำสมาธิ" ,Duration: 183 , LikeSound: 100, View: 20,  Owner: "Peder B. Helland", STID: breathingType.ID, UID: user.ID},
 
 		{Name: "พระคาถามหาจักรพรรดิ (9 จบ) | พร้อมคำอ่าน | สวดภาวนาทุกวัน บุญจะส่งผลในทันที" , Sound: "https://youtu.be/2TThc3B1CPI?si=dMDtSih9uBsj_6Cy", Lyric: "" ,Description:"#คาถามหาจักรพรรดิ ตัวคาถาเป็นบทบูชาพระ รจนาโดยหลวงปู่ดู่ พรหมปัญโญ ในคลิปมีคำให้อ่านง่ายขึ้น เหมาะกับยุคที่ใช้สมาร์ทโฟน มือถือในการเปิดสวดมนต์ และเหมาะกับผู้ที่กำลัง #ฝึกสวดมนต์ ด้วยเช่นกัน ท่านสามารถใช้บทสวดมนต์นี้ในการ สวดมนต์ก่อนนอน ตอนเช้าและระหว่างวันได้เช่นกัน เวลาที่เหมาะสมในการสวดพระคาถาบทนี้คือ สองทุ่มครึ่ง หรือเริ่มสวดภาวนาประมาณเวลา 20:20-20:40 น. เพราะเป็นเวลาที่เชื่อว่าเป็นเวลาที่สามแดนโลกธาตุเปิดเชื่อมกันจะทำให้ผลบุญแผ่ไปได้ทันที ผลบุญจะสำเร็จทันตา หากสวดทุกวันจะยิ่งมีพลานุภาพมากขึ้น สามารถเปิดฟังได้ตลอดทั้งวันร่วมกับบทคาถาอื่นๆเพื่อความเป็นสิริมงคล" ,
 		Duration: 135, LikeSound: 100, View: 20,  Owner: "เวสสะเศรษฐี",   STID: chantingType.ID, UID: user.ID},

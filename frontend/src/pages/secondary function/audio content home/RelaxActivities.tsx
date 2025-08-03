@@ -1,9 +1,29 @@
 import { Heart, Book, Waves, Headphones, Play, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import userImage from "../../../assets/user.png"; // รูปตัวละคร
+import { useEffect, useState } from "react";
+import userImage from "../../../assets/user.png";
+import { GetUsersById } from "../../../services/https/login";
 
 function RelaxActivities() {
   const navigate = useNavigate();
+  const [username, setUsername] = useState<string>("");
+
+  const userId = localStorage.getItem("id");
+
+  const getUserById = async (id: string) => {
+    const res = await GetUsersById(id);
+    if (res?.status === 200) {
+      setUsername(res.data.username); // ✅ ดึงชื่อมาเก็บใน state
+    } else {
+      setUsername("ผู้ใช้"); // fallback
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      getUserById(userId);
+    }
+  }, [userId]);
 
   const activities = [
     {
@@ -40,16 +60,14 @@ function RelaxActivities() {
     <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white to-[#C2F4FF]">
       {/* Greeting bubble */}
       <div className="w-full max-w-4xl relative mb-20">
-        {/* กล่องข้อความ */}
         <div className="bg-[#E6F9FF] rounded-xl p-4 w-[75%] shadow-sm">
-          <p className="font-bold text-gray-900 mb-1">สวัสดี สุภัสสร</p>
+          <p className="font-bold text-gray-900 mb-1">สวัสดี {username || "..."}</p>
           <p className="text-gray-800 text-base leading-relaxed">
             Heal Jai ให้ใจได้พัก เมื่อทุกอย่างมันเยอะไป ลองแวะมาพักที่ SUT HealJai
             เรามีกิจกรรมสบาย ๆ และข้อความดี ๆ ที่พร้อมอยู่ข้างคุณเสมอ
           </p>
         </div>
 
-        {/* ปุ่มวงกลม ChevronDown */}
         <div
           className="absolute -right-10 top-1/2 -translate-y-1/2 w-10 h-10 
           bg-[#B3E5FC] rounded-full flex items-center justify-center shadow-lg 
@@ -59,7 +77,6 @@ function RelaxActivities() {
           <ChevronDown className="text-white w-5 h-5" />
         </div>
 
-        {/* ตัวละคร */}
         <img
           src={userImage}
           alt="Character"
@@ -67,12 +84,10 @@ function RelaxActivities() {
         />
       </div>
 
-      {/* Header */}
       <div className="w-full max-w-4xl mb-4">
         <h2 className="text-xl font-bold text-gray-800">กิจกรรมผ่อนคลาย</h2>
       </div>
 
-      {/* Activity Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl">
         {activities.map((act, idx) => (
           <div
@@ -80,7 +95,6 @@ function RelaxActivities() {
             className={`${act.gradient} rounded-xl p-5 flex flex-col justify-between h-52 shadow-lg 
               transition-transform duration-300 hover:scale-[1.03]`}
           >
-            {/* เนื้อหาด้านบนของการ์ด */}
             <div className="space-y-3">
               <h3 className="text-lg font-bold text-gray-800">{act.title}</h3>
               <p className="text-gray-700 text-sm">{act.description}</p>
@@ -89,7 +103,6 @@ function RelaxActivities() {
               </div>
             </div>
 
-            {/* ปุ่มอยู่มุมขวาล่าง */}
             <div className="flex justify-end">
               <button
                 onClick={() => navigate(act.path)}
