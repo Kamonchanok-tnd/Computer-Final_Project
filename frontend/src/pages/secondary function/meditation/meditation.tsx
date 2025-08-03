@@ -24,22 +24,26 @@ function MeditationMain() {
     "all" | "playlist" | "meditation" | "breathing"
   >("all");
 
+  const uid = localStorage.getItem("id");
+
   const navigate = useNavigate();
 
   // ✅ Fetch Meditation
-  async function fetchMeditation() {
-    try {
-      const res = await getMeditationSounds();
-      setMeditationSounds(res.sounds || []);
-    } catch (error) {
-      console.error("Error fetching meditation sounds:", error);
-    }
+  // ✅ Fetch Meditation
+async function fetchMeditation() {
+  try {
+    const res = await getMeditationSounds(Number(uid)); // ส่ง uid
+    setMeditationSounds(res.sounds || []);
+  } catch (error) {
+    console.error("Error fetching meditation sounds:", error);
   }
+}
 
   // ✅ Fetch Breathing
   async function fetchBreathing() {
     try {
-      const res = await getBreathingSounds();
+      const res = await getBreathingSounds(Number(uid));
+      console.log("✅ API Breathing Data:", res.sounds);
       setBreathingSounds(res.sounds || []);
     } catch (error) {
       console.error("Error fetching breathing sounds:", error);

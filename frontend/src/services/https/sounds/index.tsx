@@ -75,3 +75,27 @@ export const getSoundByID = async (id: number) => {
     throw error;
   }
 };
+
+export const likeSound = async (id: number, uid: number) => {
+  try {
+    const response = await axios.post(`${apiUrl}/sounds/${id}/like?uid=${uid}`, {}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    return response.data; // { message, like_count, liked }
+  } catch (error) {
+    console.error("Error liking sound:", error);
+    throw error;
+  }
+};
+
+export const checkLikedSound = async (soundId: number, uid: number) => {
+  const res = await axios.get(`${apiUrl}/sounds/${soundId}/liked?uid=${uid}`,{
+    headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+  });
+  return res.data; // ควรคืน { isLiked: true/false }
+};
+
