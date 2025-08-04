@@ -23,7 +23,7 @@ import {
   getSoundByID,
   getSoundsByTypeID,
 } from "../../../services/https/sounds";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./playmedia.css";
 import { IMG_URL } from "../../../services/https/playlist";
 
@@ -44,7 +44,7 @@ interface PlayerState {
 function Playermedia() {
   const params = useParams();
   const p_id = params.id;
-  const [currentSound, setCurrentSound] = useState<Sound | null>(null); //vdo ปัจจุบัน
+  // const [currentSound, setCurrentSound] = useState<Sound | null>(null); //vdo ปัจจุบัน
   const [chantingSounds, setChantingSounds] = useState<Sound[]>([]); //vdo ทั้งหมด
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [player, setPlayer] = useState<any>(null);
@@ -59,20 +59,24 @@ function Playermedia() {
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
   const [isRepeating, setIsRepeating] = useState<boolean>(false);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
-  const [showPlaylist, setShowPlaylist] = useState<boolean>(false);
+  const [showPlaylist, setShowPlaylist] = useState<boolean>(false); // เปิดปิด playlist
   const [videoTitle, setVideoTitle] = useState<string>("");
   const playerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
+  const [playedIndices, setPlayedIndices] = useState<number[]>([]); //เก็บ index ของ video ที่เล่นแล้ว
 
-  async function fetchSound(id: number) {
-    try {
-      const res = await getSoundByID(id);
-      console.log("sound is: ", res.data);
-      setCurrentSound(res.data);
-    } catch (error) {
-      console.error("Error fetching sound:", error);
-    }
-  }
+
+
+  // async function fetchSound(id: number) {
+  //   try {
+  //     const res = await getSoundByID(id);
+  //     console.log("sound is: ", res.data);
+  //     setCurrentSound(res.data);
+  //   } catch (error) {
+  //     console.error("Error fetching sound:", error);
+  //   }
+  // }
 
   async function fetchChanting() {
     try {
@@ -86,7 +90,7 @@ function Playermedia() {
 
   useEffect(() => {
     if (p_id) {
-      fetchSound(Number(p_id));
+      // fetchSound(Number(p_id));
       fetchChanting();
     }
   }, [p_id]);
@@ -96,7 +100,7 @@ function Playermedia() {
     const match = url.match(regex);
     return match ? match[1] : null;
   };
-  const videoId = extractYouTubeID(currentSound?.sound || "");
+  // const videoId = extractYouTubeID(currentSound?.sound || "");
 
   const getVideoId = (item: Sound): string | null => {
     return extractYouTubeID(item.sound || "");
@@ -121,11 +125,13 @@ function Playermedia() {
   useEffect(() => {
     if (isApiReady && playerRef.current && !player) {
       const currentVideoId = getVideoId(chantingSounds[currentIndex]);
-      const newPlayer = new window.YT.Player(playerRef.current, {
-        height: "350",
+      new window.YT.Player(playerRef.current, {
+        height: "100%",
         width: "100%",
         videoId: currentVideoId || "dQw4w9WgXcQ",
         playerVars: {
+          autoplay: isAutoPlay ? 1 : 0,
+          
           controls: 0,
           modestbranding: 1,
           rel: 0,
@@ -134,6 +140,7 @@ function Playermedia() {
         events: {
           onReady: (event: any) => {
             setPlayer(event.target);
+            event.target.playVideo();
             // รอให้ metadata โหลดเสร็จก่อนอัปเดต duration
             setTimeout(() => {
               const duration = event.target.getDuration();
@@ -177,7 +184,7 @@ function Playermedia() {
                 setTimeout(() => {
                   event.target.seekTo(0);
                   event.target.playVideo();
-                }, 500);
+                },1000 );
               } else if (isAutoPlay) {
                 // เล่นวิดีโอถัดไปอัตโนมัติ
                 setTimeout(() => {
@@ -191,6 +198,35 @@ function Playermedia() {
       });
     }
   }, [isApiReady, chantingSounds, currentIndex]);
+
+  useEffect(() => {
+    if (player && playerState.isPlaying) {
+      intervalRef.current = setInterval(() => {
+        if (player.getCurrentTime && player.getDuration) {
+          const currentTime = player.getCurrentTime();
+          const duration = player.getDuration();
+          
+          setPlayerState(prev => ({
+            ...prev,
+            currentTime: currentTime,
+            duration: duration && duration > 0 ? duration : prev.duration
+          }));
+        }
+      }, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [player, playerState.isPlaying]);
+
 
   const removeFromPlaylist = (index: number) => {
     if (chantingSounds.length <= 1) {
@@ -215,17 +251,22 @@ function Playermedia() {
   const playVideo = (index: number) => {
     setCurrentIndex(index);
     const videoId = getVideoId(chantingSounds[index]);
-
+  
+    // ✅ เปลี่ยน URL ด้วย
+    navigate(`/audiohome/chanting/play/${chantingSounds[index].ID}`);
+  
     if (player && videoId) {
       player.loadVideoById(videoId);
+      player.playVideo();
+  
       setPlayerState((prev) => ({
         ...prev,
         currentTime: 0,
-        duration: 0, // รีเซ็ต duration เพื่อรอให้โหลดใหม่
+        duration: 0,
       }));
+  
       setTimeout(() => {
         updateVideoTitle(player);
-        // อัปเดต duration ใหม่
         const newDuration = player.getDuration();
         if (newDuration && newDuration > 0) {
           setPlayerState((prev) => ({
@@ -233,9 +274,7 @@ function Playermedia() {
             duration: newDuration,
           }));
         }
-        // เล่นวิดีโอทันทีหลังจากโหลดเสร็จ
-        player.playVideo();
-      }, 1500); // เพิ่มเวลารอให้โหลดเสร็จ
+      }, 1000);
     }
   };
   const updateVideoTitle = (playerInstance: any) => {
@@ -251,23 +290,59 @@ function Playermedia() {
   };
   const playNext = () => {
     let nextIndex;
+  
     if (isShuffled) {
-      nextIndex = Math.floor(Math.random() * chantingSounds.length);
+      do {
+        nextIndex = Math.floor(Math.random() * chantingSounds.length);
+      } while (
+        nextIndex === currentIndex &&
+        chantingSounds.length > 1
+      );
     } else {
       nextIndex = (currentIndex + 1) % chantingSounds.length;
     }
+  
+    console.log("▶️ playNext called");
+    console.log("Current index:", currentIndex);
+    console.log("Next index:", nextIndex);
+  
+    setPlayedIndices((prev) => {
+      const newHistory = [...prev, nextIndex];
+      console.log("Updated playedIndices history:", newHistory);
+      return newHistory;
+    });
+  
     playVideo(nextIndex);
   };
+  
   const playPrevious = () => {
-    let prevIndex;
-    if (isShuffled) {
-      prevIndex = Math.floor(Math.random() * chantingSounds.length);
-    } else {
-      prevIndex =
-        currentIndex === 0 ? chantingSounds.length - 1 : currentIndex - 1;
-    }
-    playVideo(prevIndex);
+    console.log("◀️ playPrevious called");
+    console.log("Current index:", currentIndex);
+    console.log("PlayedIndices history before:", playedIndices);
+  
+    setPlayedIndices((prev) => {
+      if (prev.length === 0) {
+        const prevIndex =
+          currentIndex === 0 ? chantingSounds.length - 1 : currentIndex - 1;
+        console.log("No history, playing previous in order:", prevIndex);
+        playVideo(prevIndex);
+        return prev;
+      }
+  
+      const lastIndex = prev[prev.length - 1];
+      const newHistory = prev.slice(0, -1);
+      console.log("Playing from history index:", lastIndex);
+      console.log("Updated playedIndices history after pop:", newHistory);
+      playVideo(lastIndex);
+  
+      return newHistory;
+    });
   };
+  
+
+  
+  
+  
   const togglePlay = () => {
     if (player) {
       if (playerState.isPlaying) {
@@ -346,10 +421,10 @@ function Playermedia() {
         className={`sm:mt-2  px:2  px-1 sm:px-8 sm:w-[95%] w-full  flex flex-col gap-8 dark:border-stoke-dark dark:bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)] duration-300
              bg-transparent  sm:rounded-xl`}
       >
-        <div className="grid grid-cols-3 w-full h-full gap-12">
+        <div className="grid lg:grid-cols-3 grid-cols-1 w-full h-full gap-12">
           {/* player media */}
 
-          <div className="col-span-2 bg-b rounded-2xl flex flex-col ">
+          <div className="lg:col-span-2 bg-b rounded-2xl flex flex-col ">
             <div className="flex gap-4 items-center ">
               <ChevronLeft size={40} className="text-button-blue" />
               <h1 className="text-xl font-semibold ">สวดมนต์</h1>
@@ -357,7 +432,7 @@ function Playermedia() {
             {/* vdo */}
             <div className="w-full  bg-tranparent  ">
               <div className="bg-black rounded-2xl overflow-hidden  mb-6">
-                <div ref={playerRef} className="w-full aspect-video" />
+                <div ref={playerRef} className="w-full md:h-[400px] lg:h-[500px] aspect-video" />
               </div>
             </div>
 
@@ -522,7 +597,7 @@ function Playermedia() {
             </div>
           </div>
           {/* listsound */}
-          <div className="col-span-1 bg-transparent rounded-2xl">
+          <div className="lg:col-span-1 bg-transparent rounded-2xl ">
             <div className="flex gap-4 items-center">
               <h1 className="text-xl font-semibold">รายการเสียง</h1>
             </div>
@@ -530,7 +605,7 @@ function Playermedia() {
               
 
               <div
-                className={`space-y-2 max-h-96 overflow-auto scrollbar-hide  ${
+                className={`space-y-2 max-h-150 min-h-96 overflow-auto scrollbar-hide p-2  ${
                   showPlaylist ? "block" : "hidden lg:block"
                 }`}
               >
@@ -540,12 +615,17 @@ function Playermedia() {
                   return(
                   <div
                     key={index}
-                    className={`group gap-2 rounded-lg h-20  cursor-pointer transition-all duration-200 flex   ${
+                    className={`group gap-2 rounded-lg h-20  cursor-pointer transition-all duration-200 flex    ${
                       index === currentIndex
                         ? "bg-background-button  border-1 border-blue-word"
-                        : "bg-white/5 hover:bg-white/10 border border-white/10"
+                        : "bg-white hover:bg-white/10 "
                     }`}
-                    onClick={() => playVideo(index)}
+                    onClick={() => {
+                      if (index !== currentIndex) {
+                        setPlayedIndices((prev) => [...prev, index]);
+                        playVideo(index);
+                      }
+                    }}
                   >
                     <div>
                       <img
