@@ -2,7 +2,7 @@ import { Eye, Heart, Play } from "lucide-react";
 import { Sound } from "../../../../interfaces/ISound";
 import { useState, useEffect } from "react";
 import { likeSound, checkLikedSound } from "../../../../services/https/sounds"; // ✅ ใช้เหมือน BreathingCard
-
+import { useNavigate } from "react-router-dom";
 interface MeditationContentProps {
   filteredSounds: Sound[];
   extractYouTubeID: (url: string) => string | null;
@@ -25,7 +25,7 @@ function MeditationContent({
 
           return (
             <MeditationCard
-              key={sound.id}
+              key={sound.ID}
               sound={sound}
               thumbnail={thumbnail}
               uid={uid}
@@ -46,7 +46,7 @@ interface MeditationCardProps {
 function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
   const [likes, setLikes] = useState(sound.like_sound || 0);
   const [isLiked, setIsLiked] = useState(false);
-  const realId = sound.id ?? (sound as any).ID;
+  const realId = sound.ID ?? (sound as any).ID;
 
   // ✅ โหลดสถานะ isLiked จาก backend
   useEffect(() => {
@@ -72,6 +72,11 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
       console.error("กดหัวใจไม่สำเร็จ:", error);
     }
   };
+  const navigate = useNavigate();
+
+  const handlePlayClick = () => {
+    navigate(`/playmediameditation/${sound.ID}`);
+  };
 
   return (
     <div className="bg-white w-full h-60 rounded-xl border border-gray-200">
@@ -83,9 +88,12 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
         />
 
         {/* ปุ่ม Play */}
-        <div className="absolute bottom-[-20px] right-3 w-12 h-12 bg-button-blue flex items-center hover:scale-105 duration-300 justify-center rounded-full shadow-sm">
-          <Play className="text-white" />
-        </div>
+        <div
+        className="absolute bottom-[-20px] right-3 w-12 h-12 bg-button-blue flex items-center hover:scale-105 duration-300 justify-center rounded-full shadow-sm cursor-pointer"
+        onClick={handlePlayClick}
+      >
+        <Play className="text-white" />
+      </div>
 
         {/* ✅ หัวใจพื้นหลังวงกลมสีขาว + toggle */}
         <div

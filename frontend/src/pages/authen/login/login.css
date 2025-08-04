@@ -217,6 +217,34 @@
   color: #ff6b81;
   font-size: 1.1rem; /* Increase font size of forgot password link */
 }
+/* ลิงก์ */
+.link-wrapper {
+  text-align: center;
+  margin-top: 15px;
+}
+.link-wrapper .or-text {
+  display: block;
+  color: #2a5a8e;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+.link-wrapper .link-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.link-wrapper a {
+  color: #2a5a8e;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.link-wrapper .divider {
+  color: #2a5a8e;
+  font-weight: bold;
+}
+
 
 
 /* Responsive Design */
