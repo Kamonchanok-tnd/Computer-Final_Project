@@ -368,29 +368,29 @@ const playPrevious = () => {
                 </button>
 
                 <div className="flex items-center gap-4">
-                  <button onClick={playPrevious} className="p-3 bg-[#80CBC4] rounded-full text-white">
+                  <button onClick={playPrevious} className="p-3 bg-[#80CBC4] rounded-full text-white cursor-pointer" >
                     <SkipBack size={25} />
                   </button>
-                  <button onClick={seekBackward} className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]">
+                  <button onClick={seekBackward} className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B] cursor-pointer">
                     <RotateCcw size={18} />
                   </button>
                   <button
                     onClick={togglePlay}
-                    className="p-4 bg-[#4DB6AC] rounded-full text-white"
+                    className="p-4 bg-[#4DB6AC] rounded-full text-white cursor-pointer"
                   >
                     {playerState.isPlaying ? <Pause size={30} /> : <Play size={30} />}
                   </button>
-                  <button onClick={seekForward} className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]">
+                  <button onClick={seekForward} className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B] cursor-pointer">
                     <RotateCw size={18} />
                   </button>
-                  <button onClick={playNext} className="p-3 bg-[#80CBC4] rounded-full text-white">
+                  <button onClick={playNext} className="p-3 bg-[#80CBC4] rounded-full text-white cursor-pointer" >
                     <SkipForward size={25} />
                   </button>
                 </div>
 
                 <button
                   onClick={toggleRepeat}
-                  className={`p-3 rounded-full ${isRepeating ? "bg-[#80CBC4] text-white" : "text-[#00796B]"}`}
+                  className={`p-3 rounded-full ${isRepeating ? "bg-[#80CBC4] text-white" : "text-[#00796B] cursor-pointer"}`}
                   title="เล่นซ้ำ"
                 >
                   <Repeat size={25} />

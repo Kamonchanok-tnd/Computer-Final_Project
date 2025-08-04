@@ -7,7 +7,8 @@ import { Sound } from "../../../interfaces/ISound";
 import MeditationContent from "./components/MeditationContent";
 import BreathingCard from "../breathing/components/breathingcontent";
 import { useNavigate } from "react-router-dom";
-import ModalPlaylist from "../chanting/components/modalPlaylist";
+
+import PlaylistMeditation from "./playlistmeditation/playlistmeditation";
 
 function MeditationMain() {
   const { isDarkMode } = useDarkMode();
@@ -132,7 +133,7 @@ async function fetchMeditation() {
         </div>
 
         {openModal && (
-          <ModalPlaylist
+          <PlaylistMeditation
             isModalOpen={openModal}
             onClose={() => setOpenModal(false)}
           />
