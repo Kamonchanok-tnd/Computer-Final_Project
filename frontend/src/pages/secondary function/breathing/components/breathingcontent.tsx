@@ -23,7 +23,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
   const [likes, setLikes] = useState(sound.like_sound || 0);
   const [isLiked, setIsLiked] = useState(false);
 
-  const realId = sound.id ?? (sound as any).ID;
+  const realId = sound.ID ?? (sound as any).ID;
   const uid = Number(localStorage.getItem("id"));
 
   // ✅ โหลดสถานะ isLiked
@@ -135,6 +135,10 @@ function BreathingCard({ sound }: BreathingCardProps) {
           <p className="text-subtitle text-sm break-words line-clamp-3">
             {sound.description}
           </p>
+          <p className="text-subtitle text-sm break-words line-clamp-3 mt-2">
+            ผู้จัดทำ: {sound.owner}
+          </p>
+
         </div>
 
         {/* ✅ Timer */}

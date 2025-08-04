@@ -212,7 +212,7 @@ async function fetchMeditation() {
 
             <div className="grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-4">
               {filteredBreathing.map((sound) => (
-                <BreathingCard key={sound.id} sound={sound} />
+                <BreathingCard key={sound.ID} sound={sound} />
               ))}
             </div>
           </div>

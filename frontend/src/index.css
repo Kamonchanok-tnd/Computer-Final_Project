@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import 'tailwind-scrollbar-hide/v4'; 
+@custom-variant dark (&:where(.dark, .dark *));
 @theme {
   --color-regal-blue: #9AEDFF;  /*สีปุ่ม */
   --color-midnight-blue: #356ea4;  /* สีฟ้ากลาง */

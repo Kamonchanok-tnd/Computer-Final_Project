@@ -169,12 +169,12 @@ function ListSound() {
       cell: ({ row }) => (
         <div className="flex gap-2">
           <button className="text-gray-400 hover:text-gray-600  transition-all duration-500 bg-gray-100 p-2 rounded-md "
-            onClick={() => navigate(`/admin/sounds/${row.original.id}`)}>
+            onClick={() => navigate(`/admin/sounds/${row.original.ID}`)}>
             <SquarePen  size={20}/>
           </button>
   
           <button className="text-gray-400 hover:text-red-600 transition-all duration-500 bg-gray-100 p-2 rounded-md"
-            onClick={() => deleteSound(Number(row.original.id))}>
+            onClick={() => deleteSound(Number(row.original.ID))}>
             <Trash2 size = {20} />
           </button>
         </div>
@@ -240,7 +240,7 @@ function ListSound() {
       
       setTimeout(async () => {
          await deleteSoundByID(id);
-        setAllSounds((prev) => prev.filter((item) => item.id !== id)); // ลบจาก frontend
+        setAllSounds((prev) => prev.filter((item) => item.ID !== id)); // ลบจาก frontend
         message.success("ลบเสียงสําเร็จ");
       }, 300);
     
@@ -327,7 +327,7 @@ function ListSound() {
             </thead>
             <tbody className="bg-white animate-fade-in">
               {table.getRowModel().rows.map((row) => {
-              const isDeleting = deletedRowIds.includes(Number(row.original.id));
+              const isDeleting = deletedRowIds.includes(Number(row.original.ID));
               return(
                 <tr key={row.id} className={`rounded-md   my-4 overflow-hidden hover:bg-[#f3f6f8] duration-300 
               transition-opacity  ${ isDeleting ? "animate-fadeOutLeft" : "opacity-100" } `}>

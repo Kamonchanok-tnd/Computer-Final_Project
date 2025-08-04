@@ -17,6 +17,10 @@ import MoodPopup from "../components/assessment/MoodPopup";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 import ChatingMain from "../pages/secondary function/chanting/chatingMain";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
+import AddSoundPlaylist from "../pages/secondary function/Playlist/Playlist";
+import Playermedia from "../pages/secondary function/playermedia/playermedia";
+
+import Playermediameditation from "../pages/secondary function/meditation/playermedia/playmedia";
 
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
@@ -72,6 +76,19 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/audiohome/chanting",
           element: isLoggedIn ? <ChatingMain /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/chanting/play/:id",
+          element: isLoggedIn ? <Playermedia /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/Playlist/:id",
+          element: isLoggedIn ? <AddSoundPlaylist /> : <Navigate to="/" />,
+        },
+
+        {
+          path: "/playmediameditation/:ID",
+          element: isLoggedIn ? <Playermediameditation/> : <Navigate to="/" />,
         },
       
 

@@ -25,12 +25,46 @@ func CreatePlaylist(c*gin.Context){
 	c.JSON(http.StatusOK, playlist)
 }	
 
+
+
+
 func GetPlaylistByUID(c*gin.Context){
 	id := c.Param("uid")
 	db := config.DB()
-	var playlist []entity.Playlist
+	var playlist []PlaylistWithBackground
 
-	err := db.Where("uid = ?", id).Find(&playlist).Error
+	err := db.Table("playlists").
+	Select("playlists.id, playlists.name, playlists.uid, playlists.b_id, backgrounds.picture").
+	Joins("LEFT JOIN backgrounds ON playlists.b_id = backgrounds.id").
+	Where("playlists.uid = ? AND playlists.deleted_at IS NULL", id).
+	Scan(&playlist).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get playlist"})
+		return
+	} 
+
+	c.JSON(http.StatusOK, playlist)
+}
+
+
+type PlaylistWithBackground struct {
+	entity.Playlist
+	Picture string `json:"picture"`
+}
+
+func GetPlaylistByID(c *gin.Context) {
+	id := c.Param("id")
+	db := config.DB()
+
+	var playlist PlaylistWithBackground
+
+	err := db.Table("playlists").
+		Select("playlists.name, playlists.uid, playlists.b_id, backgrounds.picture").
+		Joins("LEFT JOIN backgrounds ON playlists.b_id = backgrounds.id").
+		Where("playlists.id = ? AND playlists.deleted_at IS NULL", id).
+		Scan(&playlist).Error
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get playlist"})
 		return
