@@ -149,6 +149,9 @@ func main() {
         userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
         userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
 
+        //playlist
+        userRouter.GET("/playlists", playlist.GetPlaylistsByUserAndType)
+
 
         //assessment
         router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
