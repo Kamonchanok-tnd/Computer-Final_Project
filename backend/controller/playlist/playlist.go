@@ -25,6 +25,34 @@ func CreatePlaylist(c*gin.Context){
 	c.JSON(http.StatusOK, playlist)
 }	
 
+func GetPlaylistsByUserAndType(c *gin.Context) {
+	db := config.DB()
+
+	var playlists []entity.Playlist
+
+	// รับ uid และ stid จาก query parameter
+	uid := c.Query("uid")
+	stid := c.Query("stid")
+
+	if uid == "" || stid == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "uid and stid are required"})
+		return
+	}
+
+	// ดึง playlists ตาม uid และ stid
+	if err := db.Preload("Users").
+		Preload("Background").
+		Preload("Sounds").
+		Preload("SoundType").
+		Where("uid = ? AND st_id = ?", uid, stid).
+		Find(&playlists).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch playlists"})
+		return
+	}
+
+	c.JSON(http.StatusOK, playlists)
+}
+
 
 
 
