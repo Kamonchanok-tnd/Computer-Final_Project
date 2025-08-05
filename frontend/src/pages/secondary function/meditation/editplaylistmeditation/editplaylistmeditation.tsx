@@ -44,7 +44,7 @@ export interface CustomSoundPlaylist extends ISoundPlaylist {
   owner?: string;
   duration?: number;
 }
-function AddSoundPlaylist() {
+function AddSoundPlaylistMeditation() {
   const params = useParams();
   const p_id = params.id;
   const [playlists, setPlaylists] = useState<CustomPlaylist | null>(null);
@@ -270,4 +270,4 @@ function AddSoundPlaylist() {
     </div>
   );
 }
-export default AddSoundPlaylist;
+export default AddSoundPlaylistMeditation;

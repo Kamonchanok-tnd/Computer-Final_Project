@@ -48,7 +48,7 @@ function SoundsCardmeditation({ data , extractYouTubeID, addSoundToPlaylist   }:
                  </div>
                  
             </div>
-            <div className="flex items-center justify-center w-full">
+            <div className="flex items-center justify-end pr-4">
                 <button onClick={() => addSoundToPlaylist(Number(sound.ID))}>
                     <CirclePlus size={30}/>
                 </button>

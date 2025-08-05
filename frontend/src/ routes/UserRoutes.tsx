@@ -21,6 +21,7 @@ import AddSoundPlaylist from "../pages/secondary function/Playlist/Playlist";
 import Playermedia from "../pages/secondary function/playermedia/playermedia";
 
 import Playermediameditation from "../pages/secondary function/meditation/playermeditation/playmedia";
+import AddSoundPlaylistMeditation from "../pages/secondary function/meditation/editplaylistmeditation/editplaylistmeditation";
 
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
@@ -88,7 +89,11 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
 
         {
           path: "/playmediameditation/:ID",
-          element: isLoggedIn ? <Playermediameditation/> : <Navigate to="/" />,
+          element: isLoggedIn ? <Playermediameditation/> : <Navigate to="/" />,  
+        },
+         {
+          path: "/editplaylist/:id",
+          element: isLoggedIn ? <AddSoundPlaylistMeditation/> : <Navigate to="/" />,  
         },
       
 
