@@ -110,6 +110,11 @@ async function fetchUserMeditationPlaylists() {
     const match = url.match(regex);
     return match ? match[1] : null;
   };
+  
+const GotoEditPlaylist = (id: number) => {
+  navigate(`/editplaylist/${id}`);
+};
+
 
   useEffect(() => {
     fetchMeditation();
@@ -208,32 +213,32 @@ async function fetchUserMeditationPlaylists() {
     <h1 className="text-xl text-basic-text mb-4">เพลยลิสต์สมาธิของฉัน</h1>
     <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
       {meditationPlaylists.map((pl) => {
-  console.log("🎧 Playlist:", pl)
-console.log("🖼️ Picture (raw background):", pl.Background)
-console.log("🖼️ Picture string:", pl.Background?.Picture)
+        console.log("🎧 Playlist:", pl)
+        console.log("🖼️ Picture (raw background):", pl.Background)
+        console.log("🖼️ Picture string:", pl.Background?.Picture)
 
-  return (
-    <div
-      key={pl.ID}
-      className="bg-white w-full min-h-[70px] rounded-md border border-gray-200 flex gap-2 p-3 hover:bg-gray-100 cursor-pointer"
-    >
-      <img
-  className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
-  src={
-    pl.Background && pl.Background.Picture
-    
-      ? `${IMG_URL}${pl.Background.Picture}`
-      : `${IMG_URL}maditation.jpg` 
-  }
-  alt={pl.name}
-/>
-      <div className="h-full w-full flex items-center justify-start">
-        <p className="text-basic-text font-bold truncate">{pl.name}</p>
-      </div>
-    </div>
-  );
-})}
+        return (
+          <div
+            key={pl.ID}
+            className="bg-white w-full min-h-[70px] rounded-md border border-gray-200 flex gap-2 p-3 hover:bg-gray-100 cursor-pointer"
+            onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
 
+          >
+            <img
+              className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
+              src={
+                pl.Background && pl.Background.Picture
+                  ? `${IMG_URL}${pl.Background.Picture}`
+                  : `${IMG_URL}maditation.jpg`
+              }
+              alt={pl.name}
+            />
+            <div className="h-full w-full flex items-center justify-start">
+              <p className="text-basic-text font-bold truncate">{pl.name}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   </div>
 )}
