@@ -9,7 +9,7 @@ interface SoundDataprops {
 }
 function SoundsCard({ data , extractYouTubeID, addSoundToPlaylist   }: SoundDataprops) {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 ">
         {data.map((sound) => {
     
             const soundId = extractYouTubeID(sound.sound!);
@@ -18,39 +18,38 @@ function SoundsCard({ data , extractYouTubeID, addSoundToPlaylist   }: SoundData
             return(
             <div
             key={sound.ID}
-            className="bg-white w-full h-25 border-gray-200 border rounded-lg   flex  gap-4"
+            className="bg-white dark:bg-box-dark w-full h-18 dark:border-stoke-dark  border-gray-200 border rounded-lg   flex justify-between  gap-2"
             >
             <img
                 src={thumbnail}
                 alt={sound.name}
-                className="w-24 h-full object-cover rounded-l-lg "
+                className="md:w-24 lg:w-20 h-full object-cover w-[30%] rounded-l-lg "
             />
-            <div className="flex flex-col w-[50%] justify-between p-2">
+            <div className="flex flex-col w-[50%]  justify-center  p-2">
                 <div>
-                <h1 className="text-lg font-medium  truncate ">{sound.name}</h1>
-                 <p className="text-sm truncate">{sound.owner}</p>  
+                <h1 className="text-md font-medium  truncate text-basic-text dark:text-text-dark">{sound.name}</h1>
+                 <p className="text-sm truncate text-basic-text dark:text-text-dark">{sound.owner}</p>  
                 </div>
                 
-                 <div className="flex gap-4">
-                    <div className="flex gap-2">
-                        <Clock size={20}/>
+                <div className="flex gap-2  ">
+                        <div className="flex gap-1 text-sm items-center text-text-basic dark:text-text-dark">
+                        <Clock size={14} />
                         <p>{sound.duration}</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Eye size={20}/>
+                        </div>
+                        <div className="flex gap-1 text-sm items-center text-text-basic dark:text-text-dark">
+                        <Eye size={14} />
                         <p>{sound.view}</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Heart size={20}/>
+                        </div>
+                        <div className="flex gap-1 text-sm items-center text-text-basic dark:text-text-dark">
+                        <Heart size={14} />
                         <p>{sound.duration}</p>
+                        </div>
                     </div>
-                    
-                 </div>
                  
             </div>
-            <div className="flex items-center justify-center w-full">
+            <div className="flex items-center justify-center  mr-4 md:mr-1">
                 <button onClick={() => addSoundToPlaylist(Number(sound.ID))}>
-                    <CirclePlus size={30}/>
+                    <CirclePlus size={20} className="text-gray-600 dark:text-text-dark hover:text-button-blue transition-all duration-300"/>
                 </button>
                   
                  </div>
