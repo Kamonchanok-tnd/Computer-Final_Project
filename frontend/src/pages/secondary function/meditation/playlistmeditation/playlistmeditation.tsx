@@ -2,13 +2,13 @@ import { Modal, Form, Input, Button, message } from "antd";
 import { useState } from "react";
 import { CreatePlaylist } from "../../../../services/https/playlist";
 
-interface ModalPlaylistProps {
+interface PlayermediameditationProps {
   isModalOpen: boolean;
   onClose: () => void;
-  gotoPlaylist: (id : number) => void
 }
 
-function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProps) {
+
+function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +20,7 @@ function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProp
     values.bid = 1;
 
     // แนบ stid เฉพาะเมื่อต้องการ (อย่าแนบ 0)
-    const selectedStid = 3; // ตัวอย่าง ถ้าคุณมี UI ให้เลือก
+    const selectedStid = 2; // ตัวอย่าง ถ้าคุณมี UI ให้เลือก
     if (selectedStid) {
       values.stid = selectedStid;
     }
@@ -80,4 +80,4 @@ function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProp
   );
 }
 
-export default ModalPlaylist;
+export default PlaylistMeditation;

@@ -149,18 +149,21 @@ function BreathingCard({ sound }: BreathingCardProps) {
               <input
                 value={hours}
                 onChange={(e) => handleChange(e, "h")}
+                placeholder="00"
                 className="w-8 text-center bg-transparent outline-none cursor-pointer"
               />
               :
               <input
                 value={minutes}
                 onChange={(e) => handleChange(e, "m")}
+                placeholder="00"
                 className="w-8 text-center bg-transparent outline-none cursor-pointer"
               />
               :
               <input
                 value={seconds}
                 onChange={(e) => handleChange(e, "s")}
+                placeholder="00"
                 className="w-8 text-center bg-transparent outline-none cursor-pointer"
               />
             </div>

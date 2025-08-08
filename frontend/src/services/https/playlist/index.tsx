@@ -89,3 +89,26 @@ export async function UpdatePlaylist(data: IPlaylist, id: number) {
     console.error(error);
   }
 }
+
+export async function getPlaylistsByUserAndType(uid: number, stid: number): Promise<IPlaylist[]> {
+  try {
+    const response = await fetch(`${apiUrl}/playlists?uid=${uid}&stid=${stid}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Authorization}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch playlists");
+    }
+
+    const data = await response.json();
+    console.log("🎧 Loaded playlists:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error fetching playlists:", error);
+    return [];
+  }
+}

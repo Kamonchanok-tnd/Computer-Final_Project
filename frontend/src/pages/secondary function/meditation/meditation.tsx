@@ -7,7 +7,13 @@ import { Sound } from "../../../interfaces/ISound";
 import MeditationContent from "./components/MeditationContent";
 import BreathingCard from "../breathing/components/breathingcontent";
 import { useNavigate } from "react-router-dom";
-import ModalPlaylist from "../chanting/components/modalPlaylist";
+
+import PlaylistMeditation from "./playlistmeditation/playlistmeditation";
+import { IPlaylist } from "../../../interfaces/IPlaylist";
+import { getPlaylistsByUserAndType } from "../../../services/https/playlist";
+
+import { IMG_URL } from "../../../services/https/playlist";
+import { IBackground } from "../../../interfaces/IBackground";
 
 function MeditationMain() {
   const { isDarkMode } = useDarkMode();
@@ -19,6 +25,11 @@ function MeditationMain() {
   const [meditation, setMeditation] = useState(true);
   const [playlist, setPlaylist] = useState(true);
   const [breathing, setBreathing] = useState(true);
+  const [meditationPlaylists, setMeditationPlaylists] = useState<IPlaylist[]>([]);
+  const [backgrounds, setBackgrounds] = useState<IBackground[]>([]);
+
+  
+
 
   const [activeFilter, setActiveFilter] = useState<
     "all" | "playlist" | "meditation" | "breathing"
@@ -28,9 +39,7 @@ function MeditationMain() {
 
   const navigate = useNavigate();
 
-  // ✅ Fetch Meditation
-  // ✅ Fetch Meditation
-async function fetchMeditation() {
+  async function fetchMeditation() {
   try {
     const res = await getMeditationSounds(Number(uid)); // ส่ง uid
     setMeditationSounds(res.sounds || []);
@@ -38,6 +47,16 @@ async function fetchMeditation() {
     console.error("Error fetching meditation sounds:", error);
   }
 }
+
+async function fetchUserMeditationPlaylists() {
+  try {
+    const res = await getPlaylistsByUserAndType(Number(uid), 2); // stid = 2 = สมาธิ
+    setMeditationPlaylists(res);
+  } catch (error) {
+    console.error("Error fetching user meditation playlists:", error);
+  }
+}
+
 
   // ✅ Fetch Breathing
   async function fetchBreathing() {
@@ -91,10 +110,16 @@ async function fetchMeditation() {
     const match = url.match(regex);
     return match ? match[1] : null;
   };
+  
+const GotoEditPlaylist = (id: number) => {
+  navigate(`/editplaylist/${id}`);
+};
+
 
   useEffect(() => {
     fetchMeditation();
     fetchBreathing();
+    fetchUserMeditationPlaylists(); 
   }, []);
 
   return (
@@ -132,7 +157,7 @@ async function fetchMeditation() {
         </div>
 
         {openModal && (
-          <ModalPlaylist
+          <PlaylistMeditation
             isModalOpen={openModal}
             onClose={() => setOpenModal(false)}
           />
@@ -183,19 +208,41 @@ async function fetchMeditation() {
         </div>
 
         {/* 🎵 Playlist */}
-        {playlist && (
-          <div>
-            <h1 className="text-xl text-basic-text mb-4">เพลยลิสต์ของฉัน</h1>
-            <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
-              <div className="bg-white w-full min-h-[70px] rounded-md border border-gray-200 flex gap-2 p-3">
-                <div className="h-full w-18 bg-blue-500 rounded-tl-md rounded-bl-md" />
-                <div className="h-full w-full flex items-center justify-start">
-                  <p className="text-basic-text font-bold">เพลยลิสต์</p>
-                </div>
-              </div>
+{playlist && (
+  <div>
+    <h1 className="text-xl text-basic-text mb-4">เพลยลิสต์สมาธิของฉัน</h1>
+    <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+      {meditationPlaylists.map((pl) => {
+        console.log("🎧 Playlist:", pl)
+        console.log("🖼️ Picture (raw background):", pl.Background)
+        console.log("🖼️ Picture string:", pl.Background?.Picture)
+
+        return (
+          <div
+            key={pl.ID}
+            className="bg-white w-full min-h-[70px] rounded-md border border-gray-200 flex gap-2 p-3 hover:bg-gray-100 cursor-pointer"
+            onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
+
+          >
+            <img
+              className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
+              src={
+                pl.Background && pl.Background.Picture
+                  ? `${IMG_URL}${pl.Background.Picture}`
+                  : `${IMG_URL}maditation.jpg`
+              }
+              alt={pl.name}
+            />
+            <div className="h-full w-full flex items-center justify-start">
+              <p className="text-basic-text font-bold truncate">{pl.name}</p>
             </div>
           </div>
-        )}
+        );
+      })}
+    </div>
+  </div>
+)}
+
 
         {/* 🧘 Meditation Content */}
         {meditation && (
