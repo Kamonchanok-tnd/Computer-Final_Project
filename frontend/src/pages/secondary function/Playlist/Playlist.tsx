@@ -1,5 +1,5 @@
 import { use, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   CreatePlaylist,
   GetPlaylistByID,
@@ -43,6 +43,8 @@ export interface CustomSoundPlaylist extends ISoundPlaylist {
   sound?: string;
   owner?: string;
   duration?: number;
+  view?: number;
+  like_sound?: number;
 }
 function AddSoundPlaylist() {
   const params = useParams();
@@ -56,6 +58,7 @@ function AddSoundPlaylist() {
   const [deletedRowIds, setDeletedRowIds] = useState<number[]>([]);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>("");
+  const navigate = useNavigate();
 
   async function DeleteSoundPlaylist(id: number) {
     try {
@@ -63,7 +66,7 @@ function AddSoundPlaylist() {
       message.success("ลบเพลย์ลิสต์แล้ว");
       setDeletedRowIds((prev) => [...prev, id]);
       fetchSoundPlaylist();
-    }catch (error) {
+    } catch (error) {
       console.error("Error deleting playlist:", error);
     }
   }
@@ -148,19 +151,24 @@ function AddSoundPlaylist() {
       pid: Number(p_id),
     };
     try {
-      const res = await CreateSoundPlaylist(data);
-      console.log("playlist is: ", res);
-      console.log("playlist is: ", data);
-      message.success("เพิ่มเสียงเรียบร้อย");
-      fetchSoundPlaylist();
+      const { status, result } = await CreateSoundPlaylist(data);
+      if (status === 200) {
+        message.success("เพิ่มเสียงเรียบร้อย");
+        fetchSoundPlaylist();
+      } else if (status === 409) {
+        message.warning("เสียงนี้ถูกเพิ่มในเพลย์ลิสต์แล้ว");
+      } else {
+        message.error(result?.error || "เกิดข้อผิดพลาด");
+      }
     } catch (error) {
       console.error("Error fetching playlist:", error);
+      // message.error();
     }
   }
   async function handleSaveName() {
     if (!playlists) return;
     try {
-      const updated:IPlaylist = {name: newName};
+      const updated: IPlaylist = { name: newName };
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
       console.log("Playlist updated:", updated);
       setEditMode(false);
@@ -171,19 +179,39 @@ function AddSoundPlaylist() {
       message.error("เกิดข้อผิดพลาดในการเปลี่ยนชื่อ");
     }
   }
+  function prevPage(){
+    navigate(-1);
+  }
+
+  function topPage() {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth" // เลื่อนแบบนุ่ม ๆ
+    });
+  }
+  
+  useEffect(() => {
+    topPage();
+  }, []);
+  
 
   return (
-    <div className="flex flex-col h-full duration-300 items-center bg-background-blue dark:bg-background-dark">
+    <div className="flex flex-col  min-h-full max-h-fit duration-300 items-center bg-background-blue dark:bg-background-dark">
       <div
         className={`sm:mt-2 sm:py-4 px:2 py-2 px-1 sm:px-8 sm:w-[95%] w-full border flex flex-col gap-8 dark:border-stoke-dark dark:bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)] duration-300
             border-gray-200 bg-white h-full sm:rounded-xl`}
       >
-        <div className="grid grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 grid-cols-1 gap-4">
           {/* เพลยลิสต์ */}
           <div className="space-y-4">
             <div className="flex gap-4 items-center">
-              <ChevronLeft size={40} className="text-button-blue" />
-              <h1 className="text-xl font-semibold">เพลยลิสต์</h1>
+              <button onClick={prevPage} className="cursor-pointer">
+                    <ChevronLeft size={40} className="text-button-blue" />
+              </button>
+          
+              <h1 className="text-xl font-semibold dark:text-text-dark">
+                เพลยลิสต์
+              </h1>
             </div>
             {/*background playlist */}
             <div>
@@ -192,7 +220,7 @@ function AddSoundPlaylist() {
                 alt=""
                 className="w-full h-[300px] object-cover rounded-2xl"
               />
-              <div className="flex gap-4 items-end">
+              <div className="flex gap-2 items-end mt-2 relative">
                 {editMode ? (
                   <>
                     <input
@@ -202,34 +230,53 @@ function AddSoundPlaylist() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleSaveName();
                       }}
-                      className="text-4xl font-semibold bg-transparent border-b-2 border-gray-400 focus:outline-none"
+                      className="text-2xl font-semibold bg-transparent border-b-1 border-button-blue focus:outline-none dark:text-text-dark"
                     />
                     <button
                       onClick={handleSaveName}
-                      className="text-green-600 font-bold text-xl"
+                      className="text-button-blue bg-background-button dark:bg-background-button/20 p-1 rounded-md  font-bold text-xl "
                     >
-                      <Check/>
+                      <Check size={20} />
                     </button>
                     <button
                       onClick={() => setEditMode(false)}
-                      className="text-red-500 font-bold text-xl"
+                      className="text-red-500 dark:bg-red-50/20 bg-red-50 p-1 rounded-md font-bold text-xl"
                     >
-                      <X/>
+                      <X size={20} />
                     </button>
                   </>
                 ) : (
                   <>
-                    <p className="text-4xl font-semibold">{playlists?.name}</p>
+                    <p className="text-2xl font-semibold dark:text-text-dark">
+                      {playlists?.name}
+                    </p>
                     <button
                       onClick={() => {
                         setNewName(playlists?.name || "");
                         setEditMode(true);
                       }}
+                      className="bg-gray-200 rounded-full p-1 dark:bg-midnight-blue "
                     >
-                      <PenLine size={30} />
+                      <PenLine size={20} className="dark:text-button-blue text-basic-text" />
                     </button>
                   </>
                 )}
+                <div>
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/audiohome/chanting/playlist/play/${p_id}/${soundPlaylist[0].sid}`
+                      )
+                    }
+                    className="absolute right-0 top-[-20px] z-50 hover:scale-105 
+    text-white font-bold text-xl p-4 rounded-full 
+    bg-gradient-to-tl from-[#BBF0FC] to-[#5DE2FF]
+    transition-all duration-300
+    dark:btn-glow-play"
+                  >
+                    <Play />
+                  </button>
+                </div>
               </div>
             </div>
             <TableSoundPlaylist
@@ -242,17 +289,20 @@ function AddSoundPlaylist() {
 
           {/* search sound */}
           <div className="space-y-4">
-            <h1 className="text-xl mt-3">เพิ่มรายการเสียง</h1>
-            <div className="relative flex items-center gap-4   w-[70%] focus-within:outline-regal-blue rounded-lg transition-all cubic-bezier(0.4, 0, 0.2, 1) duration-300">
-              <Search className="absolute left-3 top-2 transform-translate-y-1/2 h-5 w-5 text-basic-blue" />
+            <h1 className="text-xl text-basic-text dark:text-text-dark mt-3">เพิ่มรายการบทสวดมนต์</h1>
+            <div className=" relative flex items-center md:gap-4 gap-2  w-[100%] focus-within:outline-regal-blue rounded-sm md:rounded-lg transition-all cubic-bezier(0.4, 0, 0.2, 1) duration-300">
+              <Search className="absolute left-3 top-2 transform-translate-y-1/2 h-5 w-5 text-basic-blue
+              dark:text-text-dark" />
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full   bg-[#FAFAFA] rounded-xl hover:outline-regal-blue hover:outline-1 transition-colors duration-300   focus:border-transparent outline-regal-blue focus:outline-1"
+                className="pl-10 pr-4 py-2 w-full  bg-[#FAFAFA] rounded-md hover:outline-regal-blue hover:outline-1 transition-colors duration-300  
+               focus:border-transparent outline-regal-blue focus:outline-1
+               dark:bg-chat-dark   dark:hover:border-regal-blue dark:text-white dark:hover:outline-regal-blue dark:hover:outline-1"
                 placeholder="ค้นหา..."
               />
               <button
-                className="bg-button-blue text-white py-2 px-4 rounded-xl"
+                className="bg-button-blue text-white py-2 px-4 rounded-sm md:rounded-lg"
                 onClick={() => setSearchTerm("")}
               >
                 ล้าง

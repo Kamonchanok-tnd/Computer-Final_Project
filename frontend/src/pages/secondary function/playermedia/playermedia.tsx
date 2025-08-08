@@ -20,8 +20,10 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Sound } from "../../../interfaces/ISound";
 import {
+  checkLikedSound,
   getSoundByID,
   getSoundsByTypeID,
+  likeSound,
 } from "../../../services/https/sounds";
 import { useNavigate, useParams } from "react-router-dom";
 import "./playmedia.css";
@@ -42,11 +44,12 @@ interface PlayerState {
   isMuted: boolean;
 }
 function Playermedia() {
+  const uid = Number(localStorage.getItem("id"));
   const params = useParams();
   const p_id = params.id;
-  // const [currentSound, setCurrentSound] = useState<Sound | null>(null); //vdo ปัจจุบัน
+  const [currentSound, setCurrentSound] = useState<Sound | null>(null); //vdo ปัจจุบัน
   const [chantingSounds, setChantingSounds] = useState<Sound[]>([]); //vdo ทั้งหมด
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [currentIndex, setCurrentIndex] = useState<number>(Number(p_id) || 0);
   const [player, setPlayer] = useState<any>(null);
   const [playerState, setPlayerState] = useState<PlayerState>({
     isPlaying: false,
@@ -66,17 +69,41 @@ function Playermedia() {
   const navigate = useNavigate();
   const [playedIndices, setPlayedIndices] = useState<number[]>([]); //เก็บ index ของ video ที่เล่นแล้ว
 
+  // เอาไว้กด like
+  const [isLiked, setIsLiked] = useState(false);
+  const realId = currentSound?.ID ;
 
+  useEffect(() => {
+      const fetchLikeStatus = async () => {
+        try {
+          const res = await checkLikedSound(Number(realId), uid);
+          setIsLiked(res.isLiked);
+        } catch (error) {
+          console.error("โหลดสถานะหัวใจไม่สำเร็จ:", error);
+        }
+      };
+      if (uid && realId) fetchLikeStatus();
+    }, [realId, uid]);
 
-  // async function fetchSound(id: number) {
-  //   try {
-  //     const res = await getSoundByID(id);
-  //     console.log("sound is: ", res.data);
-  //     setCurrentSound(res.data);
-  //   } catch (error) {
-  //     console.error("Error fetching sound:", error);
-  //   }
-  // }
+    const handleLike = async () => {
+        if (!realId) return;
+        try {
+          const res = await likeSound(realId, uid); 
+          setIsLiked(res.liked);
+        } catch (error) {
+          console.error("กดหัวใจไม่สำเร็จ:", error);
+        }
+      };
+
+  async function fetchSound(id: number) {
+    try {
+      const res = await getSoundByID(id);
+      console.log("sound is: ", res.data);
+      setCurrentSound(res.data);
+    } catch (error) {
+      console.error("Error fetching sound:", error);
+    }
+  }
 
   async function fetchChanting() {
     try {
@@ -92,6 +119,7 @@ function Playermedia() {
     if (p_id) {
       // fetchSound(Number(p_id));
       fetchChanting();
+      fetchSound(Number(p_id));
     }
   }, [p_id]);
 
@@ -102,9 +130,19 @@ function Playermedia() {
   };
   // const videoId = extractYouTubeID(currentSound?.sound || "");
 
-  const getVideoId = (item: Sound): string | null => {
-    return extractYouTubeID(item.sound || "");
+  const getVideoId = (item: Sound | undefined): string | null => {
+    if (!item || !item.sound) {
+      console.warn("⚠️ ไม่มี sound หรือ item undefined:", item);
+      return null;
+    }
+  
+    const extracted = extractYouTubeID(item.sound);
+    if (!extracted) {
+      console.error("❌ ไม่สามารถ extract YouTube ID จาก:", item.sound);
+    }
+    return extracted;
   };
+  
 
   // Load YouTube API
   useEffect(() => {
@@ -123,12 +161,17 @@ function Playermedia() {
   }, []);
 
   useEffect(() => {
-    if (isApiReady && playerRef.current && !player) {
+    if (isApiReady && playerRef.current && !player && chantingSounds.length > 0) {
       const currentVideoId = getVideoId(chantingSounds[currentIndex]);
+
+      if (!currentVideoId) {
+        console.error("❌ ไม่สามารถโหลดวิดีโอ เพราะ videoId ไม่ถูกต้อง");
+        return; // ❌ อย่าสร้าง player ถ้า videoId ไม่ valid
+      }
       new window.YT.Player(playerRef.current, {
-        height: "100%",
+        height: "350",
         width: "100%",
-        videoId: currentVideoId || "dQw4w9WgXcQ",
+        videoId: currentVideoId ,
         playerVars: {
           autoplay: isAutoPlay ? 1 : 0,
           
@@ -414,9 +457,26 @@ function Playermedia() {
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+  useEffect(() => {
+    if (p_id && chantingSounds.length > 0) {
+      const index = chantingSounds.findIndex((s) => s.ID === Number(p_id));
+      if (index !== -1) {
+        setCurrentIndex(index);
+      }
+    }
+  }, [chantingSounds, p_id]);
+
+  useEffect(() => {
+    console.log("🔥 currentIndex set to", currentIndex);
+    console.log("✅ p_id:", p_id);
+    console.log("🎵 selected sound:", chantingSounds[currentIndex]);
+  }, [currentIndex]);
+  
+ 
+  
 
   return (
-    <div className="flex flex-col min-h-full duration-300 items-center bg-background-blue dark:bg-background-dark">
+    <div className="flex flex-col min-h-full duration-300 items-center bg-background-blue dark:bg-background-dark ">
       <div
         className={`sm:mt-2  px:2  px-1 sm:px-8 sm:w-[95%] w-full  flex flex-col gap-8 dark:border-stoke-dark dark:bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)] duration-300
              bg-transparent  sm:rounded-xl`}
@@ -424,7 +484,7 @@ function Playermedia() {
         <div className="grid lg:grid-cols-3 grid-cols-1 w-full h-full gap-12">
           {/* player media */}
 
-          <div className="lg:col-span-2 bg-b rounded-2xl flex flex-col ">
+          <div className="lg:col-span-2 bg-b rounded-2xl flex flex-col px-4 white/50 backdrop-blur-md shadow-md ">
             <div className="flex gap-4 items-center ">
               <ChevronLeft size={40} className="text-button-blue" />
               <h1 className="text-xl font-semibold ">สวดมนต์</h1>
@@ -432,7 +492,7 @@ function Playermedia() {
             {/* vdo */}
             <div className="w-full  bg-tranparent  ">
               <div className="bg-black rounded-2xl overflow-hidden  mb-6">
-                <div ref={playerRef} className="w-full md:h-[400px] lg:h-[500px] aspect-video" />
+                <div ref={playerRef} className="w-full  aspect-video" />
               </div>
             </div>
 
@@ -442,8 +502,14 @@ function Playermedia() {
              
               <div className="flex justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-full shadow-sm">
-                    <Heart className="text-basic-text"/> 
+                <div
+                    onClick={handleLike}
+                    className=" w-10 h-10 bg-white flex items-center justify-center rounded-full shadow-md hover:scale-105 duration-300 cursor-pointer"
+                  >
+                    <Heart
+                      className={`h-5 w-5 ${isLiked ? "text-red-500" : "text-gray-400"}`}
+                      fill={isLiked ? "currentColor" : "none"}
+                    />
                   </div>
                 
                  <p className="text-basic-text text-lg">{videoTitle}</p>
@@ -597,11 +663,11 @@ function Playermedia() {
             </div>
           </div>
           {/* listsound */}
-          <div className="lg:col-span-1 bg-transparent rounded-2xl ">
+          <div className="lg:col-span-1 bg-transparent rounded-2xl  ">
             <div className="flex gap-4 items-center">
               <h1 className="text-xl font-semibold">รายการเสียง</h1>
             </div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl  border border-white/20 h-full">
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-md ">
               
 
               <div
@@ -649,7 +715,7 @@ function Playermedia() {
                         <div>
                           <div className="flex items-center gap-2">
                             <Eye size={16} />
-                            <p>{item.like_sound}</p>
+                            <p>{item.view}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -684,7 +750,7 @@ function Playermedia() {
               </div>
 
               {/* Playlist Controls */}
-              <div className="mt-4 pt-4 border-t border-white/20">
+              {/* <div className="mt-4 pt-4 border-t border-white/20">
                 <div className="flex items-center justify-between text-sm text-white/80">
                   <div className="flex items-center gap-4">
                     <span
@@ -713,7 +779,7 @@ function Playermedia() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

@@ -5,9 +5,10 @@ import { CreatePlaylist } from "../../../../services/https/playlist";
 interface ModalPlaylistProps {
   isModalOpen: boolean;
   onClose: () => void;
+  gotoPlaylist: (id : number) => void
 }
 
-function ModalPlaylist({ isModalOpen, onClose }: ModalPlaylistProps) {
+function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -19,9 +20,9 @@ function ModalPlaylist({ isModalOpen, onClose }: ModalPlaylistProps) {
       values.bid = 1
       // TODO: ส่งข้อมูลไป backend หรือจัดการตามต้องการ
       console.log("Submitted Playlist Name:", values);
-      await CreatePlaylist(values);
+      const res =await CreatePlaylist(values);
       message.success("สร้างเพลย์ลิสต์สำเร็จ!");
-
+      gotoPlaylist( Number(res.ID));
       form.resetFields();
       onClose(); // ปิด modal
     } catch (error) {
