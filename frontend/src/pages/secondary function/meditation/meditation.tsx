@@ -7,13 +7,12 @@ import { Sound } from "../../../interfaces/ISound";
 import MeditationContent from "./components/MeditationContent";
 import BreathingCard from "../breathing/components/breathingcontent";
 import { useNavigate } from "react-router-dom";
-
 import PlaylistMeditation from "./playlistmeditation/playlistmeditation";
 import { IPlaylist } from "../../../interfaces/IPlaylist";
-import { getPlaylistsByUserAndType } from "../../../services/https/playlist";
-
-import { IMG_URL } from "../../../services/https/playlist";
+import { getPlaylistsByUserAndType, IMG_URL } from "../../../services/https/playlist";
 import { IBackground } from "../../../interfaces/IBackground";
+import { message } from "antd";
+
 
 function MeditationMain() {
   const { isDarkMode } = useDarkMode();
@@ -26,48 +25,66 @@ function MeditationMain() {
   const [playlist, setPlaylist] = useState(true);
   const [breathing, setBreathing] = useState(true);
   const [meditationPlaylists, setMeditationPlaylists] = useState<IPlaylist[]>([]);
+  const [breathingPlaylists, setBreathingPlaylists] = useState<IPlaylist[]>([]); // ✅ เพิ่ม breathing playlist
   const [backgrounds, setBackgrounds] = useState<IBackground[]>([]);
 
-  
-
+  const [uid, setUid] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const [activeFilter, setActiveFilter] = useState<
     "all" | "playlist" | "meditation" | "breathing"
   >("all");
 
-  const uid = localStorage.getItem("id");
+  useEffect(() => {
+    const storedUid = localStorage.getItem("id");
+    if (storedUid) {
+      setUid(Number(storedUid));
+    }
+  }, []);
 
-  const navigate = useNavigate();
-
-  async function fetchMeditation() {
-  try {
-    const res = await getMeditationSounds(Number(uid)); // ส่ง uid
-    setMeditationSounds(res.sounds || []);
-  } catch (error) {
-    console.error("Error fetching meditation sounds:", error);
-  }
-}
-
-async function fetchUserMeditationPlaylists() {
-  try {
-    const res = await getPlaylistsByUserAndType(Number(uid), 2); // stid = 2 = สมาธิ
-    setMeditationPlaylists(res);
-  } catch (error) {
-    console.error("Error fetching user meditation playlists:", error);
-  }
-}
-
-
-  // ✅ Fetch Breathing
-  async function fetchBreathing() {
+  async function fetchMeditation(userId: number) {
     try {
-      const res = await getBreathingSounds(Number(uid));
-      console.log("✅ API Breathing Data:", res.sounds);
+      const res = await getMeditationSounds(userId);
+      setMeditationSounds(res.sounds || []);
+    } catch (error) {
+      console.error("Error fetching meditation sounds:", error);
+    }
+  }
+
+  async function fetchUserMeditationPlaylists(userId: number) {
+    try {
+      const res = await getPlaylistsByUserAndType(userId, 2); // 2 = สมาธิ
+      setMeditationPlaylists(res);
+    } catch (error) {
+      console.error("Error fetching user meditation playlists:", error);
+    }
+  }
+
+  async function fetchUserBreathingPlaylists(userId: number) {
+    try {
+      const res = await getPlaylistsByUserAndType(userId, 3); // ✅ 3 = ฝึกลมหายใจ
+      setBreathingPlaylists(res);
+    } catch (error) {
+      console.error("Error fetching user breathing playlists:", error);
+    }
+  }
+
+  async function fetchBreathing(userId: number) {
+    try {
+      const res = await getBreathingSounds(userId);
       setBreathingSounds(res.sounds || []);
     } catch (error) {
       console.error("Error fetching breathing sounds:", error);
     }
   }
+
+  useEffect(() => {
+    if (uid === null) return;
+    fetchMeditation(uid);
+    fetchBreathing(uid);
+    fetchUserMeditationPlaylists(uid);
+    fetchUserBreathingPlaylists(uid); // ✅ เรียก API เพลยลิสต์ลมหายใจ
+  }, [uid]);
 
   const filteredMeditation = meditationSounds.filter((sound) =>
     sound.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -110,17 +127,13 @@ async function fetchUserMeditationPlaylists() {
     const match = url.match(regex);
     return match ? match[1] : null;
   };
-  
-const GotoEditPlaylist = (id: number) => {
-  navigate(`/editplaylist/${id}`);
-};
+
+  const GotoEditPlaylist = (id: number) => {
+    navigate(`/editplaylist/${id}`);
+  };
 
 
-  useEffect(() => {
-    fetchMeditation();
-    fetchBreathing();
-    fetchUserMeditationPlaylists(); 
-  }, []);
+
 
   return (
     <div
@@ -156,93 +169,92 @@ const GotoEditPlaylist = (id: number) => {
           </button>
         </div>
 
-        {openModal && (
-          <PlaylistMeditation
-            isModalOpen={openModal}
-            onClose={() => setOpenModal(false)}
-          />
-        )}
+        <PlaylistMeditation
+  isModalOpen={openModal}
+  onClose={() => setOpenModal(false)}
+  onSuccess={() => {
+    message.success("สร้างเพลย์ลิสต์สำเร็จ!");
+    if (uid) {
+      fetchUserMeditationPlaylists(uid);
+      fetchUserBreathingPlaylists(uid);
+    }
+  }}
+/>
+
 
         {/* 🔘 Filter buttons */}
         <div className="space-x-1">
-          <button
-            onClick={filterAll}
-            className={`px-4 py-2 rounded-xl duration-300 ${
-              activeFilter === "all"
-                ? "bg-background-button text-blue-word"
-                : "bg-transparent text-subtitle"
-            }`}
-          >
+          <button onClick={filterAll} className={`px-4 py-2 rounded-xl duration-300 ${activeFilter === "all" ? "bg-background-button text-blue-word" : "bg-transparent text-subtitle"}`}>
             ทั้งหมด
           </button>
-          <button
-            onClick={filterPlaylist}
-            className={`px-4 py-2 rounded-xl duration-300 ${
-              activeFilter === "playlist"
-                ? "bg-background-button text-blue-word"
-                : "bg-transparent text-subtitle"
-            }`}
-          >
+          <button onClick={filterPlaylist} className={`px-4 py-2 rounded-xl duration-300 ${activeFilter === "playlist" ? "bg-background-button text-blue-word" : "bg-transparent text-subtitle"}`}>
             เพลยลิสต์ของฉัน
           </button>
-          <button
-            onClick={filterMeditation}
-            className={`px-4 py-2 rounded-xl duration-300 ${
-              activeFilter === "meditation"
-                ? "bg-background-button text-blue-word"
-                : "bg-transparent text-subtitle"
-            }`}
-          >
+          <button onClick={filterMeditation} className={`px-4 py-2 rounded-xl duration-300 ${activeFilter === "meditation" ? "bg-background-button text-blue-word" : "bg-transparent text-subtitle"}`}>
             นั่งสมาธิ
           </button>
-          <button
-            onClick={filterBreathing}
-            className={`px-4 py-2 rounded-xl duration-300 ${
-              activeFilter === "breathing"
-                ? "bg-background-button text-blue-word"
-                : "bg-transparent text-subtitle"
-            }`}
-          >
+          <button onClick={filterBreathing} className={`px-4 py-2 rounded-xl duration-300 ${activeFilter === "breathing" ? "bg-background-button text-blue-word" : "bg-transparent text-subtitle"}`}>
             ฝึกลมหายใจ
           </button>
         </div>
 
-        {/* 🎵 Playlist */}
-{playlist && (
-  <div>
-    <h1 className="text-xl text-basic-text mb-4">เพลยลิสต์สมาธิของฉัน</h1>
-    <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
-      {meditationPlaylists.map((pl) => {
-        console.log("🎧 Playlist:", pl)
-        console.log("🖼️ Picture (raw background):", pl.Background)
-        console.log("🖼️ Picture string:", pl.Background?.Picture)
-
-        return (
-          <div
-            key={pl.ID}
-            className="bg-white w-full min-h-[70px] rounded-md border border-gray-200 flex gap-2 p-3 hover:bg-gray-100 cursor-pointer"
-            onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
-
-          >
-            <img
-              className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
-              src={
-                pl.Background && pl.Background.Picture
-                  ? `${IMG_URL}${pl.Background.Picture}`
-                  : `${IMG_URL}maditation.jpg`
-              }
-              alt={pl.name}
-            />
-            <div className="h-full w-full flex items-center justify-start">
-              <p className="text-basic-text font-bold truncate">{pl.name}</p>
+        {/* 🎵 Meditation Playlist */}
+        {playlist && (
+          <div>
+            <h1 className="text-xl text-basic-text mb-4">เพลยลิสต์สมาธิของฉัน</h1>
+            <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+              {meditationPlaylists.map((pl) => (
+                <div
+                  key={pl.ID}
+                  className="bg-white w-full min-h-[70px] rounded-md border border-gray-200 flex gap-2 p-3 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
+                >
+                  <img
+                    className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
+                    src={
+                      pl.Background && pl.Background.Picture
+                        ? `${IMG_URL}${pl.Background.Picture}`
+                        : `${IMG_URL}defaultPlaylist.png`
+                    }
+                    alt={pl.name}
+                  />
+                  <div className="h-full w-full flex items-center justify-start">
+                    <p className="text-basic-text font-bold truncate">{pl.name}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        );
-      })}
-    </div>
-  </div>
-)}
+        )}
 
+        {/* 🎵 Breathing Playlist */}
+        {playlist && breathingPlaylists.length > 0 && (
+          <div>
+            <h1 className="text-xl text-basic-text mb-4">เพลยลิสต์ฝึกลมหายใจของฉัน</h1>
+            <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+              {breathingPlaylists.map((pl) => (
+                <div
+                  key={pl.ID}
+                  className="bg-white w-full min-h-[70px] rounded-md border border-gray-200 flex gap-2 p-3 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
+                >
+                  <img
+                    className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
+                    src={
+                      pl.Background && pl.Background.Picture
+                        ? `${IMG_URL}${pl.Background.Picture}`
+                        : `${IMG_URL}defaultPlaylist.png`
+                    }
+                    alt={pl.name}
+                  />
+                  <div className="h-full w-full flex items-center justify-start">
+                    <p className="text-basic-text font-bold truncate">{pl.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 🧘 Meditation Content */}
         {meditation && (
@@ -256,7 +268,6 @@ const GotoEditPlaylist = (id: number) => {
         {breathing && (
           <div className="flex flex-col w-full">
             <h1 className="text-xl text-basic-text mb-4">ฝึกลมหายใจ</h1>
-
             <div className="grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-4">
               {filteredBreathing.map((sound) => (
                 <BreathingCard key={sound.ID} sound={sound} />
