@@ -1,14 +1,14 @@
-import { Modal, Form, Input, Button, message } from "antd";
+import { Modal, Form, Input, Button, message, Select } from "antd";
 import { useState } from "react";
 import { CreatePlaylist } from "../../../../services/https/playlist";
 
 interface PlayermediameditationProps {
   isModalOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void; // ✅ เพิ่ม callback สำหรับ refresh & message
 }
 
-
-function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps) {
+function PlaylistMeditation({ isModalOpen, onClose , onSuccess}: PlayermediameditationProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -16,18 +16,23 @@ function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps
   try {
     const values = await form.validateFields();
     setLoading(true);
-    values.uid = Number(localStorage.getItem("id"));
-    values.bid = 1;
 
-    // แนบ stid เฉพาะเมื่อต้องการ (อย่าแนบ 0)
-    const selectedStid = 2; // ตัวอย่าง ถ้าคุณมี UI ให้เลือก
-    if (selectedStid) {
-      values.stid = selectedStid;
+    const uid = Number(localStorage.getItem("id"));
+    const { stid } = values;
+
+    values.uid = uid;
+
+    // ✅ ตั้งค่า background ID ตามประเภทเพลย์ลิสต์
+    if (stid === 2) {
+      values.bid = 2; // สมาธิ
+    } else if (stid === 3) {
+      values.bid = 3; // ฝึกลมหายใจ
     }
 
-    console.log("Submitted Playlist Name:", values);
+    console.log("Submitted Playlist:", values);
     await CreatePlaylist(values);
-    message.success("สร้างเพลย์ลิสต์สำเร็จ!");
+    onSuccess?.(); // ✅ เรียกเมื่อสร้างสำเร็จ
+    
 
     form.resetFields();
     onClose();
@@ -38,7 +43,6 @@ function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps
   }
 };
 
-
   return (
     <Modal
       open={isModalOpen}
@@ -47,15 +51,13 @@ function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps
       okText="บันทึก"
       cancelText="ยกเลิก"
       footer={null}
-     
-
     >
-      
       <Form layout="vertical" form={form}>
         <div>
-          <h1 className="text-xl  text-basic-text mb-4 text-center mt-2">สร้างเพลย์ลิสต์</h1>
+          <h1 className="text-xl text-basic-text mb-4 text-center mt-2">สร้างเพลย์ลิสต์</h1>
         </div>
 
+        {/* 🔤 ชื่อเพลย์ลิสต์ */}
         <h1 className="text-xl text-basic-text mb-1 text-center">กรุณากรอกชื่อเพลย์ลิสต์</h1>
         <Form.Item
           name="name"
@@ -63,19 +65,30 @@ function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps
         >
           <Input placeholder="เช่น เสียงผ่อนคลายก่อนนอน" />
         </Form.Item>
+
+        {/* 🧘‍♂️ เลือกประเภทเสียง */}
+        <Form.Item
+          name="stid"
+          label="ประเภทเพลย์ลิสต์"
+          rules={[{ required: true, message: "กรุณาเลือกประเภทเพลย์ลิสต์" }]}
+        >
+          <Select placeholder="เลือกประเภทเพลย์ลิสต์">
+            <Select.Option value={2}>นั่งสมาธิ</Select.Option>
+            <Select.Option value={3}>ฝึกลมหายใจ</Select.Option>
+          </Select>
+        </Form.Item>
       </Form>
 
-     
+      {/* ✅ ปุ่ม */}
       <div className="flex justify-end gap-4 mt-4">
-    <button onClick={onClose}>ยกเลิก</button>
-    <button
-      onClick={handleSubmit}
-      className="bg-button-blue duration-300 hover:bg-button-blue-hover text-white px-4 py-2 rounded-lg"
-    >
-      บันทึก
-    </button>
-  </div>
-
+        <button onClick={onClose}>ยกเลิก</button>
+        <button
+          onClick={handleSubmit}
+          className="bg-button-blue duration-300 hover:bg-button-blue-hover text-white px-4 py-2 rounded-lg"
+        >
+          บันทึก
+        </button>
+      </div>
     </Modal>
   );
 }

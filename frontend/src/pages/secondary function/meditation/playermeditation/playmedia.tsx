@@ -299,9 +299,9 @@ const playPrevious = () => {
           {/* Player */}
           <div className="col-span-2 bg-white/50 backdrop-blur-md rounded-2xl p-4 shadow-lg flex flex-col">
             <div className="flex gap-4 items-center">
-               <button onClick={() => navigate("/audiohome/meditation")}>
-                <ChevronLeft size={32} className="text-[#00796B] cursor-pointer" />
-              </button>
+               <button type="button" onClick={() => navigate("/audiohome/meditation")}>
+  <ChevronLeft size={32} className="text-[#00796B] cursor-pointer" />
+</button>
               <h1 className="text-2xl font-semibold text-[#004D40]">ทำสมาธิ</h1>
             </div>
 

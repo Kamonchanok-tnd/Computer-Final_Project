@@ -1,5 +1,5 @@
-import { use, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {  useEffect, useState } from "react";
+import { useParams,useNavigate } from "react-router-dom";
 import {
   GetPlaylistByID,
   IMG_URL,
@@ -8,21 +8,15 @@ import {
 import {
   Check,
   ChevronLeft,
-  CirclePlus,
-  Clock,
-  Eye,
-  Heart,
-  MoveLeft,
   PenLine,
-  Play,
   Search,
-  SquarePen,
   X,
 } from "lucide-react";
 import { IPlaylist } from "../../../../interfaces/IPlaylist";
 import { Sound } from "../../../../interfaces/ISound";
 import { getSoundsByTypeID } from "../../../../services/https/sounds";
 import { ISoundPlaylist } from "../../../../interfaces/ISoundPlaylist";
+// import { IBackground } from "../../../../interfaces/IBackground";
 import {
   CreateSoundPlaylist,
   DeleteSoundPlaylistByID,
@@ -52,10 +46,11 @@ function AddSoundPlaylistMeditation() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredSounds, setFilteredSounds] = useState<Sound[]>([]);
   const [soundPlaylist, setSoundPlaylist] = useState<CustomSoundPlaylist[]>([]);
-  const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
+
   const [deletedRowIds, setDeletedRowIds] = useState<number[]>([]);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>("");
+  const navigate = useNavigate();
 
   async function DeleteSoundPlaylist(id: number) {
     try {
@@ -119,22 +114,7 @@ function AddSoundPlaylistMeditation() {
     // console.log("playlists is: ", chantingSounds);
   }, [soundPlaylist]);
 
-  const getYouTubeEmbedUrl = (url?: string): string | null => {
-    if (!url) {
-      console.warn("YouTube URL is undefined or empty");
-      return null;
-    }
-    const regExp =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
-    const match = url.match(regExp);
 
-    if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}`;
-    } else {
-      console.warn("ไม่สามารถดึง YouTube video ID จาก URL:", url);
-      return null;
-    }
-  };
 
   const extractYouTubeID = (url: string): string | null => {
     const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
@@ -158,19 +138,24 @@ function AddSoundPlaylistMeditation() {
     }
   }
   async function handleSaveName() {
-    if (!playlists) return;
-    try {
-      const updated:IPlaylist = {name: newName};
-      await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
-      console.log("Playlist updated:", updated);
-      setEditMode(false);
-      message.success("เปลี่ยนชื่อเพลย์ลิสต์แล้ว");
-      fetchPlaylist();
-    } catch (error) {
-      console.error("Error updating name:", error);
-      message.error("เกิดข้อผิดพลาดในการเปลี่ยนชื่อ");
-    }
+  if (!playlists) return;
+  try {
+    const updated: IPlaylist = {
+      ...playlists,     // ดึงข้อมูลที่มีอยู่
+      name: newName,    // แก้ชื่อใหม่
+    };
+
+    await UpdatePlaylist(updated, Number(p_id));
+    console.log("Playlist updated:", updated);
+    setEditMode(false);
+    message.success("เปลี่ยนชื่อเพลย์ลิสต์แล้ว");
+    fetchPlaylist();
+  } catch (error) {
+    console.error("Error updating name:", error);
+    message.error("เกิดข้อผิดพลาดในการเปลี่ยนชื่อ");
   }
+}
+
 
   return (
     <div className="flex flex-col h-full duration-300 items-center bg-background-blue dark:bg-background-dark">
@@ -182,7 +167,11 @@ function AddSoundPlaylistMeditation() {
           {/* เพลยลิสต์ */}
           <div className="space-y-4">
             <div className="flex gap-4 items-center">
-              <ChevronLeft size={40} className="text-button-blue" />
+             <ChevronLeft
+                size={40}
+                className="text-button-blue cursor-pointer"
+                onClick={() => navigate("/audiohome/meditation")} // ✅ เพิ่ม onClick
+              />
               <h1 className="text-xl font-semibold">เพลยลิสต์</h1>
             </div>
             {/*background playlist */}
@@ -196,38 +185,53 @@ function AddSoundPlaylistMeditation() {
                 {editMode ? (
                   <>
                     <input
-                      type="text"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSaveName();
-                      }}
-                      className="text-4xl font-semibold bg-transparent border-b-2 border-gray-400 focus:outline-none"
-                    />
+  type="text"
+  value={newName}
+  onChange={(e) => setNewName(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") handleSaveName();
+  }}
+  className="text-4xl font-semibold bg-transparent border-b-2 border-gray-400 focus:outline-none"
+  placeholder="เปลี่ยนชื่อเพลย์ลิสต์"
+  aria-label="เปลี่ยนชื่อเพลย์ลิสต์"
+/>
+
                     <button
-                      onClick={handleSaveName}
-                      className="text-green-600 font-bold text-xl"
-                    >
-                      <Check/>
-                    </button>
+  type="button"
+  onClick={handleSaveName}
+  className="text-green-600 font-bold text-xl"
+  aria-label="บันทึกชื่อเพลย์ลิสต์"
+  title="บันทึกชื่อเพลย์ลิสต์"
+>
+  <Check />
+</button>
+
                     <button
-                      onClick={() => setEditMode(false)}
-                      className="text-red-500 font-bold text-xl"
-                    >
-                      <X/>
-                    </button>
+  type="button"
+  onClick={() => setEditMode(false)}
+  className="text-red-500 font-bold text-xl"
+  aria-label="ยกเลิกการแก้ไขชื่อ"
+  title="ยกเลิก"
+>
+  <X />
+</button>
+
                   </>
                 ) : (
                   <>
                     <p className="text-4xl font-semibold">{playlists?.name}</p>
                     <button
-                      onClick={() => {
-                        setNewName(playlists?.name || "");
-                        setEditMode(true);
-                      }}
-                    >
-                      <PenLine size={30} />
-                    </button>
+  type="button"
+  onClick={() => {
+    setNewName(playlists?.name || "");
+    setEditMode(true);
+  }}
+  aria-label="แก้ไขชื่อเพลย์ลิสต์"
+  title="แก้ไขชื่อ"
+>
+  <PenLine size={30} />
+</button>
+
                   </>
                 )}
               </div>

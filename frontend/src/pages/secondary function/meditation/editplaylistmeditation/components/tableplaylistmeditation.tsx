@@ -53,6 +53,7 @@ function TableSoundPlaylist({
         const sound = info.row.original.sound as string;
         return (
           <button
+          
             className="bg-background-button h-7 w-7 rounded-full  flex justify-center items-center"
             onClick={() => {
               const embedUrl = getYouTubeEmbedUrl(sound);
@@ -137,36 +138,6 @@ function TableSoundPlaylist({
   });
 
   const getDropdownItems = (rowData: CustomSoundPlaylist): MenuProps['items'] => [
-    {
-      key: 'edit',
-      label: 'แก้ไข',
-      icon: <Edit size={16} />,
-      onClick: () => {
-        message.info(`แก้ไข: ${rowData.name}`);
-        // เพิ่ม logic แก้ไขที่นี่
-      },
-    },
-    {
-      key: 'download',
-      label: 'ดาวน์โหลด',
-      icon: <Download size={16} />,
-      onClick: () => {
-        message.info(`ดาวน์โหลด: ${rowData.name}`);
-        // เพิ่ม logic ダウンロードที่นี่
-      },
-    },
-    {
-      key: 'share',
-      label: 'แชร์',
-      icon: <Share size={16} />,
-      onClick: () => {
-        message.info(`แชร์: ${rowData.name}`);
-        // เพิ่ม logic แชร์ที่นี่
-      },
-    },
-    {
-      type: 'divider',
-    },
     {
       key: 'delete',
       label: 'ลบ',
