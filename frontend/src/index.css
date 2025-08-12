@@ -34,7 +34,7 @@
 
   --animate-fade-in: fadeInDown 0.5s ease-in-out;
   --animate-fade-out: fadeOurLeft 0.5s ease-in-out ;
- 
+  
   
   @keyframes fadeInDown {
     from {
@@ -57,7 +57,19 @@
         transform: "translate3d(-100%, 0, 0)";
     }
   }
+  @keyframes showIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
 }
+
+
 
 /* Fade Animation Keyframes */
 
@@ -173,4 +185,13 @@ html, body {
   font-family: "Kanit", sans-serif;
   font-weight: 900;
   font-style: italic;
+}
+
+.btn-glow-play {
+  @apply  overflow-visible  bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white;
+}
+
+.btn-glow-play::before {
+  @apply absolute -inset-0 rounded-full blur-xl opacity-30 -z-10 bg-button-blue;
+  content: "";
 }

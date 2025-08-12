@@ -5,9 +5,10 @@ import { CreatePlaylist } from "../../../../services/https/playlist";
 interface ModalPlaylistProps {
   isModalOpen: boolean;
   onClose: () => void;
+  gotoPlaylist: (id : number) => void
 }
 
-function ModalPlaylist({ isModalOpen, onClose }: ModalPlaylistProps) {
+function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 

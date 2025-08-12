@@ -22,10 +22,13 @@ export async function CreateSoundPlaylist(data: ISoundPlaylist) {
       requestOptions
     );
     const result = await response.json();
+
+    
     console.log(result);
-    return result;
+    return { status: response.status, result };
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -64,5 +67,35 @@ export async function DeleteSoundPlaylistByID(id: number) {
       console.error(error);
     }
   }
+
+  export async function GetTopSoundPlaylist(id: number) {
+    const requestOptions = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Authorization}`,
+      },
+    };
+  
+    try {
+      const response = await fetch(`${apiUrl}/CheckFirstSoundPlaylist/${id}`, requestOptions);
+      if (response.ok) {
+        const result = await response.json();
+        if ( (result.message) ) {
+          return { noVdo: true, message: result.message };
+        }
+        
+        return { noVdo: false, data: result };
+      }
+      else{
+        return false
+      }
+      
+    } catch (error) {
+      console.error(error);
+      return false
+    }
+  }
   
   
+

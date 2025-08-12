@@ -15,6 +15,7 @@ import (
 	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/questionnaire"
 	"sukjai_project/controller/resettoken"
+	"sukjai_project/controller/reviewsound"
 	"sukjai_project/controller/soundplaylist"
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/users"
@@ -116,6 +117,9 @@ func main() {
         router.PATCH("/Sound/Update/:id",sounds.EditSound)
         router.DELETE("/Sound/Delete/:id",sounds.DeleteSoundByID)
         router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
+
+        //review sound
+        router.POST("/ReviewSound", reviewsound.CreateReview)
         
         //Playlist
         router.POST("/Playlist", playlist.CreatePlaylist)
@@ -128,6 +132,9 @@ func main() {
         router.POST("/CreateSoundPlaylist", soundplaylist.CreateSoundPlaylist)
         router.GET("/SoundPlaylistByPID/:pid", soundplaylist.GetSoundPlaylistByPID)
         router.DELETE("/DeleteSoundPlaylist/:id", soundplaylist.DeleteSoundPlaylistByID)
+        router.GET("/CheckFirstSoundPlaylist/:pid", soundplaylist.GetTopSoundPlaylistByPID)
+
+
      
         
         // Routes for superadmin only
@@ -135,6 +142,7 @@ func main() {
         router.DELETE("/admin/:id", admin.DeleteAdmin)
         router.PUT("/admin/:id", admin.EditAdmin)
         router.POST("/create-admin", admin.CreateAdmin)
+
     }
 
     userRouter := r.Group("/")
