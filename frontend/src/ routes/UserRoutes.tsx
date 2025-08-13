@@ -14,6 +14,8 @@ import RelaxActivities from "../pages/secondary function/audio content home/Rela
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
+import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
+
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 import ChatingMain from "../pages/secondary function/chanting/chatingMain";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
@@ -61,7 +63,12 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           path: "/audiohome/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <MeditationMain /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
-        
+
+        {
+          path: "/audiohome/asmr",
+          element: isLoggedIn ? <ASMRApp /> : <Navigate to="/" />,
+        },
+
         {
           path: "/chat/new", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <ChatSpace isNewChatDefault={true}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
