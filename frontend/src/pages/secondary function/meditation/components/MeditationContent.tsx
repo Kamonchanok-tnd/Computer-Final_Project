@@ -75,7 +75,7 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
   const navigate = useNavigate();
 
   const handlePlayClick = () => {
-    navigate(`/playmediameditation/${sound.ID}`);
+    navigate(`/audiohome/meditation/play/${sound.ID}`);
   };
 
   return (

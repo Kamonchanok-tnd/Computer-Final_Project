@@ -94,6 +94,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           path: "/audiohome/Playlist/:id",
           element: isLoggedIn ? <AddSoundPlaylist /> : <Navigate to="/" />,
         },
+        {
+          path: "/audiohome/meditation/play/:ID",
+          element: isLoggedIn ? <Playermediameditation /> : <Navigate to="/" />,
+        },
 
         {
           path: "/playmediameditation/:ID",
