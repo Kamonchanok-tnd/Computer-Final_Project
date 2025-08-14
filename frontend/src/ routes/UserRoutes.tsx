@@ -7,6 +7,7 @@ import BreathingPage from "../pages/secondary function/breathing/breath";
 
 import MeditationPage from "../pages/secondary function/meditation/meditation";
 import ChatSpace from "../pages/Chat-space/chat";
+import MirrorPage from "../pages/mirror/MirrorPage";
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
 const Home = Loadable(lazy(() => import("../pages/homeuser/homeuser")));
@@ -37,6 +38,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
     {
       path: "/user/chat", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
       element: isLoggedIn ? <ChatSpace /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    },
+    {
+      path: "/user/mirror", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <MirrorPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
     }
   ];
 };

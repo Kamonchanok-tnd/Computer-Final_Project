@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
-    
+
 	"sukjai_project/controller/admin"
 	controller "sukjai_project/controller/chat_space"
-    "sukjai_project/controller/resettoken"
-    "sukjai_project/controller/users"
-    "sukjai_project/middlewares"
-    "sukjai_project/controller/prompt"
+	"sukjai_project/controller/mirror"
+	"sukjai_project/controller/prompt"
+	"sukjai_project/controller/resettoken"
+	"sukjai_project/controller/users"
+	"sukjai_project/middlewares"
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -78,7 +79,7 @@ func main() {
         router.GET("/admin/prompt", prompt.GetAllPrompts)
         router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
         router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
-        router.POST("/admin/prompt/use/:id", prompt.UsePrompt)
+        router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
         router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
 
@@ -96,6 +97,11 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
+
+        userRouter.POST("/mirror", mirror.CreateMirror)
+        userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
+        userRouter.PUT("/mirror/:id", mirror.UpdateMirror)
+        userRouter.DELETE("/mirror/:id", mirror.DeleteMirror)
     }
 
     r.GET("/", func(c *gin.Context) {

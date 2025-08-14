@@ -1,0 +1,17 @@
+.mirror-frame {
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.85), rgba(255,255,255,.55) 60%, rgba(255,255,255,0) 70%),
+    radial-gradient(ellipse at 30% 30%, rgba(255,255,255,.4), transparent 60%),
+    #eaf6ff;
+  border: 6px solid #b6cedd;
+  border-radius: 999px;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,.08));
+}
+
+/* src/index.css หรือ global css */
+.mirror-editor { scrollbar-width: none; }
+.mirror-editor:empty:before {
+  content: attr(data-placeholder);
+  color: #8aa6b5;
+  opacity: .8;
+}
