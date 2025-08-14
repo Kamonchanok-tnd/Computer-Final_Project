@@ -20,6 +20,7 @@ func DB() *gorm.DB {
 	return db
 }
 
+
 //แบบ docker
 // ConnectionDB - เชื่อมต่อกับฐานข้อมูล PostgreSQL
 // func ConnectionDB() {
@@ -36,15 +37,17 @@ func DB() *gorm.DB {
 //     fmt.Println("Connected to the database successfully!")
 // }
 
+
 // แบบ hardcode
 
 // const (
-//    host     = "localhost" // เปลี่ยนจาก "db" เป็น "postgres"
+//    host     = "localhost" // เปลี่ยนจาก "db" เป็น "postgres"       
 //    port     = 5432        // default PostgreSQL port
 //    user     = "postgres"  // user ที่กำหนดใน docker-compose.yml
 //    password = "12345"     // password ที่กำหนดใน docker-compose.yml
 //    dbname   = "sukjai"    // ชื่อฐานข้อมูล
 // )
+
 
 // ConnectionDB - เชื่อมต่อกับฐานข้อมูล PostgreSQL
 // func ConnectionDB() {
@@ -62,38 +65,39 @@ func DB() *gorm.DB {
 // 	fmt.Println("Successfully connected to the database!")
 // }
 
+
 func ConnectionDB() {
-	// โหลดค่าจากไฟล์ .env
-	err := godotenv.Load() // ประกาศ err ครั้งแรก
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
+    // โหลดค่าจากไฟล์ .env
+    err := godotenv.Load()  // ประกาศ err ครั้งแรก
+    if err != nil {
+        log.Fatalf("Error loading .env file")
+    }
 
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
+    host := os.Getenv("DB_HOST")
+    port := os.Getenv("DB_PORT")
+    user := os.Getenv("DB_USER")
+    password := os.Getenv("DB_PASSWORD")
+    dbname := os.Getenv("DB_NAME")
 
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+    psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+        host, port, user, password, dbname)
 
-	// ใช้ err ที่ประกาศไว้แล้วเพื่อจับข้อผิดพลาดในการเชื่อมต่อ
-	db, err = gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
-	}
+    // ใช้ err ที่ประกาศไว้แล้วเพื่อจับข้อผิดพลาดในการเชื่อมต่อ
+    db, err = gorm.Open(postgres.Open(psqlInfo), &gorm.Config{})
+    if err != nil {
+        log.Fatalf("Error connecting to database: %v", err)
+    }
 
-	fmt.Println("Successfully connected to the database!")
+    fmt.Println("Successfully connected to the database!")
 }
 
 // SetupDatabase - ทำการ AutoMigrate เพื่อสร้างตารางต่างๆ
 func SetupDatabase() {
 	// ทำการ auto migrate เพื่อสร้างตารางทั้งหมดในฐานข้อมูล
 	err := db.AutoMigrate(
-		&entity.Users{},
-		&entity.Like{},
-		&entity.Feedback{},
+		&entity.Users{}, 
+		&entity.Like{}, 
+		&entity.Feedback{}, 
 		&entity.Mirror{},
 		&entity.Score{},
 		&entity.WordHealingContent{},
@@ -130,7 +134,7 @@ func SetupDatabase() {
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
-
+	
 }
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
@@ -159,13 +163,13 @@ func SetupInitialData() {
 	if err := db.Where("username = ?", "admin").First(&adminUser).Error; err != nil {
 		// เพิ่มข้อมูล admin ถ้ายังไม่มี
 		db.Create(&entity.Users{
-			Username:    "admin",
-			Email:       "admin@example.com",
-			Password:    adminPassword,
-			Role:        "admin",
-			Age:         30,
-			Gender:      "Male",
-			PhoneNumber: "1234567890",
+			Username:    "admin", 
+			Email:       "admin@example.com", 
+			Password:    adminPassword, 
+			Role:        "admin", 
+			Age:         30, 
+			Gender:      "Male", 
+			PhoneNumber: "1234567890", 
 			Facebook:    "admin_fb",
 		})
 	}
@@ -174,26 +178,26 @@ func SetupInitialData() {
 	if err := db.Where("username = ?", "user").First(&regularUser).Error; err != nil {
 		// เพิ่มข้อมูล user ถ้ายังไม่มี
 		db.Create(&entity.Users{
-			Username:    "user",
-			Email:       "user@example.com",
-			Password:    userPassword,
-			Role:        "user",
-			Age:         25,
-			Gender:      "Female",
-			PhoneNumber: "0987654321",
+			Username:    "user", 
+			Email:       "user@example.com", 
+			Password:    userPassword, 
+			Role:        "user", 
+			Age:         25, 
+			Gender:      "Female", 
+			PhoneNumber: "0987654321", 
 			Facebook:    "user_fb",
 		})
 	}
 	if err := db.Where("username = ?", "superadmin").First(&superAdmin).Error; err != nil {
 		// เพิ่มข้อมูล user ถ้ายังไม่มี
 		db.Create(&entity.Users{
-			Username:    "superadmin",
-			Email:       "superadmin@example.com",
-			Password:    superadminPassword,
-			Role:        "superadmin",
-			Age:         21,
-			Gender:      "Female",
-			PhoneNumber: "0987654321",
+			Username:    "superadmin", 
+			Email:       "superadmin@example.com", 
+			Password:    superadminPassword, 
+			Role:        "superadmin", 
+			Age:         21, 
+			Gender:      "Female", 
+			PhoneNumber: "0987654321", 
 			Facebook:    "superadmin_fb",
 		})
 	}
@@ -206,11 +210,13 @@ func SeedSendTypes(db *gorm.DB) {
 		sendTypes := []entity.SendType{
 			{Type: "user"},
 			{Type: "model"},
+			
 		}
 		db.Create(&sendTypes)
 		fmt.Println("✅ Seeded SendTypes")
 	}
 }
+
 
 // ✅ 3. Seed ChatRoom
 func SeedChatRooms(db *gorm.DB) {
@@ -226,7 +232,7 @@ func SeedChatRooms(db *gorm.DB) {
 		room := entity.ChatRoom{
 			StartDate: time.Now(),
 			EndDate:   time.Now().Add(30 * time.Minute),
-			UID:       1,
+			UID:   1,
 		}
 		db.Create(&room)
 		fmt.Println("✅ Seeded ChatRoom")
@@ -243,8 +249,8 @@ func SeedConversations(db *gorm.DB) {
 	db.First(&chatRoom)
 
 	// ดึง SendType สำหรับผู้ใช้และบอท
-	db.First(&sendTypeUser, "type = ?", "user") // สมมุติว่า user ใช้ type = "user"
-	db.First(&sendTypeBot, "type = ?", "model") // สมมุติว่า bot ใช้ type = "model"
+	db.First(&sendTypeUser, "type = ?", "user")      // สมมุติว่า user ใช้ type = "user"
+	db.First(&sendTypeBot, "type = ?", "model")   // สมมุติว่า bot ใช้ type = "model"
 
 	var count int64
 	db.Model(&entity.Conversation{}).Count(&count)
@@ -253,22 +259,22 @@ func SeedConversations(db *gorm.DB) {
 			{
 				Message:    "สวัสดีครับ ชอบดูบอลมากๆ และ ผู้หญิงสวยๆด้วย",
 				ChatRoomID: chatRoom.ID,
-				STID:       sendTypeUser.ID,
+				STID: sendTypeUser.ID,
 			},
 			{
 				Message:    "สวัสดีครับ มีอะไรให้ช่วยไหมครับ?",
 				ChatRoomID: chatRoom.ID,
-				STID:       sendTypeBot.ID,
+				STID: sendTypeBot.ID,
 			},
 			{
 				Message:    "ผมอยากรู้ว่าวันนี้อากาศเป็นยังไง",
 				ChatRoomID: chatRoom.ID,
-				STID:       sendTypeUser.ID,
+				STID: sendTypeUser.ID,
 			},
 			{
 				Message:    "วันนี้อากาศแจ่มใส อุณหภูมิประมาณ 32 องศาเซลเซียส",
 				ChatRoomID: chatRoom.ID,
-				STID:       sendTypeBot.ID,
+				STID: sendTypeBot.ID,
 			},
 		}
 
