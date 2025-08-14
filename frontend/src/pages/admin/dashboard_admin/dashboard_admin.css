@@ -24,10 +24,12 @@
   background-color: #f0f0f0; /* สีพื้นหลังของ header */
   text-align: center;
   font-weight: bold;
+  white-space: nowrap; /* ป้องกันตัวอักษรขึ้นบรรทัดใหม่ */
 }
 
 .admin-table .ant-table-tbody > tr > td {
   text-align: center;
+  white-space: nowrap;
 }
 
 /* ปรับปรุงปุ่ม logout */
@@ -37,8 +39,61 @@
   background-color: rgb(255, 59, 59);
   border: none;
   color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .layout-logout-button:hover {
   background-color: rgb(255, 99, 99); /* เปลี่ยนสีเมื่อ hover */
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1024px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .layout-logout-button {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-admin-container {
+    padding: 10px;
+  }
+
+  .page-title {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .layout-logout-button {
+    float: none;
+    display: block;
+    margin: 10px auto;
+  }
+
+  .admin-table .ant-table-thead > tr > th,
+  .admin-table .ant-table-tbody > tr > td {
+    font-size: 12px;
+    padding: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 16px;
+  }
+
+  .admin-table {
+    font-size: 11px;
+  }
+
+  .layout-logout-button {
+    width: 100%;
+  }
 }

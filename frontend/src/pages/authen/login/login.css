@@ -1,101 +1,265 @@
-/* ตั้งค่าพื้นหลังของหน้า login */
-.login-wrapper .login-page {
-  background-color: #C2F4FF; /* เปลี่ยนสีพื้นหลังตามต้องการ */
-  height: 100vh;  /* ความสูงของหน้าเต็มจอ */
+/* Set up full page background */
+.login-wrapper {
+  display: flex;
+  justify-content: flex-start; /* Align the form to the left */
+  align-items: center;
+  height: 100vh; /* Full screen height */
+  background-color: #C2F4FF; 
+  position: relative;
+}
+
+/* Left Section: Smiley & Circle */
+/* Left Section: Smiley & Circle */
+.login-wrapper .left-section {
+  position: absolute;
+  top: -150px;
+  left: -130px; /* Adjust to move circle more to the left */
+  margin: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 800px;
+  height: 800px;
+  background-color: #9fcdfe; /* Light Blue Circle */
+  border-radius: 50%;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Hide the right half of the circle */
+}
+
+.login-wrapper .smile1 {
+  position: absolute;
+  top: 40px; /* กำหนดตำแหน่งจากด้านบน */
+  left: 450px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  width: 80px; /* กำหนดขนาดของไอคอน */
+  height: 80px;
+}
+
+.login-wrapper .smile2 {
+  position: absolute;
+  top: 350px; /* กำหนดตำแหน่งจากด้านบน */
+  left: 750px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  width: 80px; /* กำหนดขนาดของไอคอน */
+  height: 80px;
+}
+
+.login-wrapper .smile3 {
+  position: absolute;
+  top: 80px; /* กำหนดตำแหน่งจากด้านบน */
+  left: 80px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  width: 80px; /* กำหนดขนาดของไอคอน */
+  height: 80px;
+}
+
+.login-wrapper .smile4 {
+  position: absolute;
+  top: 350px; /* กำหนดตำแหน่งจากด้านบน */
+  left: 65px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  width: 80px; /* กำหนดขนาดของไอคอน */
+  height: 80px;
+}
+
+
+
+/* Move the image of the smile to the bottom of the circle */
+.login-wrapper .smiley-image {
+  position: absolute;
+  bottom: 20px; /* Move the image downward */
+  left: 90px;
+  width: 80%;
+  height: auto;
+  object-fit: cover;
+}
+.login-wrapper .left-content {
+  position: relative;
+  display: flex;
   flex-direction: column;
-  text-align: center;
+  align-items: center;
+}
+
+/* ปรับสี Label */
+.login-wrapper .ant-form-item-label > label {
+  color: #86D2E2; /* เปลี่ยนสีข้อความ label เป็นฟ้าอ่อน */
+  font-weight: bold; /* ทำให้ข้อความหนาขึ้น */
+}
+
+/* ปรับสี Input */
+.login-wrapper .ant-input {
+  background-color: #f0faff; /* เปลี่ยนสีพื้นหลังของ input */
+  border: 2px solid #86D2E2; /* เปลี่ยนสีกรอบของ input */
+  border-radius: 8px; /* ปรับขอบให้มีความโค้ง */
+  color: #2a5a8e; /* เปลี่ยนสีข้อความใน input */
+}
+
+/* ปรับสี Input Password */
+.login-wrapper .ant-input-password {
+  background-color: #f0faff; /* เปลี่ยนสีพื้นหลังของ input */
+  border: 2px solid #86D2E2; /* เปลี่ยนสีกรอบของ input */
+  border-radius: 8px; /* ปรับขอบให้มีความโค้ง */
+  color: #2a5a8e; /* เปลี่ยนสีข้อความใน input */
+}
+
+/* ปรับสีของข้อความ error (ถ้ามี) */
+.login-wrapper .ant-form-item-explain-error {
+  color: #ff6b81; /* สีข้อความ error เป็นสีแดง */
+}
+
+
+/* Icon Plus */
+.login-wrapper .plus-icon {
+  margin-bottom: 10px;
+  top: -10px;  /* กำหนดตำแหน่งจากด้านบน */
+  left: -30px; /* กำหนดตำแหน่งจากด้านซ้าย */
+}
+.login-wrapper .plus-icon1 {
+  position: absolute;
+  top: 700px;  /* กำหนดตำแหน่งจากด้านบน */
+  left: 55px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  /* หรือสามารถใช้ right หรือ bottom แทน left, top ได้ */
+  margin-bottom: 10px;
+}
+.login-wrapper .plus-icon2{
+  position: absolute;
+  top: 50px;  /* กำหนดตำแหน่งจากด้านบน */
+  left: 300px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  /* หรือสามารถใช้ right หรือ bottom แทน left, top ได้ */
+  margin-bottom: 10px;
+}
+.login-wrapper .plus-icon3{
+  position: absolute;
+  top: 90px;  /* กำหนดตำแหน่งจากด้านบน */
+  left: 700px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  /* หรือสามารถใช้ right หรือ bottom แทน left, top ได้ */
+  margin-bottom: 10px;
+}
+
+.login-wrapper .plus-icon4{
+  position: absolute;
+  top: 600px;  /* กำหนดตำแหน่งจากด้านบน */
+  left: 700px; /* กำหนดตำแหน่งจากด้านซ้าย */
+  /* หรือสามารถใช้ right หรือ bottom แทน left, top ได้ */
+  margin-bottom: 10px;
+}
+
+
+/* Right Section: Login Form */
+.login-wrapper .right-section {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end; /* Move form to the far right */
+  align-items: center;
+  height: 100%; /* Ensure the form fills the screen */
+  position: relative;
 }
 
 /* Card Login */
+/* Card Login */
 .login-wrapper .card-login {
-  width: 80%; /* เปลี่ยนจาก 450px ให้ยืดหยุ่น */
-  max-width: 450px; /* กำหนดความกว้างสูงสุดให้กับ card */
-  padding: 20px;
+  width: 100%;
+  max-width: 500px; /* Form width */
+  height: 100vh; /* Full screen height */
+  background: linear-gradient(to bottom, #ffffff, rgb(178, 218, 245));
   border-radius: 15px;
   box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(180deg, #C2F4FF, #ffffff); /* Gradient from #C2F4FF to white */
+  margin-left: auto; /* Push form to the right */
+  margin-right: 0; /* Ensure no margin on the right */
+  position: relative;
+  padding: 40px;
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  justify-content: center; /* Center content vertically */
+  align-items: center; /* Center content horizontally */
+  text-align: center; /* Center align text */
 }
 
-/* Logo */
-.login-wrapper .login-logo {
-  width: 50%;
-  margin-bottom: 20px;
-}
-
-/* Title */
-.login-wrapper h1 {
-  font-size: 2rem;
+/* Font sizes */
+.login-wrapper .card-login h1 {
+  font-size: 3rem; /* Increase font size of h1 */
   font-weight: bold;
-  color: #000000;
+  margin-bottom: 20px;
+  color:#9fcdfe;
 }
 
-/* Sub-title */
-.login-wrapper h2 {
-  font-size: 1.2rem;
+.login-wrapper .card-login h2 {
+  font-size: 1.75rem; /* Increase font size of h2 */
+  margin-bottom: 20px;
+  color:#2a5a8e;
+}
+
+.login-wrapper .card-login .form-item {
   margin-bottom: 20px;
 }
 
-/* Login Button */
-.login-wrapper .login-button {
+.login-wrapper .card-login .form-item label {
+  font-size: 1.2rem; /* Increase font size of label */
+  font-weight: 600; /* Make labels more prominent */
+}
+
+.login-wrapper .card-login .login-button {
   width: 100%;
-  background: linear-gradient(180deg, #86D2E2, #90c5ff); /* Gradient from bottom to top */
+  background: linear-gradient(180deg, #86D2E2, #90c5ff);
   color: white;
   border: none;
-  padding: 10px 0;
-  font-size: 16px;
-  margin-bottom: 20px;
-  transition: background 0.3s ease; /* Smooth transition on hover */
+  padding: 18px 0; /* Increase padding for better appearance */
+  font-size: 1.25rem; /* Increase font size of the button */
+  margin-top: 15px;
 }
 
-.login-wrapper .login-button:hover {
-  background: linear-gradient(180deg, #2a5a8e, #86D2E2); /* Reverse gradient effect on hover */
+.login-wrapper .card-login .login-button:hover {
+  background: linear-gradient(180deg, #2a5a8e, #86D2E2);
 }
 
-/* Link Style */
 .login-wrapper a {
   color: #2a5a8e;
+  font-size: 1.1rem; /* Increase font size of the link */
 }
+
+.login-wrapper .forgot-password-link {
+  color: #ff6b81;
+  font-size: 1.1rem; /* Increase font size of forgot password link */
+}
+/* ลิงก์ */
+.link-wrapper {
+  text-align: center;
+  margin-top: 15px;
+}
+.link-wrapper .or-text {
+  display: block;
+  color: #2a5a8e;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+.link-wrapper .link-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.link-wrapper a {
+  color: #2a5a8e;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.link-wrapper .divider {
+  color: #2a5a8e;
+  font-weight: bold;
+}
+
+
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  /* สำหรับอุปกรณ์ที่มีความกว้างไม่เกิน 768px (แท็บเล็ต, มือถือ) */
-  .login-wrapper .card-login {
-    width: 90%; /* ให้ card ใช้ความกว้าง 90% ของหน้าจอ */
-    padding: 15px; /* ลด padding */
+  .login-wrapper {
+    flex-direction: column;
+    padding: 20px;
   }
 
-  .login-wrapper h1 {
-    font-size: 1.5rem; /* ลดขนาดฟอนต์ของหัวข้อหลัก */
+  .left-section, .right-section {
+    width: 100%;
+    margin-bottom: 20px;
   }
 
-  .login-wrapper h2 {
-    font-size: 1rem; /* ลดขนาดฟอนต์ของหัวข้อรอง */
-  }
-
-  .login-wrapper .login-button {
-    font-size: 14px; /* ลดขนาดฟอนต์ของปุ่ม */
-  }
-}
-
-@media (max-width: 480px) {
-  /* สำหรับอุปกรณ์ที่มีความกว้างไม่เกิน 480px (มือถือ) */
-  .login-wrapper .card-login {
-    width: 95%; /* ให้ card ใช้ความกว้าง 95% ของหน้าจอ */
-    padding: 10px; /* ลด padding มากขึ้น */
-  }
-
-  .login-wrapper h1 {
-    font-size: 1.2rem; /* ลดขนาดฟอนต์ของหัวข้อหลัก */
-  }
-
-  .login-wrapper h2 {
-    font-size: 0.9rem; /* ลดขนาดฟอนต์ของหัวข้อรอง */
-  }
-
-  .login-wrapper .login-button {
-    font-size: 12px; /* ลดขนาดฟอนต์ของปุ่ม */
+  .card-login {
+    width: 90%;
   }
 }

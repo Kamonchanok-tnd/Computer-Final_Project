@@ -8,7 +8,10 @@ type Questionnaire struct {
 	Description       string
 	Quantity          int
 	UID               uint
-
+	Priority           int
 	Users      Users      `gorm:"foreignKey:UID"`
-	Questions []Question  `gorm:"foreignKey:QuID"`
+	Questions []Question  `gorm:"foreignKey:QuID;references:ID;constraint:OnDelete:CASCADE;"`
+	Groups    []QuestionnaireGroup `gorm:"many2many:questionnaire_group_mappings;"`
+
 }
+

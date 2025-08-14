@@ -4,41 +4,65 @@
   justify-content: space-between;
   align-items: center;
   background-color: #87CEFA; /* สีฟ้า */
-  padding: 10px 20px; /* เพิ่ม padding เพื่อให้มีระยะห่างมากขึ้น */
+  padding: 10px 20px;
+  flex-wrap: nowrap; /* ห้ามขึ้นบรรทัดใหม่ */
+  position: relative;
 }
 
+/* กล่องซ้ายของ Header (ปุ่ม + โลโก้) */
+.layout-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* โลโก้ */
 .layout .layout-logo {
   color: white;
   font-size: 20px;
+  white-space: nowrap;      /* ไม่ขึ้นบรรทัดใหม่ */
+  overflow: hidden;         /* ตัดส่วนเกิน */
+  text-overflow: ellipsis;  /* ... ถ้าเกิน */
+  flex-shrink: 1;           /* ให้ย่อขนาดได้ */
 }
 
-/* สไตล์ปุ่ม Logout */
+/* ปุ่มแฮมเบอร์เกอร์ */
+.layout .layout-hamburger-button {
+  display: none;
+  background-color: transparent;
+  color: white;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  font-size: 18px;
+  flex-shrink: 0; /* ไม่ย่อขนาด */
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* ปุ่ม Logout */
 .layout .layout-logout-button {
   margin-top: 5px;
   float: right;
-  background-color: rgb(255, 59, 59); /* สีพื้นฐานของปุ่ม */
-  color: white; /* สีตัวอักษร */
-  
+  background-color: rgb(166, 218, 255);
+  color: white;
 }
 
-/* เมื่อเอาเมาส์ไป hover */
+/* ปุ่ม Logout hover */
 .layout .ant-btn.layout-logout-button:hover {
-  background-color: rgb(255, 99, 99) !important;
+  background-color: rgb(188, 227, 255) !important;
 }
-
-
-/* .layout-logout-button :hover {
-  margin-top: 5px;
-  float: right;
-  background-color: rgb(255, 229, 127);
-} */
 
 /* สไตล์สำหรับ Sider */
 .layout .layout-sider {
-  background: #ADD8E6 !important; /* สีฟ้าน้ำเงินอ่อน */
+  background: #ADD8E6 !important;
 }
 
-/* ใช้ selector ที่มีความเฉพาะเจาะจงมากขึ้น */
+/* Selector สำหรับ trigger ของ sider */
 .layout .ant-layout-sider .ant-layout-sider-trigger {
   position: fixed;
   bottom: 0;
@@ -52,34 +76,21 @@
   transition: all 0.2s;
 }
 
-
 .layout .layout-menu {
   height: 100%;
   border-right: 0;
 }
 
-/* สไตล์สำหรับปุ่ม Hamburger */
-.layout .layout-hamburger-button {
-  display: none;
-  position: absolute;
-  top: 20px;
-  left: 20px; /* อยู่ทางซ้ายสุด */
-  z-index: 1000;
-  background-color: transparent; /* ไม่มีสีพื้นหลัง */
-  color: white;
-  border: none;
-}
-
-
+/* --- Media Queries --- */
 
 /* ให้ปุ่ม Hamburger แสดงเฉพาะในขนาดหน้าจอเล็ก */
 @media (max-width: 991px) {
   .layout-sider {
-    display: none;
+    display: none !important;
   }
 
-  .layout-hamburger-button {
-    display: block;
+  .layout .layout-hamburger-button {
+    display: flex !important;
   }
 
   .layout-content-layout {

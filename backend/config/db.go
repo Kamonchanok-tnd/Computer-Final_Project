@@ -20,7 +20,6 @@ func DB() *gorm.DB {
 	return db
 }
 
-
 //แบบ docker
 // ConnectionDB - เชื่อมต่อกับฐานข้อมูล PostgreSQL
 // func ConnectionDB() {
@@ -117,6 +116,7 @@ func SetupDatabase() {
 		&entity.Prompt{},
 		&entity.Question{},
 		&entity.Questionnaire{},
+		&entity.QuestionnaireGroup{},
 		&entity.RecentSetting{},
 		&entity.Review{},
 		&entity.SendType{},
@@ -129,17 +129,22 @@ func SetupDatabase() {
 		log.Fatalf("Error migrating database: %v", err)
 	}
 	fmt.Println("Database migration completed successfully!")
-	SetupInitialData()
+	SetupInitialData(db)
 	SeedSendTypes(db)
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
-	
+	// SeedQuestionnaires(db)
+	// SeedQuestionnaireGroups(db)
+	// SeedCriteriaAndCalculations(db)
+	SeedBackground(db)
 }
+
+
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
 // เพิ่มข้อมูลในตาราง Users โดยใช้ Create เพื่อให้แน่ใจว่าจะสร้างข้อมูลใหม่
-func SetupInitialData() {
+func SetupInitialData(db *gorm.DB) {
 	// แฮชรหัสผ่านก่อนบันทึก
 	adminPassword, err := HashPassword("admin123")
 	if err != nil {
@@ -168,7 +173,7 @@ func SetupInitialData() {
 			Password:    adminPassword, 
 			Role:        "admin", 
 			Age:         30, 
-			Gender:      "Male", 
+			Gender:      "ผู้ชาย", 
 			PhoneNumber: "1234567890", 
 			Facebook:    "admin_fb",
 		})
@@ -183,7 +188,7 @@ func SetupInitialData() {
 			Password:    userPassword, 
 			Role:        "user", 
 			Age:         25, 
-			Gender:      "Female", 
+			Gender:      "ผู้หญิง", 
 			PhoneNumber: "0987654321", 
 			Facebook:    "user_fb",
 		})
@@ -196,12 +201,100 @@ func SetupInitialData() {
 			Password:    superadminPassword, 
 			Role:        "superadmin", 
 			Age:         21, 
-			Gender:      "Female", 
+			Gender:      "ผู้หญิง", 
 			PhoneNumber: "0987654321", 
 			Facebook:    "superadmin_fb",
 		})
 	}
+
+	// เพิ่มข้อมูลประเภทเสียง
+    var SoundTypes = []entity.SoundType{
+        {Type: "asmr"},
+        {Type: "สมาธิ"},
+        {Type: "สวดมนต์"},
+		{Type: "ฝึกหายใจ"},
+    }
+
+    // เพิ่มข้อมูลประเภทเสียงลงในฐานข้อมูล
+    for _, SoundType := range SoundTypes {
+        if err := db.Where("type = ?", SoundType.Type).First(&SoundType).Error; err != nil {
+            db.Create(&SoundType)
+            fmt.Printf("SendType %s created.\n", SoundType.Type)
+        }
+    }
+
+    // ตรวจสอบว่า "สมาธิ" มีอยู่ในตาราง SendType หรือไม่
+    var meditationType entity.SoundType
+    if err := db.Where("type = ?", "สมาธิ").First(&meditationType).Error; err != nil {
+        log.Fatalf("Error finding 'สมาธิ' sound type: %v", err)
+    }
+
+	var breathingType entity.SoundType
+    if err := db.Where("type = ?", "ฝึกหายใจ").First(&breathingType).Error; err != nil {
+        log.Fatalf("Error finding 'ฝึกสมาธิ' sound type: %v", err)
+    }
+
+	var chantingType entity.SoundType
+	if err := db.Where("type = ?", "สวดมนต์").First(&chantingType).Error; err != nil {
+		log.Fatalf("Error finding 'สวดมนต์' sound type: %v", err)
+	}
+
+	var asmrType entity.SoundType
+	if err := db.Where("type = ?", "asmr").First(&asmrType).Error; err != nil {
+		log.Fatalf("Error finding 'asmr' sound type: %v", err)
+	}
+
+    // ตรวจสอบว่า "admin" มีอยู่ในตาราง Users หรือไม่
+    var user entity.Users
+    if err := db.Where("role = ?", "admin").First(&user).Error; err != nil {
+        log.Fatalf("Error finding user: %v", err)
+    }
+
+    // เพิ่มข้อมูล Sound (เสียงประเภท สมาธิ)
+    sounds := []entity.Sound{
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 1-2", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 1-2 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 5000,Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 6-7", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 6-7 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4000,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 3 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4500,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
+
+		// เสียงฝึกหายใจใหม่ 
+    	{Name: "Seed of growth", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "",Description: "เพลงผ่อนคลายสำหรับฝึกหายใจ แนว Ambient เหมาะกับการทำสมาธิ, สร้างสมาธิและฝึกหายใจ",Duration: 60,LikeSound: 90,View: 12000,Owner: "Relaxing Music Channel", STID: breathingType.ID, UID: user.ID},
+    	{Name: "Alpha waves", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "",Description: "คลื่นสมอง Alpha สำหรับการผ่อนคลาย ลดความเครียด และทำสมาธิ",Duration: 120,LikeSound: 95,View: 30000,Owner: "Brainwave Music", STID: breathingType.ID, UID: user.ID},
+		{Name: "Relaxing music", Sound: "https://youtu.be/-c7GHrC8HTY?si=7dqAHDMZoRhL5Uj9", Lyric: "",Description: "เพลงสปาแนวบรรเลงผสมเสียงธรรมชาติ เหมาะสำหรับนวด, ผ่อนคลาย, ทำสมาธิ และสร้างบรรยากาศสงบ",Duration: 300,LikeSound: 100,View: 2000000,Owner: "Spa Music, Relaxing music",STID: breathingType.ID, UID: user.ID},
+		{Name: "Sunny Mornings", Sound: "https://youtu.be/hlWiI4xVXKY?si=56vNV_ddESYwTnkH", Lyric: "",Description:"เป็น เพลงคลายเครียดแนวบรรเลง พาโน, กีตาร์ พร้อมเสียงนกร้อง สร้างบรรยากาศสงบ และเหมาะสำหรับผ่อนคลายหรือทำสมาธิ" ,Duration: 183 , LikeSound: 100, View: 20,  Owner: "Peder B. Helland", STID: breathingType.ID, UID: user.ID},
+
+		{
+			Name: "บทเมตตาหลวง ทำนองสรภัญญะ",Sound : "https://youtu.be/6i1YyT3fzPs?si=--nqYHK_wzKNtHtb", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "บทกราบพระ 5 ครั้ง",Sound: "https://youtu.be/1TzRW28rhZ4?si=VVMVrd8mKxRGbreb", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "คาถามหาจักรพรรดิ มีคำแปล (ไม่มีโฆษณาคั่นกลาง)",Sound: "https://youtu.be/YgnFJiobS58?si=zEI6yZKEw-eTHr4v", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},{
+			Name:"บทสวด อิติปิโส",Sound: "https://youtu.be/Jkz_iQ8rjz4?si=VSqQDQjE8ripYvMW", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},{
+			Name: "บทสรภัญญะ องค์ใดพระสัมพุทธ",Sound: "https://youtu.be/ftkK-Po2So4?si=eJsOhqRRIvZdIrcu", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "บทสวดสรภัญญะ ปางเมื่อพระองค์ ปะระมะพุธ",Sound: "https://youtu.be/uOtbIwDMz6w?si=8S_xKsVmoYHpD7U9", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "คาถาชินบัญชร พระคาถาชินบัญชร สมเด็จพระพุฒาจารย์ (โต พรหมรังสี) เสถียรพงษ์ วรรณปก",Sound: "https://youtu.be/sqOeFloH6tU?si=VEyGbfdeuytxawPC", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+
+		
+    }
+
+
+    // เพิ่มข้อมูลเสียงลงในฐานข้อมูล
+    for _, sound := range sounds {
+        if err := db.Where("sound = ?", sound.Sound).First(&sound).Error; err != nil {
+            db.Create(&sound)
+            fmt.Printf("Sound %s created.\n", sound.Name)
+        }
+    }
 }
+
 
 func SeedSendTypes(db *gorm.DB) {
 	var count int64
@@ -232,6 +325,7 @@ func SeedChatRooms(db *gorm.DB) {
 		room := entity.ChatRoom{
 			StartDate: time.Now(),
 			EndDate:   time.Now().Add(30 * time.Minute),
+			IsClose:   false,
 			UID:   1,
 		}
 		db.Create(&room)
@@ -359,4 +453,324 @@ func SeedHealjaiPrompt(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func SeedQuestionnaires(db *gorm.DB) {
+	// หาผู้ใช้ admin
+	var admin entity.Users
+	if err := db.Where("username = ?", "admin").First(&admin).Error; err != nil {
+		log.Fatalf("ไม่พบผู้ใช้ admin: %v", err)
+	}
+
+	// == 1. แบบประเมิน 2Q ==
+	questions2Q := []string{
+		"ใน 2 สัปดาห์ที่ผ่านมา รวมวันนี้ ท่านรู้สึก หดหู่ เศร้า หรือท้อแท้สิ้นหวัง หรือไม่",
+		"ใน 2 สัปดาห์ที่ผ่านมา รวมวันนี้ ท่านรู้สึก เบื่อ ทำอะไรก็ไม่เพลิดเพลิน หรือไม่",
+	}
+	options2Q := []entity.AnswerOption{
+		{Description: "มี", Point: 1},
+		{Description: "ไม่มี", Point: 0},
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 2Q", "ใช้คัดกรองเบื้องต้น", 2, admin.ID, questions2Q, options2Q)
+
+	// == 2. แบบประเมิน 9Q ==
+	questions9Q := []string{
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการเบื่อ ไม่สนใจอยากทำอะไร",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการไม่สบายใจ ซึมเศร้า ท้อแท้",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการหลับยาก หรือหลับ ๆ ตื่น ๆ หรือหลับมากไป",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการเหนื่อยง่าย หรือ ไม่ค่อยมีแรง",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการเบื่ออาหาร หรือ กินมากเกินไป",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านรู้สึกไม่ดีกับตัวเอง คิดว่าตัวเองล้มเหลว หรือทำให้คนอื่นผิดหวัง",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการสมาธิไม่ดีเวลาทำอะไร เช่น ดูทีวี ฟังวิทยุ หรือทำงาน",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีอาการพูดช้า ทำอะไรช้าจนคนอื่นสังเกตเห็น หรือกระสับกระส่าย",
+		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีความคิดทำร้ายตนเอง หรือคิดว่าถ้าตายไปคงจะดี",
+	}
+	options9Q := []entity.AnswerOption{
+		{Description: "ไม่มีเลย", Point: 0},
+		{Description: "เป็นบางวัน (1–7 วัน)", Point: 1},
+		{Description: "เป็นบ่อย (>7 วัน)", Point: 2},
+		{Description: "เป็นทุกวัน", Point: 3},
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 9Q", "ใช้วัดความรุนแรงของอาการ", 9, admin.ID, questions9Q, options9Q)
+
+	// == 3. แบบวัดระดับสติ State Mindfulness Scale (ฉบับย่อ) ==
+	questionsMindfulness := []string{
+		"ฉันรู้สึกว่ามันยากที่จะจดจ่อกับสิ่งที่กำลังเกิดขึ้น",
+		"ฉันทำอะไรไปโดยไม่ได้ใส่ใจกับสิ่งนั้น",
+		"ฉันหมกมุ่นอยู่กับอนาคตหรืออดีต",
+		"ฉันทำอะไรไปแบบอัตโนมัติโดยไม่ได้ตระหนักถึงสิ่งที่ทำ",
+		"ฉันรีบทำอะไรบางอย่างโดยไม่ได้ตั้งใจจริงๆ",
+	}
+	optionsMindfulness := []entity.AnswerOption{
+		{Description: "เกือบตลอดเวลา", Point: 1},
+		{Description: "บ่อยมาก", Point: 2},
+		{Description: "ค่อนข้างบ่อย", Point: 3},
+		{Description: "เป็นบางครั้ง", Point: 4},
+		{Description: "แทบไม่เคย", Point: 5},
+		{Description: "ไม่เคย", Point: 6},
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับสติ (State Mindfulness)", "ประเมินระดับสติในขณะปัจจุบัน", 5, admin.ID, questionsMindfulness, optionsMindfulness)
+
+	// == 4. แบบวัดระดับความสุข คะแนน 0-10 ==
+	questionsHappinessLevel := []string{
+		"ขณะนี้ คุณให้คะแนนความสุขตนเองเท่าไร",
+	}
+
+	optionsHappinessLevel := []entity.AnswerOption{
+		{Description: "0", Point: 0},
+		{Description: "1", Point: 1},
+		{Description: "2", Point: 2},
+		{Description: "3", Point: 3},
+		{Description: "4", Point: 4},
+		{Description: "5", Point: 5},
+		{Description: "6", Point: 6},
+		{Description: "7", Point: 7},
+		{Description: "8", Point: 8},
+		{Description: "9", Point: 9},
+		{Description: "10", Point: 10},
+
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับความสุข คะแนน 0-10", "วัดระดับความสุขในขณะปัจจุบัน", 1, admin.ID, questionsHappinessLevel, optionsHappinessLevel)
+
+	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness, HappinessLevel")
+}
+
+func insertQuestionnaireWithQuestionsAndOptions(
+	db *gorm.DB,
+	name string,
+	description string,
+	quantity int,
+	uid uint,
+	questionTexts []string,
+	options []entity.AnswerOption,
+) {
+	questionnaire := entity.Questionnaire{
+		NameQuestionnaire: name,
+		Description:       description,
+		Quantity:          quantity,
+		UID:               uid,
+	}
+
+	if err := db.Create(&questionnaire).Error; err != nil {
+		log.Fatalf("ไม่สามารถสร้างแบบประเมิน %s: %v", name, err)
+	}
+
+	for _, qText := range questionTexts {
+		question := entity.Question{
+			NameQuestion: qText,
+			QuID:         questionnaire.ID,
+		}
+		if err := db.Create(&question).Error; err != nil {
+			log.Fatalf("ไม่สามารถสร้างคำถาม: %v", err)
+		}
+		for _, opt := range options {
+			opt.QID = question.ID
+			if err := db.Create(&opt).Error; err != nil {
+				log.Fatalf("ไม่สามารถสร้างตัวเลือก: %v", err)
+			}
+		}
+	}
+}
+
+// SeedCriteriaAndCalculations - เพิ่มข้อมูลเริ่มต้นในตาราง Criteria และ Calculation
+func SeedCriteriaAndCalculations(db *gorm.DB) {
+	// Seed Criteria
+	criterias := []entity.Criteria{
+		{Description: "ปกติ ไม่เป็นโรคซึมเศร้า", CriteriaScore: 0},
+		{Description: "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า", CriteriaScore: 1}, // Note: CriteriaScore for range will be handled in logic
+		{Description: "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก", CriteriaScore: 7},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับน้อย", CriteriaScore: 12},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", CriteriaScore: 18},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", CriteriaScore: 19},
+		{Description: "ขาดสติ ในขณะนั้น", CriteriaScore: 3},
+		{Description: "มีสติ อยู่กับปัจจุบัน", CriteriaScore: 6},
+		{Description: "ไม่มีความสุขเลย", CriteriaScore: 0},
+		{Description: "มีความสุขน้อยที่สุด", CriteriaScore: 2},
+		{Description: "มีความสุขน้อย", CriteriaScore: 4},
+		{Description: "มีความสุขปานกลาง", CriteriaScore: 6},
+		{Description: "มีความสุขมาก", CriteriaScore: 8},
+		{Description: "มีความสุขมากที่สุด", CriteriaScore: 10},
+	}
+
+	for _, c := range criterias {
+		var existingCriteria entity.Criteria
+		if err := db.Where("description = ?", c.Description).First(&existingCriteria).Error; err != nil {
+			// ถ้าไม่มี ให้สร้างใหม่
+			if err := db.Create(&c).Error; err != nil {
+				log.Fatalf("ไม่สามารถสร้าง Criteria: %v", err)
+			}
+		}
+	}
+	fmt.Println("✅ Seeded Criterias")
+
+	// Fetch Questionnaire IDs
+	var q2Q entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบคัดกรองโรคซึมเศร้า 2Q").First(&q2Q).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน 2Q: %v", err)
+	}
+
+	var q9Q entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบคัดกรองโรคซึมเศร้า 9Q").First(&q9Q).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน 9Q: %v", err)
+	}
+
+	var qMindfulness entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบวัดระดับสติ (State Mindfulness)").First(&qMindfulness).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน State Mindfulness: %v", err)
+	}
+
+	var qHappinessLevel entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบวัดระดับความสุข คะแนน 0-10").First(&qHappinessLevel).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน แบบวัดระดับความสุข คะแนน 0-10: %v", err)
+	}
+
+	// Fetch Criteria IDs
+	var c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14 entity.Criteria
+	db.Where("description = ?", "ปกติ ไม่เป็นโรคซึมเศร้า").First(&c1)
+	db.Where("description = ?", "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า").First(&c2)
+	db.Where("description = ?", "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก").First(&c3)
+	db.Where("description = ?", "มีอาการของโรคซึมเศร้า ระดับน้อย").First(&c4)
+	db.Where("description = ?", "มีอาการของโรคซึมเศร้า ระดับปานกลาง").First(&c5)
+	db.Where("description = ?", "มีอาการของโรคซึมเศร้า ระดับรุนแรง").First(&c6)
+	db.Where("description = ?", "ขาดสติ ในขณะนั้น").First(&c7)
+	db.Where("description = ?", "มีสติ อยู่กับปัจจุบัน").First(&c8)
+	db.Where("description = ?", "ไม่มีความสุขเลย").First(&c9)
+	db.Where("description = ?", "มีความสุขน้อยที่สุด").First(&c10)
+	db.Where("description = ?", "มีความสุขน้อย").First(&c11)
+	db.Where("description = ?", "มีความสุขปานกลาง").First(&c12)
+	db.Where("description = ?", "มีความสุขมาก").First(&c13)
+	db.Where("description = ?", "มีความสุขมากที่สุด").First(&c14)
+
+
+	// Seed Calculations
+	calculations := []entity.Calculation{
+		{CID: c1.ID, QuID: q2Q.ID},
+		{CID: c2.ID, QuID: q2Q.ID},
+		{CID: c3.ID, QuID: q9Q.ID},
+		{CID: c4.ID, QuID: q9Q.ID},
+		{CID: c5.ID, QuID: q9Q.ID},
+		{CID: c6.ID, QuID: q9Q.ID},
+		{CID: c7.ID, QuID: qMindfulness.ID},
+		{CID: c8.ID, QuID: qMindfulness.ID},
+		{CID: c9.ID, QuID: qHappinessLevel.ID},
+		{CID: c10.ID, QuID: qHappinessLevel.ID},
+		{CID: c11.ID, QuID: qHappinessLevel.ID},
+		{CID: c12.ID, QuID: qHappinessLevel.ID},
+		{CID: c13.ID, QuID: qHappinessLevel.ID},
+		{CID: c14.ID, QuID: qHappinessLevel.ID},
+
+	}
+
+	for _, calc := range calculations {
+		var existingCalc entity.Calculation
+		if err := db.Where("cid = ? AND quid = ?", calc.CID, calc.QuID).First(&existingCalc).Error; err != nil {
+			// ถ้าไม่มี ให้สร้างใหม่
+			if err := db.Create(&calc).Error; err != nil {
+				log.Fatalf("ไม่สามารถสร้าง Calculation: %v", err)
+			}
+		}
+	}
+	fmt.Println("✅ Seeded Calculations")
+}
+
+
+func SeedBackground(db *gorm.DB) {
+	backgrounds := []entity.Background{
+		{
+			Name:    "ภูเขายามเช้า",
+			Picture: "maditation.jpg",
+			UID:     1,
+		},
+		{
+			Name:    "ธรรมชาติริมทะเล",
+			Picture: "prey.jpg",
+			UID:     1,
+		},
+		{
+			Name:    "ป่าไม้ร่มรื่น",
+			Picture: "q1.jpg",
+			UID:     1,
+		},
+	}
+
+	for _, bg := range backgrounds {
+		if err := db.Create(&bg).Error; err != nil {
+			log.Printf("ไม่สามารถ seed background ได้: %v", err)
+		}
+	}
+}
+// เพิ่มในไฟล์เดียวกับ SeedQuestionnaires หรือแยกฟังก์ชันใหม่ก็ได้
+func SeedQuestionnaireGroups(db *gorm.DB) {
+	// ดึง Questionnaire ทั้งหมดมาก่อน เพื่อ map หา ID
+	var questionnaires []entity.Questionnaire
+	if err := db.Find(&questionnaires).Error; err != nil {
+		log.Fatalf("ไม่สามารถดึงแบบประเมินทั้งหมด: %v", err)
+	}
+
+	// Map ชื่อ -> entity
+	qMap := make(map[string]entity.Questionnaire)
+	for _, q := range questionnaires {
+		qMap[q.NameQuestionnaire] = q
+	}
+
+	// ===== สร้างกลุ่มแบบประเมิน =====
+	groups := []struct {
+		Name        string
+		Description string
+		QuestionnaireNames []string
+	}{
+		{
+			Name:        "Pre-test",
+			Description: "ก่อนใช้แอปพลิเคชัน",
+			QuestionnaireNames: []string{
+				"แบบวัดระดับความสุข คะแนน 0-10",
+				"แบบวัดระดับสติ (State Mindfulness)",
+				"แบบคัดกรองโรคซึมเศร้า 2Q",
+				"แบบคัดกรองโรคซึมเศร้า 9Q",
+			},
+		},
+		{
+			Name:        "Post-test",
+			Description: "หลังใช้แอปพลิเคชันทันที",
+			QuestionnaireNames: []string{
+				"แบบวัดระดับความสุข คะแนน 0-10",
+				"แบบวัดระดับสติ (State Mindfulness)",
+			},
+		},
+		{
+			Name:        "Post-test2weeks",
+			Description: "หลังใช้แอปพลิเคชัน 2 สัปดาห์",
+			QuestionnaireNames: []string{
+				"แบบวัดระดับความสุข คะแนน 0-10",
+				"แบบวัดระดับสติ (State Mindfulness)",
+				"แบบคัดกรองโรคซึมเศร้า 2Q",
+				"แบบคัดกรองโรคซึมเศร้า 9Q",
+			},
+		},
+	}
+
+	for _, group := range groups {
+		var qs []entity.Questionnaire
+		for _, name := range group.QuestionnaireNames {
+			if q, ok := qMap[name]; ok {
+				qs = append(qs, q)
+			} else {
+				log.Fatalf("❌ ไม่พบแบบสอบถามชื่อ: %s", name)
+			}
+		}
+		qGroup := entity.QuestionnaireGroup{
+			Name: group.Name,
+			Description: group.Description,
+			Questionnaires: qs,
+		}
+		if err := db.Create(&qGroup).Error; err != nil {
+			log.Fatalf("ไม่สามารถสร้างกลุ่มแบบสอบถาม: %v", err)
+		}
+	}
+
+	fmt.Println("✅ Seeded Questionnaire Groups: Pre-test, Post-test, Post-test2weeks")
 }

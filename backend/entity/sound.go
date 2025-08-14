@@ -6,11 +6,17 @@ import (
 
 type Sound struct {
 	gorm.Model
-	Name      string
-	Sound     string
-	Lyric     string
-	STID      uint      // Foreign key สำหรับ SoundType
-	UID       uint      // Foreign key สำหรับ Users
+	Name      string `json:"name"`
+	Sound     string  `json:"sound"`
+	Lyric     string	`json:"lyric"`
+	Owner     string  `json:"owner"`
+	Description string  `json:"description"`
+	Duration   float64 `json:"duration"`
+	LikeSound uint  `gorm:"default:0" json:"like_sound"`
+	View      uint  `gorm:"default:0" json:"view"`
+	Score  		float64  `gorm:"default:0" json:"score"`
+	STID      uint    `json:"stid"`  // Foreign key สำหรับ SoundType 
+	UID       uint     `json:"uid"` // Foreign key สำหรับ Users
 
 	// ความสัมพันธ์กับตารางต่างๆ
 	SoundType SoundType `gorm:"foreignKey:STID"`

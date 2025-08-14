@@ -1,102 +1,143 @@
 .home-page {
-  background-color: #abf3fc;
-  padding: 20px;
-  min-height: 100vh; /* กำหนดความสูงขั้นต่ำของหน้า */
-}
-
-.home-page h1 {
-  font-size: 40px; /* เพิ่มขนาดฟอนต์คำว่า 'สวัสดี' */
-  color: #333; /* สีของข้อความ */
-  font-weight: bold;
-  margin-left: 50px; /* ขยับคำว่า 'สวัสดี' ไปทางขวา */
-  text-align: left; /* จัดข้อความให้อยู่ทางซ้าย */
-}
-
-.home-page  .activity-cards {
   display: flex;
-  gap: 40px; /* เพิ่มระยะห่างระหว่างการ์ด */
-  justify-content: center;
-  flex-wrap: wrap; /* ทำให้การ์ดสามารถพังลงมาแถวถัดไป */
-}
-
-.home-page  .activity-card {
-  padding: 30px; /* เพิ่ม padding เพื่อให้การ์ดใหญ่ขึ้น */
-  border-radius: 15px;
-  width: 500px; /* ขนาดการ์ด */
-  height: 200px;
-  text-align: center;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-
-  display: flex; /* ใช้ flexbox */
-  align-items: center; /* จัดเนื้อหาตรงกลางในแนวตั้ง */
-  justify-content: center; /* จัดเนื้อหาตรงกลางในแนวนอน */
-}
-
-.home-page  .activity-card:hover {
-  transform: scale(1.05); /* ขยายการ์ดเบาๆ ไม่ให้ทับกัน */
-}
-
-.home-page  .activity-card h3 {
-  font-size: 18px; /* ปรับขนาดฟอนต์ */
-  color: #333;
-  font-weight: bold;
-}
-
-/* การตั้งค่าหัวข้อ 'กิจกรรมผ่อนคลาย' */
-.home-page .topic.activity-card {
-  width: 90%; /* ลดขนาดการ์ดหัวข้อให้น้อยกว่าหน้าจอ */
-  max-width: 800px; /* ขีดจำกัดขนาดสูงสุด */
-  margin: 0 auto 20px auto; /* จัดให้อยู่กลางหน้าจอและเพิ่มช่องว่างด้านล่าง */
-  font-size: 24px;
-  background-color: #ffecb3; /* สีพื้นหลังของหัวข้อ */
-  text-align: center; /* จัดข้อความให้อยู่กลาง */
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  background: linear-gradient(to top, #C2F4FF, #FFFFFF);
   padding: 20px;
-  border-radius: 15px;
+  box-sizing: border-box;
 }
 
-/* ใช้ :nth-child เพื่อแยกสีของการ์ด */
-.home-page .activity-card:nth-child(1) {
-  background-color: #ffecb3; /* สีของการ์ดแรก */
+.header-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  text-align: center;
 }
 
-.home-page .activity-card:nth-child(2) {
-  background-color: #ffcc80; /* สีของการ์ดที่สอง */
+.header-section img {
+  width: 220px;
+  height: auto;
+  margin-right: 20px;
 }
 
-.home-page .activity-card:nth-child(3) {
-  background-color: #80deea; /* สีของการ์ดที่สาม */
+.header-section h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #4CAF50;
 }
 
-.home-page .activity-card:nth-child(4) {
-  background-color: #ffab91; /* สีของการ์ดที่สี่ */
+.header-section p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-top: 10px;
+  width: 100%;
 }
 
-.home-page .activity-card:nth-child(5) {
-  background-color: #c8e6c9; /* สีของการ์ดที่ห้า */
+.activity-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  margin-top: 0px;
+  padding: 30px;
+  width: 100%;
+  box-sizing: border-box;
+  justify-items: center;
 }
 
+.activity-card {
+  text-align: center;
+  cursor: pointer;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 450px;
+  width: 100%;
+  max-width: 450px;
+  background-color: #ffffff;
+}
+
+.activity-card img {
+  width: 100%;
+  height: 70%;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.activity-card p {
+  font-size: 1rem;
+  color: #666;
+  margin-top: 25px;
+}
+
+.activity-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Tablet view */
 @media (max-width: 768px) {
-  .activity-card {
-    width: 180px; /* ลดขนาดการ์ดเมื่อหน้าจอเล็กลง */
+  .header-section {
+    flex-direction: column;
+    margin-bottom: 30px;
+  }
+
+  .header-section img {
+    width: 180px;
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+
+  .header-section h1 {
+    font-size: 2rem;
+  }
+
+  .activity-cards {
+    gap: 30px;
     padding: 20px;
   }
 
-  .topic.activity-card {
-    width: 90%; /* ขยายหัวข้อให้เต็มพื้นที่บนหน้าจอเล็ก */
-    font-size: 20px; /* ขนาดฟอนต์ลดลง */
+  .activity-card {
+    height: auto;
+  }
+
+  .activity-card img {
+    height: 200px;
   }
 }
 
+/* Mobile view */
 @media (max-width: 480px) {
-  .activity-card {
-    width: 100%; /* ให้การ์ดเต็มหน้าจอในมือถือ */
-    padding: 15px;
-    margin-bottom: 10px;
+  .header-section h1 {
+    font-size: 1.8rem;
   }
 
-  .topic.activity-card {
-    width: 90%; /* ขยายหัวข้อให้เต็มหน้าจอในมือถือ */
-    font-size: 18px; /* ขนาดฟอนต์ลดลง */
+  .header-section p {
+    font-size: 1rem;
+  }
+
+  .activity-cards {
+    padding: 10px;
+    gap: 20px;
+  }
+
+  .activity-card {
+    padding: 15px;
+    height: auto;
+  }
+
+  .activity-card img {
+    height: 180px;
+  }
+
+  .activity-card p {
+    font-size: 0.95rem;
   }
 }

@@ -1,0 +1,116 @@
+/* ✅ ใช้ Scope แค่หน้า QuestionnairePage */
+.questionnaire-page-container {
+  padding: 20px;
+}
+
+/* ✅ หัวข้อ */
+.questionnaire-page-container .questionnaire-page-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* ✅ ปุ่มทั้งหมด */
+.questionnaire-page-container .ant-btn {
+  background-color: #87CDFA !important;
+  color: #000 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  transition: background-color 0.3s ease;
+}
+
+/* ✅ Hover ปุ่มทั่วไป */
+.questionnaire-page-container .ant-btn:hover {
+  background-color: #85bee1 !important;
+  color: #000 !important;
+}
+
+/* ✅ ปุ่มค้นหาใน Search */
+.questionnaire-page-container .questionnaire-search .ant-input-search-button {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  background-color: #87CDFA !important;
+  color: #000 !important;
+  border: none !important;
+  border-radius: 8px !important;
+}
+
+.questionnaire-page-container .questionnaire-search .ant-input-search-button:hover {
+  background-color: #85bee1 !important;
+  color: #000 !important;
+}
+
+/* ✅ ช่อง Search และ Select */
+.questionnaire-page-container .ant-input,
+.questionnaire-page-container .ant-select-selector {
+  font-size: 18px !important;
+  font-weight: 500;
+  color: #000;
+  border-radius: 6px;
+  border: 2px solid #87CDFA;
+}
+
+/* ✅ ขนาด Option */
+.questionnaire-page-container .ant-select-item-option-content {
+  font-size: 18px !important;
+}
+
+/* ✅ ตาราง */
+.questionnaire-page-container .questionnaire-table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.questionnaire-page-container .questionnaire-table-container .ant-table-thead > tr > th {
+  background-color: #87CDFA;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.questionnaire-page-container .questionnaire-table-container .ant-table-tbody > tr > td {
+  text-align: center;
+  font-size: 15px;
+  padding: 12px 8px;
+}
+
+/* ✅ ปุ่มในตาราง */
+.questionnaire-page-container .questionnaire-table-container .ant-btn {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #000 !important;
+}
+
+/* ✅ Modal */
+.questionnaire-page-container .questionnaire-modal .ant-modal-title {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.questionnaire-page-container .questionnaire-modal .ant-modal-body {
+  font-size: 18px;
+}
+
+.questionnaire-page-container .questionnaire-modal .ant-modal-footer .ant-btn {
+  font-size: 18px !important;
+}
+
+/* ✅ ปุ่มลบสีแดง */
+.questionnaire-page-container .ant-btn-dangerous {
+  background-color: #ff4d4f !important;
+  color: #fff !important;
+}
+
+/* ✅ Hover ของปุ่มลบ */
+.questionnaire-page-container .ant-btn-dangerous:hover {
+  background-color: #ff7875 !important;
+  color: #fff !important;
+}
+
+/* ✅ ไอคอน Delete ให้เป็นสีขาว */
+.questionnaire-page-container .ant-btn-dangerous .anticon {
+  color: #fff !important;
+}

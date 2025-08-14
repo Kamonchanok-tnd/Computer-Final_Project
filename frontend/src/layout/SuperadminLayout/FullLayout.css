@@ -13,17 +13,17 @@
 }
 
 /* สไตล์ปุ่ม Logout */
-.layout .layout-logout-button {
+.layout .layout-logout-button1 {
   margin-top: 5px;
   float: right;
-  background-color: rgb(255, 59, 59); /* สีพื้นฐานของปุ่ม */
+  background-color: rgb(166, 218, 255); /* สีพื้นฐานของปุ่ม */
   color: white; /* สีตัวอักษร */
   
 }
 
 /* เมื่อเอาเมาส์ไป hover */
-.layout .ant-btn.layout-logout-button:hover {
-  background-color: rgb(255, 99, 99) !important;
+.layout .ant-btn.layout-logout-button1:hover {
+  background-color: rgb(212, 236, 253) !important;
 }
 
 
@@ -59,7 +59,7 @@
 }
 
 /* สไตล์สำหรับปุ่ม Hamburger */
-.layout .layout-hamburger-button {
+.layout1 .layout-hamburger-button {
   display: none;
   position: absolute;
   top: 20px;
