@@ -10,12 +10,10 @@ import (
 	"sukjai_project/controller/assessment"
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
-
 	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/playlist"
-	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/questionnaire"
 	"sukjai_project/controller/resettoken"
 	"sukjai_project/controller/reviewsound"

@@ -17,13 +17,10 @@ import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
 import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
-
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
-import ChatingMain from "../pages/secondary function/chanting/chatingMain";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
 import AddSoundPlaylist from "../pages/secondary function/Playlist/Playlist";
-import Playermedia from "../pages/secondary function/playermedia/playermedia";
-
+import MeditationPage from "../pages/secondary function/meditation/meditation";
 // import Playermediameditation from "../pages/secondary function/meditation/playermedia/playmedia";
 import Player from "../pages/secondary function/playermedia/player";
 import PlayerPlaylist from "../pages/secondary function/playermedia/playerPlaylist";
