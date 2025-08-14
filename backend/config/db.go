@@ -138,6 +138,7 @@ func SetupDatabase() {
 	// SeedQuestionnaireGroups(db)
 	// SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
+	SeedEmojis(db)
 }
 
 
@@ -773,4 +774,21 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 	}
 
 	fmt.Println("✅ Seeded Questionnaire Groups: Pre-test, Post-test, Post-test2weeks")
+}
+
+func SeedEmojis(db *gorm.DB) {
+    var count int64
+    db.Model(&entity.Emotion{}).Count(&count)
+    if count == 0 {
+        emojis := []entity.Emotion{
+            {Mood: "ยิ้ม", Picture: "happy.png"},
+            {Mood: "โกรธ", Picture: "grumpy.png"},
+            {Mood: "เศร้า", Picture: "sad.png"},
+            {Mood: "เฉยๆ", Picture: "neutral.png"},
+        }
+        if err := db.Create(&emojis).Error; err != nil {
+            log.Fatalf("ไม่สามารถ seed emoji: %v", err)
+        }
+        fmt.Println("✅ Seeded Emojis")
+    }
 }
