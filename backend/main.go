@@ -10,6 +10,9 @@ import (
 	"sukjai_project/controller/assessment"
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
+
+	"sukjai_project/controller/mirror"
+	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/playlist"
 	"sukjai_project/controller/prompt"
@@ -88,11 +91,8 @@ func main() {
         router.GET("/admin/prompt", prompt.GetAllPrompts)
         router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
         router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
-        router.POST("/admin/prompt/use/:id", prompt.UsePrompt)
-        router.GET("/admin/prompt/:id", prompt.GetPromptByID)  
-
-
-
+        router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
+        router.GET("/admin/prompt/:id", prompt.GetPromptByID)
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
         router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
@@ -151,6 +151,12 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
+
+
+        userRouter.POST("/mirror", mirror.CreateMirror)
+        userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
+        userRouter.PUT("/mirror/:id", mirror.UpdateMirror)
+        userRouter.DELETE("/mirror/:id", mirror.DeleteMirror)
         userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
         userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
         userRouter.POST("/sounds/:id/like", sounds.LikeSound)

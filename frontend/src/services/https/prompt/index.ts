@@ -25,6 +25,6 @@ export const getPromptByID = async (id: number): Promise<IPrompt> => {
   return response.data;
 };
 
-export const usePrompt = async (id: number): Promise<void> => {
+export const nowPrompt = async (id: number): Promise<void> => {
   await api.post(`/admin/prompt/use/${id}`);
 };

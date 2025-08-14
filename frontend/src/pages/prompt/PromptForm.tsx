@@ -24,7 +24,7 @@ export default function PromptForm({ extraButtons, editingPrompt, onFinishEdit }
     } else {
       form.resetFields();
     }
-  }, [editingPrompt]);
+  }, [editingPrompt, form]);
 
   const handleSubmit = async (values: Omit<IPrompt, 'id' | 'ID'>) => {
     try {
@@ -37,7 +37,7 @@ export default function PromptForm({ extraButtons, editingPrompt, onFinishEdit }
         message.success('เพิ่ม Prompt สำเร็จ');
       }
       form.resetFields();
-    } catch (error) {
+    } catch {
       message.error('❌ เกิดข้อผิดพลาด');
     }
   };
