@@ -73,7 +73,7 @@ func UpdatePrompt(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Prompt updated successfully"})
 }
 
-func UsePrompt(c *gin.Context) {
+func NowPrompt(c *gin.Context) {
 	id := c.Param("id")
 	db := config.DB()
 

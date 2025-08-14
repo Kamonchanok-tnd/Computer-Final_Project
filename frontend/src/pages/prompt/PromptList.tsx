@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { IPrompt } from '../../interfaces/IPrompt';
-import { getPrompts, usePrompt, deletePrompt } from '../../services/https/prompt';
+import { getPrompts, nowPrompt, deletePrompt } from '../../services/https/prompt';
 import PromptTitleModal from './component/PromptTitleModal';
 import PromptCard from './component/PromptCard';
 
@@ -25,7 +25,7 @@ export default function PromptList({
 
   const handleUse = async (id: number) => {
     try {
-      await usePrompt(id);
+      await nowPrompt(id);
       fetchData();
     } catch (error) {
       console.error(error);
