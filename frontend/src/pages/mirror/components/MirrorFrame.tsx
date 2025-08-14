@@ -138,7 +138,8 @@ export default function MirrorFrame({
   );
 
   return (
-    <section className="mt-6">
+  <section className="mt-6 w-full"> 
+
       <div className="relative mx-auto w-[90%] sm:w-[70%] md:w-[50%] lg:w-[40%]">
         {/* HALO */}
         <span
@@ -196,8 +197,9 @@ export default function MirrorFrame({
                 onInput={handleInput}
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
-                className="relative z-10 w-full max-w-full outline-none bg-transparent text-center leading-relaxed
-                           text-base sm:text-lg md:text-xl whitespace-pre-wrap break-words [text-wrap:pretty] caret-sky-500"
+                 className="relative z-10 w-full max-w-full outline-none bg-transparent text-center leading-relaxed
+             text-base sm:text-lg md:text-xl whitespace-pre-wrap break-words [text-wrap:pretty] caret-sky-500
+             font-ibmthai font-light"
                 style={{
                   paddingLeft: `${PAD_X * 100}%`,
                   paddingRight: `${PAD_X * 100}%`,
@@ -209,7 +211,7 @@ export default function MirrorFrame({
           {/* SHADOW ใต้กรอบ */}
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-x-[22%] bottom-[4%] h-5
+            className="pointer-events-none absolute inset-x-[10%] bottom-[4%] h-5
                        bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,.38),transparent_62%)]
                        blur-[6px] opacity-60 rounded-full"
           />
