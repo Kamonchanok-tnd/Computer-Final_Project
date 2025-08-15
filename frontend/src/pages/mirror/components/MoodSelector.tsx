@@ -36,14 +36,14 @@ export default function MoodSelector({ emotions, selectedID, onSelect }: Props) 
 
   return (
     <div className="mx-auto w-full max-w-[420px] px-4 mt-7 sm:mt-8">
-      <ul className="flex items-end justify-between gap-2">
+      <ul className="flex items-end justify-center gap-x-5 sm:gap-x-7 md:gap-x-9 lg:gap-x-10">
         {safeEmotions.map((emotion, idx) => {
           const isActive = selectedID === emotion.ID;
           const liftClass = lifts[idx] ?? "";
           const src = buildImageSrc(emotion.picture);
 
           return (
-            <li key={`${emotion.ID}-${idx}`} className={liftClass}>
+            <li key={`${emotion.ID}-${idx}`} className={`${liftClass} flex-none`}>
               <button
                 type="button"
                 onClick={() => onSelect(emotion.ID)}

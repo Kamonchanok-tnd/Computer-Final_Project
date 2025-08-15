@@ -139,6 +139,8 @@ func SetupDatabase() {
 	SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	SeedEmojis(db)
+	SeedMirrorJuly2025(db)
+	SeedMirrorAug2025FirstHalf(db)
 }
 
 
@@ -792,3 +794,144 @@ func SeedEmojis(db *gorm.DB) {
         fmt.Println("✅ Seeded Emojis")
     }
 }
+
+// ===== Seed: Mirror for user #2 in July 2025 (31 days) =====
+func SeedMirrorJuly2025(db *gorm.DB) {
+	uid := uint(2) // บันทึกให้ผู้ใช้คนที่ 2 เท่านั้น
+
+	// ข้อมูล 31 วัน (message จับคู่กับ eid ให้เรียบร้อย)
+	// eid: 1=ยิ้ม, 2=โกรธ, 3=เศร้า, 4=เฉยๆ  (อ้างอิงตามตาราง emotion ที่ seed ไว้)
+	type dayData struct {
+		Msg string
+		EID uint
+	}
+	days := []dayData{
+		{Msg: "วันนี้รู้สึกดีและมีพลัง", EID: 1},
+		{Msg: "เรื่อย ๆ ไม่มีอะไรพิเศษ", EID: 4},
+		{Msg: "หัวร้อนเพราะรถติดหนัก", EID: 2},
+		{Msg: "เหงาและเศร้าเล็กน้อย", EID: 3},
+		{Msg: "ได้ข่าวดีจากที่บ้าน ยิ้มทั้งวัน", EID: 1},
+		{Msg: "ทำงานยาว ๆ รู้สึกเฉย ๆ", EID: 4},
+		{Msg: "โมโหเพราะโดนต่อคิว", EID: 2},
+		{Msg: "คิดถึงบ้านเลยรู้สึกเศร้า", EID: 3},
+		{Msg: "ออกกำลังเช้า สดใสจัง", EID: 1},
+		{Msg: "ปกติ ไม่มีอะไรตื่นเต้น", EID: 4},
+		{Msg: "หัวเสียเพราะเน็ตล่ม", EID: 2},
+		{Msg: "ดูหนังดราม่าแล้วน้ำตาซึม", EID: 3},
+		{Msg: "กินของอร่อย อารมณ์ดีมาก", EID: 1},
+		{Msg: "วันสบาย ๆ อยู่บ้านทั้งวัน", EID: 4},
+		{Msg: "ไม่พอใจกับผลงานตัวเอง", EID: 2},
+		{Msg: "คิดมากเรื่องส่วนตัว เลยเศร้า", EID: 3},
+		{Msg: "ได้คุยกับเพื่อนเก่า มีความสุข", EID: 1},
+		{Msg: "นิ่ง ๆ เนิบ ๆ ทั้งวัน", EID: 4},
+		{Msg: "โกรธเพราะโดนเบี้ยวนัด", EID: 2},
+		{Msg: "พลาดเป้าหมายเลยรู้สึกเสียใจ", EID: 3},
+		{Msg: "อากาศดี เดินเล่นเพลิน ยิ้มง่าย", EID: 1},
+		{Msg: "ชีวิตไหลไปตามปกติ", EID: 4},
+		{Msg: "หงุดหงิดเพราะงานไม่คืบ", EID: 2},
+		{Msg: "เศร้าเพราะแพ้เกม", EID: 3},
+		{Msg: "สำเร็จงานใหญ่ ภูมิใจมาก", EID: 1},
+		{Msg: "ไม่มีอะไรใหม่ ๆ วันนี้", EID: 4},
+		{Msg: "หัวร้อนเพราะเจอทัศนคติแย่", EID: 2},
+		{Msg: "คิดถึงใครบางคน เลยหม่น ๆ", EID: 3},
+		{Msg: "ได้ของขวัญไม่คาดคิด ยิ้มทั้งวัน", EID: 1},
+		{Msg: "วันธรรมดาที่เรียบง่าย", EID: 4},
+		{Msg: "ข่าวร้ายทำให้ใจหาย เศร้า", EID: 3}, // วันสุดท้ายใส่โทนเศร้าให้ต่าง
+	}
+
+	// วนครอบ 1..31 ก.ค. 2025
+	for day := 1; day <= 31; day++ {
+		d := days[day-1]
+
+		// สร้างช่วงเวลา 00:00 - <+1 วัน> เพื่อกันซ้ำในวันเดียวกัน
+		start := time.Date(2025, time.July, day, 0, 0, 0, 0, time.UTC)
+		end := start.Add(24 * time.Hour)
+
+		// ถ้าวันนี้ของ user #2 มีอยู่แล้ว ให้ข้าม
+		var count int64
+		if err := db.Model(&entity.Mirror{}).
+			Where("uid = ? AND date >= ? AND date < ?", uid, start, end).
+			Count(&count).Error; err != nil {
+			log.Printf("❌ เช็คข้อมูลวันที่ %s ผิดพลาด: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		if count > 0 {
+			// มีแล้ว ไม่ seed ซ้ำ
+			continue
+		}
+
+		m := entity.Mirror{
+			Date:    start,
+			Message: d.Msg,
+			EID:     d.EID,
+			UID:     uid,
+		}
+		if err := db.Create(&m).Error; err != nil {
+			log.Printf("❌ บันทึก %s ไม่สำเร็จ: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		fmt.Printf("✅ Seeded mirror for %s (uid=%d, eid=%d)\n", start.Format("2006-01-02"), uid, d.EID)
+	}
+}
+
+// ===== Seed: Mirror for user #2 in Aug 2025 (day 1–15, mostly happy) =====
+func SeedMirrorAug2025FirstHalf(db *gorm.DB) {
+	uid := uint(2)
+
+	// eid: 1=ยิ้ม, 2=โกรธ, 3=เศร้า, 4=เฉยๆ
+	type dayData struct {
+		Msg string
+		EID uint
+	}
+
+	days := []dayData{
+		{Msg: "เริ่มเดือนใหม่ด้วยพลังบวก ยิ้มง่ายทั้งวัน", EID: 1},
+		{Msg: "ทำงานลื่นไหล รู้สึกดีมาก", EID: 1},
+		{Msg: "ออกกำลังกายเช้า อารมณ์ดี", EID: 1},
+		{Msg: "ท้องฟ้าสวย สดใส ทำให้ใจเบิกบาน", EID: 1},
+		{Msg: "ชวนครอบครัวทานข้าว อบอุ่นใจ", EID: 1},
+		{Msg: "วันสบาย ๆ เรื่อย ๆ ไม่รีบเร่ง", EID: 4},
+		{Msg: "ได้คำชมจากเพื่อนร่วมทีม ยิ้มทั้งวัน", EID: 1},
+		{Msg: "กาแฟอร่อย งานก็เดิน สนุกดี", EID: 1},
+		{Msg: "เดินเล่นยามเย็น อากาศดีมาก", EID: 1},
+		{Msg: "เจอเรื่องจุกจิกนิดหน่อย แต่ยังโอเค", EID: 4},
+		{Msg: "มีข่าวดีเล็ก ๆ ทำให้กำลังใจเพิ่ม", EID: 1},
+		{Msg: "ช่วยคนอื่นได้ รู้สึกมีคุณค่า", EID: 1},
+		{Msg: "หัวเราะเยอะมากวันนี้ สนุกสุด ๆ", EID: 1},
+		{Msg: "พักผ่อนเต็มที่ ใจสงบ ผ่อนคลาย", EID: 1},
+		{Msg: "ปิดงานค้างได้สำเร็จ โล่งใจและมีความสุข", EID: 1},
+	}
+
+	for day := 1; day <= 15; day++ {
+		d := days[day-1]
+
+		start := time.Date(2025, time.August, day, 0, 0, 0, 0, time.UTC)
+		end := start.Add(24 * time.Hour)
+
+		var count int64
+		if err := db.Model(&entity.Mirror{}).
+			Where("uid = ? AND date >= ? AND date < ?", uid, start, end).
+			Count(&count).Error; err != nil {
+			log.Printf("❌ เช็คข้อมูลวันที่ %s ผิดพลาด: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		if count > 0 {
+			continue
+		}
+
+		m := entity.Mirror{
+			Date:    start,
+			Message: d.Msg,
+			EID:     d.EID,
+			UID:     uid,
+		}
+		if err := db.Create(&m).Error; err != nil {
+			log.Printf("❌ บันทึก %s ไม่สำเร็จ: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		fmt.Printf("✅ Seeded mirror for %s (uid=%d, eid=%d)\n", start.Format("2006-01-02"), uid, d.EID)
+	}
+}
+
+
+
