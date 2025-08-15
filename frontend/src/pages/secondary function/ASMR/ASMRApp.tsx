@@ -120,7 +120,7 @@ const ASMRApp: React.FC = () => {
   };
 
   const updateVolume = (key: string, value: number) => {
-    setVolumes(prev => ({ ...prev, [key]: value }));
+    setVolumes((prev) => ({ ...prev, [key]: value }));
     if (audioRefs.current[key]) {
       audioRefs.current[key].volume = value / 100;
     }
@@ -161,10 +161,20 @@ const ASMRApp: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex bg-gray-900 relative overflow-hidden" style={{ overflow: "hidden", height: "100%" }}>
+    <div
+      className="h-screen flex bg-gray-900 relative overflow-hidden"
+      style={{ overflow: "hidden", height: "100%" }}
+    >
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-cover bg-center relative">
+        <div
+          className="w-full h-full bg-cover bg-center relative"
+          style={{
+            backgroundImage: !selectedBgUrl
+              ? `linear-gradient(180deg, #CCFFED 0%, #dffbffff 100%)`
+              : undefined,
+          }}
+        >
           {!selectedBgUrl && (
             <img
               src={asmrImg}
@@ -210,9 +220,13 @@ const ASMRApp: React.FC = () => {
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => setActivePanel(activePanel === item.id ? null : item.id)}
+            onClick={() =>
+              setActivePanel(activePanel === item.id ? null : item.id)
+            }
             className={`w-12 h-12 rounded-full backdrop-blur-lg border border-white/20 flex items-center justify-center text-2xl transition-all hover:scale-110 hover:bg-white/20 ${
-              activePanel === item.id ? "bg-white/30 border-white/40" : "bg-black/20"
+              activePanel === item.id
+                ? "bg-white/30 border-white/40"
+                : "bg-black/20"
             }`}
             title={item.label}
           >
@@ -224,7 +238,10 @@ const ASMRApp: React.FC = () => {
       {/* Overlay Panel */}
       {activePanel && (
         <>
-          <div className="absolute inset-0 z-30 bg-black/50" onClick={() => setActivePanel(null)} />
+          <div
+            className="absolute inset-0 z-30 bg-black/50"
+            onClick={() => setActivePanel(null)}
+          />
           <div className="absolute left-20 top-1/2 transform -translate-y-1/2 z-40 w-80 max-h-[80vh] bg-black/30 backdrop-blur-xl border border-white/20 rounded-2xl p-6 overflow-y-auto">
             <button
               onClick={() => setActivePanel(null)}
