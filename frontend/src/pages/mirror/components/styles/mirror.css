@@ -7,6 +7,9 @@
   border-radius: 999px;
   filter: drop-shadow(0 8px 20px rgba(0,0,0,.08));
 }
+.mirror-root {
+  scrollbar-gutter: stable both-edges;
+}
 
 /* src/index.css หรือ global css */
 .mirror-editor { scrollbar-width: none; }

@@ -13,7 +13,7 @@ import {
 } from "../../services/https/mirror";
 import { getEmotions } from "../../services/https/emotion";
 
-// แปลง YYYY-MM-DD -> 00:00:00Z (UTC)
+// YYYY-MM-DD -> 00:00:00Z (UTC)
 function toStartOfDayUTCISO(dateYMD: string) {
   const [y, m, d] = dateYMD.split("-").map(Number);
   return new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1, 0, 0, 0, 0)).toISOString();
@@ -73,7 +73,7 @@ export default function MirrorPage() {
     return firstLine.length ? firstLine.slice(0, 60) : "บันทึกประจำวัน";
   };
 
-  // สร้าง/อัปเดต (ถูกเรียกโดย autosave)
+  // สร้าง/อัปเดต (autosave)
   const doSave = async (next?: { message?: string; eid?: number | null }) => {
     const msg = (typeof next?.message === "string" ? next!.message : message) ?? "";
     const emotion = typeof next?.eid === "number" ? next!.eid : (eid ?? null);
@@ -105,7 +105,7 @@ export default function MirrorPage() {
     }
   };
 
-  // autosave (500ms) เมื่อพิมพ์/เลือกอารมณ์
+  // autosave 500ms
   const debouncedSave = useMemo(() => {
     return (next: { message?: string; eid?: number | null }) => {
       if (typeof next.message === "string") setMessage(next.message);
@@ -120,44 +120,69 @@ export default function MirrorPage() {
 
   const handleMessageChange = (val: string) => debouncedSave({ message: val });
   const handleEmotionSelect = (id: number) => debouncedSave({ eid: id });
-return (
-  <div className="min-h-dvh bg-gradient-to-b from-sky-200 to-white">
-    {/* Header สำหรับมือถือ (อยู่นอกกรอบเหมือนเดิม) */}
+
+
+  return (
+  <div className="h-dvh overflow-y-auto [scrollbar-gutter:stable_both-edges] bg-gradient-to-b from-sky-200 to-white flex flex-col">
+    {/* Header มือถือ */}
     <div className="md:hidden">
       <Header />
     </div>
 
-    {/* กลางแนวตั้งบน md+ และไม่ให้สกรอลล์ */}
-    <div
-      className="
-        mx-auto w-full px-4 sm:px-6 md:px-8 pb-16 md:pb-0
-        md:min-h-dvh md:flex md:flex-col md:items-center md:justify-center
-        md:overflow-hidden
-      "
-    >
-      {/* wrapper เดิม แต่ “ลบกรอบ” ออกบน md+ */}
-      <div
-        className="
-          w-full
-          md:max-w-none md:ring-0 md:bg-transparent md:backdrop-blur-0
-          md:shadow-none md:rounded-none
-          lg:max-w-[960px] xl:max-w-[1100px]
-        "
-      >
-        {/* Header สำหรับ md+ */}
-        <div className="hidden md:block md:pt-3 md:px-0">
+    {/* Header เดสก์ท็อป (ความกว้างเท่ากับ content) */}
+    <div className="hidden md:block">
+      <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
+        <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 pt-3 pb-3">
           <Header />
         </div>
+      </div>
+    </div>
 
-        <main className="mx-auto w-full max-w-screen-md px-4 sm:px-6 md:px-8 py-6 md:py-0">
+    {/* DatePicker — อยู่นอก content ให้เลย์เอาต์เท่ากับหน้า Overview */}
+    <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
+      <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8">
+        <div className="pt-0 pb-1">
           <DatePicker value={date} onChange={setDate} loading={loading} saving={saving} />
-          <MirrorFrame value={message} onChange={handleMessageChange} />
-          <MoodSelector emotions={emotions} selectedID={eid} onSelect={handleEmotionSelect} />
-        </main>
+        </div>
+      </div>
+    </div>
+
+    {/* CONTENT — กระจก + อิโมจิ */}
+    <div className="flex-1">
+      <div className="mx-auto w-full px-4 sm:px-6 md:px-8 h-full">
+        <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 h-full">
+          {/* ใส่ padding-bottom ที่ parent แทน เพื่อกันตกขอบทุกอุปกรณ์ */}
+          <main className="h-full grid grid-rows-[1fr,auto] gap-4 md:gap-3 pt-2
+                           pb-6 sm:pb-8 md:pb-12
+                           [padding-bottom:max(env(safe-area-inset-bottom),1rem)]">
+            {/* กระจก */}
+            <div className="min-h-0 grid place-items-center">
+              <div
+                className={[
+                  "[&>section>div]:w-[min(88vw,calc((100dvh-210px)*0.6))]",
+                  "sm:[&>section>div]:w-[min(80vw,calc((100dvh-220px)*0.6))]",
+                  "md:[&>section>div]:w-[min(72vw,calc((100dvh-260px)*0.6))]",
+                  "lg:[&>section>div]:w-[min(64vw,calc((100dvh-290px)*0.6))]",
+                  "xl:[&>section>div]:w-[min(56vw,calc((100dvh-310px)*0.6))]",
+                ].join(" ")}
+              >
+                <MirrorFrame value={message} onChange={handleMessageChange} />
+              </div>
+            </div>
+
+            {/* อิโมจิ — ดันขึ้นเฉพาะ md+ ให้ชิดเงากระจกมากขึ้น */}
+            <div className="mx-auto md:-mt-8 lg:-mt-8 xl:-mt-10">
+              <MoodSelector
+                emotions={emotions}
+                selectedID={eid}
+                onSelect={handleEmotionSelect}
+              />
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   </div>
 );
-
 
 }
