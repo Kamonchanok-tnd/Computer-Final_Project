@@ -285,6 +285,19 @@ func SetupInitialData(db *gorm.DB) {
 			Name: "คาถาชินบัญชร พระคาถาชินบัญชร สมเด็จพระพุฒาจารย์ (โต พรหมรังสี) เสถียรพงษ์ วรรณปก",Sound: "https://youtu.be/sqOeFloH6tU?si=VEyGbfdeuytxawPC", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
 		},
 
+		// ASMR
+    	{Name: "Swans, Ducks & Other Water Birds by a Summer River in Ukraine", Sound: "https://www.youtube.com/watch?v=zB1tL1wwqak", Lyric: "",Description: "#Nature",Duration: 287,LikeSound: 90,View: 12000,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+    	{Name: "May Valley Trail Issaquah, Washington", Sound: "https://www.youtube.com/watch?v=HGOYvgb2SJY", Lyric: "",Description: "#Nature",Duration: 175,LikeSound: 95,View: 30000,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Central Park, NYC", Sound: "https://www.youtube.com/watch?v=YmCJKmbprnE", Lyric: "",Description: "#Nature #Winter",Duration: 55,LikeSound: 100,View: 2000000,Owner: "4K Relaxation Channel",STID: asmrType.ID, UID: user.ID},
+		{Name: "Skagit River in Late Fall, North Cascades Area, WA", Sound: "https://www.youtube.com/watch?v=JA1mxsfb4ak", Lyric: "",Description:"#Nature" ,Duration: 185 ,LikeSound: 100,View: 20,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop", Sound: "https://www.youtube.com/watch?v=uU_RxnJOdMQ&t=13753s", Lyric: "",Description:"#Cafe" ,Duration:  420,LikeSound: 100,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Cockpit View Airplane", Sound: "https://www.youtube.com/watch?v=Q139Juah-NQ&t=40s", Lyric: "",Description:"#Window" ,Duration:  420,LikeSound: 99,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Rain Thunder Night Window View", Sound: "https://www.youtube.com/watch?v=TuBxM-qBmp8&t=1612s", Lyric: "",Description:"#Window" ,Duration:  420,LikeSound: 98,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Paris at Night", Sound: "https://www.youtube.com/watch?v=1B8fDmR72sY", Lyric: "",Description:"#City" ,Duration:  420,LikeSound: 97,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Walt Disney World Magic Kingdom Street", Sound: "https://www.youtube.com/watch?v=oDCf5bjrWOU&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1", Lyric: "",Description:"#City" ,Duration:  420,LikeSound: 101,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop at christmas", Sound: "https://www.youtube.com/watch?v=u88fH7HLszo&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1&index=5", Lyric: "",Description:"#Cafe" ,Duration:  420,LikeSound: 102,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+
+
 		
     }
 
