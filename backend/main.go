@@ -155,7 +155,8 @@ func main() {
 
         userRouter.GET("/emotions", emotion.GetEmotions)
         userRouter.GET("/emotions/:id", emotion.GetEmotionByID)
-
+        // routes/mirror.go หรือที่คุณ register route
+        userRouter.GET("/mirror/summary", mirror.GetMonthlySummary)
         userRouter.POST("/mirror", mirror.CreateMirror)
         userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
         userRouter.PUT("/mirror/:id", mirror.UpdateMirror)
