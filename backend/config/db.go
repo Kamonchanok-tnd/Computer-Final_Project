@@ -711,6 +711,21 @@ func SeedBackground(db *gorm.DB) {
 			Picture: "q1.jpg",
 			UID:     1,
 		},
+		{
+			Name:    "รูปกอดตัวเอง",
+			Picture: "รูปกอดตัวเองสีชมพู.png.png",
+			UID:     1,
+		},
+		{
+			Name:    "รูปกอดตัวเองเสื้อสีแดง",
+			Picture: "กอดตัวเองเสื้อสีเเดง.png",
+			UID:     1,
+		},
+		{
+			Name:    "รูปกอดตัวเองผมชมพู",
+			Picture: "รูปกอดตัวเอง.png",
+			UID:     1,
+		},
 	}
 
 	for _, bg := range backgrounds {
