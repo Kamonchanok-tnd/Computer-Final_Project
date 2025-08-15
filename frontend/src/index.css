@@ -195,3 +195,7 @@ html, body {
   @apply absolute -inset-0 rounded-full blur-xl opacity-30 -z-10 bg-button-blue;
   content: "";
 }
+
+@theme {
+  --font-ibmthai: "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+}

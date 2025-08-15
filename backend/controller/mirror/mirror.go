@@ -121,3 +121,50 @@ func DeleteMirror(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Mirror deleted successfully"})
 }
 
+// GET /mirror/summary?month=YYYY-MM
+func GetMonthlySummary(c *gin.Context) {
+	userID, ok := c.Get("userID")
+	if !ok {
+		util.HandleError(c, http.StatusUnauthorized, "ไม่ได้เข้าสู่ระบบ", "UNAUTHORIZED")
+		return
+	}
+
+	month := c.Query("month") // e.g. 2025-08
+	if month == "" {
+		util.HandleError(c, http.StatusBadRequest, "ต้องระบุ month=YYYY-MM", "INVALID_MONTH")
+		return
+	}
+	start, err := time.Parse("2006-01", month)
+	if err != nil {
+		util.HandleError(c, http.StatusBadRequest, "รูปแบบเดือนผิด ต้องเป็น YYYY-MM", "INVALID_MONTH")
+		return
+	}
+	end := start.AddDate(0, 1, 0)
+
+	type Result struct {
+		EID     uint   `json:"eid"`
+		Mood    string `json:"mood"`
+		Picture string `json:"picture"`
+		Count   int    `json:"count"`
+	}
+
+	var results []Result
+
+	// ใช้ชื่อคอลัมน์จริง: m.e_id และ m.uid
+	if err := config.DB().
+		Table("emotions AS e").
+		Select(`e.id AS eid, e.mood, e.picture, COUNT(m.id) AS count`).
+		Joins(`LEFT JOIN mirrors AS m
+               ON m.e_id = e.id
+              AND m.uid  = ?
+              AND m.date >= ?
+              AND m.date < ?`, userID, start, end).
+		Group(`e.id, e.mood, e.picture`).
+		Order(`e.id`).
+		Scan(&results).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "ดึงข้อมูลสรุปไม่สำเร็จ", "FETCH_FAILED")
+		return
+	}
+
+	c.JSON(http.StatusOK, results)
+}

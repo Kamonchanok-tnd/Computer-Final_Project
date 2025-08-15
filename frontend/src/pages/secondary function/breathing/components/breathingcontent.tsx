@@ -184,9 +184,9 @@ function BreathingCard({ sound }: BreathingCardProps) {
 
           {/* ปุ่มด้านล่าง */}
           <div className="flex justify-between mt-3 gap-2">
-            <button className="bg-gray-200 flex-1 py-2 rounded-md text-sm font-medium cursor-pointer">
+            {/* <button className="bg-gray-200 flex-1 py-2 rounded-md text-sm font-medium cursor-pointer">
               Instructions
-            </button>
+            </button> */}
             <button
               onClick={handleStart}
               disabled={isTimeZero}

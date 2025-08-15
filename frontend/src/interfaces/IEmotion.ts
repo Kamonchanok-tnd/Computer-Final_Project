@@ -1,5 +1,5 @@
-export interface Emotion {
-  id: number;
+export interface IEmotion {
+  ID: number;
   mood: string;
-  emoji: string;
+  picture: string;
 }
