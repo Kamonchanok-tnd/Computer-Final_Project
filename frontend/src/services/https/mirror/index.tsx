@@ -9,6 +9,7 @@ export const createMirror = async (mirror: IMirror): Promise<{ message: string }
 
 export const getMirrorByDate = async (date: string): Promise<IMirror> => {
   const response = await api.get<IMirror>(`/mirror/${date}`);
+  
   return response.data;
 };
 
