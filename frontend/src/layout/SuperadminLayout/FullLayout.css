@@ -73,7 +73,7 @@
 
 
 /* ให้ปุ่ม Hamburger แสดงเฉพาะในขนาดหน้าจอเล็ก */
-@media (max-width: 991px) {
+/* @media (max-width: 991px) {
   .layout-sider {
     display: none;
   }
@@ -89,4 +89,4 @@
   .layout-footer {
     text-align: center;
   }
-}
+} */
