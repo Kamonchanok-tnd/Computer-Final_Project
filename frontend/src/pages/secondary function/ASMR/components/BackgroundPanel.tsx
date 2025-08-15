@@ -1,17 +1,18 @@
-// components/BackgroundPanel.tsx
 import React, { useState, useEffect } from "react";
-import { Play, Pause, Volume2 } from "lucide-react";
 import { Sound } from "../../../../interfaces/ISound";
 import { getSoundsByTypeID } from "../../../../services/https/sounds";
 
 interface BackgroundPanelProps {
-  onSelectBg: (bgUrl: string) => void;
+  selectedId: number | null;
+  onSelectBg: (id: number, bgUrl: string) => void;
 }
 
-const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
+const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
+  selectedId,
+  onSelectBg,
+}) => {
   const [backgrounds, setBackgrounds] = useState<Sound[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBg, setSelectedBg] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(50);
 
@@ -20,9 +21,13 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
       try {
         const response = await getSoundsByTypeID(1);
         setBackgrounds(response.sounds);
-        // Auto select first background
-        if (response.sounds.length > 0 && response.sounds[0].ID) {
-          setSelectedBg(response.sounds[0].ID);
+        if (
+          !selectedId &&
+          response.sounds.length > 0 &&
+          response.sounds[0].ID &&
+          response.sounds[0].sound
+        ) {
+          onSelectBg(response.sounds[0].ID, response.sounds[0].sound);
         }
       } catch (error) {
         console.error("Error fetching backgrounds:", error);
@@ -35,24 +40,14 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
   }, []);
 
   const selectBackground = (bgId: number) => {
-    setSelectedBg(bgId);
-    setIsPlaying(false);
     const bg = backgrounds.find((b) => b.ID === bgId);
-    if (bg && bg.sound) {
-      onSelectBg(bg.sound); // ส่ง url กลับไปที่ ASMRApp
+    if (bg?.sound) {
+      onSelectBg(bgId, bg.sound);
     }
-  };
-
-  const togglePlayback = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const updateVolume = (newVolume: number) => {
-    setVolume(newVolume);
+    setIsPlaying(false);
   };
 
   const getYouTubeEmbedUrl = (url: string) => {
-    // Extract video ID from YouTube URL and convert to embed format
     const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
     return `https://www.youtube.com/embed/${videoId}?autoplay=${
       isPlaying ? 1 : 0
@@ -75,7 +70,7 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
     );
   }
 
-  const selectedBackground = backgrounds.find((bg) => bg.ID === selectedBg);
+  const selectedBackground = backgrounds.find((bg) => bg.ID === selectedId);
 
   return (
     <div className="space-y-4">
@@ -83,7 +78,6 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
         🖼️ Backgrounds
       </h3>
 
-      {/* Background Selection Grid */}
       <div className="grid grid-cols-2 gap-3">
         {backgrounds.map(
           (bg) =>
@@ -91,7 +85,7 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
               <div
                 key={bg.ID}
                 className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedBg === bg.ID
+                  selectedId === bg.ID
                     ? "border-blue-400"
                     : "border-transparent hover:border-gray-400"
                 }`}
@@ -113,7 +107,7 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                   <p className="text-white text-xs font-medium">{bg.name}</p>
                 </div>
-                {selectedBg === bg.ID && (
+                {selectedId === bg.ID && (
                   <div className="absolute top-2 right-2 w-3 h-3 bg-blue-400 rounded-full"></div>
                 )}
               </div>
@@ -121,7 +115,7 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
         )}
       </div>
 
-      {/* Audio Controls for Selected Background */}
+      {/* เพิ่มส่วนนี้เพื่อแสดงรายละเอียดวิดีโอที่เลือก */}
       {selectedBackground && (
         <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-3">
@@ -135,45 +129,12 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ onSelectBg }) => {
                 </p>
               )}
             </div>
-            <button
-              onClick={togglePlayback}
-              className={`p-2 rounded-full transition-colors ${
-                isPlaying
-                  ? "bg-blue-500 text-white"
-                  : "bg-white/20 text-white/80 hover:bg-white/30"
-              }`}
-            >
-              {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-            </button>
           </div>
-
-          {/* Volume Control */}
-          <div className="flex items-center space-x-2">
-            <Volume2 size={16} className="text-white/60" />
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={volume}
-              onChange={(e) => updateVolume(parseInt(e.target.value))}
-              className="flex-1 h-1 bg-white/20 rounded-lg appearance-none slider"
-            />
-            <span className="text-white/60 text-sm w-8">{volume}</span>
-          </div>
-
-          {/* Background Preview Info */}
-          <div className="mt-3 text-center">
-            <p className="text-white/60 text-xs">
-              {isPlaying
-                ? "🎬 Background video is playing"
-                : "⏸️ Background video is paused"}
-            </p>
-          </div>
+          {/* สามารถเพิ่มข้อมูลอื่น ๆ เช่น duration, author ฯลฯ ได้ที่นี่ */}
         </div>
       )}
 
-      {/* Hidden YouTube Player for Audio */}
-      {selectedBackground && selectedBackground.sound && (
+      {selectedBackground?.sound && (
         <div className="hidden">
           <iframe
             src={getYouTubeEmbedUrl(selectedBackground.sound)}
