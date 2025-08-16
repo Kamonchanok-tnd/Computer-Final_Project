@@ -134,10 +134,13 @@ func SetupDatabase() {
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
-	// SeedQuestionnaires(db)
-	// SeedQuestionnaireGroups(db)
-	// SeedCriteriaAndCalculations(db)
+	SeedQuestionnaires(db)
+	SeedQuestionnaireGroups(db)
+	SeedCriteriaAndCalculations(db)
 	// SeedBackground(db)
+	SeedEmojis(db)
+	SeedMirrorJuly2025(db)
+	SeedMirrorAug2025FirstHalf(db)
 }
 
 
@@ -281,6 +284,19 @@ func SetupInitialData(db *gorm.DB) {
 		{
 			Name: "คาถาชินบัญชร พระคาถาชินบัญชร สมเด็จพระพุฒาจารย์ (โต พรหมรังสี) เสถียรพงษ์ วรรณปก",Sound: "https://youtu.be/sqOeFloH6tU?si=VEyGbfdeuytxawPC", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
 		},
+
+		// ASMR
+    	{Name: "Swans, Ducks & Other Water Birds by a Summer River in Ukraine", Sound: "https://www.youtube.com/watch?v=zB1tL1wwqak", Lyric: "",Description: "#Nature",Duration: 287,LikeSound: 90,View: 12000,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+    	{Name: "May Valley Trail Issaquah, Washington", Sound: "https://www.youtube.com/watch?v=HGOYvgb2SJY", Lyric: "",Description: "#Nature",Duration: 175,LikeSound: 95,View: 30000,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Central Park, NYC", Sound: "https://www.youtube.com/watch?v=YmCJKmbprnE", Lyric: "",Description: "#Nature #Winter",Duration: 55,LikeSound: 100,View: 2000000,Owner: "4K Relaxation Channel",STID: asmrType.ID, UID: user.ID},
+		{Name: "Skagit River in Late Fall, North Cascades Area, WA", Sound: "https://www.youtube.com/watch?v=JA1mxsfb4ak", Lyric: "",Description:"#Nature" ,Duration: 185 ,LikeSound: 100,View: 20,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop", Sound: "https://www.youtube.com/watch?v=uU_RxnJOdMQ&t=13753s", Lyric: "",Description:"#Cafe" ,Duration:  420,LikeSound: 100,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Cockpit View Airplane", Sound: "https://www.youtube.com/watch?v=Q139Juah-NQ&t=40s", Lyric: "",Description:"#Window" ,Duration:  420,LikeSound: 99,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Rain Thunder Night Window View", Sound: "https://www.youtube.com/watch?v=TuBxM-qBmp8&t=1612s", Lyric: "",Description:"#Window" ,Duration:  420,LikeSound: 98,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Paris at Night", Sound: "https://www.youtube.com/watch?v=1B8fDmR72sY", Lyric: "",Description:"#City" ,Duration:  420,LikeSound: 97,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Walt Disney World Magic Kingdom Street", Sound: "https://www.youtube.com/watch?v=oDCf5bjrWOU&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1", Lyric: "",Description:"#City" ,Duration:  420,LikeSound: 101,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop at christmas", Sound: "https://www.youtube.com/watch?v=u88fH7HLszo&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1&index=5", Lyric: "",Description:"#Cafe" ,Duration:  420,LikeSound: 102,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+
 
 		
     }
@@ -695,6 +711,21 @@ func SeedBackground(db *gorm.DB) {
 			Picture: "q1.jpg",
 			UID:     1,
 		},
+		{
+			Name:    "รูปกอดตัวเอง",
+			Picture: "รูปกอดตัวเองสีชมพู.png.png",
+			UID:     1,
+		},
+		{
+			Name:    "รูปกอดตัวเองเสื้อสีแดง",
+			Picture: "กอดตัวเองเสื้อสีเเดง.png",
+			UID:     1,
+		},
+		{
+			Name:    "รูปกอดตัวเองผมชมพู",
+			Picture: "รูปกอดตัวเอง.png",
+			UID:     1,
+		},
 	}
 
 	for _, bg := range backgrounds {
@@ -774,3 +805,161 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 
 	fmt.Println("✅ Seeded Questionnaire Groups: Pre-test, Post-test, Post-test2weeks")
 }
+
+func SeedEmojis(db *gorm.DB) {
+    var count int64
+    db.Model(&entity.Emotion{}).Count(&count)
+    if count == 0 {
+        emojis := []entity.Emotion{
+            {Mood: "ยิ้ม", Picture: "happy.png"},
+            {Mood: "โกรธ", Picture: "grumpy.png"},
+            {Mood: "เศร้า", Picture: "sad.png"},
+            {Mood: "เฉยๆ", Picture: "neutral.png"},
+        }
+        if err := db.Create(&emojis).Error; err != nil {
+            log.Fatalf("ไม่สามารถ seed emoji: %v", err)
+        }
+        fmt.Println("✅ Seeded Emojis")
+    }
+}
+
+// ===== Seed: Mirror for user #2 in July 2025 (31 days) =====
+func SeedMirrorJuly2025(db *gorm.DB) {
+	uid := uint(2) // บันทึกให้ผู้ใช้คนที่ 2 เท่านั้น
+
+	// ข้อมูล 31 วัน (message จับคู่กับ eid ให้เรียบร้อย)
+	// eid: 1=ยิ้ม, 2=โกรธ, 3=เศร้า, 4=เฉยๆ  (อ้างอิงตามตาราง emotion ที่ seed ไว้)
+	type dayData struct {
+		Msg string
+		EID uint
+	}
+	days := []dayData{
+		{Msg: "วันนี้รู้สึกดีและมีพลัง", EID: 1},
+		{Msg: "เรื่อย ๆ ไม่มีอะไรพิเศษ", EID: 4},
+		{Msg: "หัวร้อนเพราะรถติดหนัก", EID: 2},
+		{Msg: "เหงาและเศร้าเล็กน้อย", EID: 3},
+		{Msg: "ได้ข่าวดีจากที่บ้าน ยิ้มทั้งวัน", EID: 1},
+		{Msg: "ทำงานยาว ๆ รู้สึกเฉย ๆ", EID: 4},
+		{Msg: "โมโหเพราะโดนต่อคิว", EID: 2},
+		{Msg: "คิดถึงบ้านเลยรู้สึกเศร้า", EID: 3},
+		{Msg: "ออกกำลังเช้า สดใสจัง", EID: 1},
+		{Msg: "ปกติ ไม่มีอะไรตื่นเต้น", EID: 4},
+		{Msg: "หัวเสียเพราะเน็ตล่ม", EID: 2},
+		{Msg: "ดูหนังดราม่าแล้วน้ำตาซึม", EID: 3},
+		{Msg: "กินของอร่อย อารมณ์ดีมาก", EID: 1},
+		{Msg: "วันสบาย ๆ อยู่บ้านทั้งวัน", EID: 4},
+		{Msg: "ไม่พอใจกับผลงานตัวเอง", EID: 2},
+		{Msg: "คิดมากเรื่องส่วนตัว เลยเศร้า", EID: 3},
+		{Msg: "ได้คุยกับเพื่อนเก่า มีความสุข", EID: 1},
+		{Msg: "นิ่ง ๆ เนิบ ๆ ทั้งวัน", EID: 4},
+		{Msg: "โกรธเพราะโดนเบี้ยวนัด", EID: 2},
+		{Msg: "พลาดเป้าหมายเลยรู้สึกเสียใจ", EID: 3},
+		{Msg: "อากาศดี เดินเล่นเพลิน ยิ้มง่าย", EID: 1},
+		{Msg: "ชีวิตไหลไปตามปกติ", EID: 4},
+		{Msg: "หงุดหงิดเพราะงานไม่คืบ", EID: 2},
+		{Msg: "เศร้าเพราะแพ้เกม", EID: 3},
+		{Msg: "สำเร็จงานใหญ่ ภูมิใจมาก", EID: 1},
+		{Msg: "ไม่มีอะไรใหม่ ๆ วันนี้", EID: 4},
+		{Msg: "หัวร้อนเพราะเจอทัศนคติแย่", EID: 2},
+		{Msg: "คิดถึงใครบางคน เลยหม่น ๆ", EID: 3},
+		{Msg: "ได้ของขวัญไม่คาดคิด ยิ้มทั้งวัน", EID: 1},
+		{Msg: "วันธรรมดาที่เรียบง่าย", EID: 4},
+		{Msg: "ข่าวร้ายทำให้ใจหาย เศร้า", EID: 3}, // วันสุดท้ายใส่โทนเศร้าให้ต่าง
+	}
+
+	// วนครอบ 1..31 ก.ค. 2025
+	for day := 1; day <= 31; day++ {
+		d := days[day-1]
+
+		// สร้างช่วงเวลา 00:00 - <+1 วัน> เพื่อกันซ้ำในวันเดียวกัน
+		start := time.Date(2025, time.July, day, 0, 0, 0, 0, time.UTC)
+		end := start.Add(24 * time.Hour)
+
+		// ถ้าวันนี้ของ user #2 มีอยู่แล้ว ให้ข้าม
+		var count int64
+		if err := db.Model(&entity.Mirror{}).
+			Where("uid = ? AND date >= ? AND date < ?", uid, start, end).
+			Count(&count).Error; err != nil {
+			log.Printf("❌ เช็คข้อมูลวันที่ %s ผิดพลาด: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		if count > 0 {
+			// มีแล้ว ไม่ seed ซ้ำ
+			continue
+		}
+
+		m := entity.Mirror{
+			Date:    start,
+			Message: d.Msg,
+			EID:     d.EID,
+			UID:     uid,
+		}
+		if err := db.Create(&m).Error; err != nil {
+			log.Printf("❌ บันทึก %s ไม่สำเร็จ: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		fmt.Printf("✅ Seeded mirror for %s (uid=%d, eid=%d)\n", start.Format("2006-01-02"), uid, d.EID)
+	}
+}
+
+// ===== Seed: Mirror for user #2 in Aug 2025 (day 1–15, mostly happy) =====
+func SeedMirrorAug2025FirstHalf(db *gorm.DB) {
+	uid := uint(2)
+
+	// eid: 1=ยิ้ม, 2=โกรธ, 3=เศร้า, 4=เฉยๆ
+	type dayData struct {
+		Msg string
+		EID uint
+	}
+
+	days := []dayData{
+		{Msg: "เริ่มเดือนใหม่ด้วยพลังบวก ยิ้มง่ายทั้งวัน", EID: 1},
+		{Msg: "ทำงานลื่นไหล รู้สึกดีมาก", EID: 1},
+		{Msg: "ออกกำลังกายเช้า อารมณ์ดี", EID: 1},
+		{Msg: "ท้องฟ้าสวย สดใส ทำให้ใจเบิกบาน", EID: 1},
+		{Msg: "ชวนครอบครัวทานข้าว อบอุ่นใจ", EID: 1},
+		{Msg: "วันสบาย ๆ เรื่อย ๆ ไม่รีบเร่ง", EID: 4},
+		{Msg: "ได้คำชมจากเพื่อนร่วมทีม ยิ้มทั้งวัน", EID: 1},
+		{Msg: "กาแฟอร่อย งานก็เดิน สนุกดี", EID: 1},
+		{Msg: "เดินเล่นยามเย็น อากาศดีมาก", EID: 1},
+		{Msg: "เจอเรื่องจุกจิกนิดหน่อย แต่ยังโอเค", EID: 4},
+		{Msg: "มีข่าวดีเล็ก ๆ ทำให้กำลังใจเพิ่ม", EID: 1},
+		{Msg: "ช่วยคนอื่นได้ รู้สึกมีคุณค่า", EID: 1},
+		{Msg: "หัวเราะเยอะมากวันนี้ สนุกสุด ๆ", EID: 1},
+		{Msg: "พักผ่อนเต็มที่ ใจสงบ ผ่อนคลาย", EID: 1},
+		{Msg: "ปิดงานค้างได้สำเร็จ โล่งใจและมีความสุข", EID: 1},
+	}
+
+	for day := 1; day <= 15; day++ {
+		d := days[day-1]
+
+		start := time.Date(2025, time.August, day, 0, 0, 0, 0, time.UTC)
+		end := start.Add(24 * time.Hour)
+
+		var count int64
+		if err := db.Model(&entity.Mirror{}).
+			Where("uid = ? AND date >= ? AND date < ?", uid, start, end).
+			Count(&count).Error; err != nil {
+			log.Printf("❌ เช็คข้อมูลวันที่ %s ผิดพลาด: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		if count > 0 {
+			continue
+		}
+
+		m := entity.Mirror{
+			Date:    start,
+			Message: d.Msg,
+			EID:     d.EID,
+			UID:     uid,
+		}
+		if err := db.Create(&m).Error; err != nil {
+			log.Printf("❌ บันทึก %s ไม่สำเร็จ: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		fmt.Printf("✅ Seeded mirror for %s (uid=%d, eid=%d)\n", start.Format("2006-01-02"), uid, d.EID)
+	}
+}
+
+
+

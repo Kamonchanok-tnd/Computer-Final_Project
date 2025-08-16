@@ -31,7 +31,7 @@ function BreathingExercise() {
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  const duration = 6;
+ 
   const radius = 100;
   const circumference = 2 * Math.PI * radius;
 
@@ -87,29 +87,33 @@ function BreathingExercise() {
     }
   }, [seconds]);
 
-  useEffect(() => {
-    let frame: number;
-    let startTime: number | null = null;
+  const inDuration = 3;   // หายใจเข้า 3 วินาที
+const outDuration = 4;  // หายใจออก 4 วินาที
 
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = (timestamp - startTime) / 1000;
-      let pct = Math.min(elapsed / duration, 1);
-      if (phase === "out") pct = 1 - pct;
-      setProgress(pct * circumference);
+useEffect(() => {
+  let frame: number;
+  let startTime: number | null = null;
+  const currentDuration = phase === "in" ? inDuration : outDuration;
 
-      if (elapsed < duration) {
-        frame = requestAnimationFrame(animate);
-      } else {
-        setPhase((prev) => (prev === "in" ? "out" : "in"));
-        startTime = null;
-        frame = requestAnimationFrame(animate);
-      }
-    };
+  const animate = (timestamp: number) => {
+    if (!startTime) startTime = timestamp;
+    const elapsed = (timestamp - startTime) / 1000;
+    let pct = Math.min(elapsed / currentDuration, 1);
+    if (phase === "out") pct = 1 - pct;
+    setProgress(pct * circumference);
 
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
-  }, [phase]);
+    if (elapsed < currentDuration) {
+      frame = requestAnimationFrame(animate);
+    } else {
+      setPhase((prev) => (prev === "in" ? "out" : "in"));
+      startTime = null;
+      frame = requestAnimationFrame(animate);
+    }
+  };
+
+  frame = requestAnimationFrame(animate);
+  return () => cancelAnimationFrame(frame);
+}, [phase]);
 
   useEffect(() => {
     if (seconds <= 0) return;
@@ -153,13 +157,24 @@ function BreathingExercise() {
       )}
 
       <div className="text-center mb-10">
-        <h1 className="text-white text-3xl font-semibold tracking-widest drop-shadow">
-          {phase === "in" ? "BREATHE IN" : "BREATHE OUT"}
-        </h1>
-        <p className="text-white/80 mt-1 text-lg">
-          {customTime ? `CUSTOM: ${customTime}` : `FOR ${selectedTime || 0} MIN`}
-        </p>
-      </div>
+  <h1
+  className={`text-3xl font-extrabold tracking-widest drop-shadow-lg
+    ${phase === "in" ? "text-[#a2d4ff]" : "text-white"}`}
+>
+  {phase === "in" ? "BREATHE IN" : "BREATHE OUT"}
+</h1>
+  <p
+    className={`text-lg font-extrabold tracking-widest drop-shadow-lg
+      ${phase === "in" ? "text-[#a2d4ff]" : "text-white"} mt-1`}
+  >
+    {customTime ? `TIME: ${customTime}` : `FOR ${selectedTime || 0} MIN`}
+  </p>
+</div>
+
+{/* <div className="text-gray-100 text-lg font-bold drop-shadow-lg">
+  {formatTime(seconds)}
+</div> */}
+
 
       <div className="relative w-56 h-56 flex items-center justify-center">
         <svg className="absolute w-full h-full rotate-[-90deg]">
@@ -177,7 +192,19 @@ function BreathingExercise() {
           />
         </svg>
 
-        <img src={owlImage} alt="owl" className="w-28 h-28 z-10" />
+       <img
+  src={owlImage}
+  alt="owl"
+  className="z-10 rounded-full object-cover"
+  style={{
+    width: "200px", // คงที่
+    height: "200px",
+    padding: "6px", // เว้นขอบรอบรูป
+    boxSizing: "border-box", // padding ไม่ทำให้รูปเกินขนาด
+  }}
+/>
+
+
       </div>
 
       <div className="mt-10 w-full flex items-center justify-center gap-32">
@@ -192,7 +219,7 @@ function BreathingExercise() {
           {isMicOn ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
         </button>
 
-        <div className="text-white text-lg font-semibold drop-shadow">
+        <div className="text-white text-2xl font-semibold drop-shadow">
           {formatTime(seconds)}
         </div>
 
@@ -209,19 +236,20 @@ function BreathingExercise() {
       </div>
 
       {showPopup && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 shadow-2xl text-center animate-fadeIn scale-95">
-            <h2 className="text-2xl font-bold text-green-600 mb-4">🎉 ฝึกสมาธิครบแล้ว!</h2>
-            <p className="text-gray-700 mb-6">คุณทำได้เยี่ยมมาก</p>
-            <button
-              onClick={handlePopupClose}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-xl shadow-lg transition"
-            >
-              กลับไปหน้า Meditation
-            </button>
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+    <div className="bg-[#b3e5fc] rounded-2xl p-8 shadow-2xl text-center animate-fadeIn scale-95 max-w-sm w-full mx-4">
+      <h2 className="text-2xl font-bold text-[#0288d1] mb-4">🎉 ฝึกสมาธิครบแล้ว!</h2>
+      <p className="text-[#01579b] mb-6">คุณทำได้เยี่ยมมาก</p>
+      <button
+        onClick={handlePopupClose}
+        className="bg-[#03a9f4] hover:bg-[#039be5] text-white px-6 py-2 rounded-xl shadow-lg transition"
+      >
+        กลับไปหน้า Meditation
+      </button>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

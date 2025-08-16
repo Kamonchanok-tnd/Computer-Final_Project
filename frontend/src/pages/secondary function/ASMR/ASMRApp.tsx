@@ -1,27 +1,158 @@
-import React, { useState } from "react";
-import { X } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { X, Volume2, VolumeX } from "lucide-react";
 import BackgroundPanel from "./components/BackgroundPanel";
 import SoundPanel from "./components/SoundPanel";
 import TimerPanel from "./components/TimerPanel";
 import { PanelType } from "../../../interfaces/ISound";
 import asmrImg from "../../../assets/asmr.png";
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 const ASMRApp: React.FC = () => {
   const [activePanel, setActivePanel] = useState<PanelType>(null);
-  const [selectedBg, setSelectedBg] = useState<string | null>(null);
+  const [selectedBgId, setSelectedBgId] = useState<number | null>(null);
+  const [selectedBgUrl, setSelectedBgUrl] = useState<string | null>(null);
+  const [volume, setVolume] = useState<number>(50);
+  const [muted, setMuted] = useState<boolean>(false);
+  const playerRef = useRef<any>(null);
+  const iframeContainerRef = useRef<HTMLDivElement>(null);
+
+  const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
+  const [playingSounds, setPlayingSounds] = useState<Set<string>>(new Set());
+  const [volumes, setVolumes] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+    window.onYouTubeIframeAPIReady = createPlayer;
+    return () => {
+      document.body.removeChild(tag);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedBgUrl && window.YT && window.YT.Player) {
+      createPlayer();
+    }
+  }, [selectedBgUrl]);
+
+  const createPlayer = () => {
+    if (iframeContainerRef.current && selectedBgUrl) {
+      const videoId = extractVideoId(selectedBgUrl);
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
+
+      playerRef.current = new window.YT.Player(iframeContainerRef.current, {
+        videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          loop: 1,
+          playlist: videoId,
+          mute: muted ? 1 : 0,
+          start: 30,
+        },
+        events: {
+          onReady: (event: any) => {
+            event.target.setVolume(volume);
+            muted ? event.target.mute() : event.target.unMute();
+          },
+        },
+      });
+    }
+  };
+
+  const toggleMute = () => {
+    if (playerRef.current) {
+      if (muted) {
+        playerRef.current.unMute();
+      } else {
+        playerRef.current.mute();
+      }
+    }
+    setMuted(!muted);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const vol = parseInt(e.target.value);
+    setVolume(vol);
+    if (playerRef.current) {
+      playerRef.current.setVolume(vol);
+      if (vol === 0) {
+        playerRef.current.mute();
+        setMuted(true);
+      } else {
+        playerRef.current.unMute();
+        setMuted(false);
+      }
+    }
+  };
+
+  const toggleSound = async (key: string, src: string) => {
+    if (!audioRefs.current[key]) {
+      const audio = new Audio(`/assets/asmr/${src}`);
+      audio.loop = true;
+      audio.volume = (volumes[key] || 50) / 100;
+      audioRefs.current[key] = audio;
+    }
+    const audio = audioRefs.current[key];
+    const newPlaying = new Set(playingSounds);
+
+    if (newPlaying.has(key)) {
+      audio.pause();
+      newPlaying.delete(key);
+    } else {
+      try {
+        await audio.play();
+        newPlaying.add(key);
+      } catch (err) {
+        console.error("Cannot play:", key, err);
+      }
+    }
+    setPlayingSounds(newPlaying);
+  };
+
+  const updateVolume = (key: string, value: number) => {
+    setVolumes((prev) => ({ ...prev, [key]: value }));
+    if (audioRefs.current[key]) {
+      audioRefs.current[key].volume = value / 100;
+    }
+  };
 
   const menuItems = [
     { id: "background" as const, label: "🖼️ Backgrounds", emoji: "🖼️" },
-    { id: "sound" as const, label: "📻 Sounds", emoji: "📻" },
+    { id: "sound" as const, label: "🎧 Sounds", emoji: "🎧" },
     { id: "timer" as const, label: "⏳ Timer", emoji: "⏳" },
   ];
 
   const renderPanelContent = () => {
     switch (activePanel) {
       case "background":
-        return <BackgroundPanel onSelectBg={setSelectedBg} />;
+        return (
+          <BackgroundPanel
+            selectedId={selectedBgId}
+            onSelectBg={(id, url) => {
+              setSelectedBgId(id);
+              setSelectedBgUrl(url);
+            }}
+          />
+        );
       case "sound":
-        return <SoundPanel />;
+        return (
+          <SoundPanel
+            playingSounds={playingSounds}
+            volumes={volumes}
+            toggleSound={toggleSound}
+            updateVolume={updateVolume}
+          />
+        );
       case "timer":
         return <TimerPanel />;
       default:
@@ -34,54 +165,57 @@ const ASMRApp: React.FC = () => {
       className="h-screen flex bg-gray-900 relative overflow-hidden"
       style={{ overflow: "hidden", height: "100%" }}
     >
-      {/* Background Video */}
+      {/* Background */}
       <div className="absolute inset-0 z-0">
         <div
           className="w-full h-full bg-cover bg-center relative"
           style={{
-            backgroundImage: !selectedBg
+            backgroundImage: !selectedBgUrl
               ? `linear-gradient(180deg, #CCFFED 0%, #dffbffff 100%)`
               : undefined,
           }}
         >
-          {/* แสดงรูป asmr.png เฉพาะตอนยังไม่ได้เลือกวิดีโอ */}
-          {!selectedBg && (
+          {!selectedBgUrl && (
             <img
               src={asmrImg}
-              alt="ASMR Cartoon"
+              alt="ASMR"
               className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 max-w-full"
               style={{ zIndex: 1 }}
             />
           )}
-          {/* ถ้าเลือกวิดีโอ ให้แสดง iframe YouTube */}
-          {selectedBg && (
-            <iframe
-              src={`https://www.youtube.com/embed/${extractVideoId(
-                selectedBg
-              )}?autoplay=1&controls=0&loop=1&playlist=${extractVideoId(
-                selectedBg
-              )}&start=30`}
-              title="Background Video"
-              frameBorder="0"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              className="absolute inset-0"
-              style={{
-                zIndex: 0,
-                width: "150vw",
-                height: "150vh",
-                left: "-25vw",
-                top: "-25vh",
-                objectFit: "cover",
-                position: "absolute",
-              }}
-            />
-          )}
+          <div
+            ref={iframeContainerRef}
+            className="absolute inset-0"
+            style={{
+              width: "150vw",
+              height: "150vh",
+              left: "-25vw",
+              top: "-25vh",
+              zIndex: 0,
+            }}
+          ></div>
           <div className="absolute inset-0 bg-black/0"></div>
         </div>
       </div>
 
-      {/* Side Menu Buttons */}
+      {/* Volume Controls */}
+      {selectedBgUrl && (
+        <div className="absolute bottom-2 right-4 z-40 flex items-center gap-3 bg-black/10 p-3 rounded-xl backdrop-blur">
+          <button onClick={toggleMute} className="text-white">
+            {muted || volume === 0 ? <VolumeX /> : <Volume2 />}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={volume}
+            onChange={handleVolumeChange}
+            className="slider w-32"
+          />
+        </div>
+      )}
+
+      {/* Side Menu */}
       <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 space-y-3">
         {menuItems.map((item) => (
           <button
@@ -104,54 +238,27 @@ const ASMRApp: React.FC = () => {
       {/* Overlay Panel */}
       {activePanel && (
         <>
-          {/* Backdrop */}
           <div
             className="absolute inset-0 z-30 bg-black/50"
             onClick={() => setActivePanel(null)}
           />
-
-          {/* Panel */}
           <div className="absolute left-20 top-1/2 transform -translate-y-1/2 z-40 w-80 max-h-[80vh] bg-black/30 backdrop-blur-xl border border-white/20 rounded-2xl p-6 overflow-y-auto">
-            {/* Close Button */}
             <button
               onClick={() => setActivePanel(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"
             >
               <X size={16} />
             </button>
-
-            {/* Panel Content */}
             <div className="mt-2">{renderPanelContent()}</div>
           </div>
         </>
       )}
-
-      {/* Custom CSS for slider */}
-      <style>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-        }
-        .slider::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-          border: none;
-        }
-      `}</style>
     </div>
   );
 };
 
 export default ASMRApp;
 
-// เพิ่มฟังก์ชันช่วยดึง videoId
 function extractVideoId(url: string) {
   const match = url.match(/(?:v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/);
   return match ? match[1] : url;

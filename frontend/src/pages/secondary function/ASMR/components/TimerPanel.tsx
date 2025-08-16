@@ -1,51 +1,155 @@
-// components/TimerPanel.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import { Settings } from "lucide-react";
+
+type Mode = "pomodoro" | "short" | "long";
+
+const STORAGE_KEY = "asmrTimerV1";
 
 const TimerPanel: React.FC = () => {
-  const [minutes, setMinutes] = useState(25);
-  const [seconds, setSeconds] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const endAtRef = useRef<number | null>(null);
+  const tickRef = useRef<number | null>(null);
+
+  const [mode, setMode] = useState<Mode>("pomodoro");
+  const [durations, setDurations] = useState({
+    pomodoro: 20,
+    short: 5,
+    long: 15,
+  });
   const [isRunning, setIsRunning] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [timeLeft, setTimeLeft] = useState(durations.pomodoro * 60);
+  const [showSettings, setShowSettings] = useState(false);
+  const [autoTransition, setAutoTransition] = useState(true);
+
+  const saveState = (override?: Partial<any>) => {
+    const payload = {
+      mode,
+      durations,
+      isRunning,
+      autoTransition,
+      endAt: endAtRef.current,
+      ...override,
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch {}
+  };
+
+  const loadState = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+
+      if (saved.durations) setDurations(saved.durations);
+      if (saved.mode) setMode(saved.mode as Mode);
+      if (typeof saved.autoTransition === "boolean") setAutoTransition(saved.autoTransition);
+
+      endAtRef.current = typeof saved.endAt === "number" ? saved.endAt : null;
+
+      if (saved.isRunning && endAtRef.current && endAtRef.current > Date.now()) {
+        const remain = Math.max(0, Math.round((endAtRef.current - Date.now()) / 1000));
+        setTimeLeft(remain);
+        // เรียก startTimer() ทีหลังให้ interval ทำงานด้วย
+        setTimeout(() => startTimer(), 100);
+      } else {
+        setIsRunning(false);
+        setTimeLeft((saved.durations?.[saved.mode] ?? durations[mode]) * 60);
+        endAtRef.current = null;
+        saveState({ isRunning: false, endAt: null });
+      }
+    } catch {}
+  };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(timeLeft => timeLeft - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
-      setIsRunning(false);
-      // You can add notification or sound here when timer ends
-    }
+    loadState();
+    return () => {
+      if (tickRef.current) window.clearInterval(tickRef.current);
+    };
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [isRunning, timeLeft]);
+  useEffect(() => {
+    if (tickRef.current) {
+      window.clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+    if (!isRunning) return;
+
+    tickRef.current = window.setInterval(() => {
+      if (!endAtRef.current) return;
+      const remain = Math.max(0, Math.round((endAtRef.current - Date.now()) / 1000));
+      setTimeLeft(remain);
+
+      if (remain <= 0) {
+        window.clearInterval(tickRef.current!);
+        tickRef.current = null;
+        setIsRunning(false);
+        endAtRef.current = null;
+        saveState({ isRunning: false, endAt: null });
+        playSound();
+
+        if (autoTransition) {
+          handleAutoTransition();
+        }
+      }
+    }, 1000);
+
+    return () => {
+      if (tickRef.current) window.clearInterval(tickRef.current);
+    };
+  }, [isRunning]);
+
+  useEffect(() => {
+    setTimeLeft(durations[mode] * 60);
+    saveState({ mode, durations });
+  }, [mode, durations]);
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   const startTimer = () => {
-    setTimeLeft(minutes * 60 + seconds);
+    const seconds = timeLeft > 0 ? timeLeft : durations[mode] * 60;
+    endAtRef.current = Date.now() + seconds * 1000;
     setIsRunning(true);
+    saveState({ isRunning: true, endAt: endAtRef.current });
   };
 
   const pauseTimer = () => {
     setIsRunning(false);
+    endAtRef.current = null;
+    saveState({ isRunning: false, endAt: null });
   };
 
   const resetTimer = () => {
     setIsRunning(false);
-    setTimeLeft(minutes * 60 + seconds);
+    endAtRef.current = null;
+    const s = durations[mode] * 60;
+    setTimeLeft(s);
+    saveState({ isRunning: false, endAt: null });
   };
 
-  const formatTime = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const handleAutoTransition = () => {
+    let next: Mode = "pomodoro";
+    if (mode === "pomodoro") next = "short";
+    else if (mode === "short") next = "pomodoro";
+    else if (mode === "long") next = "pomodoro";
+
+    setMode(next);
+    setTimeLeft(durations[next] * 60);
+    setTimeout(() => startTimer(), 100);
   };
 
-  const setQuickTimer = (time: number) => {
-    setMinutes(time);
-    setSeconds(0);
-    setTimeLeft(time * 60);
+  const playSound = () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/assets/asmr/time.mp3");
+    }
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
   };
 
   return (
@@ -53,80 +157,116 @@ const TimerPanel: React.FC = () => {
       <h3 className="text-white text-xl font-medium flex items-center gap-2">
         ⏳ Focus Timer
       </h3>
-      
+
       <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
         <div className="text-center mb-4">
           <div className="text-4xl font-mono text-white mb-4">
             {formatTime(timeLeft)}
           </div>
-          
-          {!isRunning && (
-            <div className="flex space-x-4 mb-4">
-              <div className="flex flex-col items-center">
-                <label className="text-white/60 text-sm mb-1">Minutes</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="120"
-                  value={minutes}
-                  onChange={(e) => setMinutes(parseInt(e.target.value) || 0)}
-                  className="w-16 px-2 py-1 bg-white/20 text-white rounded text-center"
-                />
-              </div>
-              <div className="flex flex-col items-center">
-                <label className="text-white/60 text-sm mb-1">Seconds</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="59"
-                  value={seconds}
-                  onChange={(e) => setSeconds(parseInt(e.target.value) || 0)}
-                  className="w-16 px-2 py-1 bg-white/20 text-white rounded text-center"
-                />
-              </div>
-            </div>
-          )}
-          
+
+          <div className="flex justify-center mb-4 space-x-4">
+            {(["pomodoro", "short", "long"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => {
+                  setIsRunning(false);
+                  endAtRef.current = null;
+                  setMode(m);
+                  saveState({ mode: m, isRunning: false, endAt: null });
+                }}
+                className={`px-1.5 py-0.5 rounded-full text-xs transition-colors ${
+                  mode === m
+                    ? "bg-white text-black font-bold"
+                    : "bg-white/10 text-white hover:bg-white/20"
+                }`}
+              >
+                {m === "pomodoro"
+                  ? "Pomodoro"
+                  : m === "short"
+                  ? "Short Break"
+                  : "Long Break"}
+              </button>
+            ))}
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="ml-2 text-white/70 hover:text-white"
+              title="Settings"
+            >
+              <Settings size={18} />
+            </button>
+          </div>
+
           <div className="flex justify-center space-x-2">
             {!isRunning ? (
               <button
                 onClick={startTimer}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
               >
                 Start
               </button>
             ) : (
               <button
                 onClick={pauseTimer}
-                className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                className="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
               >
                 Pause
               </button>
             )}
             <button
               onClick={resetTimer}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
             >
               Reset
             </button>
           </div>
         </div>
+
+        {showSettings && (
+          <div className="mt-4 space-y-3 text-sm text-white">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={autoTransition}
+                onChange={(e) => {
+                  setAutoTransition(e.target.checked);
+                  saveState({ autoTransition: e.target.checked });
+                }}
+              />
+              <span>Auto-transition Timer</span>
+            </label>
+
+            <div className="grid grid-cols-3 gap-2">
+              {(["pomodoro", "short", "long"] as const).map((key) => (
+                <div key={key} className="flex flex-col items-center">
+                  <label className="text-white/60 text-xs mb-1">
+                    {key === "pomodoro"
+                      ? "Pomodoro"
+                      : key === "short"
+                      ? "Short Break"
+                      : "Long Break"}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={durations[key]}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      setDurations((prev) => ({ ...prev, [key]: val }));
+                      if (!isRunning && mode === key) setTimeLeft(val * 60);
+                      saveState({ durations: { ...durations, [key]: val } });
+                    }}
+                    className="w-16 px-2 py-1 bg-white/20 text-white rounded text-center"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="space-y-2">
-        <h4 className="text-white/80 font-medium">⚡ Quick Timers</h4>
-        <div className="grid grid-cols-3 gap-2">
-          {[15, 25, 45].map(time => (
-            <button
-              key={time}
-              onClick={() => setQuickTimer(time)}
-              className="px-3 py-2 bg-white/10 text-white rounded hover:bg-white/20 transition-colors text-sm"
-            >
-              {time}m
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* preload audio */}
+      <audio ref={audioRef} src="/assets/asmr/time.mp3" preload="auto" />
     </div>
   );
 };

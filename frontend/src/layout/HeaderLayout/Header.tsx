@@ -118,7 +118,7 @@ function Headers() {
           </div>
           <div className='hidden md:flex gap-4 justify-center items-center'>
             <button
-              onClick={() => navigate('/create')}
+              onClick={() => navigate('/user/mirror')}
               className="flex gap-2 items-center px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm bg-button-blue
              text-white hover:bg-button-blue"
             >

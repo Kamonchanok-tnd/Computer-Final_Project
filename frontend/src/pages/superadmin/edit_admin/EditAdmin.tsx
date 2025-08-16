@@ -1,80 +1,59 @@
 import { useState, useEffect } from "react";
-import { Form, Input, Button, message, Space, Row, Col, Spin, Select } from "antd";
+import { Form, Input, Button, message, Spin, Select, Divider, Row, Col, Space, InputNumber } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin"; // ใช้ AdminResponse
+import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminById } from "../../../services/https/admin";
-import "./editadmin.css";
 
 function EditAdmin() {
   const [admin, setAdmin] = useState<AdminInterface | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);  // For form data loading
+  const [formLoading, setFormLoading] = useState(false);
   const navigate = useNavigate();
-  const { id } = useParams();  // Get ID from URL params
-  const [form] = Form.useForm(); // Create the form instance
-  const [messageApi, contextHolder] = message.useMessage(); // เพิ่ม messageApi
+  const { id } = useParams();
+  const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [gender] = useState([
+    { ID: 1, gender: "ชาย" },
+    { ID: 2, gender: "หญิง" },
+    { ID: 3, gender: "อื่นๆ" },
+  ]);
 
   useEffect(() => {
-    // Fetch admin data using ID from URL
-    if (id) {
-      fetchAdminData(id);
-    }
+    if (id) fetchAdminData(id);
   }, [id]);
 
   const fetchAdminData = async (id: string) => {
-    setFormLoading(true);  // Start loading data
-
+    setFormLoading(true);
     try {
-      const response: AdminResponse = await getAdminById(id); // Fetch the admin data by ID
-      console.log("Fetched admin data:", response);
-
-      // Check if 'data' exists in response and set it to the state
+      const response: AdminResponse = await getAdminById(id);
       if (response.data) {
-        setAdmin(response.data); // Set the fetched data to state
-        form.setFieldsValue(response.data); // Set the form fields with the data
-        console.log("Form initial values set:", response.data);
+        setAdmin(response.data);
+        form.setFieldsValue(response.data);
       } else {
         message.error("Failed to load admin data.");
       }
     } catch (error) {
-      console.error("Error fetching admin:", error);
+      console.error(error);
       message.error("Failed to load admin data.");
     } finally {
-      setFormLoading(false);  // End loading data
+      setFormLoading(false);
     }
   };
 
   const handleSubmit = async (values: AdminInterface) => {
-    if (!admin) {
-      message.error("ข้อมูลแอดมินไม่พร้อมใช้งาน.");
-      return;
-    }
-
+    if (!admin) return message.error("ข้อมูลแอดมินไม่พร้อมใช้งาน.");
     setLoading(true);
-
-    const updatedAdmin = { ...admin, ...values };
-    updatedAdmin.age = parseInt(updatedAdmin.age.toString(), 10); 
-
-    console.log('ข้อมูลที่อัปเดต:', updatedAdmin);
-
+    const updatedAdmin = { ...admin, ...values, age: parseInt(values.age.toString(), 10) };
     try {
       const response = await updateAdminById(admin.ID, updatedAdmin);
-
-      console.log('การตอบกลับจาก API:', response);
-
-      if (response && response.status === 'success') {
+      if (response && response.status === "success") {
         messageApi.success("อัปเดตข้อมูลแอดมินสำเร็จ");
-
-        // ใช้ setTimeout เพื่อให้แน่ใจว่า message แสดงก่อนที่จะแปลงหน้า
-        setTimeout(() => {
-          navigate("/superadmin/dashboard"); // เปลี่ยนเส้นทางหลังจากแสดงข้อความสำเร็จ
-        }, 1500);  // รอ 1.5 วินาที
+        setTimeout(() => navigate("/superadmin"), 1500);
       } else {
         messageApi.error("ไม่สามารถอัปเดตข้อมูลแอดมินได้");
       }
-
     } catch (error) {
-      console.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลแอดมิน:", error);
+      console.error(error);
       message.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลแอดมิน.");
     } finally {
       setLoading(false);
@@ -83,93 +62,149 @@ function EditAdmin() {
 
   if (formLoading) {
     return (
-      <div className="loading-container">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-t from-[#C2F4FF] to-white">
         <Spin size="large" />
-        <h3>กำลังโหลดข้อมูล...</h3>
+        <h3 className="mt-4 text-lg font-medium text-gray-700">กำลังโหลดข้อมูล...</h3>
       </div>
     );
   }
 
   if (!admin) {
-    return <div>Loading...</div>; // Show loading message while fetching data
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-t from-[#C2F4FF] to-white">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
   }
 
   return (
-    <>
-      {contextHolder} {/* เพิ่ม contextHolder ใน JSX */}
-      <div className="edit-admin-container">
-        <Row justify="center" className="edit-admin-row">
-          <Col span={12}>
-            <h2 className="edit-admin-title">แก้ไขข้อมูล</h2>
-            <Form
-              form={form} // Attach the form instance here
-              onFinish={handleSubmit}
-              layout="vertical"
-              className="edit-admin-form"
-            >
-              <Form.Item
-                label="ชื่อผู้ใช้"
-                name="username"
-                rules={[{ required: true, message: "Please input the username!" }]}
-              >
-                <Input className="form-input" />
-              </Form.Item>
+    <div className="min-h-screen flex justify-center items-center bg-blue-50 p-6">
+  {contextHolder}
+  <div
+    style={{
+      width: "100%",
+      maxWidth: "900px",
+      boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+      borderRadius: "12px",
+      padding: "20px",
+    }}
+    className="bg-white"
+  >
+    <h2
+  style={{
+    fontSize: "24px",
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "#1F2937", // เทียบกับ text-gray-800
+    marginBottom: "24px", // เทียบกับ mb-6
+  }}
+>
+  แก้ไขข้อมูลผู้ดูแลระบบ
+</h2>
 
-              <Form.Item
-                label="อีเมล"
-                name="email"
-                rules={[
-                  { required: true, message: "Please input the email!" },
-                  { type: "email", message: "Please input a valid email!" },
-                ]}
-              >
-                <Input className="form-input" />
-              </Form.Item>
+    <Divider className="mb-6" />
 
-              <Form.Item
-                label="เบอร์โทรศัพท์"
-                name="phone_number"
-                rules={[{ required: true, message: "Please input the phone number!" }]}
-              >
-                <Input className="form-input" />
-              </Form.Item>
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={handleSubmit}
+      autoComplete="off"
+    >
+      <Row gutter={[24, 24]}>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="ชื่อผู้ใช้"
+            name="username"
+            rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้ !" }]}
+          >
+            <Input size="large" className="text-lg p-2" />
+          </Form.Item>
+        </Col>
 
-              <Form.Item
-                label="อายุ"
-                name="age"
-                rules={[{ required: true, message: "Please input the age!" }]}
-              >
-                <Input type="number" className="form-input" />
-              </Form.Item>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="อีเมล"
+            name="email"
+            rules={[
+              { type: "email", message: "รูปแบบอีเมลไม่ถูกต้อง !" },
+              { required: true, message: "กรุณากรอกอีเมล !" },
+            ]}
+          >
+            <Input size="large" className="text-lg p-2" />
+          </Form.Item>
+        </Col>
 
-              {/* เปลี่ยนจาก Input เป็น Select สำหรับเพศ */}
-              <Form.Item
-                label="เพศ"
-                name="gender"
-                rules={[{ required: true, message: "Please select the gender!" }]}
-              >
-                <Select className="form-input" placeholder="Select Gender">
-                  <Select.Option value="Male">ชาย</Select.Option>
-                  <Select.Option value="Female">หญิง</Select.Option>
-                  <Select.Option value="Other">อื่นๆ</Select.Option>
-                </Select>
-              </Form.Item>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="เบอร์โทรศัพท์"
+            name="phone_number"
+            rules={[{ required: true, message: "กรุณากรอกหมายเลขโทรศัพท์ !" }]}
+          >
+            <Input size="large" className="text-lg p-2" />
+          </Form.Item>
+        </Col>
 
-              <Form.Item>
-                <Space>
-                  <Button type="primary" htmlType="submit" loading={loading} className="submit-button">
-                    Save
-                  </Button>
-                  <Button onClick={() => navigate("/superadmin/dashboard")} className="cancel-button">
-                    Cancel
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Form>
-          </Col>
-        </Row>
-      </div>
-    </>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="อายุ"
+            name="age"
+            rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}
+          >
+            <InputNumber
+              min={0}
+              max={99}
+              style={{ width: "100%" }}
+              size="large"
+              className="text-lg p-2"
+            />
+          </Form.Item>
+        </Col>
+
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label="เพศ"
+            name="gender"
+            rules={[{ required: true, message: "กรุณาเลือกเพศ !" }]}
+          >
+            <Select placeholder="เลือกเพศ" size="large" className="text-lg">
+              {gender.map((item) => (
+                <Select.Option key={item.ID} value={item.gender}>
+                  {item.gender}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row justify="end">
+        <Col style={{ marginTop: "20px" }}>
+          <Form.Item>
+            <Space>
+              <Button
+                onClick={() => navigate("/superadmin")}
+                size="large"
+                className="!bg-gray-200 !hover:bg-gray-300 !text-gray-800 px-8"
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                className="!bg-blue-500 !hover:bg-blue-600 !text-white px-8"
+                loading={loading}
+              >
+                บันทึก
+              </Button>
+            </Space>
+          </Form.Item>
+        </Col>
+      </Row>
+    </Form>
+  </div>
+</div>
+
   );
 }
 

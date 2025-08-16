@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
-
+    "sukjai_project/controller/emotion"
 	"sukjai_project/controller/admin"
 	"sukjai_project/controller/assessment"
 	"sukjai_project/controller/background"
@@ -67,6 +67,9 @@ func main() {
 
     // Auth Routes
     r.Static("/BgImage", "./images/background")
+    r.Static("/images/emoji", "./images/emoji")
+
+
     r.POST("/signup", users.SignUp)
     r.POST("/signin", users.SignIn)
     r.POST("/forgot-password", users.ForgotPasswordController)
@@ -156,7 +159,10 @@ func main() {
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
 
-
+        userRouter.GET("/emotions", emotion.GetEmotions)
+        userRouter.GET("/emotions/:id", emotion.GetEmotionByID)
+        // routes/mirror.go หรือที่คุณ register route
+        userRouter.GET("/mirror/summary", mirror.GetMonthlySummary)
         userRouter.POST("/mirror", mirror.CreateMirror)
         userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
         userRouter.PUT("/mirror/:id", mirror.UpdateMirror)
