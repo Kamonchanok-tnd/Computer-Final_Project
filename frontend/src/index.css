@@ -30,7 +30,7 @@
   --color-chat-dark:#2F3C51;
   --color-dark-gradient: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
 
-  --shadow-dark: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-dark: 0 1px 2px rgba(0, 0, 0, 0.3);
 
   --animate-fade-in: fadeInDown 0.5s ease-in-out;
   --animate-fade-out: fadeOurLeft 0.5s ease-in-out ;

@@ -5,6 +5,6 @@ export interface IPlaylist {
     uid?: number;
     bid?: number;
     stid?: number;
-    Background: IBackground; // ✅ เพิ่มตรงนี้
+    Background?: IBackground; // ✅ เพิ่มตรงนี้
   
 }

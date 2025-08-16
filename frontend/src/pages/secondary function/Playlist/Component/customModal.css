@@ -1,0 +1,130 @@
+.custom-modal .ant-modal-content {
+    background-color: #ffffff; /* Light mode */
+    border-radius: 1rem;       /* มุมโค้ง */
+    padding: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  .custom-modal .ant-modal-confirm-title {
+    color: #111827; /* Gray-900 */
+  }
+  
+  .dark .custom-modal .ant-modal-confirm-title {
+    color: #f3f4f6; /* Gray-100 */
+  }
+  
+  /* Content text */
+  .custom-modal .ant-modal-confirm-content {
+    color: #111827;
+  }
+  
+  .dark .custom-modal .ant-modal-confirm-content {
+    color: #f3f4f6;
+  }
+  
+  /* Dark mode */
+  .dark .custom-modal .ant-modal-content {
+    background-color: #1f2937; /* Gray-800 หรือ dark blue */
+  }
+  
+  /* Modal title */
+  .custom-modal .ant-modal-title {
+    color: #111827; /* Gray-900 */
+  }
+  
+  /* Dark mode title */
+  .dark .custom-modal .ant-modal-title {
+    color: #f3f4f6; /* Gray-100 */
+  }
+  
+  /* Modal body text */
+  .custom-modal .ant-modal-body {
+    color: #111827;
+  }
+  
+  /* Dark mode body text */
+  .dark .custom-modal .ant-modal-body {
+    color: #f3f4f6;
+  }
+  .custom-modal .ant-modal-header {
+    background-color: #ffffff; /* สีเดียวกับ modal content */
+    border-bottom: none;       /* เอาเส้นขอบล่างออกถ้าต้องการ */
+  }
+  
+  /* Dark mode */
+  .dark .custom-modal .ant-modal-header {
+    background-color: #1f2937; /* Dark blue / Gray-800 */
+  }
+  
+  /* ปรับข้อความ title */
+  .custom-modal .ant-modal-title {
+    color: #111827; /* Gray-900 */
+  }
+  
+  .dark .custom-modal .ant-modal-title {
+    color: #D1D5DB ;  /* Gray-100 */
+  }
+  
+  .custom-modal .ant-modal-close {
+    color: #111827; /* สีดำเข้ม */
+  }
+  
+  .custom-modal .ant-modal-close:hover {
+    color: #ef4444; /* สีแดงเมื่อ hover */
+  }
+  
+  /* Dark mode */
+  .dark .custom-modal .ant-modal-close {
+    color: #f3f4f6; /* สีขาว */
+  }
+  
+  .dark .custom-modal .ant-modal-close:hover {
+    color: #f87171; /* สีแดงอ่อนเมื่อ hover */
+  }
+  
+  /* Modal ปุ่ม OK */
+  .custom-modal .ant-btn-primary {
+    background-color: #5DE2FF !important;
+    color: white;
+    border: none;
+    transition: all 0.3s;
+  }
+  
+  
+  
+  /* Modal ปุ่ม Cancel */
+  .custom-modal .ant-btn-default {
+    background-color: transparent;
+    color: #1F1F22 !important;
+    border: none;
+    transition: all 0.3s;
+  }
+ .dark .custom-modal .ant-btn-default {
+    background-color: transparent;
+    color: #D1D5DB !important;
+    border: none;
+    transition: all 0.3s;
+  }
+  
+  
+  .custom-modal .ant-btn-default:hover {
+    background-color: rgba(0,0,0,0.05); /* hover effect แบบโปร่ง */
+  }
+  
+  /* Dark mode */
+  .dark .custom-modal .ant-btn-primary {
+    background-color: #4ddfff;
+    color: #1F1F22;
+  }
+  
+  /* .dark .custom-modal .ant-btn-primary:hover {
+    background-color: #;
+  } */
+  
+  .dark .custom-modal .ant-btn-default {
+    color: #f3f4f6; /* ขาวอ่อน */
+  }
+  
+  .dark .custom-modal .ant-btn-default:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+  

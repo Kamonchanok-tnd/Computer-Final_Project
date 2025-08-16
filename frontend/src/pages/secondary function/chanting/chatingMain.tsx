@@ -154,10 +154,10 @@ function ChantingMain() {
          ${isDarkMode ? "bg-background-dark" : "bg-background-blue"}`}
     >
       <div
-        className={`sm:mt-2 sm:py-4 px:2 py-2 px-1 sm:px-8 sm:w-[95%] w-full border flex flex-col gap-8 ${
+        className={`sm:mt-2 sm:py-4 px:2 py-2 px-1 sm:px-8 sm:w-[95%] w-full  flex flex-col gap-8 ${
           isDarkMode
             ? " border-stoke-dark bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)]"
-            : "border-gray-200 bg-white "
+            : "  "
         } min-h-screen max-h-fit sm:rounded-t-xl`}
       >
         {/* search + create */}

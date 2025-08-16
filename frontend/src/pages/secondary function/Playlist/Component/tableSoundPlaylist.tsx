@@ -12,6 +12,7 @@ import "./table.css"
 import StarRating from "./starrating";
 import { CreateReview } from "../../../../services/https/review";
 import { IReview } from "../../../../interfaces/IReview";
+import { useDarkMode } from "../../../../components/Darkmode/toggleDarkmode";
 
 interface TableSoundPlaylistProps {
   data: CustomSoundPlaylist[];
@@ -30,6 +31,7 @@ function TableSoundPlaylist({
   const [ratingModalOpen, setRatingModalOpen] = useState<boolean>(false);
   const [selectedSong, setSelectedSong] = useState<CustomSoundPlaylist | null>(null);
   const [currentRating, setCurrentRating] = useState<number>(0);
+  const { isDarkMode } = useDarkMode();
   // const videoID = extractYouTubeID(selectedSong?.sound || "");
 
   // review section
@@ -225,22 +227,10 @@ useEffect(() => {
           content: `คุณต้องการลบ "${rowData.name}" ออกจากเพลย์ลิสต์ใช่หรือไม่?`,
           okText: 'นำออก',
           cancelText: 'ยกเลิก',
+          className: 'custom-modal',
           onOk: async () => {
             await DeleteSoundPlaylist(rowData.ID!); 
             setTableData(prev => prev.filter(item => item.ID !== rowData.ID));
-          },
-          okButtonProps: {
-            style: {
-              backgroundColor: '#5DE2FF', // สีแดง
-              borderColor: '#5DE2FF',
-              color: '#fff',
-            },
-          },
-          cancelButtonProps: {
-            style: {
-              borderColor: '#334155',
-              color: '#334155',
-            },
           },
         });
       },
@@ -308,7 +298,7 @@ useEffect(() => {
                 <div className="mt-6 ">
                   <iframe
                     height={500}
-                    style={{ display: "none" }}
+                    
                     className="flex-1 w-full rounded-lg"
                     src={`${previewVideoId}`}
                     title="YouTube Video"
@@ -324,19 +314,20 @@ useEffect(() => {
         open={ratingModalOpen}
         onCancel={closeRatingModal}
         footer={null}
+        className="custom-modal"
        
         centered
       >
         {selectedSong && (
           <div className="text-center space-y-6 py-4">
             {/* Song Info */}
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg ">
+            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-background-dark rounded-lg ">
              
               <div className="flex flex-col text-left w-full ">
-                <h3 className="font-semibold text-lg text-gray-800  truncate ">
+                <h3 className="font-semibold text-lg text-gray-800 dark:text-text-dark truncate ">
                   {selectedSong.name}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-text-dark">
                   {selectedSong.owner || 'ไม่ระบุผู้สร้าง'}
                 </p>
               </div>
@@ -344,7 +335,7 @@ useEffect(() => {
 
             {/* Rating Section */}
             <div className="space-y-4">
-              <h4 className="text-xl font-medium text-gray-700">
+              <h4 className="text-xl font-medium text-gray-700 dark:text-text-dark">
                 คุณให้คะแนนบทสวดนี้เท่าไหร่?
               </h4>
               
@@ -356,12 +347,12 @@ useEffect(() => {
                 />
               </div>
 
-              <p className="text-lg font-medium text-gray-700">
+              <p className="text-lg font-medium text-gray-700 dark:text-text-dark">
                 {getRatingLabel(currentRating)}
               </p>
               
               {currentRating > 0 && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-text-dark">
                   {currentRating}/5 ดาว
                 </p>
               )}
@@ -371,7 +362,7 @@ useEffect(() => {
             <div className="flex gap-3 justify-center pt-4">
               <button
                 onClick={closeRatingModal}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+                className="px-6 py-2  text-gray-700 dark:text-text-dark rounded-lg hover:bg-gray-300/20 transition-colors duration-200"
               >
                 ยกเลิก
               </button>

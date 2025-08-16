@@ -8,12 +8,13 @@ import (
 
 	"sukjai_project/controller/admin"
 	"sukjai_project/controller/assessment"
+	"sukjai_project/controller/background"
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
-	"sukjai_project/controller/mirror"
-	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/meditation"
+	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
+	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/questionnaire"
 	"sukjai_project/controller/resettoken"
 	"sukjai_project/controller/reviewsound"
@@ -131,6 +132,11 @@ func main() {
         router.GET("/SoundPlaylistByPID/:pid", soundplaylist.GetSoundPlaylistByPID)
         router.DELETE("/DeleteSoundPlaylist/:id", soundplaylist.DeleteSoundPlaylistByID)
         router.GET("/CheckFirstSoundPlaylist/:pid", soundplaylist.GetTopSoundPlaylistByPID)
+        router.DELETE("/DeleteSoundPlaylistByPID/:pid", soundplaylist.DeleteSoundPlaylistByPID)
+
+
+        //Background
+        router.GET("/Background", background.GetBackground)
 
 
      
