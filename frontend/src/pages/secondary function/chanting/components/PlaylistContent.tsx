@@ -18,8 +18,8 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia}: PlaylistCo
             Playlist?.map((playlist) => (
                <div
                key={playlist.ID}
-                className="group bg-white w-full h-15 rounded-md border border-gray-200 flex gap-2  transition-all duration-300
-                dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark
+                className="group bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
+                dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark
                 ">
             <img className="h-full w-18 rounded-tl-md rounded-bl-md" src={`${IMG_URL}${playlist.picture}`} />
           

@@ -137,7 +137,7 @@ func SetupDatabase() {
 	SeedQuestionnaires(db)
 	SeedQuestionnaireGroups(db)
 	SeedCriteriaAndCalculations(db)
-	SeedBackground(db)
+	// SeedBackground(db)
 	SeedEmojis(db)
 	SeedMirrorJuly2025(db)
 	SeedMirrorAug2025FirstHalf(db)

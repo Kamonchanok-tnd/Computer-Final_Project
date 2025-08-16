@@ -203,7 +203,7 @@ function Headers() {
           </Drawer>
 
         </Header>
-        <Content style={{ height: 'calc(100vh - 64px)'  }}>
+        <Content style={{ height: 'calc(100vh - 64px) '  }}>
           <Outlet />
         </Content>
       </Layout>

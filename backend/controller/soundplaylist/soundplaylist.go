@@ -108,3 +108,24 @@ func GetTopSoundPlaylistByPID(c *gin.Context) {
     // กรณีเจอข้อมูล
     c.JSON(http.StatusOK, soundPlaylist)
 }
+
+// create function delete sound playlist use by pid
+
+func DeleteSoundPlaylistByPID(c *gin.Context) {
+    id := c.Param("pid")
+    db := config.DB()
+
+    // ลบทั้งหมดที่มี p_id ตรงกับ id
+    result := db.Where("p_id = ?", id).Delete(&entity.SoundPlaylist{})
+    if result.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete sound playlist"})
+        return
+    }
+
+    if result.RowsAffected == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"error": "sound playlist not found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "sound playlist deleted successfully"})
+}

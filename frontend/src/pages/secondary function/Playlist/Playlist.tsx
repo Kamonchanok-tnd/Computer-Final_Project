@@ -2,6 +2,7 @@ import { use, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   CreatePlaylist,
+  DeletePlaylistByID,
   GetPlaylistByID,
   GetPlaylistByUID,
   IMG_URL,
@@ -14,11 +15,15 @@ import {
   Clock,
   Eye,
   Heart,
+  Images,
   MoveLeft,
   PenLine,
   Play,
   Search,
+  ShowerHead,
   SquarePen,
+  Trash,
+  Trash2,
   X,
 } from "lucide-react";
 import { IPlaylist } from "../../../interfaces/IPlaylist";
@@ -28,11 +33,18 @@ import { ISoundPlaylist } from "../../../interfaces/ISoundPlaylist";
 import {
   CreateSoundPlaylist,
   DeleteSoundPlaylistByID,
+  DeleteSoundPlaylistByPID,
   GetSoundPlaylistByPID,
 } from "../../../services/https/soundplaylist";
-import { message } from "antd";
+import { message, Tooltip } from "antd";
 import SoundsCard from "./Component/SoundsCard";
 import TableSoundPlaylist from "./Component/tableSoundPlaylist";
+import NoData from "./Component/noSoundplaylist";
+import ClearPlaylistModal from "./Component/ClearPlaylistModal";
+import { GetBackground } from "../../../services/https/background";
+import BackgroundPlaylist from "./Component/background";
+import { IBackground } from "../../../interfaces/IBackground";
+import DeleteConfirmModal from "./Component/DeleteConfirmModal";
 
 export interface CustomPlaylist extends IPlaylist {
   picture: string;
@@ -59,7 +71,15 @@ function AddSoundPlaylist() {
   const [editMode, setEditMode] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>("");
   const navigate = useNavigate();
+  const [showPreview,setShowPreview] = useState(false)//mode preview
+  const [currentBackgrounds, setCurrentBackgrounds] = useState<string>("");
+  const [selectedPicture, setSelectedPicture] = useState<string>("");
+  const [selectedID , setSelectedID] = useState<number | null>(null);
+  const [allPicture, setAllPicture] = useState<IBackground[]>([]);
 
+  const [openDeletePlaylist, setOpenDeletePlaylist] = useState(false);
+  const [loading, setLoading] = useState(false);
+ 
   async function DeleteSoundPlaylist(id: number) {
     try {
       await DeleteSoundPlaylistByID(id);
@@ -97,6 +117,8 @@ function AddSoundPlaylist() {
     try {
       const res = await GetPlaylistByID(Number(p_id));
       setPlaylists(res);
+      setCurrentBackgrounds(res.picture);
+      setSelectedPicture(res.picture);
       // console.log("playlist is: ", res);
     } catch (error) {
       console.error("Error fetching playlist:", error);
@@ -116,6 +138,7 @@ function AddSoundPlaylist() {
     fetchPlaylist();
     fetchChanting();
     fetchSoundPlaylist();
+    GetBg();
   }, []);
 
   useEffect(() => {
@@ -179,120 +202,251 @@ function AddSoundPlaylist() {
       message.error("เกิดข้อผิดพลาดในการเปลี่ยนชื่อ");
     }
   }
-  function prevPage(){
+  function prevPage() {
     navigate(-1);
   }
 
   function topPage() {
     window.scrollTo({
       top: 0,
-      behavior: "smooth" // เลื่อนแบบนุ่ม ๆ
+      behavior: "smooth", // เลื่อนแบบนุ่ม ๆ
     });
   }
-  
+
   useEffect(() => {
     topPage();
   }, []);
+
+  //clear playlist
+  async function clearPlaylist() {
+    try {
+      await DeleteSoundPlaylistByPID(Number(p_id));
+      message.success("ลบเพลย์ลิสต์แล้ว");
+      fetchSoundPlaylist();
+    } catch (error) {
+      console.error("Error deleting playlist:", error);
+    }
+  }
+
+  async function GetBg(){
+    try {
+      const res = await GetBackground();
+      setAllPicture(res)
+     
+    } catch (error) {
+      console.error("Error fetching backgrounds:", error);
+    }
+  }
+
+  const handlePictureSelect = (picture: IBackground) => {
+    setSelectedPicture(picture.Picture);
+    setSelectedID(picture.ID);
+  };
+  async function changeBg(b_id:number){ {
+
+    try {
+      const updated: IPlaylist = { bid: b_id };
+      await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
+      console.log("Playlist updated:", updated);
+      setEditMode(false);
+      message.success("เปลียนพื้นหลังเพลย์ลิสต์แล้ว");
+      fetchPlaylist();
+    } catch (error) {
+      console.error("Error updating name:", error);
+      message.error("เกิดข้อผิดพลาดในการเปลี่ยนพื้นหลัง");
+    }
+  }
+}
+
+ async function DeletePlaylist() {
+    try {
+      await DeletePlaylistByID(Number(p_id));
+      message.success("ลบเพลย์ลิสต์แล้ว");
+      setTimeout(() => {
+        navigate("/audiohome/chanting");
+      })
+      
+    } catch (error) {
+      console.error("Error deleting playlist:", error);
+      message.error("เกิดข้อผิดพลาดในการลบเพลย์ลิสต์");
+    }finally{
+      setLoading(false);
+      setOpenDeletePlaylist(false)
+    }
+  }
+
+  
   
 
   return (
-    <div className="flex flex-col  min-h-full max-h-fit duration-300 items-center bg-background-blue dark:bg-background-dark">
+    <div className="flex flex-col  min-h-full max-h-fit duration-300 items-center bg-background-blue dark:bg-background-dark ">
       <div
-        className={`sm:mt-2 sm:py-4 px:2 py-2 px-1 sm:px-8 sm:w-[95%] w-full border flex flex-col gap-8 dark:border-stoke-dark dark:bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)] duration-300
-            border-gray-200 bg-white h-full sm:rounded-xl`}
+        className={`sm:mt-2 sm:py-4 px:2 py-2 px-1 sm:px-8 sm:w-[95%] w-full  flex flex-col gap-8 dark:border-stoke-dark dark:bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)] duration-300
+            bg-transparent  sm:rounded-xl  min-h-[90vh] max-h-fit `}
       >
-        <div className="grid lg:grid-cols-2 grid-cols-1 gap-4">
+        <div className="grid lg:grid-cols-2 grid-cols-1 gap-4 min-h-[85vh]   h-full">
           {/* เพลยลิสต์ */}
-          <div className="space-y-4">
+          <div className="space-y-4  bg-white dark:bg-background-dark rounded-2xl shadow-sm px-4 py-2 flex flex-col">
             <div className="flex gap-4 items-center">
               <button onClick={prevPage} className="cursor-pointer">
-                    <ChevronLeft size={40} className="text-button-blue" />
+                <ChevronLeft size={40} className="text-button-blue" />
               </button>
-          
+
               <h1 className="text-xl font-semibold dark:text-text-dark">
                 เพลยลิสต์
               </h1>
             </div>
             {/*background playlist */}
             <div>
-              <img
-                src={`${IMG_URL}${playlists?.picture}`}
-                alt=""
-                className="w-full h-[300px] object-cover rounded-2xl"
-              />
-              <div className="flex gap-2 items-end mt-2 relative">
-                {editMode ? (
-                  <>
-                    <input
-                      type="text"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSaveName();
-                      }}
-                      className="text-2xl font-semibold bg-transparent border-b-1 border-button-blue focus:outline-none dark:text-text-dark"
-                    />
-                    <button
-                      onClick={handleSaveName}
-                      className="text-button-blue bg-background-button dark:bg-background-button/20 p-1 rounded-md  font-bold text-xl "
-                    >
-                      <Check size={20} />
-                    </button>
-                    <button
-                      onClick={() => setEditMode(false)}
-                      className="text-red-500 dark:bg-red-50/20 bg-red-50 p-1 rounded-md font-bold text-xl"
-                    >
-                      <X size={20} />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-2xl font-semibold dark:text-text-dark">
-                      {playlists?.name}
-                    </p>
-                    <button
-                      onClick={() => {
-                        setNewName(playlists?.name || "");
-                        setEditMode(true);
-                      }}
-                      className="bg-gray-200 rounded-full p-1 dark:bg-midnight-blue "
-                    >
-                      <PenLine size={20} className="dark:text-button-blue text-basic-text" />
-                    </button>
-                  </>
-                )}
-                <div>
-                  <button
-                    onClick={() =>
-                      navigate(
-                        `/audiohome/chanting/playlist/play/${p_id}/${soundPlaylist[0].sid}`
-                      )
-                    }
-                    className="absolute right-0 top-[-20px] z-50 hover:scale-105 
-    text-white font-bold text-xl p-4 rounded-full 
-    bg-gradient-to-tl from-[#BBF0FC] to-[#5DE2FF]
-    transition-all duration-300
-    dark:btn-glow-play"
-                  >
-                    <Play />
-                  </button>
-                </div>
-              </div>
+              {/* ปก playlist */}
+              <BackgroundPlaylist currentBackgrounds={currentBackgrounds.toString() ?? ''} showPreview={showPreview} AllPicture={allPicture}
+              selectedPicture={selectedPicture} handlePictureSelect={handlePictureSelect} changeBg={changeBg}/>
+
+<div className="flex items-center mt-2 relative  justify-between">
+  {/* ชื่อ playlist และ edit */}
+  <div className="flex gap-2 items-end">
+    {editMode ? (
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSaveName();
+          }}
+          className="text-2xl font-semibold bg-transparent border-b-1 border-button-blue focus:outline-none dark:text-text-dark"
+        />
+        <button
+          onClick={handleSaveName}
+          className="text-button-blue bg-background-button dark:bg-background-button/20 p-2 rounded-md font-bold text-xl"
+        >
+          <Check size={20} />
+        </button>
+        <button
+          onClick={() => setEditMode(false)}
+          className="text-red-500 dark:bg-red-50/20 bg-red-50 p-2 rounded-md font-bold text-xl"
+        >
+          <X size={20} />
+        </button>
+      </div>
+    ) : (
+      <div className="flex gap-2">
+        <p className="ml-4 text-2xl font-semibold dark:text-text-dark">
+          {playlists?.name}
+        </p>
+        <button
+          onClick={() => {
+            setNewName(playlists?.name || "");
+            setEditMode(true);
+          }}
+          className="bg-gray-200 rounded-full p-2 dark:bg-midnight-blue"
+        >
+          <PenLine
+            size={20}
+            className="dark:text-button-blue text-basic-text"
+          />
+        </button>
+      </div>
+    )}
+  </div>
+    {/* ปุ่ม Play อยู่ขวาบน absolute */}
+    <button
+    onClick={() =>
+      navigate(
+        `/audiohome/chanting/playlist/play/${p_id}/${soundPlaylist[0].sid}`
+      )
+    }
+    className="absolute -top-5 right-0 z-50 hover:scale-105 
+      text-white font-bold text-xl p-4 rounded-full 
+      bg-gradient-to-tl from-[#BBF0FC] to-[#5DE2FF]
+      transition-all duration-300
+      dark:btn-glow-play"
+  >
+    <Play />
+  </button>
+
+  {/* ปุ่ม Clear / Image อยู่ทางขวา */}
+  <div className="flex gap-2 items-center pr-20">
+    {
+       soundPlaylist && soundPlaylist.length > 0 && (
+        <>
+         <ClearPlaylistModal pid={Number(p_id)} onConfirm={clearPlaylist} />
+        </>
+      )
+    }
+
+   
+    {!showPreview ? (
+       <Tooltip placement="top" title="เปลี่ยนภาพพื้นหลัง" color="#5DE2FF">
+      <button
+        className="dark:text-text-dark dark:hover:bg-midnight-blue dark:hover:text-button-blue transition-colors duration-300
+         p-2 rounded-full hover:bg-background-button hover:text-blue-word"
+        onClick={() => setShowPreview(!showPreview)}
+      >
+        <Images size={20} />
+      </button>
+      </Tooltip>
+    ) : (
+      <div className="flex gap-2">
+        <button
+          className="text-blue-word dark:text-blue-word py-1 px-2 rounded-md bg-background-button
+          dark:bg-midnight-blue/50"
+          onClick={() => selectedID !== null && changeBg(selectedID)}
+        >
+          ยืนยัน
+        </button>
+        <button
+          className="text-red-500"
+          onClick={() => setShowPreview(!showPreview)}
+        >
+          ยกเลิก
+        </button>
+      </div>
+    )}
+       <Tooltip placement="top" title="ลบเพลยลิสต์" color="#5DE2FF">
+        <button 
+          className="dark:text-text-dark text-basic-text hover:text-red-600 hover:bg-red-600/10
+       p-2 
+      dark:hover:bg-red-600/20 duration-300 transition-colors rounded-full"
+          onClick={() => setOpenDeletePlaylist(true)}>
+          <Trash2 size={20}/>
+        </button>
+        </Tooltip>
+        <DeleteConfirmModal
+        open={openDeletePlaylist}
+        onConfirm={DeletePlaylist}
+        onCancel={() => setOpenDeletePlaylist(false)}
+        loading={loading}
+      />
+   
+  </div>
+</div>
+
             </div>
-            <TableSoundPlaylist
-              data={soundPlaylist}
-              extractYouTubeID={extractYouTubeID}
-              deletedRowIds={deletedRowIds}
-              DeleteSoundPlaylist={DeleteSoundPlaylist}
-            />
+            <div className=" flex-1">
+              {!soundPlaylist || soundPlaylist.length === 0 ? (
+                <NoData message="ไม่มีบทสวดมนต์ในเพลย์ลิสต์" />
+              ) : (
+                <TableSoundPlaylist
+                  data={soundPlaylist}
+                  extractYouTubeID={extractYouTubeID}
+                  deletedRowIds={deletedRowIds}
+                  DeleteSoundPlaylist={DeleteSoundPlaylist}
+                />
+              )}
+            </div>
           </div>
 
           {/* search sound */}
           <div className="space-y-4">
-            <h1 className="text-xl text-basic-text dark:text-text-dark mt-3">เพิ่มรายการบทสวดมนต์</h1>
+            <h1 className="text-xl text-basic-text dark:text-text-dark mt-3">
+              เพิ่มรายการบทสวดมนต์
+            </h1>
             <div className=" relative flex items-center md:gap-4 gap-2  w-[100%] focus-within:outline-regal-blue rounded-sm md:rounded-lg transition-all cubic-bezier(0.4, 0, 0.2, 1) duration-300">
-              <Search className="absolute left-3 top-2 transform-translate-y-1/2 h-5 w-5 text-basic-blue
-              dark:text-text-dark" />
+              <Search
+                className="absolute left-3 top-2 transform-translate-y-1/2 h-5 w-5 text-basic-blue
+              dark:text-text-dark"
+              />
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -301,14 +455,17 @@ function AddSoundPlaylist() {
                dark:bg-chat-dark   dark:hover:border-regal-blue dark:text-white dark:hover:outline-regal-blue dark:hover:outline-1"
                 placeholder="ค้นหา..."
               />
+             
               <button
                 className="bg-button-blue text-white py-2 px-4 rounded-sm md:rounded-lg"
                 onClick={() => setSearchTerm("")}
               >
                 ล้าง
               </button>
+             
             </div>
             {/* สิสต์sound */}
+
             <SoundsCard
               data={filteredSounds}
               extractYouTubeID={extractYouTubeID}

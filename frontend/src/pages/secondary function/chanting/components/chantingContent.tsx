@@ -17,7 +17,7 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
     return  (
         <div>
         <h1 className="text-xl  text-basic-text mb-4 dark:text-text-dark">สวดมนต์</h1>
-        <div className="grid lg:grid-cols-8 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+        <div className="grid lg:grid-cols-6 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
           {filteredSounds?.map((sound) => {
             const videoId = extractYouTubeID(sound.sound!);
             const thumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
@@ -51,13 +51,14 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
             return (
               <div
                 key={sound.ID}
-                className="bg-transparent w-full h-50 rounded-2xl group  text-basic-text dark:text-text-dark"
+                className="bg-white w-full h-60 rounded-xl group  text-basic-text border-gray-200 border 
+                dark:text-text-dark dark:bg-transparent dark:border-stoke-dark "
               >
-                <div className="h-[60%]  w-full rounded-2xl relative ">
+                <div className="h-[70%]  w-full rounded-2xl relative ">
                   <img
                     src={thumbnail}
                     alt=""
-                    className="w-full h-full object-center rounded-2xl"
+                    className="w-full h-full object-center rounded-t-xl"
                   />
 
                   <button onClick={() => gotoSound(Number(sound.ID))} className="absolute bottom-[-20px]  right-3 w-12 h-12 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white

@@ -65,6 +65,7 @@ export async function DeleteSoundPlaylistByID(id: number) {
       return result;
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }
 
@@ -97,5 +98,24 @@ export async function DeleteSoundPlaylistByID(id: number) {
     }
   }
   
+  export async function DeleteSoundPlaylistByPID(id: number) {
+    const requestOptions = {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Authorization}`,
+      },
+    };
+  
+    try {
+      const response = await fetch(`${apiUrl}/DeleteSoundPlaylistByPID/${id}`, requestOptions);
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   
 
