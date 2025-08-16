@@ -12,6 +12,7 @@ import {
   updateMirrorById,
 } from "../../services/https/mirror";
 import { getEmotions } from "../../services/https/emotion";
+import SideOrnaments from "./components/SideOrnaments";
 
 // YYYY-MM-DD -> 00:00:00Z (UTC)
 function toStartOfDayUTCISO(dateYMD: string) {
@@ -20,7 +21,9 @@ function toStartOfDayUTCISO(dateYMD: string) {
 }
 
 export default function MirrorPage() {
-  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
   const [message, setMessage] = useState<string>("");
   const [eid, setEid] = useState<number | null>(null);
   const [mirrorId, setMirrorId] = useState<number | null>(null);
@@ -40,7 +43,9 @@ export default function MirrorPage() {
         if (!cancelled) setEmotions([]);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // โหลด mirror ของวันที่เลือก
@@ -65,7 +70,9 @@ export default function MirrorPage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [date]);
 
   const buildTitle = (text: string) => {
@@ -75,8 +82,9 @@ export default function MirrorPage() {
 
   // สร้าง/อัปเดต (autosave)
   const doSave = async (next?: { message?: string; eid?: number | null }) => {
-    const msg = (typeof next?.message === "string" ? next!.message : message) ?? "";
-    const emotion = typeof next?.eid === "number" ? next!.eid : (eid ?? null);
+    const msg =
+      (typeof next?.message === "string" ? next!.message : message) ?? "";
+    const emotion = typeof next?.eid === "number" ? next!.eid : eid ?? null;
 
     setSaving(true);
     try {
@@ -121,64 +129,62 @@ export default function MirrorPage() {
   const handleMessageChange = (val: string) => debouncedSave({ message: val });
   const handleEmotionSelect = (id: number) => debouncedSave({ eid: id });
 
+return (
+  <div className="relative h-dvh bg-gradient-to-b from-sky-200 to-white">
+    {/* ของตกแต่ง (fixed เต็มจอ) */}
+    <SideOrnaments />
 
-  return (
-  <div className="h-dvh overflow-y-auto [scrollbar-gutter:stable_both-edges] bg-gradient-to-b from-sky-200 to-white flex flex-col">
-    {/* Header มือถือ */}
-    <div className="md:hidden">
-      <Header />
-    </div>
+    {/* คอนเทนต์ทั้งหมด: ยก z-index ให้สูงกว่า ornaments */}
+    <div className="relative z-[2] h-dvh overflow-y-auto [scrollbar-gutter:stable_both-edges] flex flex-col">
+      {/* Header มือถือ */}
+      <div className="md:hidden">
+        <Header />
+      </div>
 
-    {/* Header เดสก์ท็อป (ความกว้างเท่ากับ content) */}
-    <div className="hidden md:block">
+      {/* Header เดสก์ท็อป */}
+      <div className="hidden md:block">
+        <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
+          <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 pt-3 pb-3">
+            <Header />
+          </div>
+        </div>
+      </div>
+
+      {/* DatePicker */}
       <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
-        <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 pt-3 pb-3">
-          <Header />
+        <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8">
+          <div className="pt-0 pb-1">
+            <DatePicker value={date} onChange={setDate} loading={loading} saving={saving} />
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* DatePicker — อยู่นอก content ให้เลย์เอาต์เท่ากับหน้า Overview */}
-    <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
-      <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8">
-        <div className="pt-0 pb-1">
-          <DatePicker value={date} onChange={setDate} loading={loading} saving={saving} />
-        </div>
-      </div>
-    </div>
-
-    {/* CONTENT — กระจก + อิโมจิ */}
-    <div className="flex-1">
-      <div className="mx-auto w-full px-4 sm:px-6 md:px-8 h-full">
-        <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 h-full">
-          {/* ใส่ padding-bottom ที่ parent แทน เพื่อกันตกขอบทุกอุปกรณ์ */}
-          <main className="h-full grid grid-rows-[1fr,auto] gap-4 md:gap-3 pt-2
-                           pb-6 sm:pb-8 md:pb-12
-                           [padding-bottom:max(env(safe-area-inset-bottom),1rem)]">
-            {/* กระจก */}
-            <div className="min-h-0 grid place-items-center">
-              <div
-                className={[
-                  "[&>section>div]:w-[min(88vw,calc((100dvh-210px)*0.6))]",
-                  "sm:[&>section>div]:w-[min(80vw,calc((100dvh-220px)*0.6))]",
-                  "md:[&>section>div]:w-[min(72vw,calc((100dvh-260px)*0.6))]",
-                  "lg:[&>section>div]:w-[min(64vw,calc((100dvh-290px)*0.6))]",
-                  "xl:[&>section>div]:w-[min(56vw,calc((100dvh-310px)*0.6))]",
-                ].join(" ")}
-              >
-                <MirrorFrame value={message} onChange={handleMessageChange} />
+      {/* CONTENT */}
+      <div className="flex-1">
+        <div className="mx-auto w-full px-4 sm:px-6 md:px-8 h-full">
+          <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 h-full">
+            <main className="min-h-[100svh] grid grid-rows-[auto_1fr_auto] gap-3 md:gap-3 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)] sm:pb-8 md:pb-8 overflow-y-auto">
+              {/* กระจก */}
+              <div className="min-h-0 grid place-items-center">
+                <div
+                  className={[
+                    "[&>section>div]:w-[min(88vw,calc((100dvh-210px)*0.6))]",
+                    "sm:[&>section>div]:w-[min(80vw,calc((100dvh-220px)*0.6))]",
+                    "md:[&>section>div]:w-[min(72vw,calc((100dvh-260px)*0.6))]",
+                    "lg:[&>section>div]:w-[min(64vw,calc((100dvh-290px)*0.6))]",
+                    "xl:[&>section>div]:w-[min(56vw,calc((100dvh-310px)*0.6))]",
+                  ].join(" ")}
+                >
+                  <MirrorFrame value={message} onChange={handleMessageChange} />
+                </div>
               </div>
-            </div>
 
-            {/* อิโมจิ — ดันขึ้นเฉพาะ md+ ให้ชิดเงากระจกมากขึ้น */}
-            <div className="mx-auto md:-mt-8 lg:-mt-8 xl:-mt-10">
-              <MoodSelector
-                emotions={emotions}
-                selectedID={eid}
-                onSelect={handleEmotionSelect}
-              />
-            </div>
-          </main>
+              {/* อิโมจิ */}
+              <div className="mx-auto md:-mt-8 lg:-mt-8 xl:-mt-10">
+                <MoodSelector emotions={emotions} selectedID={eid} onSelect={handleEmotionSelect} />
+              </div>
+            </main>
+          </div>
         </div>
       </div>
     </div>

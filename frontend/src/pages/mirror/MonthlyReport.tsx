@@ -4,6 +4,7 @@ import { getMirrorSummary } from "../../services/https/mirror";
 import type { IMonthlySummary } from "../../interfaces/IMonthlySummary";
 import Header from "./components/Header";
 import "./components/styles/mirror.css";
+import SideOrnaments from "./components/SideOrnaments";
 
 /* ===== URL builder สำหรับภาพอิโมจิ (เหมือนใน MoodSelector) ===== */
 const apiUrl = import.meta.env.VITE_API_URL as string;
@@ -90,6 +91,7 @@ export default function MonthlyOverviewPage() {
   return (
     <div className="mirror-root h-dvh overflow-y-auto [scrollbar-gutter:stable_both-edges] bg-gradient-to-b from-sky-200 to-white flex flex-col">
       {/* Header มือถือ */}
+      <SideOrnaments />
       <div className="md:hidden">
         <Header title="สรุปอารมณ์รายเดือน" showOverviewButton={false} />
       </div>
