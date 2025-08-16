@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Space, Table, Button, Col, Row, Divider, message } from "antd";
+import { Table, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
 import { getAllAdmins } from "../../../services/https/admin";
-import { AdminInterface } from "../../../interfaces/IAdmin";  // นำเข้า AdminInterface
-import "./dashboard_admin.css"
+import { AdminInterface } from "../../../interfaces/IAdmin";
+
 function DashboardAdmin() {
-  const [users, setUsers] = useState<AdminInterface[]>([]); // ใช้ AdminInterface
+  const [users, setUsers] = useState<AdminInterface[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
@@ -16,7 +16,7 @@ function DashboardAdmin() {
   const columns: ColumnsType<AdminInterface> = [
     {
       title: "ลำดับ",
-      render: (_, __, index) => index + 1, // Adds sequential order starting from 1
+      render: (_, __, index) => index + 1,
       key: "index",
     },
     {
@@ -49,26 +49,21 @@ function DashboardAdmin() {
   const getUsers = async () => {
     try {
       let res = await getAllAdmins();
-      console.log("Response from getAllAdmins:", res);
-
-      // Directly check if res is an array, because it's already returned as an array
       if (Array.isArray(res) && res.length > 0) {
         setUsers(res);
-        console.log("Users data set successfully:", res);
       } else {
         setUsers([]);
         messageApi.open({
           type: "error",
-          content: "No data received from server",
+          content: "ไม่มีข้อมูลจากเซิร์ฟเวอร์",
         });
-        console.log("No data received from server");
       }
     } catch (error) {
       setUsers([]);
       console.error("Error fetching users:", error);
       messageApi.open({
         type: "error",
-        content: "An error occurred while fetching users.",
+        content: "เกิดข้อผิดพลาดในการดึงข้อมูล",
       });
     }
   };
@@ -76,19 +71,37 @@ function DashboardAdmin() {
   return (
     <>
       {contextHolder}
-      <div className="dashboard-admin-container">
-        <Row>
-          <Col span={12}>
-            <h2 className="page-title">จัดการข้อมูลสมาชิก</h2>
-          </Col>
-        </Row>
-        <Divider />
-        <div className="table-container">
+      <div className="p-6 bg-gray-50 min-h-screen">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-700">
+            จัดการข้อมูลสมาชิก
+          </h2>
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-gray-300 mb-6" />
+
+        {/* Table */}
+        <div className="bg-white p-4 rounded-xl shadow-md">
           <Table
             rowKey="ID"
             columns={columns}
             dataSource={users}
-            className="admin-table"
+            className="custom-ant-table "
+            pagination={{ pageSize: 5 }}
+            components={{
+            header: {
+              cell: (props) => (
+                <th
+                  {...props}
+                  className="!bg-blue-100 !text-gray-700 !font-semibold"
+                >
+                  {props.children}
+                </th>
+              ),
+            },
+          }}
           />
         </div>
       </div>
