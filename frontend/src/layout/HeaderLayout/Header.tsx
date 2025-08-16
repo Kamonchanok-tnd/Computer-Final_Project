@@ -7,10 +7,10 @@ import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus, Space,
 import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
 
 const items = [
-  { key: 'home', label: 'Home', path: '/user', icon: <House size={24} /> },
-  { key: 'chat', label: 'Chat', path: '/chat', icon: <MessageCircleMore size={24} /> },
-  { key: 'contents', label: 'Contents', path: '/audiohome', icon: <Music size={24} /> },
-  { key: 'message', label: 'Message', path: '/contents', icon: <Book size={24} /> },
+  { key: 'home', label: 'หน้าหลัก', path: '/user', icon: <House size={24} /> },
+  { key: 'chat', label: 'แชท', path: '/chat', icon: <MessageCircleMore size={24} /> },
+  { key: 'contents', label: 'คอนเท้นต์', path: '/audiohome', icon: <Music size={24} /> },
+  { key: 'message', label: 'ทีมพัฒนา', path: '/contents', icon: <Book size={24} /> },
 ];
 
 function Headers() {
@@ -117,14 +117,14 @@ function Headers() {
                 </ul>
           </div>
           <div className='hidden md:flex gap-4 justify-center items-center'>
-            <button
-              onClick={() => navigate('/user/mirror')}
+            {/* <button
+              onClick={() => navigate('/audiohome/mirror')}
               className="flex gap-2 items-center px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm bg-button-blue
              text-white hover:bg-button-blue"
             >
               <Plus size={24} />
               Mirror
-            </button>
+            </button> */}
             <button
               onClick={toggleDarkMode}
               className={`
