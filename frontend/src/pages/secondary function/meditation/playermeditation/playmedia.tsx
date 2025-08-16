@@ -790,68 +790,74 @@ function Playermediameditation() {
     : null;
 
   // โหลด Player
-  useEffect(() => {
-    if (!window.YT) {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(tag);
-    } else {
-      loadPlayer();
+  const hasCountedViewRef = useRef<{ [key: string]: boolean }>({}); // เก็บตาม videoId
+
+useEffect(() => {
+  if (!window.YT) {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+  } else {
+    loadPlayer();
+  }
+
+  window.onYouTubeIframeAPIReady = () => {
+    loadPlayer();
+  };
+
+  function loadPlayer() {
+    if (playerRef.current) {
+      playerRef.current.destroy();
+      playerRef.current = null;
     }
-    window.onYouTubeIframeAPIReady = () => {
-      loadPlayer();
-    };
 
-    function loadPlayer() {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-      playerRef.current = new window.YT.Player("yt-player", {
-        height: "360",
-        width: "640",
-        videoId: videoId || "",
-        events: {
-          onReady: () => {
-            setIsReady(true);
-            setDuration(playerRef.current.getDuration());
-            playerRef.current.setVolume(volume);
-            playerRef.current.playVideo();
-          },
-          onStateChange: (event: any) => {
-            setIsPlaying(event.data === 1);
-
-            // ✅ เพิ่ม view หลังดูเกิน 30 วิ หรือ 10%
-            if (event.data === 1 && !hasCountedView) {
-              const checkView = setInterval(() => {
-                if (playerRef.current) {
-                  const watchedTime = playerRef.current.getCurrentTime();
-                  const totalTime = playerRef.current.getDuration();
-                  if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
-                    addView(soundId);
-                    setHasCountedView(true);
-                    clearInterval(checkView);
-                  }
-                }
-              }, 1000);
-            }
-
-            if (event.data === 0) {
-              if (isRepeat) {
-                playerRef.current.playVideo();
-              } else {
-                handleNext();
-              }
-            }
-          },
-          onPlaybackQualityChange: (event: any) => {
-            setQuality(event.data);
-          },
+    playerRef.current = new window.YT.Player("yt-player", {
+      height: "360",
+      width: "640",
+      videoId: videoId || "",
+      events: {
+        onReady: () => {
+          setIsReady(true);
+          setDuration(playerRef.current.getDuration());
+          playerRef.current.setVolume(volume);
+          playerRef.current.playVideo();
         },
-        playerVars: { controls: 1, modestbranding: 1, autoplay: 1 },
-      });
-    }
-  }, [videoId, isRepeat]);
+        onStateChange: (event: any) => {
+          setIsPlaying(event.data === 1);
+
+          // ✅ ตรวจสอบว่ายังไม่นับวิวสำหรับ videoId นี้
+          if (event.data === 1 && !hasCountedViewRef.current[videoId]) {
+            const checkView = setInterval(() => {
+              if (playerRef.current) {
+                const watchedTime = playerRef.current.getCurrentTime();
+                const totalTime = playerRef.current.getDuration();
+
+                if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
+                  addView(soundId); // ✅ บันทึกลงฐานข้อมูล
+                  hasCountedViewRef.current[videoId] = true; // กันนับซ้ำ
+                  clearInterval(checkView);
+                }
+              }
+            }, 1000);
+          }
+
+          if (event.data === 0) {
+            // ✅ วิดีโอจบ
+            if (isRepeat) {
+              playerRef.current.playVideo(); // เล่นซ้ำ → ไม่รีนับวิว
+            } else {
+              handleNext(); // ไปคลิปถัดไป → videoId เปลี่ยน → นับวิวใหม่
+            }
+          }
+        },
+        onPlaybackQualityChange: (event: any) => {
+          setQuality(event.data);
+        },
+      },
+      playerVars: { controls: 1, modestbranding: 1, autoplay: 1 },
+    });
+  }
+}, [videoId, isRepeat, soundId]);
 
   
 
@@ -927,188 +933,185 @@ function Playermediameditation() {
   };
 
   return (
-    <div className="flex flex-col min-h-full items-center bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] dark:bg-background-dark">
-      <div className="sm:mt-4 px-2 sm:px-8 sm:w-[95%] w-full flex flex-col gap-8">
-        <div className="grid grid-cols-3 w-full gap-12">
-          {/* Player */}
-          <div className="col-span-2 bg-white/50 backdrop-blur-md rounded-2xl p-4 shadow-lg flex flex-col">
-            <div className="flex gap-4 items-center">
-              <button onClick={() => navigate("/audiohome/meditation")}>
-                <ChevronLeft size={32} className="text-[#00796B]" />
-              </button>
-              <h1 className="text-2xl font-semibold text-[#004D40]">สมาธิ</h1>
-            </div>
+  <div className="flex flex-col min-h-full items-center bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] dark:bg-background-dark">
+    <div className="sm:mt-4 px-2 sm:px-8 sm:w-[95%] w-full flex flex-col gap-8">
+      {/* ✅ Responsive Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 lg:gap-12">
+        
+        {/* Player */}
+        <div className="lg:col-span-2 bg-white/50 backdrop-blur-md rounded-2xl p-4 shadow-lg flex flex-col">
+          <div className="flex gap-4 items-center">
+            <button onClick={() => navigate("/audiohome/meditation")}>
+              <ChevronLeft size={28} className="text-[#00796B]" />
+            </button>
+            <h1 className="text-xl sm:text-2xl font-semibold text-[#004D40]">
+              สมาธิ
+            </h1>
+          </div>
 
-            {/* <div
-              ref={playerContainerRef}
-              id="yt-player"
-              className="w-full rounded-2xl flex-1 min-h-[350px] h-[350px]"
-            ></div> */}
-
-<div className="w-full mt-4">
+          {/* ✅ Video */}
+          <div className="w-full mt-4">
             <div className="bg-black rounded-2xl overflow-hidden mb-6">
-              <div ref={playerContainerRef}
-             id="yt-player" className="w-full aspect-video" />
-            </div>
-          </div> 
-
-            {/* Controls */}
-            <div className="mt-4">
-              <div className="flex justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    onClick={handleLike}
-                    className="w-10 h-10 bg-white flex items-center justify-center rounded-full shadow-md cursor-pointer"
-                  >
-                    <Heart
-                      className={`h-5 w-5 ${
-                        isLiked ? "text-red-500" : "text-gray-400"
-                      }`}
-                      fill={isLiked ? "currentColor" : "none"}
-                    />
-                  </div>
-                  <p className="text-[#004D40] text-lg font-medium">
-                    {currentSound?.name}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button onClick={toggleMute} className="p-2 text-[#00796B]">
-                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                  </button>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={volume}
-                    onChange={(e) => setVolume(Number(e.target.value))}
-                    className="w-20 h-1 bg-[#B2DFDB] rounded-lg cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              {/* Progress */}
-              <div className="flex items-center w-full gap-2">
-                <span className="text-sm w-10">{formatTime(currentTime)}</span>
-                <div
-                  className="relative flex-grow h-[4px] bg-[#C8F3FD] rounded cursor-pointer"
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const clickX = e.clientX - rect.left;
-                    const newPercent = (clickX / rect.width) * 100;
-                    const seekToSeconds = (newPercent / 100) * duration;
-                    playerRef.current.seekTo(seekToSeconds, true);
-                  }}
-                >
-                  <div
-                    className="absolute h-full bg-[#5DE2FF]"
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-                <span className="text-sm w-10">{formatTime(duration)}</span>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex items-center justify-center mt-4">
-                <button
-                  onClick={() => setIsShuffle(!isShuffle)}
-                  className={`p-2 rounded-full ${
-                    isShuffle ? "bg-[#80CBC4]" : ""
-                  }`}
-                >
-                  <Shuffle size={20} />
-                </button>
-
-                <div className="flex items-center gap-4 mx-4">
-                  <button onClick={handlePrev} className="p-3 bg-[#80CBC4] text-white rounded-full">
-                    <SkipBack size={20} />
-                  </button>
-                  <button
-                    onClick={() => seekBySeconds(-10)}
-                    className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]"
-                  >
-                    <RotateCcw size={18} />
-                  </button>
-                  <button
-                    onClick={() => (isPlaying ? handlePause() : handlePlay())}
-                    className="p-4 bg-[#4DB6AC] rounded-full text-white"
-                  >
-                    {isPlaying ? <Pause size={28} /> : <Play size={28} />}
-                  </button>
-                  <button
-                    onClick={() => seekBySeconds(10)}
-                    className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]"
-                  >
-                    <RotateCw size={18} />
-                  </button>
-                  <button onClick={handleNext} className="p-3 bg-[#80CBC4] text-white rounded-full">
-                    <SkipForward size={20} />
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => setIsRepeat(!isRepeat)}
-                  className={`p-2 rounded-full ${isRepeat ? "bg-[#80CBC4]" : ""}`}
-                >
-                  <Repeat size={20} />
-                </button>
-              </div>
+              <div ref={playerContainerRef} id="yt-player" className="w-full aspect-video" />
             </div>
           </div>
 
-          {/* Playlist + Review */}
-          <div className="col-span-1 bg-transparent rounded-2xl">
-            <h1 className="text-xl font-semibold text-[#004D40] mb-2">รายการสมาธิ</h1>
-            <div className="bg-white/40 backdrop-blur-md rounded-2xl p-2 max-h-[500px] overflow-auto">
-              {meditationSounds.map((item) => {
-                const youtubeID = getYouTubeVideoId(item.sound || "");
-                const thumbnail = `https://img.youtube.com/vi/${youtubeID}/0.jpg`;
-                const isCurrent = item.ID === soundId;
-                return (
-                  <div
-                    key={item.ID}
-                    onClick={() => {
-                      if (!isCurrent) {
-                        setHistory((prev) => [...prev, soundId]);
-                        navigate(`/audiohome/meditation/play/${item.ID}`);
-                      }
-                    }}
-                    className={`flex gap-2 h-20 rounded-lg mb-2 cursor-pointer ${
-                      isCurrent ? "bg-[#80CBC4]/30" : "hover:bg-[#E0F2F1]/60"
-                    }`}
-                  >
-                    <img src={thumbnail} className="w-20 h-full object-cover rounded-l-lg" />
-                    <div className="flex flex-col justify-between py-2 px-2 flex-1">
-                      <p className="text-[#004D40] font-medium truncate">{item.name}</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock size={12} />
-                        <span>{item.duration}</span>
-                        <Eye size={12} />
-                        <span>{item.view}</span>
-                        <Heart size={12} />
-                        <span>{item.like_sound}</span>
-                      </div>
-                    </div>
-                    {isCurrent && (
-                      <div className="flex items-center gap-1 pr-2">
-                        <div className="w-2 h-2 bg-blue-word rounded-full animate-pulse"></div>
-                        <span className="text-xs text-blue-word hidden lg:inline">กำลังเล่น</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {/* Controls */}
+          <div className="mt-4">
+            {/* Like + Volume */}
+            <div className="flex flex-col sm:flex-row justify-between mb-4 gap-4 sm:gap-0">
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={handleLike}
+                  className="w-10 h-10 bg-white flex items-center justify-center rounded-full shadow-md cursor-pointer"
+                >
+                  <Heart
+                    className={`h-5 w-5 ${isLiked ? "text-red-500" : "text-gray-400"}`}
+                    fill={isLiked ? "currentColor" : "none"}
+                  />
+                </div>
+                <p className="text-[#004D40] text-base sm:text-lg font-medium truncate max-w-[200px] sm:max-w-none">
+                  {currentSound?.name}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button onClick={toggleMute} className="p-2 text-[#00796B]">
+                  {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume}
+                  onChange={(e) => setVolume(Number(e.target.value))}
+                  className="w-20 sm:w-28 h-1 bg-[#B2DFDB] rounded-lg cursor-pointer"
+                />
+              </div>
             </div>
 
-            {/* Review */}
+            {/* Progress */}
+            <div className="flex items-center w-full gap-2 text-xs sm:text-sm">
+              <span className="w-8 sm:w-10">{formatTime(currentTime)}</span>
+              <div
+                className="relative flex-grow h-[4px] bg-[#C8F3FD] rounded cursor-pointer"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickX = e.clientX - rect.left;
+                  const newPercent = (clickX / rect.width) * 100;
+                  const seekToSeconds = (newPercent / 100) * duration;
+                  playerRef.current.seekTo(seekToSeconds, true);
+                }}
+              >
+                <div
+                  className="absolute h-full bg-[#5DE2FF]"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <span className="w-8 sm:w-10">{formatTime(duration)}</span>
+            </div>
+
+            {/* Control Buttons */}
+            <div className="flex items-center justify-center mt-4 gap-2 sm:gap-4 flex-wrap">
+              <button
+                onClick={() => setIsShuffle(!isShuffle)}
+                className={`p-2 rounded-full ${isShuffle ? "bg-[#80CBC4]" : ""}`}
+              >
+                <Shuffle size={18} />
+              </button>
+
+              <button onClick={handlePrev} className="p-3 bg-[#80CBC4] text-white rounded-full">
+                <SkipBack size={18} />
+              </button>
+              <button
+                onClick={() => seekBySeconds(-10)}
+                className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]"
+              >
+                <RotateCcw size={16} />
+              </button>
+              <button
+                onClick={() => (isPlaying ? handlePause() : handlePlay())}
+                className="p-4 bg-[#4DB6AC] rounded-full text-white"
+              >
+                {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+              </button>
+              <button
+                onClick={() => seekBySeconds(10)}
+                className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]"
+              >
+                <RotateCw size={16} />
+              </button>
+              <button onClick={handleNext} className="p-3 bg-[#80CBC4] text-white rounded-full">
+                <SkipForward size={18} />
+              </button>
+
+              <button
+                onClick={() => setIsRepeat(!isRepeat)}
+                className={`p-2 rounded-full ${isRepeat ? "bg-[#80CBC4]" : ""}`}
+              >
+                <Repeat size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Playlist + Review */}
+        <div className="lg:col-span-1 bg-transparent rounded-2xl">
+          <h1 className="text-lg sm:text-xl font-semibold text-[#004D40] mb-2">รายการสมาธิ</h1>
+          <div className="bg-white/40 backdrop-blur-md rounded-2xl p-2 max-h-[400px] sm:max-h-[500px] overflow-auto">
+            {meditationSounds.map((item) => {
+              const youtubeID = getYouTubeVideoId(item.sound || "");
+              const thumbnail = `https://img.youtube.com/vi/${youtubeID}/0.jpg`;
+              const isCurrent = item.ID === soundId;
+              return (
+                <div
+                  key={item.ID}
+                  onClick={() => {
+                    if (!isCurrent) {
+                      setHistory((prev) => [...prev, soundId]);
+                      navigate(`/audiohome/meditation/play/${item.ID}`);
+                    }
+                  }}
+                  className={`flex gap-2 h-16 sm:h-20 rounded-lg mb-2 cursor-pointer ${
+                    isCurrent ? "bg-[#80CBC4]/30" : "hover:bg-[#E0F2F1]/60"
+                  }`}
+                >
+                  <img src={thumbnail} className="w-16 sm:w-20 h-full object-cover rounded-l-lg" />
+                  <div className="flex flex-col justify-between py-1 sm:py-2 px-2 flex-1">
+                    <p className="text-[#004D40] text-sm sm:text-base font-medium truncate">
+                      {item.name}
+                    </p>
+                    <div className="flex items-center gap-2 text-[10px] sm:text-xs text-gray-500">
+                      <Clock size={12} />
+                      <span>{item.duration}</span>
+                      <Eye size={12} />
+                      <span>{item.view}</span>
+                      <Heart size={12} />
+                      <span>{item.like_sound}</span>
+                    </div>
+                  </div>
+                  {isCurrent && (
+                    <div className="flex items-center gap-1 pr-2">
+                      <div className="w-2 h-2 bg-blue-word rounded-full animate-pulse"></div>
+                      <span className="text-[10px] sm:text-xs text-blue-word hidden lg:inline">
+                        กำลังเล่น
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Review */}
           {showRating ? (
             <div className="relative text-center space-y-1 py-2 mt-6 rounded-2xl bg-white/70 shadow-sm dark:bg-transparent dark:shadow-none">
-              <h4 className="text-xl font-medium text-basic-text dark:text-text-dark">
+              <h4 className="text-base sm:text-xl font-medium text-basic-text dark:text-text-dark">
                 คุณให้คะแนนบทสวดนี้เท่าไหร่?
               </h4>
               <button
                 onClick={() => setShowRating(false)}
-                className="absolute top-0 right-4 text-sm text-gray-500 dark:text-text-dark p-2 bg-white/10 rounded-full"
+                className="absolute top-0 right-2 sm:right-4 text-xs sm:text-sm text-gray-500 dark:text-text-dark p-2 bg-white/10 rounded-full"
               >
                 ปิด
               </button>
@@ -1121,19 +1124,19 @@ function Playermediameditation() {
                 />
               </div>
 
-              <p className="text-lg font-medium text-text-basic dark:text-text-dark">
+              <p className="text-sm sm:text-lg font-medium text-text-basic dark:text-text-dark">
                 {getRatingLabel(currentRating)}
               </p>
-              <p className="text-sm text-gray-500 dark:text-text-dark">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-text-dark">
                 {currentRating}/5 ดาว
               </p>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 justify-center pt-4">
+              <div className="flex gap-3 justify-center pt-4 flex-wrap">
                 {currentRating > 0 && (
                   <button
                     onClick={() => setCurrentRating(0)}
-                    className="px-6 py-2 bg-transparent text-red-600 dark:bg-red-600/10 rounded-lg transition-colors duration-200"
+                    className="px-4 sm:px-6 py-2 bg-transparent text-red-600 dark:bg-red-600/10 rounded-lg transition-colors duration-200"
                   >
                     ยกเลิก
                   </button>
@@ -1141,7 +1144,7 @@ function Playermediameditation() {
                 <button
                   onClick={handleRatingSubmit}
                   disabled={currentRating === 0}
-                  className="px-6 py-2 bg-button-blue text-white rounded-lg disabled:bg-gray-400 transition-colors duration-200"
+                  className="px-4 sm:px-6 py-2 bg-button-blue text-white rounded-lg disabled:bg-gray-400 transition-colors duration-200"
                 >
                   ส่งคะแนน
                 </button>
@@ -1151,7 +1154,7 @@ function Playermediameditation() {
             <div className="text-center py-4 mt-6">
               <button
                 onClick={() => setShowRating(true)}
-                className="px-6 py-2 bg-button-blue text-white rounded-lg transition duration-300 hover:scale-105"
+                className="px-4 sm:px-6 py-2 bg-button-blue text-white rounded-lg transition duration-300 hover:scale-105"
               >
                 รีวิวบทสวด
               </button>
@@ -1162,6 +1165,7 @@ function Playermediameditation() {
     </div>
   </div>
 );
+
 
 }
 export default Playermediameditation;
