@@ -71,37 +71,37 @@ function DashboardAdmin() {
   return (
     <>
       {contextHolder}
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-700">
+        <div className="flex justify-between items-center mb-4 flex-wrap">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-700">
             จัดการข้อมูลสมาชิก
           </h2>
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-gray-300 mb-6" />
+        {/* Divider สั้น 2px จากขอบทั้งซ้ายขวา */}
+        <div className="h-px bg-gray-300 w-[calc(100%-4px)] mx-auto mb-6" />
 
-        {/* Table */}
-        <div className="bg-white p-4 rounded-xl shadow-md">
+        {/* Table wrapper ให้ scroll แนวนอนบนมือถือ */}
+        <div className="bg-white p-2 sm:p-4 rounded-xl shadow-md overflow-x-auto">
           <Table
             rowKey="ID"
             columns={columns}
             dataSource={users}
-            className="custom-ant-table "
+            className="min-w-[600px] sm:min-w-full"
             pagination={{ pageSize: 5 }}
             components={{
-            header: {
-              cell: (props) => (
-                <th
-                  {...props}
-                  className="!bg-blue-100 !text-gray-700 !font-semibold"
-                >
-                  {props.children}
-                </th>
-              ),
-            },
-          }}
+              header: {
+                cell: (props) => (
+                  <th
+                    {...props}
+                    className="!bg-blue-100 !text-gray-700 !font-semibold"
+                  >
+                    {props.children}
+                  </th>
+                ),
+              },
+            }}
           />
         </div>
       </div>
