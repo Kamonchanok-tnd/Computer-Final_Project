@@ -25,6 +25,7 @@ export async function CreatePlaylist(data: IPlaylist) {
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -78,17 +79,23 @@ export async function UpdatePlaylist(data: IPlaylist, id: number) {
   };
 
   try {
-    const response = await fetch(
-      `${apiUrl}/Playlist/${id}`,
-      requestOptions
-    );
+    const response = await fetch(`${apiUrl}/Playlist/${id}`, requestOptions);
+    
     const result = await response.json();
+
+    if (!response.ok) {
+    
+      throw new Error(result.message || "Failed to update playlist");
+    }
+
     console.log(result);
     return result;
   } catch (error) {
     console.error(error);
+    throw error; // ต้อง throw ต่อไปเพื่อให้ try/catch ใน handleSaveName ทำงาน
   }
 }
+
 
 export async function getPlaylistsByUserAndType(uid: number, stid: number): Promise<IPlaylist[]> {
   try {
@@ -112,3 +119,25 @@ export async function getPlaylistsByUserAndType(uid: number, stid: number): Prom
     return [];
   }
 }
+
+  export async function DeletePlaylistByID(id: number) {
+    const requestOptions = {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Authorization}`,
+      },
+    };
+  
+    try {
+      const response = await fetch(`${apiUrl}/Playlist/${id}`, requestOptions);
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  
+

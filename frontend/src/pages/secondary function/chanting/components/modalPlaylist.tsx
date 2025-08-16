@@ -26,8 +26,11 @@ function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProp
     }
 
     console.log("Submitted Playlist Name:", values);
-    await CreatePlaylist(values);
+    const res = await CreatePlaylist(values);
     message.success("สร้างเพลย์ลิสต์สำเร็จ!");
+
+    gotoPlaylist(res.ID);
+
 
     form.resetFields();
     onClose();

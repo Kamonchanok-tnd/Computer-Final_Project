@@ -117,6 +117,8 @@ function Player() {
             const res = await CreateReview(data)
             console.log(res);
             message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
+            setShowRating(false);
+
       } catch (error) {
         console.error('Error sending rating:', error);
         message.error('เกิดข้อผิดพลาดในการส่งคะแนน');
@@ -350,9 +352,9 @@ function Player() {
   return (
     <div className="flex flex-col min-h-full duration-300 items-center bg-background-blue dark:bg-background-dark ">
       <div className="sm:mt-4   sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
-      dark:bg-box-dark duration-300 bg-transparent md:rounded-xl">
+      dark:bg-box-dark duration-300 bg-transparent md:rounded-xl ">
         {/* Grid Layout - ปรับให้ responsive ดีขึ้น */}
-        <div className="grid grid-cols-1 sm:grid-cols-3  w-full lg:gap-8 gap-2  h-full">
+        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2  h-[88vh]">
           {/* Main Player Section */}
           <div className="sm:col-span-2 sm:rounded-2xl flex flex-col h-full gap-4 px-4 py-4 bg-white/50 justify-between backdrop-blur-md shadow-md
           dark:bg-box-dark dark:text-text-dark">
@@ -541,151 +543,148 @@ function Player() {
           </div>
 
           {/* Playlist Section - ปรับให้เหมาะกับหน้าจอเล็ก */}
-          <div className="bg-transparent rounded-2xl col-span-1">
-            <div className="flex gap-4 items-center mb-4">
-              <h1 className="text-lg lg:text-xl font-semibold dark:text-text-dark">รายการเสียง</h1>
-            </div>
+          <div className="bg-transparent rounded-2xl col-span-1  flex flex-col h-full">
+  <div className="bg-white/10 dark:bg-transparent backdrop-blur-lg rounded-2xl flex flex-col flex-1">
+    {/* Header */}
+    <div className="flex gap-4 items-center mb-4">
+      <h1 className="text-lg lg:text-xl font-semibold dark:text-text-dark">รายการเสียง</h1>
+    </div>
 
-            <div className="bg-white/10 dark:bg-transparent  backdrop-blur-lg rounded-2xl  flex flex-col">
-              <div className={`space-y-2 ${showRating ? "sm:h-[370px]" : "sm:h-[509px]"}
-               h-[250px] overflow-auto scrollbar-hide p-2`}>
-                {chantingSounds.map((item) => {
-                  const youtubeID = getYouTubeVideoId(item.sound || "");
-                  const thumbnail = `https://img.youtube.com/vi/${youtubeID}/0.jpg`;
-                  const isCurrent = item.ID === soundId;
+    {/* Content area (list หรือ rating) */}
+    <div className="flex-1 overflow-y-auto scrollbar-hide p-2  rounded-xl">
+      {!showRating ? (
+        <div className="space-y-2">
+          {chantingSounds.map((item) => {
+            const youtubeID = getYouTubeVideoId(item.sound || "");
+            const thumbnail = `https://img.youtube.com/vi/${youtubeID}/0.jpg`;
+            const isCurrent = item.ID === soundId;
 
-                  return (
-                    <div
-                      key={item.ID}
-                      className={`group gap-2 rounded-lg h-16 lg:h-20 cursor-pointer transition-all duration-200 flex ${
-                        isCurrent
-                          ? "bg-background-button border border-blue-word dark:bg-midnight-blue/40 "
-                          : "bg-white dark:bg-transparent hover:bg-white/10"
-                      }`}
-                      onClick={() => {
-                        if (!isCurrent) {
-                          setHistory((prev) => [...prev, soundId]); // เก็บ id ปัจจุบัน
-                          navigate(`/audiohome/chanting/play/${item.ID}`);
-                        }
-                      }}
-                    >
-                      {/* Thumbnail */}
-                      <div className="flex-shrink-0">
-                        <img
-                          src={thumbnail}
-                          alt={item.name}
-                          className="w-16 lg:w-20 h-full object-cover rounded-l-lg border"
-                        />
-                      </div>
+            return (
+              <div
+                key={item.ID}
+                className={`group gap-2 rounded-lg h-16 lg:h-20 cursor-pointer transition-all duration-200 flex ${
+                  isCurrent
+                    ? "bg-background-button border border-blue-word dark:bg-midnight-blue/40 "
+                    : "bg-white dark:bg-transparent hover:bg-white/10"
+                }`}
+                onClick={() => {
+                  if (!isCurrent) {
+                    setHistory((prev) => [...prev, soundId]);
+                    navigate(`/audiohome/chanting/play/${item.ID}`);
+                  }
+                }}
+              >
+                {/* Thumbnail */}
+                <div className="flex-shrink-0">
+                  <img
+                    src={thumbnail}
+                    alt={item.name}
+                    className="w-16 lg:w-20 h-full object-cover rounded-l-lg border"
+                  />
+                </div>
 
-                      {/* Content */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between py-2 pr-2">
-                        <div>
-                          <p className="text-black font-medium text-sm lg:text-base truncate dark:text-text-dark">
-                            {item.name}
-                          </p>
-                          <p className="text-xs lg:text-sm text-gray-600 truncate dark:text-text-dark">
-                            {item.owner}
-                          </p>
-                        </div>
+                {/* Content */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-2 pr-2">
+                  <div>
+                    <p className="text-black font-medium text-sm lg:text-base truncate dark:text-text-dark">
+                      {item.name}
+                    </p>
+                    <p className="text-xs lg:text-sm text-gray-600 truncate dark:text-text-dark">
+                      {item.owner}
+                    </p>
+                  </div>
 
-                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-text-dark">
-                          <div className="flex items-center gap-1">
-                            <Clock size={12} />
-                            <span className="hidden sm:inline">
-                              {item.duration}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Eye size={12} />
-                            <span className="hidden lg:inline">
-                              {item.view}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Heart size={12} />
-                            <span>{item.like_sound}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Playing Indicator */}
-                      {isCurrent && (
-                        <div className="flex items-center gap-1 pr-2">
-                          <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-blue-word rounded-full animate-pulse"></div>
-                          <span className="text-xs text-blue-word hidden lg:inline">
-                            กำลังเล่น
-                          </span>
-                        </div>
-                      )}
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-text-dark">
+                    <div className="flex items-center gap-1">
+                      <Clock size={12} />
+                      <span className="hidden sm:inline">{item.duration}</span>
                     </div>
-                  );
-                })}
-              </div>
-               {showRating && (<div className="text-center space-y-1 py-2  rounded-2xl bg-white/70 shadow-sm
-               dark:bg-transparent dark:shadow-none">
-            {/* Song Info */}
-            {/* Rating Section */}
-         <div className="space-y-2 relative ">
-              <h4 className="text-xl font-medium text-basic-text dark:text-text-dark ">
-                คุณให้คะแนนบทสวดนี้เท่าไหร่?
-              </h4>
-              <button onClick={() => setShowRating(false)} className="absolute top-0 right-4 text-sm text-gray-500 dark:text-text-dark p-2 bg-white/10 rounded-full">ปิด</button>
-              
-              <div className="flex justify-center">
-                <StarRating 
-                  rating={currentRating} 
-                  onRatingChange={setCurrentRating} 
-                  size="lg"
-                />
-              </div>
+                    <div className="flex items-center gap-1">
+                      <Eye size={12} />
+                      <span className="hidden lg:inline">{item.view}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Heart size={12} />
+                      <span>{item.like_sound}</span>
+                    </div>
+                  </div>
+                </div>
 
-              <p className="text-lg font-medium text-text-basic dark:text-text-dark">
-                {getRatingLabel(currentRating)}
-              </p>
-              
-             
-                <p className="text-sm text-gray-500 dark:text-text-dark">
-                  {currentRating}/5 ดาว
-                </p>
-            
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 justify-center pt-4">
-
-               { currentRating > 0 && (
-                    <button
-                    onClick={()=>setCurrentRating(0)}
-                    
-                    className="px-6 py-2 bg-transparent text-red-600 dark:bg-red-600/10 rounded-lg  disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                    ยกเลิก
-                </button>
+                {/* Playing Indicator */}
+                {isCurrent && (
+                  <div className="flex items-center gap-1 pr-2">
+                    <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-blue-word rounded-full animate-pulse"></div>
+                    <span className="text-xs text-blue-word hidden lg:inline">
+                      กำลังเล่น
+                    </span>
+                  </div>
                 )}
-            
-              <button
-                onClick={handleRatingSubmit}
-                disabled={currentRating === 0}
-                className="px-6 py-2 bg-button-blue text-white rounded-lg  disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
-              >
-                ส่งคะแนน
-              </button>
-            </div>
-          
-          </div>)}
-          {!showRating && (
-            <div className="text-center py-4 ">
-              <button
-                onClick={() => setShowRating(true)}
-                className="px-6 py-2 bg-button-blue text-white rounded-lg transition duration-300 hover:scale-105"
-              >
-                รีวิวบทสวด
-              </button>
-            </div>
-          )}
-            </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center space-y-4 p-4">
+          <h4 className="text-xl font-medium text-basic-text dark:text-text-dark">
+            คุณให้คะแนนบทสวดนี้เท่าไหร่?
+          </h4>
+          <button
+            onClick={() => setShowRating(false)}
+            className="absolute top-4 right-4 text-sm text-gray-500 dark:text-text-dark p-2 bg-white/10 rounded-full"
+          >
+            ปิด
+          </button>
+
+          <div className="flex justify-center">
+            <StarRating
+              rating={currentRating}
+              onRatingChange={setCurrentRating}
+              size="lg"
+            />
           </div>
+
+          <p className="text-lg font-medium text-text-basic dark:text-text-dark">
+            {getRatingLabel(currentRating)}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-text-dark">
+            {currentRating}/5 ดาว
+          </p>
+
+          <div className="flex gap-3 justify-center pt-4">
+            {currentRating > 0 && (
+              <button
+                onClick={() => setCurrentRating(0)}
+                className="px-6 py-2 bg-transparent text-red-600 dark:bg-red-600/10 rounded-lg"
+              >
+                ยกเลิก
+              </button>
+            )}
+            <button
+              onClick={handleRatingSubmit}
+              disabled={currentRating === 0}
+              className="px-6 py-2 bg-button-blue text-white rounded-lg disabled:bg-gray-400"
+            >
+              ส่งคะแนน
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Footer button */}
+    {!showRating && (
+      <div className="text-center py-4">
+        <button
+          onClick={() => setShowRating(true)}
+          className="px-6 py-2 bg-button-blue text-white rounded-lg hover:scale-105 transition"
+        >
+          รีวิวบทสวด
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+
         </div>
       </div>
     </div>

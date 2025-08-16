@@ -308,7 +308,7 @@ function PlayerPlaylist() {
       <div className="sm:mt-4   sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
       dark:bg-box-dark duration-300 bg-transparent md:rounded-xl">
         {/* Grid Layout - ปรับให้ responsive ดีขึ้น */}
-        <div className="grid grid-cols-1 sm:grid-cols-3  w-full lg:gap-8 gap-2  h-full">
+        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2   h-[88vh]">
           {/* Main Player Section */}
           <div className="sm:col-span-2 sm:rounded-2xl flex flex-col h-full gap-4 px-4 py-4 bg-white/50  justify-between backdrop-blur-md shadow-md
           dark:bg-box-dark dark:text-text-dark">
