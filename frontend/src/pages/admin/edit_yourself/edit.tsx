@@ -12,20 +12,15 @@ function EditYourself() {
 
   useEffect(() => {
     const userId = localStorage.getItem("id");
-    if (userId) {
-      fetchAdminData(userId);
-    }
+    if (userId) fetchAdminData(userId);
   }, []);
 
   const fetchAdminData = async (id: string) => {
     setFormLoading(true);
     try {
       const response: AdminResponse = await getAdminById(id);
-      if (response.data) {
-        setAdmin(response);
-      } else {
-        alert("ไม่สามารถโหลดข้อมูลผู้ดูแลระบบได้");
-      }
+      if (response.data) setAdmin(response);
+      else alert("ไม่สามารถโหลดข้อมูลผู้ดูแลระบบได้");
     } catch (error) {
       console.error("Error fetching admin:", error);
       alert("ไม่สามารถโหลดข้อมูลผู้ดูแลระบบได้");
@@ -52,13 +47,8 @@ function EditYourself() {
     try {
       const response = await updateAdminYourselfById(admin.data.ID, updatedAdmin);
       if (response.status === 200 || response.status === "success") {
-        // alert("แก้ไขข้อมูลสำเร็จ!");
-        setTimeout(() => {
-          navigate("/admin");
-        }, 1000);
-      } else {
-        alert(`เกิดข้อผิดพลาด: ${response.status}`);
-      }
+        setTimeout(() => navigate("/admin"), 1000);
+      } else alert(`เกิดข้อผิดพลาด: ${response.status}`);
     } catch (error) {
       console.error("Error updating admin:", error);
       alert("เกิดข้อผิดพลาดในการแก้ไขข้อมูล");
@@ -76,77 +66,75 @@ function EditYourself() {
     );
   }
 
-  if (!admin) {
-    return <div>Loading...</div>;
-  }
+  if (!admin) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header แยกออกจากการ์ด */}
-      <header className="py-6 px-6">
-        <h1 className="text-2xl font-bold text-gray-700">แก้ไขข้อมูลผู้ดูแลระบบ</h1>
+      {/* Header */}
+      <header className="py-6 px-4 sm:px-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-700">
+          แก้ไขข้อมูลผู้ดูแลระบบ
+        </h1>
       </header>
 
-     {/* Divider */}
-{/* Divider สั้นลงและจัดกลาง */}
-  <div className="h-px bg-gray-300 w-[calc(100%-50px)] mx-auto mb-6" />
+      {/* Divider responsive */}
+      <div className="h-px bg-gray-300 w-[calc(100%-20px)] sm:w-[calc(100%-50px)] mx-auto mb-4 sm:mb-6" />
 
-
-      {/* ส่วนการ์ดกึ่งกลาง */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="bg-white p-10 rounded-xl shadow-md w-full max-w-3xl">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      {/* Card form */}
+      <div className="flex justify-center px-4 sm:px-6 mt-2 sm:mt-6">
+        <div className="bg-white p-4 sm:p-10 rounded-xl shadow-md w-full max-w-4xl ">
+          <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label className="block mb-2 font-medium text-gray-600">ชื่อผู้ใช้</label>
+              <label className="block mb-1 sm:mb-2 font-medium text-gray-600">ชื่อผู้ใช้</label>
               <input
                 type="text"
                 name="username"
                 defaultValue={admin.data.username}
                 required
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full border border-gray-300 rounded-md p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
             <div>
-              <label className="block mb-2 font-medium text-gray-600">อีเมล</label>
+              <label className="block mb-1 sm:mb-2 font-medium text-gray-600">อีเมล</label>
               <input
                 type="email"
                 name="email"
                 defaultValue={admin.data.email}
                 required
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full border border-gray-300 rounded-md p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
             <div>
-              <label className="block mb-2 font-medium text-gray-600">เบอร์โทรศัพท์</label>
+              <label className="block mb-1 sm:mb-2 font-medium text-gray-600">เบอร์โทรศัพท์</label>
               <input
                 type="text"
                 name="phone_number"
                 defaultValue={admin.data.phone_number}
                 required
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full border border-gray-300 rounded-md p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
             <div>
-              <label className="block mb-2 font-medium text-gray-600">อายุ</label>
+              <label className="block mb-1 sm:mb-2 font-medium text-gray-600">อายุ</label>
               <input
                 type="number"
                 name="age"
                 defaultValue={admin.data.age}
                 required
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full border border-gray-300 rounded-md p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
             <div>
-              <label className="block mb-2 font-medium text-gray-600">เพศ</label>
+              <label className="block mb-1 sm:mb-2 font-medium text-gray-600">เพศ</label>
               <select
                 name="gender"
                 defaultValue={admin.data.gender}
                 required
-                className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full border border-gray-300 rounded-md p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">เลือกเพศ</option>
                 <option value="ชาย">ชาย</option>
@@ -155,18 +143,18 @@ function EditYourself() {
               </select>
             </div>
 
-            <div className="flex justify-center space-x-6 mt-8">
+            <div className="flex flex-col sm:flex-row justify-center sm:space-x-6 mt-4 sm:mt-8 space-y-2 sm:space-y-0">
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-blue-400 text-white px-8 py-3 rounded-md hover:bg-blue-500 transition"
+                className="bg-blue-400 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-md hover:bg-blue-500 transition"
               >
                 {loading ? "กำลังบันทึก..." : "บันทึก"}
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/admin")}
-                className="bg-gray-300 text-gray-700 px-8 py-3 rounded-md hover:bg-gray-400 transition"
+                className="bg-gray-300 text-gray-700 px-6 sm:px-8 py-2 sm:py-3 rounded-md hover:bg-gray-400 transition"
               >
                 ยกเลิก
               </button>
