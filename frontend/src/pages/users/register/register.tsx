@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { UsersInterface } from "../../../interfaces/IUser";
 import { CreateUser } from "../../../services/https/login";
 import "./register.css";
-import logo from "../../../assets/นั่งสมาธิ.png"; 
+import logo from "../../../assets/สมาธิผู้หญิง.png"; 
 
 const { Title, Text } = Typography;
 

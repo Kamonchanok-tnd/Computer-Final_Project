@@ -165,7 +165,7 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
       element: isLoggedIn ? <ChatSpace /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
     },
     {
-      path: "/user/mirror", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      path: "/audiohome/mirror", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
       element: isLoggedIn ? <MirrorPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
     },
     {
