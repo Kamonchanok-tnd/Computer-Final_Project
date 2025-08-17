@@ -70,27 +70,27 @@ export default function PromptForm({
 
       {/* ฟิลด์หลัก: iPad/แท็บเล็ต = แถวเดียว, Desktop ใหญ่ค่อยเป็น 2 คอลัมน์ */}
       <div className="min-h-0 grid grid-cols-1 xl:grid-cols-2 gap-3 xl:gap-4">
-        <Form.Item label={<><AimOutlined /> Objective</>} name="objective" rules={[{ required: true }]} style={{ marginBottom: 10 }}>
+        <Form.Item label={<><AimOutlined /> วัตถุประสงค์</>} name="objective" rules={[{ required: true }]} style={{ marginBottom: 10 }}>
           <TextArea style={textAreaStyle} />
         </Form.Item>
 
-        <Form.Item label={<><UserOutlined /> Persona</>} name="persona" style={{ marginBottom: 10 }}>
+        <Form.Item label={<><UserOutlined /> บุคลิกผู้ช่วย</>} name="persona" style={{ marginBottom: 10 }}>
           <TextArea style={textAreaStyle} />
         </Form.Item>
 
-        <Form.Item label={<><BgColorsOutlined /> Tone</>} name="tone" style={{ marginBottom: 10 }}>
+        <Form.Item label={<><BgColorsOutlined /> น้ำเสียง</>} name="tone" style={{ marginBottom: 10 }}>
           <TextArea style={textAreaStyle} />
         </Form.Item>
 
-        <Form.Item label={<><FileTextOutlined /> Instruction</>} name="instruction" style={{ marginBottom: 10 }}>
+        <Form.Item label={<><FileTextOutlined /> คำสั่งเพิ่มเติม</>} name="instruction" style={{ marginBottom: 10 }}>
           <TextArea style={textAreaStyle} />
         </Form.Item>
 
-        <Form.Item label={<><StopOutlined /> Constraint</>} name="constraint" style={{ marginBottom: 10 }}>
+        <Form.Item label={<><StopOutlined /> ข้อจำกัด</>} name="constraint" style={{ marginBottom: 10 }}>
           <TextArea style={textAreaStyle} />
         </Form.Item>
 
-        <Form.Item label={<><GlobalOutlined /> Context</>} name="context" style={{ marginBottom: 10 }}>
+        <Form.Item label={<><GlobalOutlined /> ข้อมูลประกอบ</>} name="context" style={{ marginBottom: 10 }}>
           <TextArea style={textAreaStyle} />
         </Form.Item>
       </div>

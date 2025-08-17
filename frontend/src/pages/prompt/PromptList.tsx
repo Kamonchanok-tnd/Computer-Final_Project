@@ -74,7 +74,7 @@ export default function PromptList({
       {/* Header */}
 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
   <h2 className="text-lg sm:text-xl font-bold text-[#2c3e50]">
-    🧠 รายการ Prompt ทั้งหมด <span className="text-slate-500 font-normal">({list.length})</span>
+    รายการ Prompt ทั้งหมด <span className="text-slate-500 font-normal">({list.length})</span>
   </h2>
 
   {/* ขวา: บนมือถือให้เป็น 2 คอลัมน์ (ค้นหา 1fr + สวิตช์ auto) */}
