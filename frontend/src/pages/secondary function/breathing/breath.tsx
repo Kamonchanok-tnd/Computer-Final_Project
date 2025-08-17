@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, Music, Music2 } from "lucide-react"; // ✅ ใช้ Speaker + Music
 import { useLocation, useNavigate } from "react-router-dom";
 import owlImage from "../../../assets/maditaion.jpg";
+import BubbleBackground from "./BubbleBackground";
 
 function BreathingExercise() {
   const location = useLocation();
@@ -26,12 +27,11 @@ function BreathingExercise() {
   const [phase, setPhase] = useState<"in" | "out">("in");
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMicOn, setIsMicOn] = useState(false);
+  const [isVoiceOn, setIsVoiceOn] = useState(false); // ✅ voice guide
   const [showPopup, setShowPopup] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
- 
   const radius = 100;
   const circumference = 2 * Math.PI * radius;
 
@@ -74,46 +74,46 @@ function BreathingExercise() {
   };
 
   useEffect(() => {
-    if (!isMicOn) return;
+    if (!isVoiceOn) return;
     speak(phase === "in" ? "หายใจเข้า" : "หายใจออก", 0.9);
-  }, [phase, isMicOn]);
+  }, [phase, isVoiceOn]);
 
   useEffect(() => {
     if (seconds === 0) {
       postMessageToPlayer("pauseVideo");
       setIsPlaying(false);
-      setIsMicOn(false);
+      setIsVoiceOn(false);
       setShowPopup(true);
     }
   }, [seconds]);
 
   const inDuration = 3;   // หายใจเข้า 3 วินาที
-const outDuration = 4;  // หายใจออก 4 วินาที
+  const outDuration = 4;  // หายใจออก 4 วินาที
 
-useEffect(() => {
-  let frame: number;
-  let startTime: number | null = null;
-  const currentDuration = phase === "in" ? inDuration : outDuration;
+  useEffect(() => {
+    let frame: number;
+    let startTime: number | null = null;
+    const currentDuration = phase === "in" ? inDuration : outDuration;
 
-  const animate = (timestamp: number) => {
-    if (!startTime) startTime = timestamp;
-    const elapsed = (timestamp - startTime) / 1000;
-    let pct = Math.min(elapsed / currentDuration, 1);
-    if (phase === "out") pct = 1 - pct;
-    setProgress(pct * circumference);
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000;
+      let pct = Math.min(elapsed / currentDuration, 1);
+      if (phase === "out") pct = 1 - pct;
+      setProgress(pct * circumference);
 
-    if (elapsed < currentDuration) {
-      frame = requestAnimationFrame(animate);
-    } else {
-      setPhase((prev) => (prev === "in" ? "out" : "in"));
-      startTime = null;
-      frame = requestAnimationFrame(animate);
-    }
-  };
+      if (elapsed < currentDuration) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        setPhase((prev) => (prev === "in" ? "out" : "in"));
+        startTime = null;
+        frame = requestAnimationFrame(animate);
+      }
+    };
 
-  frame = requestAnimationFrame(animate);
-  return () => cancelAnimationFrame(frame);
-}, [phase]);
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [phase]);
 
   useEffect(() => {
     if (seconds <= 0) return;
@@ -143,6 +143,7 @@ useEffect(() => {
           : "bg-gradient-to-b from-white to-[#b3e5fc]"
         }`}
     >
+      <BubbleBackground />
       {videoId && (
         <iframe
           ref={iframeRef}
@@ -157,24 +158,19 @@ useEffect(() => {
       )}
 
       <div className="text-center mb-10">
-  <h1
-  className={`text-3xl font-extrabold tracking-widest drop-shadow-lg
-    ${phase === "in" ? "text-[#a2d4ff]" : "text-white"}`}
->
-  {phase === "in" ? "BREATHE IN" : "BREATHE OUT"}
-</h1>
-  <p
-    className={`text-lg font-extrabold tracking-widest drop-shadow-lg
-      ${phase === "in" ? "text-[#a2d4ff]" : "text-white"} mt-1`}
-  >
-    {customTime ? `TIME: ${customTime}` : `FOR ${selectedTime || 0} MIN`}
-  </p>
-</div>
-
-{/* <div className="text-gray-100 text-lg font-bold drop-shadow-lg">
-  {formatTime(seconds)}
-</div> */}
-
+        <h1
+          className={`text-3xl font-extrabold tracking-widest drop-shadow-lg
+            ${phase === "in" ? "text-[#a2d4ff]" : "text-white"}`}
+        >
+          {phase === "in" ? "BREATHE IN" : "BREATHE OUT"}
+        </h1>
+        <p
+          className={`text-lg font-extrabold tracking-widest drop-shadow-lg
+            ${phase === "in" ? "text-[#a2d4ff]" : "text-white"} mt-1`}
+        >
+          {customTime ? `TIME: ${customTime}` : `FOR ${selectedTime || 0} MIN`}
+        </p>
+      </div>
 
       <div className="relative w-56 h-56 flex items-center justify-center">
         <svg className="absolute w-full h-full rotate-[-90deg]">
@@ -192,64 +188,63 @@ useEffect(() => {
           />
         </svg>
 
-       <img
-  src={owlImage}
-  alt="owl"
-  className="z-10 rounded-full object-cover"
-  style={{
-    width: "200px", // คงที่
-    height: "200px",
-    padding: "6px", // เว้นขอบรอบรูป
-    boxSizing: "border-box", // padding ไม่ทำให้รูปเกินขนาด
-  }}
-/>
-
-
+        <img
+          src={owlImage}
+          alt="owl"
+          className="z-10 rounded-full object-cover"
+          style={{
+            width: "200px",
+            height: "200px",
+            padding: "6px",
+            boxSizing: "border-box",
+          }}
+        />
       </div>
 
       <div className="mt-10 w-full flex items-center justify-center gap-32">
+        {/* ✅ Voice Guide */}
         <button
           type="button"
-          aria-label="Toggle microphone"
-          title="Toggle microphone"
-          onClick={() => setIsMicOn((prev) => !prev)}
-          className={`${isMicOn ? "bg-green-500" : "bg-gray-500"} 
+          aria-label="Toggle voice guide"
+          title="Toggle voice guide"
+          onClick={() => setIsVoiceOn((prev) => !prev)}
+          className={`${isVoiceOn ? "bg-green-500" : "bg-gray-500"} 
             hover:bg-[#1e40af] text-white rounded-full p-3 shadow-lg transition`}
         >
-          {isMicOn ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+          {isVoiceOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
         </button>
 
         <div className="text-white text-2xl font-semibold drop-shadow">
           {formatTime(seconds)}
         </div>
 
+        {/* ✅ Music (YouTube) */}
         <button
           type="button"
-          aria-label="Toggle sound"
-          title="Toggle sound"
+          aria-label="Toggle background sound"
+          title="Toggle background sound"
           onClick={toggleAudio}
           className={`${isPlaying ? "bg-red-500" : "bg-[#2563eb]"
             } hover:bg-[#1e40af] text-white rounded-full p-3 shadow-lg transition`}
         >
-          {isPlaying ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+          {isPlaying ? <Music2 className="w-6 h-6" /> : <Music className="w-6 h-6" />}
         </button>
       </div>
 
       {showPopup && (
-  <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-    <div className="bg-[#b3e5fc] rounded-2xl p-8 shadow-2xl text-center animate-fadeIn scale-95 max-w-sm w-full mx-4">
-      <h2 className="text-2xl font-bold text-[#0288d1] mb-4">🎉 ฝึกสมาธิครบแล้ว!</h2>
-      <p className="text-[#01579b] mb-6">คุณทำได้เยี่ยมมาก</p>
-      <button
-        onClick={handlePopupClose}
-        className="bg-[#03a9f4] hover:bg-[#039be5] text-white px-6 py-2 rounded-xl shadow-lg transition"
-      >
-        กลับไปหน้า Meditation
-      </button>
-    </div>
-  </div>
-)}
-
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-[#b3e5fc] rounded-2xl p-8 shadow-2xl text-center animate-fadeIn scale-95 max-w-sm w-full mx-4">
+            <h2 className="text-2xl font-bold text-[#0288d1] mb-4">🎉 ฝึกสมาธิครบแล้ว!</h2>
+            <p className="text-[#01579b] mb-6">คุณทำได้เยี่ยมมาก</p>
+            <button
+              onClick={handlePopupClose}
+              className="bg-[#03a9f4] hover:bg-[#039be5] text-white px-6 py-2 rounded-xl shadow-lg transition"
+            >
+              กลับไปหน้า Meditation
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import type { ColumnsType } from "antd/es/table";
 
 import { getAllAdmins } from "../../../services/https/admin";
 import { AdminInterface } from "../../../interfaces/IAdmin";
+import admin from "../../../assets/admin.png";
 
 function DashboardAdmin() {
   const [users, setUsers] = useState<AdminInterface[]>([]);
@@ -74,9 +75,11 @@ function DashboardAdmin() {
       <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center mb-4 flex-wrap">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-700">
-            จัดการข้อมูลสมาชิก
-          </h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-700 flex items-center gap-2">
+  <img src={admin} alt="Admin" className="w-15 h-15" />
+  จัดการข้อมูลสมาชิก
+</h2>
+
         </div>
 
         {/* Divider สั้น 2px จากขอบทั้งซ้ายขวา */}
