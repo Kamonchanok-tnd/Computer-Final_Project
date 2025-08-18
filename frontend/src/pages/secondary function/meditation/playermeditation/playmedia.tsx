@@ -655,7 +655,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import StarRating from "../../Playlist/Component/starrating";
 import { message } from "antd";
 import { IReview } from "../../../../interfaces/IReview";
-import { CreateReview } from "../../../../services/https/review";
+import { CheckReview, CreateReview, UpdateReview } from "../../../../services/https/review";
+import { CreateHistory } from "../../../../services/https/history";
+import { IHistory } from "../../../../interfaces/IHistory";
 
 declare global {
   interface Window {
@@ -704,6 +706,20 @@ function Playermediameditation() {
 
   const currentSound = meditationSounds.find((s) => s.ID === soundId);
 
+  const [editRating, setEditRating] = useState<boolean>(false);
+  const [exitRating, setExitRating] = useState<number>(0);
+
+   async function addHistory(sid:number) {
+      try {
+        const data:IHistory = { sid: sid, uid: Number(uid) }
+         await CreateHistory(data)
+      }catch (error) {
+        console.error('Error sending rating:', error);
+       
+      }
+     
+    }
+
   // เพิ่ม View
   async function addView(sid: number) {
     try {
@@ -732,8 +748,15 @@ function Playermediameditation() {
     }
     const data: IReview = { sid: currentSound?.ID, point: currentRating, uid };
     try {
-      await CreateReview(data);
-      message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
+      if (editRating) {
+        updateReview()
+        setShowRating(false);
+      }else{
+          const res = await CreateReview(data)
+          console.log(res);
+          message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
+          setShowRating(false);
+      }
     } catch (error) {
       console.error("Error sending rating:", error);
       message.error("เกิดข้อผิดพลาดในการส่งคะแนน");
@@ -833,6 +856,7 @@ useEffect(() => {
                 const totalTime = playerRef.current.getDuration();
 
                 if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
+                  addHistory(soundId);
                   addView(soundId); // ✅ บันทึกลงฐานข้อมูล
                   hasCountedViewRef.current[videoId] = true; // กันนับซ้ำ
                   clearInterval(checkView);
@@ -932,20 +956,54 @@ useEffect(() => {
     navigate(`/audiohome/meditation/play/${lastId}`);
   };
 
+    async function updateReview(){
+      const data: IReview = { sid: Number(currentSound?.ID), point: currentRating , uid: Number(uid) };
+      try {
+        await UpdateReview(data);
+        message.success(`แก้ไขคะแนน "${currentSound?.name}" ${currentRating} ดาว`);
+    }catch (error) {
+        console.error('Error sending rating:', error);
+        message.error('เกิดข้อผิดพลาดในการส่งคะแนน กรุณาลองอีกครั้ง');
+    }
+    }
+    async function checkReview(){
+      try {
+        const result = await CheckReview(Number(uid), Number(currentSound?.ID));
+        if (result.exists && typeof result.point === "number") {
+          setCurrentRating(result.point);
+          setExitRating(result.point);
+          setEditRating(true);
+      
+        }
+      } catch (error) {
+        console.error('Error sending rating:', error);
+    }
+  }
+  
+  function openReview() {
+    checkReview();
+    setShowRating(true);
+  }
+  function closeReview() {
+    setShowRating(false);
+    setCurrentRating(0);
+  }
+
   return (
-    <div className="flex flex-col min-h-full items-center bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] dark:bg-background-dark">
-      <div className="sm:mt-4 px-4 sm:px-10 w-full flex flex-col gap-8 max-w-[1600px]">
+    <div className="flex flex-col min-h-full items-center bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] 
+        dark:bg-bg-gradient-to-b dark:from-background-dark dark:to-background-dark  ">
+      <div className="sm:mt-4 px-4 sm:px-10 w-full flex flex-col gap-8 max-w-[1600px] font-ibmthai">
         
         {/* ✅ Responsive Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 lg:gap-12">
           
           {/* Player */}
-          <div className="lg:col-span-2 bg-white/50 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col">
+          <div className="lg:col-span-2 bg-white/50 dark:bg-box-dark backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col">
             <div className="flex gap-4 items-center">
               <button onClick={() => navigate("/audiohome/meditation")}>
-                <ChevronLeft size={28} className="text-[#00796B]" />
+                <ChevronLeft size={28} className="text-[#00796B] dark:text-[#07D8C0]" />
               </button>
-              <h1 className="text-xl sm:text-2xl font-semibold text-[#004D40]">
+              <h1 className="text-xl sm:text-2xl font-semibold text-[#004D40] dark:text-[#07D8C0] ">
                 สมาธิ
               </h1>
             </div>
@@ -971,13 +1029,13 @@ useEffect(() => {
                       fill={isLiked ? "currentColor" : "none"}
                     />
                   </div>
-                  <p className="text-[#004D40] text-base sm:text-lg font-medium truncate max-w-[200px] sm:max-w-none">
+                  <p className="text-[#004D40] dark:text-[#07D8C0]  text-base sm:text-lg font-medium truncate max-w-[200px] sm:max-w-none">
                     {currentSound?.name}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button onClick={toggleMute} className="p-2 text-[#00796B]">
+                  <button onClick={toggleMute} className="p-2 text-[#00796B] dark:text-[#07D8C0]">
                     {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                   </button>
                   <input
@@ -993,9 +1051,9 @@ useEffect(() => {
 
               {/* Progress */}
               <div className="flex items-center w-full gap-2 text-xs sm:text-sm">
-                <span className="w-8 sm:w-10">{formatTime(currentTime)}</span>
+                <span className="w-8 sm:w-10 dark:text-[#07D8C0]">{formatTime(currentTime)}</span>
                 <div
-                  className="relative flex-grow h-[4px] bg-[#C8F3FD] rounded cursor-pointer"
+                  className="relative flex-grow h-[4px] bg-[#07D8C0]/30 rounded cursor-pointer"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const clickX = e.clientX - rect.left;
@@ -1005,50 +1063,50 @@ useEffect(() => {
                   }}
                 >
                   <div
-                    className="absolute h-full bg-[#5DE2FF]"
+                    className="absolute h-full bg-[#07D8C0]"
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>
-                <span className="w-8 sm:w-10">{formatTime(duration)}</span>
+                <span className="w-8 sm:w-10 dark:text-[#07D8C0]">{formatTime(duration)}</span>
               </div>
 
               {/* Control Buttons */}
               <div className="flex items-center justify-center mt-4 gap-2 sm:gap-4 flex-wrap">
                 <button
                   onClick={() => setIsShuffle(!isShuffle)}
-                  className={`p-2 rounded-full ${isShuffle ? "bg-[#80CBC4]" : ""}`}
+                  className={`p-2 rounded-full ${isShuffle ? "bg-[#80CBC4] dark:bg-[#07D8C0]/20  dark:text-[#07D8C0] text-white" : "dark:text-text-dark text-[#00796B]"}`}
                 >
                   <Shuffle size={18} />
                 </button>
 
-                <button onClick={handlePrev} className="p-3 bg-[#80CBC4] text-white rounded-full">
+                <button onClick={handlePrev} className="p-3 bg-[#80CBC4] dark:bg-[#80CBC4]/20 dark:text-[#07D8C0] text-white rounded-full">
                   <SkipBack size={18} />
                 </button>
                 <button
                   onClick={() => seekBySeconds(-10)}
-                  className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]"
+                  className="p-2 bg-[#E0F2F1] dark:bg-[#E0F2F1]/20 dark:text-[#07D8C0] rounded-full text-[#00796B]"
                 >
                   <RotateCcw size={16} />
                 </button>
                 <button
                   onClick={() => (isPlaying ? handlePause() : handlePlay())}
-                  className="p-4 bg-[#4DB6AC] rounded-full text-white"
+                  className="p-4 bg-[#4DB6AC] dark:bg-[#80CBC4]/40 dark:text-[#07D8C0] rounded-full text-white"
                 >
                   {isPlaying ? <Pause size={24} /> : <Play size={24} />}
                 </button>
                 <button
                   onClick={() => seekBySeconds(10)}
-                  className="p-2 bg-[#E0F2F1] rounded-full text-[#00796B]"
+                  className="p-2 bg-[#E0F2F1] dark:bg-[#E0F2F1]/20 dark:text-[#07D8C0] rounded-full text-[#00796B]"
                 >
                   <RotateCw size={16} />
                 </button>
-                <button onClick={handleNext} className="p-3 bg-[#80CBC4] text-white rounded-full">
+                <button onClick={handleNext} className="p-3 bg-[#80CBC4] dark:bg-[#80CBC4]/20 dark:text-[#07D8C0] text-white rounded-full">
                   <SkipForward size={18} />
                 </button>
 
                 <button
                   onClick={() => setIsRepeat(!isRepeat)}
-                  className={`p-2 rounded-full ${isRepeat ? "bg-[#80CBC4]" : ""}`}
+                  className={`p-2 rounded-full ${isRepeat ? "bg-[#80CBC4] dark:bg-[#07D8C0]/20  dark:text-[#07D8C0] text-white" : "dark:text-text-dark text-[#00796B]"}`}
                 >
                   <Repeat size={18} />
                 </button>
@@ -1057,11 +1115,15 @@ useEffect(() => {
           </div>
 
           {/* Playlist + Review */}
-          <div className="lg:col-span-1 bg-white/50 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col">
-            <h1 className="text-lg sm:text-xl font-semibold text-[#004D40] mb-3">รายการสมาธิ</h1>
+          <div className="lg:col-span-1 bg-white/50 dark:bg-transparent backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col">
+            <h1 className="text-lg sm:text-xl font-semibold dark:text-[#07D8C0] mb-3">รายการสมาธิ</h1>
             
             {/* Playlist */}
-            <div className="bg-white/70 backdrop-blur-md rounded-xl p-3 overflow-auto">
+            <div className="bg-white/70 dark:bg-transparent backdrop-blur-md rounded-xl p-3 overflow-auto">
+            {!showRating ? (
+              <div>
+
+            
               {meditationSounds.map((item) => {
                 const youtubeID = getYouTubeVideoId(item.sound || "");
                 const thumbnail = `https://img.youtube.com/vi/${youtubeID}/0.jpg`;
@@ -1082,11 +1144,11 @@ useEffect(() => {
                       src={thumbnail}
                       className="w-16 sm:w-20 h-16 sm:h-20 object-cover rounded-lg"
                     />
-                    <div className="flex flex-col justify-center flex-1 overflow-hidden">
-                      <p className="text-[#004D40] text-sm sm:text-base font-medium truncate">
+                    <div className="flex flex-col justify-center flex-1 overflow-hidden ">
+                      <p className="text-[#004D40] dark:text-[#07D8C0] text-sm sm:text-base font-medium truncate">
                         {item.name}
                       </p>
-                      <div className="flex items-center gap-2 text-[10px] sm:text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-[10px] sm:text-xs text-gray-500 dark:text-text-dark">
                         <Clock size={12} />
                         <span>{item.duration}</span>
                         <Eye size={12} />
@@ -1106,21 +1168,16 @@ useEffect(() => {
                   </div>
                 );
               })}
-            </div>
-
-            {/* Review */}
-            <div className="mt-6">
-              {showRating ? (
+                </div>
+            ) : (
+             <div>
+               <div className="mt-6">
+            
                 <div className="relative text-center space-y-1 py-3 rounded-xl bg-white/70 shadow-sm">
                   <h4 className="text-base sm:text-xl font-medium text-basic-text">
                     คุณให้คะแนนบทสวดนี้เท่าไหร่?
                   </h4>
-                  <button
-                    onClick={() => setShowRating(false)}
-                    className="absolute top-0 right-2 sm:right-4 text-xs sm:text-sm text-gray-500 p-2 bg-white/10 rounded-full"
-                  >
-                    ปิด
-                  </button>
+                 
 
                   <div className="flex justify-center">
                     <StarRating
@@ -1138,7 +1195,7 @@ useEffect(() => {
                   <div className="flex gap-3 justify-center pt-4 flex-wrap">
                     {currentRating > 0 && (
                       <button
-                        onClick={() => setCurrentRating(0)}
+                        onClick={closeReview}
                         className="px-4 sm:px-6 py-2 bg-transparent text-red-600 rounded-lg transition-colors"
                       >
                         ยกเลิก
@@ -1146,24 +1203,31 @@ useEffect(() => {
                     )}
                     <button
                       onClick={handleRatingSubmit}
-                      disabled={currentRating === 0}
-                      className="px-4 sm:px-6 py-2 bg-button-blue text-white rounded-lg disabled:bg-gray-400 transition-colors"
+                      disabled={currentRating === 0 || currentRating === exitRating}
+                      className="px-4 sm:px-6 py-2 bg-[#07D8C0] text-white rounded-lg disabled:bg-gray-400 transition-colors"
                     >
                       ส่งคะแนน
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-4">
+              
+            </div>
+
+             </div>
+            )}
+            </div>
+
+            {/* Review */}
+            {!showRating &&(<div className="text-center py-4">
                   <button
-                    onClick={() => setShowRating(true)}
-                    className="px-4 sm:px-6 py-2 bg-button-blue text-white rounded-lg transition duration-300 hover:scale-105"
+                    onClick={() => openReview()}
+                    className="px-4 sm:px-6 py-2 bg-[#07D8C0] text-white rounded-lg transition duration-300 hover:scale-105"
                   >
                     รีวิวบทสวด
                   </button>
                 </div>
-              )}
-            </div>
+            )}
+
           </div>
         </div>
       </div>

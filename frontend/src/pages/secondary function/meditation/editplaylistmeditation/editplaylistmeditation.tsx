@@ -678,21 +678,7 @@ function AddSoundPlaylistMeditation() {
         </button>
       </div>
     )}
-       <Tooltip placement="top" title="ลบเพลยลิสต์" color="#5DE2FF">
-        <button 
-          className="dark:text-text-dark text-basic-text hover:text-red-600 hover:bg-red-600/10
-       p-2 
-      dark:hover:bg-red-600/20 duration-300 transition-colors rounded-full"
-          onClick={() => setOpenDeletePlaylist(true)}>
-          <Trash2 size={20}/>
-        </button>
-        </Tooltip>
-        <DeleteConfirmModal
-        open={openDeletePlaylist}
-        onConfirm={DeletePlaylist}
-        onCancel={() => setOpenDeletePlaylist(false)}
-        loading={loading}
-      />
+       
    
   </div>
 </div>

@@ -32,7 +32,7 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlayli
   }
 
     return(
-        <div className="prompt-regular" >
+        <div className="font-ibmthai " >
         <h1 className="text-xl text-basic-text dark:text-text-dark mb-4">เพลยลิสต์ของฉัน</h1>
         <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
           {
@@ -43,7 +43,7 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlayli
                   key: "play",
                   label: (
                     <div
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 font-ibmthai"
                       onClick={(e) => {
                         e.stopPropagation();
                         gotoPlaylistmedia(Number(playlist.ID));
@@ -56,7 +56,7 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlayli
                 {
                   key: "delete",
                   label: (
-                    <div className="flex items-center gap-2"
+                    <div className="flex items-center gap-2 font-ibmthai"
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenDeletePlaylist(true);
@@ -73,22 +73,21 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlayli
                <div
                key={playlist.ID}
                
-                className="group cursor-pointer bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
+                className="group bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
                 dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark
                 ">
             <img className="h-full w-18 rounded-tl-md rounded-bl-md" src={`${IMG_URL}${playlist.picture}`} />
           
-            <div className="h-full w-full flex items-center justify-between"
-           onClick={() => GotoPlaylist(Number(playlist.ID))}>
-              <button onClick={() => GotoPlaylist(Number(playlist.ID))} className="cursor-pointer">
-                 <p className="text-basic-text font-bold kanit-regular">{playlist.name}</p>
+            <div className="h-full w-full flex items-center justify-between">
+              <button onClick={() => GotoPlaylist(Number(playlist.ID))} className="cursor-pointer  h-full">
+                 <p className="text-basic-text font-bold ">{playlist.name}</p>
               </button>
               <Dropdown menu={{ items }} trigger={["click"]}  overlayClassName="custom-dropdown">
-                  <button className="mr-4 cursor-pointer"
+                  <button className="mr-4 cursor-pointer h-full  "
                    onClick={(e) => {
                     e.stopPropagation();
                   }}>
-                    <EllipsisVertical size={20} />
+                    <EllipsisVertical size={20}  />
                   </button>
                 </Dropdown>
                 <DeleteConfirmModal
@@ -108,6 +107,3 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlayli
 }
 export default PlaylistContent
 
-function useEffect(arg0: () => void) {
-  throw new Error("Function not implemented.")
-}

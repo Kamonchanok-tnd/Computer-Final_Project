@@ -5,6 +5,9 @@
   }
 
 /* Modal container */
+.custom-dropdown{
+  font-family: var(--font-ibmthai) !important;
+}
 /* Light mode */
 .custom-dropdown .ant-dropdown-menu {
   background-color: #f9fafb; /* ตัวอย่างสี background light */

@@ -16,8 +16,8 @@ function MeditationContent({
 
   return (
     <div>
-      <h1 className="text-xl text-basic-text mb-4">นั่งสมาธิ</h1>
-      <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+      <h1 className="text-xl text-basic-text mb-4 dark:text-text-dark">นั่งสมาธิ</h1>
+      <div className="grid lg:grid-cols-6 sm:grid-cols-3 md:grid-cols-4 grid-cols-1 sm:gap-2 gap-2  px-4 sm:px-0">
         {filteredSounds?.map((sound) => {
           const videoId = extractYouTubeID(sound.sound || "");
           if (!videoId) return null;
@@ -79,8 +79,9 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
   };
 
   return (
-    <div className="bg-white w-full h-60 rounded-xl border border-gray-200">
-      <div className="h-[70%] w-full rounded-t-xl relative">
+    <div className="bg-white w-full h-fit rounded-xl group  text-basic-text border-gray-200 border 
+                dark:text-text-dark dark:bg-transparent dark:border-stoke-dark">
+      <div className="h-auto  w-full rounded-2xl relative">
         <img
           src={thumbnail}
           alt={sound.name}
@@ -89,7 +90,10 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
 
         {/* ปุ่ม Play */}
         <div
-        className="absolute bottom-[-20px] right-3 w-12 h-12 bg-button-blue flex items-center hover:scale-105 duration-300 justify-center rounded-full shadow-sm cursor-pointer"
+        className="absolute bottom-[-25px] sm:button-[-20]  right-3 w-15 sm:w-12 sm:h-12 h-15 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white
+             opacity-100 sm:opacity-0 scale-75 translate-y-1
+             group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0
+             transition-all duration-300 ease-out btn-glow-play"
         onClick={handlePlayClick}
       >
         <Play className="text-white" />
@@ -108,18 +112,18 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
       </div>
 
       <div className="p-2 space-y-2">
-        <div className="text-basic-text w-[70%] line-clamp-1">
+        <div className="text-basic-text dark:text-text-dark  w-[70%] line-clamp-1">
           <h1>{sound.name}</h1>
         </div>
-        <div className="flex justify-between text-subtitle">
+        <div className="flex justify-between text-subtitle dark:text-text-dark">
           <p>{sound.duration} min</p>
           <div className="flex gap-2">
             <div className="flex gap-1 items-center">
-              <Eye className="text-subtitle h-4 w-4" />
+              <Eye className="text-subtitle h-4 w-4 dark:text-text-dark " />
               <p>{sound.view}</p>
             </div>
             <div className="flex gap-1 items-center">
-              <Heart className="text-subtitle h-4 w-4 text-red-500" fill="currentColor" />
+              <Heart className="text-subtitle h-4 w-4 dark:text-text-dark  " />
               <p>{likes}</p>
             </div>
           </div>

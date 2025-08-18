@@ -3,6 +3,7 @@
     border-radius: 1rem;       /* มุมโค้ง */
     padding: 1rem;
     transition: background-color 0.3s ease;
+    font-family: var(--font-ibmthai) !important;
   }
   .custom-modal .ant-modal-confirm-title {
     color: #111827; /* Gray-900 */
@@ -87,8 +88,12 @@
     color: white;
     border: none;
     transition: all 0.3s;
+    font-family: var(--font-ibmthai) !important;
   }
   
+  .custom-modal .ant-btn {
+    font-family: var(--font-ibmthai) !important;
+  }
   
   
   /* Modal ปุ่ม Cancel */
@@ -97,6 +102,7 @@
     color: #1F1F22 !important;
     border: none;
     transition: all 0.3s;
+    font-family: var(--font-ibmthai) !important;
   }
  .dark .custom-modal .ant-btn-default {
     background-color: transparent;
@@ -120,11 +126,39 @@
     background-color: #;
   } */
   
-  .dark .custom-modal .ant-btn-default {
-    color: #f3f4f6; /* ขาวอ่อน */
-  }
-  
-  .dark .custom-modal .ant-btn-default:hover {
-    background-color: rgba(255,255,255,0.1);
-  }
-  
+/* Light mode */
+.custom-modal .ant-input {
+  background-color: #ffffff;
+  color: #111827;
+  border-radius: 0.5rem;
+}
+
+.custom-modal .ant-input:hover,
+.custom-modal .ant-input:focus {
+  background-color: #f3f4f6; /* เลือกสีตอน hover/focus */
+  color: #111827;             /* text สีเดิม */
+}
+
+/* Placeholder light mode */
+.custom-modal .ant-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Dark mode */
+.dark .custom-modal .ant-input {
+  background-color: #374151; /* Dark mode สีเทาเข้ม */
+  color: #f3f4f6;            /* text สีอ่อน */
+  border-radius: 0.5rem;
+}
+
+.dark .custom-modal .ant-input:hover,
+.dark .custom-modal .ant-input:focus {
+  background-color: #374151; /* ไม่ให้เปลี่ยนสีตอน hover/focus */
+  color: #f3f4f6;            /* text สีเดิม */
+}
+
+/* Placeholder dark mode */
+.dark .custom-modal .ant-input::placeholder {
+  color: #e5e7eb; /* gray-200 */
+ 
+}

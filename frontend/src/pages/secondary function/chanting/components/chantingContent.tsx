@@ -15,7 +15,7 @@ interface ChantingContentProps {
 
 function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingContentProps) {
     return  (
-        <div className="prompt-regular">
+        <div className="font-ibmthai">
         <h1 className="text-xl  text-basic-text mb-4 dark:text-text-dark  ">สวดมนต์</h1>
         <div className="grid lg:grid-cols-6 sm:grid-cols-3 md:grid-cols-4 grid-cols-1 sm:gap-2 gap-2  px-4 sm:px-0">
           {filteredSounds?.map((sound) => {
@@ -61,18 +61,18 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
                     className="w-full h-full object-center rounded-t-xl"
                   />
 
-                  <button onClick={() => gotoSound(Number(sound.ID))} className="absolute bottom-[-20px]  right-3 w-12 h-12 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white
-             opacity-0 scale-75 translate-y-1
+                  <button onClick={() => gotoSound(Number(sound.ID))} className="absolute bottom-[-25px] sm:button-[-20]  right-3 w-15 sm:w-12 sm:h-12 h-15 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white
+             opacity-100 sm:opacity-0 scale-75 translate-y-1
              group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0
              transition-all duration-300 ease-out btn-glow-play">
                     <Play className="text-white" />
                   </button>
                   <div
                   onClick={handleLike}
-                  className="absolute top-3 right-3 w-8 h-8 bg-white flex items-center justify-center rounded-full shadow-md hover:scale-105 duration-300 cursor-pointer"
+                  className="absolute top-3 right-3 w-10 h-10 bg-white flex items-center justify-center rounded-full shadow-md hover:scale-105 duration-300 cursor-pointer"
                 >
                   <Heart
-                    className={`h-4 w-4 transition-all duration-300 ${isLiked ? "text-red-500" : "text-gray-400"}`}
+                    className={`h-5 w-5 transition-all duration-300 ${isLiked ? "text-red-500" : "text-gray-400"}`}
                     fill={isLiked ? "currentColor" : "none"}
                   />
                 </div>

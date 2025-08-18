@@ -422,7 +422,7 @@ function closeReview() {
   return (
     <div className="flex flex-col min-h-full h-fit overflow-y-auto scrollbar-hide duration-300 items-center bg-background-blue dark:bg-background-dark ">
       <div className="sm:mt-4  sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
-      dark:bg-box-dark duration-300 bg-transparent md:rounded-xl ">
+      dark:bg-box-dark duration-300 bg-transparent md:rounded-xl font-ibmthai">
         {/* Grid Layout - ปรับให้ responsive ดีขึ้น */}
         <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2  h-[88vh]   ">
           {/* Main Player Section */}
@@ -716,14 +716,14 @@ function closeReview() {
           </p>
 
           <div className="flex gap-3 justify-center pt-4">
-           (
+          
               <button
                 onClick={closeReview}
                 className="px-6 py-2 bg-transparent text-red-600 dark:bg-red-600/10 rounded-lg"
               >
                 ยกเลิก
               </button>
-            )
+            
             <button
               onClick={handleRatingSubmit}
               disabled={currentRating === 0 || currentRating === exitRating}

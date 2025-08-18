@@ -259,7 +259,7 @@ function AddSoundPlaylist() {
 
 
   return (
-    <div className="flex flex-col  min-h-full max-h-fit duration-300 items-center bg-background-blue dark:bg-background-dark ">
+    <div className="font-ibmthai flex flex-col  min-h-full max-h-fit duration-300 items-center bg-background-blue dark:bg-background-dark ">
       <div
         className={`sm:mt-2 sm:py-4 px:2 py-2 px-1 sm:px-8 sm:w-[95%] w-full  flex flex-col gap-8 dark:border-stoke-dark dark:bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)] duration-300
             bg-transparent  sm:rounded-xl  min-h-[90vh] max-h-fit `}
@@ -357,7 +357,7 @@ function AddSoundPlaylist() {
 
    
     {!showPreview ? (
-       <Tooltip placement="top" title="เปลี่ยนภาพพื้นหลัง" color="#5DE2FF">
+       <Tooltip placement="top" title={<span className="font-ibmthai text-[14px]">เปลี่ยนภาพพื้นหลัง</span>} color="#5DE2FF">
       <button
         className="dark:text-text-dark dark:hover:bg-midnight-blue dark:hover:text-button-blue transition-colors duration-300
          p-2 rounded-full hover:bg-background-button hover:text-blue-word"
