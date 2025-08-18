@@ -140,14 +140,18 @@ export default function MirrorFrame({
   return (
   <section className="mt-6 w-full"> 
 
-      <div className="relative mx-auto w-[90%] sm:w-[70%] md:w-[50%] lg:w-[40%]">
-        {/* HALO */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0
-                     bg-[radial-gradient(ellipse_at_center,rgba(120,170,255,.28),transparent_62%)]
-                     blur-[12px] opacity-80"
-        />
+      <div
+  className={[
+    "relative mx-auto",
+    // ปรับจาก 'ความสูงจอ' → แปลงเป็น 'ความกว้างสูงสุด' ด้วยสัดส่วน 3/5 (= 0.6)
+    "w-[min(88vw,calc((100dvh-240px)*0.6))]",
+    "sm:w-[min(80vw,calc((100dvh-270px)*0.6))]",
+    "md:w-[min(72vw,calc((100dvh-380px)*0.6))]", // ← iPad Air portrait อยู่ช่วงนี้
+    "lg:w-[min(64vw,calc((100dvh-420px)*0.6))]",
+    "xl:w-[min(56vw,calc((100dvh-460px)*0.6))]",
+  ].join(" ")}
+>
+
 
         {/* FRAME */}
         <div
