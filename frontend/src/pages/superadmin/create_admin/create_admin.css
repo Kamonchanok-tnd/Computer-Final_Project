@@ -1,0 +1,27 @@
+body, input, button, select, textarea {
+  font-family: var(--font-ibmthai);
+}
+/* บังคับฟอนต์สำหรับทุก element ของฟอร์ม */
+.create-admin-form,
+.create-admin-form input,
+.create-admin-form textarea,
+.create-admin-form select,
+.create-admin-form button,
+.create-admin-form .ant-select-selector,
+.create-admin-form .ant-input,
+.create-admin-form .ant-input-password,
+.create-admin-form .ant-form-item-label > label {
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* เพิ่มความหนาสำหรับ label */
+.create-admin-form .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+/* เพิ่มความหนาสำหรับ input, textarea, select */
+.create-admin-form input,
+.create-admin-form textarea,
+.create-admin-form select {
+  font-weight: 400;
+}

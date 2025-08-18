@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Thai:wght@400;500;700&display=swap');
 @import "tailwindcss";
 @import 'tailwind-scrollbar-hide/v4'; 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -78,7 +79,13 @@ html, body {
   padding: 0;
   height: 100%;  /* ให้ความสูงเต็มหน้าจอ */
   width: 100%;   /* ให้ความกว้างเต็มหน้าจอ */
+  font-family: var(--font-ibmthai);
 }
+
+.font-ibmthai {
+  font-family: var(--font-ibmthai);
+}
+
 .kanit-thin {
   font-family: "Kanit", sans-serif;
   font-weight: 100;
@@ -200,6 +207,7 @@ html, body {
   --font-ibmthai: "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
 }
 
+
 @keyframes twinkle { 0%,100% { opacity:.25; transform:scale(.9) } 50% { opacity:.75; transform:scale(1.05) } }
 @keyframes float   { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }
 @keyframes rise {
@@ -220,4 +228,5 @@ html, body {
   0%,100% { opacity:.25; transform:scale(.9) }
   50%     { opacity:.75; transform:scale(1.05) }
 }
+
 
