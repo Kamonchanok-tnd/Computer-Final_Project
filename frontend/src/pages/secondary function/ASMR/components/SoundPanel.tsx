@@ -1,17 +1,18 @@
 import React from 'react';
 import { Play, Pause, Volume2 } from 'lucide-react';
+import iconSound from "../../../../assets/asmr/asmr-hp.png";
 
 const ambianceFiles = [
-  { name: "Rain", file: "asmr-rain.mp3", icon: "🌧️" },
-  { name: "Water", file: "asmr-water.mp3", icon: "💧" },
-  { name: "Beach", file: "asmr-beach.mp3", icon: "🌅" },
-  { name: "Cafe", file: "asmr-cafe.mp3", icon: "☕" },
-  { name: "Fire", file: "asmr-fire.mp3", icon: "🔥" },
-  { name: "Cinematic", file: "asmr-cinematic.mp3", icon: "🎬" },
-  { name: "Frog", file: "asmr-frog.mp3", icon: "🐸" },
-  { name: "Birds", file: "asmr-bird.mp3", icon: "🐦" },
-  { name: "Mechanical Keyboard", file: "asmr-mechanical-keyboard.mp3", icon: "⌨️" },
-  { name: "Pencil", file: "asmr-pencil.mp3", icon: "✏️" },
+  { name: "ฝนตก", file: "asmr-rain.mp3", icon: "🌧️" },
+  { name: "น้ำ", file: "asmr-water.mp3", icon: "💧" },
+  { name: "ชายหาด", file: "asmr-beach.mp3", icon: "🌅" },
+  { name: "คาเฟ่", file: "asmr-cafe.mp3", icon: "☕" },
+  { name: "ไฟ", file: "asmr-fire.mp3", icon: "🔥" },
+  { name: "ภาพยนตร์", file: "asmr-cinematic.mp3", icon: "🎬" },
+  { name: "กบ", file: "asmr-frog.mp3", icon: "🐸" },
+  { name: "นก", file: "asmr-bird.mp3", icon: "🐦" },
+  { name: "คีย์บอร์ด", file: "asmr-mechanical-keyboard.mp3", icon: "⌨️" },
+  { name: "ดินสอ", file: "asmr-pencil.mp3", icon: "✏️" },
 ];
 
 interface Props {
@@ -25,7 +26,8 @@ const SoundPanel: React.FC<Props> = ({ playingSounds, volumes, toggleSound, upda
   return (
     <div className="space-y-4">
       <h3 className="text-white text-xl font-medium flex items-center gap-2">
-        🎧 Ambience
+        <img src={iconSound} alt="Ambience" className="w-8 h-8" />
+        เสียงบรรยากาศ
       </h3>
       <div className="space-y-3">
         {ambianceFiles.map((item) => {

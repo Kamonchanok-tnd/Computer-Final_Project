@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Sound } from "../../../../interfaces/ISound";
 import { getSoundsByTypeID } from "../../../../services/https/sounds";
+import iconBg from "../../../../assets/asmr/asmr-bg.png";
+
 
 interface BackgroundPanelProps {
   selectedId: number | null;
@@ -63,7 +65,8 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
     return (
       <div className="space-y-4">
         <h3 className="text-white text-xl font-medium flex items-center gap-2">
-          🖼️ Backgrounds
+          <img src={iconBg} alt="Backgrounds" className="w-8 h-8" />
+          ภาพพื้นหลัง
         </h3>
         <div className="text-white/60">Loading backgrounds...</div>
       </div>
@@ -75,7 +78,8 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
   return (
     <div className="space-y-4">
       <h3 className="text-white text-xl font-medium flex items-center gap-2">
-        🖼️ Backgrounds
+        <img src={iconBg} alt="Backgrounds" className="w-8 h-8" />
+        ภาพพื้นหลัง
       </h3>
 
       <div className="grid grid-cols-2 gap-3">

@@ -5,6 +5,9 @@ import SoundPanel from "./components/SoundPanel";
 import TimerPanel from "./components/TimerPanel";
 import { PanelType } from "../../../interfaces/ISound";
 import asmrImg from "../../../assets/asmr.png";
+import iconBg from "../../../assets/asmr/asmr-bg.png";
+import iconSound from "../../../assets/asmr/asmr-hp.png";
+import iconTimer from "../../../assets/asmr/asmr-t.png";
 
 declare global {
   interface Window {
@@ -127,9 +130,9 @@ const ASMRApp: React.FC = () => {
   };
 
   const menuItems = [
-    { id: "background" as const, label: "🖼️ Backgrounds", emoji: "🖼️" },
-    { id: "sound" as const, label: "🎧 Sounds", emoji: "🎧" },
-    { id: "timer" as const, label: "⏳ Timer", emoji: "⏳" },
+    { id: "background" as const, label: "Backgrounds", icon: iconBg },
+    { id: "sound" as const, label: "Sounds", icon: iconSound },
+    { id: "timer" as const, label: "Timer", icon: iconTimer },
   ];
 
   const renderPanelContent = () => {
@@ -230,7 +233,7 @@ const ASMRApp: React.FC = () => {
             }`}
             title={item.label}
           >
-            {item.emoji}
+            <img src={item.icon} alt={item.label} className="w-6 h-6" />
           </button>
         ))}
       </div>

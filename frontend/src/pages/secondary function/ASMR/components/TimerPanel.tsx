@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Settings } from "lucide-react";
+import iconTimer from "../../../../assets/asmr/asmr-t.png";
+
 
 type Mode = "pomodoro" | "short" | "long";
 
@@ -43,12 +45,20 @@ const TimerPanel: React.FC = () => {
 
       if (saved.durations) setDurations(saved.durations);
       if (saved.mode) setMode(saved.mode as Mode);
-      if (typeof saved.autoTransition === "boolean") setAutoTransition(saved.autoTransition);
+      if (typeof saved.autoTransition === "boolean")
+        setAutoTransition(saved.autoTransition);
 
       endAtRef.current = typeof saved.endAt === "number" ? saved.endAt : null;
 
-      if (saved.isRunning && endAtRef.current && endAtRef.current > Date.now()) {
-        const remain = Math.max(0, Math.round((endAtRef.current - Date.now()) / 1000));
+      if (
+        saved.isRunning &&
+        endAtRef.current &&
+        endAtRef.current > Date.now()
+      ) {
+        const remain = Math.max(
+          0,
+          Math.round((endAtRef.current - Date.now()) / 1000)
+        );
         setTimeLeft(remain);
         // เรียก startTimer() ทีหลังให้ interval ทำงานด้วย
         setTimeout(() => startTimer(), 100);
@@ -77,7 +87,10 @@ const TimerPanel: React.FC = () => {
 
     tickRef.current = window.setInterval(() => {
       if (!endAtRef.current) return;
-      const remain = Math.max(0, Math.round((endAtRef.current - Date.now()) / 1000));
+      const remain = Math.max(
+        0,
+        Math.round((endAtRef.current - Date.now()) / 1000)
+      );
       setTimeLeft(remain);
 
       if (remain <= 0) {
@@ -155,7 +168,8 @@ const TimerPanel: React.FC = () => {
   return (
     <div className="space-y-4">
       <h3 className="text-white text-xl font-medium flex items-center gap-2">
-        ⏳ Focus Timer
+        <img src={iconTimer} alt="Focus Timer" className="w-5 h-5" />
+        เวลาโฟกัส
       </h3>
 
       <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
