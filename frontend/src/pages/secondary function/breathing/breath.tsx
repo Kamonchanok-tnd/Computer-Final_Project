@@ -137,7 +137,7 @@ function BreathingExercise() {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center min-h-screen transition-colors duration-700 
+      className={`flex flex-col items-center justify-center min-h-screen transition-colors duration-700 font-ibmthai
         ${phase === "out"
           ? "bg-gradient-to-b from-[#A1CAE2] to-white"
           : "bg-gradient-to-b from-white to-[#b3e5fc]"
@@ -162,13 +162,13 @@ function BreathingExercise() {
           className={`text-3xl font-extrabold tracking-widest drop-shadow-lg
             ${phase === "in" ? "text-[#a2d4ff]" : "text-white"}`}
         >
-          {phase === "in" ? "BREATHE IN" : "BREATHE OUT"}
+          {phase === "in" ? "หายใจเข้า" : "หายใจออก"}
         </h1>
         <p
           className={`text-lg font-extrabold tracking-widest drop-shadow-lg
             ${phase === "in" ? "text-[#a2d4ff]" : "text-white"} mt-1`}
         >
-          {customTime ? `TIME: ${customTime}` : `FOR ${selectedTime || 0} MIN`}
+          {customTime ? `เวลา: ${customTime}` : `FOR ${selectedTime || 0} MIN`}
         </p>
       </div>
 
