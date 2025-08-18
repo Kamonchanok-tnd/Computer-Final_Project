@@ -50,30 +50,34 @@ function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProp
       okText="บันทึก"
       cancelText="ยกเลิก"
       footer={null}
+      className="custom-modal "
      
 
     >
       
       <Form layout="vertical" form={form}>
-        <div>
-          <h1 className="text-xl  text-basic-text mb-4 text-center mt-2">สร้างเพลย์ลิสต์</h1>
+        <div className="font-ibmthai font-semibold">
+          <h1 className="text-xl  text-basic-text mb-4 text-center mt-2 dark:text-text-dark">สร้างเพลย์ลิสต์</h1>
         </div>
 
-        <h1 className="text-xl text-basic-text mb-1 text-center">กรุณากรอกชื่อเพลย์ลิสต์</h1>
+        <h1 className="text-xl text-basic-text mb-1 text-center font-ibmthai dark:text-text-dark">กรุณากรอกชื่อเพลย์ลิสต์</h1>
         <Form.Item
           name="name"
           rules={[{ required: true, message: "กรุณากรอกชื่อเพลย์ลิสต์" }]}
+          className="font-ibmthai "
         >
-          <Input placeholder="เช่น เสียงผ่อนคลายก่อนนอน" />
+          <Input placeholder="เช่น เสียงผ่อนคลายก่อนนอน" className="placeholder:font-ibmthai font-ibmthai 
+        placeholder:text-gray-400    
+      dark:placeholder:text-gray-200"></Input>
         </Form.Item>
       </Form>
 
      
-      <div className="flex justify-end gap-4 mt-4">
+      <div className="flex justify-end gap-4 mt-4 font-ibmthai">
     <button onClick={onClose}>ยกเลิก</button>
     <button
       onClick={handleSubmit}
-      className="bg-button-blue duration-300 hover:bg-button-blue-hover text-white px-4 py-2 rounded-lg"
+      className="  bg-button-blue duration-300 hover:bg-button-blue-hover text-white px-4 py-2 rounded-lg"
     >
       บันทึก
     </button>

@@ -112,7 +112,9 @@ function BreathingCard({ sound }: BreathingCardProps) {
   };
 
   return (
-    <div className="bg-gradient-to-t from-[#b3e5fc] to-white w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px] font-ibmthai">
+    <div className="bg-gradient-to-t from-[#dff5ff] to-white  w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px] 
+    dark:text-text-dark font-ibmthai dark:bg-bg-gradient-to-t dark:from-chat-dark/20 dark:to-chat-dark/20 dark:backdrop:blur-lg
+    dark:border dark:border-stoke-dark">
       {/* รูป + หัวใจ */}
       <div className="w-full rounded-t-xl relative">
         <div
@@ -129,13 +131,13 @@ function BreathingCard({ sound }: BreathingCardProps) {
       {/* เนื้อหา */}
       <div className="p-3 flex flex-col flex-1">
         <div>
-          <h1 className="text-lg font-semibold text-basic-text truncate">
+          <h1 className="text-lg font-semibold text-basic-text truncate dark:text-text-dark">
             {sound.name}
           </h1>
-          <p className="text-subtitle text-sm break-words line-clamp-3">
+          <p className="text-subtitle text-sm break-words line-clamp-3 dark:text-text-dark">
             {sound.description}
           </p>
-          <p className="text-subtitle text-sm break-words line-clamp-3 mt-2">
+          <p className="text-subtitle text-sm break-words line-clamp-3 mt-2 dark:text-text-dark">
             ผู้จัดทำ: {sound.owner}
           </p>
 
@@ -144,7 +146,9 @@ function BreathingCard({ sound }: BreathingCardProps) {
         {/* ✅ Timer */}
         <div className="mt-auto">
           <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 bg-gray-100 rounded-md px-3 py-1 text-sm">
+            <div className="flex items-center gap-2 bg-gray-100 b rounded-md px-3 py-1 text-sm 
+            dark:text-text-dark dark:bg-transparent
+            ">
               <Clock className="w-4 h-4" />
               <input
                 value={hours}
@@ -170,13 +174,15 @@ function BreathingCard({ sound }: BreathingCardProps) {
 
             <button
               onClick={increaseTime}
-              className="text-xl font-bold bg-gray-100 px-2 rounded cursor-pointer"
+              className="text-xl font-bold bg-gray-100 px-2 rounded cursor-pointer
+              dark:bg-box-dark"
             >
               +
             </button>
             <button
               onClick={decreaseTime}
-              className="text-xl font-bold bg-gray-100 px-2 rounded cursor-pointer"
+              className="text-xl font-bold bg-gray-100 px-2 rounded cursor-pointer
+              dark:bg-box-dark"
             >
               −
             </button>
@@ -202,7 +208,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
           </div>
 
           {/* view + like */}
-          <div className="flex justify-between items-center mt-2 text-subtitle text-xs">
+          <div className="flex justify-between items-center mt-2 text-subtitle text-xs text-basic-text dark:text-text-dark">
             <div className="flex gap-2">
               <div className="flex gap-1 items-center">
                 <Eye className="h-4 w-4" />

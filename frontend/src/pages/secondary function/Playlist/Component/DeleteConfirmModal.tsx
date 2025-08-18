@@ -17,7 +17,7 @@ const DeleteConfirmModal = ({ open, onConfirm, onCancel, loading }: DeleteConfir
       okText="ลบ"
       cancelText="ยกเลิก"
       
-      className="custom-modal"
+      className="custom-modal "
     >
       <p>คุณแน่ใจหรือไม่ว่าต้องการลบ Playlist นี้?</p>
     </Modal>

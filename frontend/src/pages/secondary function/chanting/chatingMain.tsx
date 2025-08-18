@@ -150,7 +150,7 @@ function ChantingMain() {
 
   return (
     <div
-      className={`flex flex-col  duration-300 items-center  min-h-full max-h-fit 
+      className={`flex flex-col  duration-300 items-center  min-h-full max-h-fit font-ibmthai  
          ${isDarkMode ? "bg-background-dark" : "bg-background-blue"}`}
     >
       <div
@@ -163,13 +163,13 @@ function ChantingMain() {
         {/* search + create */}
         <div className="flex md:justify-end ">
         <div className="relative w-[500px] focus-within:outline-regal-blue rounded-lg transition-all duration-300">
-  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-basic-blue 
+  <Search className="absolute left-3 top-2 transform-translate-y-1/2 h-5 w-5 text-basic-blue 
   pointer-events-none dark:text-text-dark" />
   <input
     value={searchTerm}
     onChange={(e) => setSearchTerm(e.target.value)}
     placeholder="ค้นหา..."
-    className="pl-10 pr-4 py-1 w-full  bg-[#FAFAFA] rounded-md hover:outline-regal-blue hover:outline-1 transition-colors duration-300  
+    className="pl-10 pr-4  w-full py-2  bg-[#FAFAFA] rounded-md hover:outline-regal-blue hover:outline-1 transition-colors duration-300  
                focus:border-transparent outline-regal-blue focus:outline-1
                dark:bg-chat-dark  dark:border dark:hover:border-regal-blue dark:text-white dark:hover:outline-regal-blue dark:hover:outline-1"
   />
@@ -240,6 +240,7 @@ function ChantingMain() {
       Playlist={playlists}
       GotoPlaylist={gotoplaylist}
       gotoPlaylistmedia={gotoPlaylistmedia}
+      fetchPlaylist={fetchPlaylist}
     />
   )
 )}

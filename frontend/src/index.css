@@ -35,6 +35,8 @@
 
   --animate-fade-in: fadeInDown 0.5s ease-in-out;
   --animate-fade-out: fadeOurLeft 0.5s ease-in-out ;
+
+
   
   
   @keyframes fadeInDown {
@@ -193,6 +195,8 @@ html, body {
   font-weight: 900;
   font-style: italic;
 }
+
+
 
 .btn-glow-play {
   @apply  overflow-visible  bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white;

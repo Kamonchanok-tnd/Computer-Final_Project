@@ -29,7 +29,7 @@ const ClearPlaylistModal: React.FC<ClearPlaylistModalProps> = ({ pid, onConfirm 
 
   return (
     <>
-    <Tooltip placement="top" title="ล้างเพลย์ลิส" color="#5DE2FF">
+    <Tooltip placement="top" title={<span className="font-ibmthai text-[14px]">ล้างเพลย์ลิสต์</span>} color="#5DE2FF">
       <button className="dark:text-text-dark text-basic-text hover:text-red-600 hover:bg-red-600/10
        p-2 
       dark:hover:bg-red-600/20 duration-300 transition-colors rounded-full" 
@@ -47,7 +47,7 @@ const ClearPlaylistModal: React.FC<ClearPlaylistModalProps> = ({ pid, onConfirm 
         className="custom-modal"
  
       >
-        <p className="dark:text-text-dark text-basic-text bg-transparent">
+        <p className=" dark:text-text-dark text-basic-text bg-transparent">
           <ExclamationCircleOutlined style={{ color: "#faad14", marginRight: 8 }} />
           คุณต้องการล้าง{" "}
           <strong>{ "Playlist นี้"}</strong> ทั้งหมดหรือไม่?

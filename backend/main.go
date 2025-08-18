@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
-    "sukjai_project/controller/emotion"
+	history "sukjai_project/controller/History"
 	"sukjai_project/controller/admin"
 	"sukjai_project/controller/assessment"
 	"sukjai_project/controller/background"
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
+	"sukjai_project/controller/emotion"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
@@ -122,6 +123,8 @@ func main() {
 
         //review sound
         router.POST("/ReviewSound", reviewsound.CreateReview)
+        router.PATCH("/UpdateReviewSound", reviewsound.UpdateReview)
+        router.GET("/ReviewSound/:uid/:sid", reviewsound.CheckReview)
         
         //Playlist
         router.POST("/Playlist", playlist.CreatePlaylist)
@@ -141,7 +144,8 @@ func main() {
         //Background
         router.GET("/Background", background.GetBackground)
 
-
+        //history
+        router.POST("/History", history.CreateHistory)
      
         
         // Routes for superadmin only
