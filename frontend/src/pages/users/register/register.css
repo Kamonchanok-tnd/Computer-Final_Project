@@ -79,3 +79,15 @@
     background: #ffffff;
   }
 } */
+
+/* บังคับ Ant Design component */
+.ant-typography,
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-btn,
+.ant-card,
+.ant-form-item-label > label,
+.ant-select-item-option-content {
+  font-family: 'IBM Plex Sans Thai', ui-sans-serif, system-ui, sans-serif !important;
+}
