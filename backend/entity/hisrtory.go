@@ -6,8 +6,8 @@ import (
 
 type History struct {
 	gorm.Model
-	UID uint `gorm:"not null"`
-	SID uint `gorm:"not null"`
+	UID uint `gorm:"not null" json:"uid"`
+	SID uint `gorm:"not null" json:"sid"`
 
 	// การเชื่อมโยงกับตาราง Users และ Sound
 	Users Users `gorm:"foreignKey:UID"`

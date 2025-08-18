@@ -10,7 +10,7 @@ import { Dropdown, MenuProps, message, Modal } from "antd";
 import { useEffect, useState } from "react";
 import "./table.css"
 import StarRating from "./starrating";
-import { CreateReview } from "../../../../services/https/review";
+import { CheckReview, CreateReview, UpdateReview } from "../../../../services/https/review";
 import { IReview } from "../../../../interfaces/IReview";
 import { useDarkMode } from "../../../../components/Darkmode/toggleDarkmode";
 
@@ -31,8 +31,36 @@ function TableSoundPlaylist({
   const [ratingModalOpen, setRatingModalOpen] = useState<boolean>(false);
   const [selectedSong, setSelectedSong] = useState<CustomSoundPlaylist | null>(null);
   const [currentRating, setCurrentRating] = useState<number>(0);
-  const { isDarkMode } = useDarkMode();
+
+  const [editRating, setEditRating] = useState<boolean>(false);
+  const [exitRating, setExitRating] = useState<number>(0);
   // const videoID = extractYouTubeID(selectedSong?.sound || "");
+
+    async function checkReview(song: CustomSoundPlaylist) {
+      try {
+        const result = await CheckReview(Number(uid), Number(song?.ID));
+        if (result.exists && typeof result.point === "number") {
+          setCurrentRating(result.point);
+          setExitRating(result.point);
+          setEditRating(true);
+      
+        }
+      } catch (error) {
+        console.error('Error sending rating:', error);
+    }
+  }
+
+  async function updateReview(review : IReview){
+     
+    try {
+      await UpdateReview(review);
+      message.success(`แก้ไขคะแนน "${selectedSong?.name}" ${currentRating} ดาว`);
+  }catch (error) {
+      console.error('Error sending rating:', error);
+      message.error('เกิดข้อผิดพลาดในการส่งคะแนน กรุณาลองอีกครั้ง');
+  }
+  }
+ 
 
   // review section
   const getRatingLabel = (rating: number): string => {
@@ -53,9 +81,15 @@ function TableSoundPlaylist({
     }
     const data: IReview = { sid: selectedSong?.ID, point: currentRating , uid: Number(uid) };
     try {
-          const res = await CreateReview(data)
+          if (editRating) {
+            updateReview(data)
+            setEditRating(false);
+          }else{
+             const res = await CreateReview(data)
           console.log(res);
           message.success(`ให้คะแนน "${selectedSong?.name}" ${currentRating} ดาว`);
+          }
+         
     } catch (error) {
       console.error('Error sending rating:', error);
       message.error('เกิดข้อผิดพลาดในการส่งคะแนน');
@@ -70,7 +104,11 @@ function TableSoundPlaylist({
 
   const openRatingModal = (song: CustomSoundPlaylist) => {
     setSelectedSong(song);
-    setCurrentRating(0); // รีเซ็ตคะแนน
+    console.log("selectedSong:", selectedSong);
+
+      checkReview(song);
+    
+    // setCurrentRating(0); // รีเซ็ตคะแนน
     setRatingModalOpen(true);
   };
 

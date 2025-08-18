@@ -240,6 +240,7 @@ function ChantingMain() {
       Playlist={playlists}
       GotoPlaylist={gotoplaylist}
       gotoPlaylistmedia={gotoPlaylistmedia}
+      fetchPlaylist={fetchPlaylist}
     />
   )
 )}

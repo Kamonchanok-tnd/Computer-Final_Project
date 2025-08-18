@@ -26,7 +26,9 @@ import { Sound } from "../../../interfaces/ISound";
 import StarRating from "../Playlist/Component/starrating";
 import { message } from "antd";
 import { IReview } from "../../../interfaces/IReview";
-import { CreateReview } from "../../../services/https/review";
+import { CheckReview, CreateReview, UpdateReview } from "../../../services/https/review";
+import { CreateHistory } from "../../../services/https/history";
+import { IHistory } from "../../../interfaces/IHistory";
 
 declare global {
   interface Window {
@@ -83,7 +85,12 @@ function Player() {
 
   //revew
   const [currentRating, setCurrentRating] = useState<number>(0);
-  const [showRating, setShowRating] = useState<boolean>(true);
+  const [showRating, setShowRating] = useState<boolean>(false);
+  const [editRating, setEditRating] = useState<boolean>(false);
+  const [exitRating, setExitRating] = useState<number>(0);
+ 
+  
+  
 
   async function addView(sid:number) {
     try {
@@ -95,6 +102,17 @@ function Player() {
     }
    
   }
+  async function addHistory(sid:number) {
+    try {
+      const data:IHistory = { sid: sid, uid: Number(uid) }
+       await CreateHistory(data)
+    }catch (error) {
+      console.error('Error sending rating:', error);
+     
+    }
+   
+  }
+  
   const getRatingLabel = (rating: number): string => {
     switch(rating) {
       case 1: return 'แย่มาก';
@@ -113,11 +131,18 @@ function Player() {
         return;
       }
       const data: IReview = { sid: currentSound?.ID, point: currentRating , uid: Number(uid) };
+      
       try {
-            const res = await CreateReview(data)
-            console.log(res);
-            message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
-            setShowRating(false);
+            if (editRating) {
+              updateReview()
+              setShowRating(false);
+            }else{
+                const res = await CreateReview(data)
+                console.log(res);
+                message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
+                setShowRating(false);
+            }
+          
 
       } catch (error) {
         console.error('Error sending rating:', error);
@@ -129,6 +154,7 @@ function Player() {
      
       setCurrentRating(0);
     };
+  
   
 
   useEffect(() => {
@@ -221,6 +247,7 @@ function Player() {
                   if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
                     // นับ view แล้วส่ง API
                     addView(realId);
+                    addHistory(realId);
                     setHasCountedView(true);
                     clearInterval(checkView);
                   }
@@ -228,13 +255,7 @@ function Player() {
               }, 1000);
             }
           
-            if (event.data === 0) { // วิดีโอจบ
-              if (isRepeat) {
-                playerRef.current.playVideo();
-              } else {
-                handleNext();
-              }
-            }
+            handleStateChange(event);
           },
           onPlaybackQualityChange: (event: any) => {
             setQuality(event.data);
@@ -248,7 +269,19 @@ function Player() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoId, isRepeat]);
+  }, [videoId]);
+  function handleStateChange(event: any) {
+    setIsPlaying(event.data === 1);
+
+    if (event.data === 0) {
+      // วิดีโอจบ
+      if (isRepeat) {
+        playerRef.current.playVideo(); // เล่นซ้ำ
+      } else {
+        handleNext();
+      }
+    }
+  }
 
   useEffect(() => {
     if (!isReady) return;
@@ -335,7 +368,9 @@ function Player() {
       const nextId = chantingSounds[nextIndex]?.ID;
       if (nextId) navigate(`/audiohome/chanting/play/${nextId}`);
     } else {
-      const nextSound = chantingSounds[currentIndex + 1];
+      const nextIndex = (currentIndex + 1) % chantingSounds.length; // <-- วนกลับไปแรก
+      const nextSound = chantingSounds[nextIndex];
+      console.log("next sound is : ", nextSound);
       if (nextSound) {
         navigate(`/audiohome/chanting/play/${nextSound.ID}`);
       }
@@ -349,14 +384,49 @@ function Player() {
     navigate(`/audiohome/chanting/play/${lastId}`);
   };
 
+  async function updateReview(){
+    const data: IReview = { sid: Number(currentSound?.ID), point: currentRating , uid: Number(uid) };
+    try {
+      await UpdateReview(data);
+      message.success(`แก้ไขคะแนน "${currentSound?.name}" ${currentRating} ดาว`);
+  }catch (error) {
+      console.error('Error sending rating:', error);
+      message.error('เกิดข้อผิดพลาดในการส่งคะแนน กรุณาลองอีกครั้ง');
+  }
+  }
+  async function checkReview(){
+    try {
+      const result = await CheckReview(Number(uid), Number(currentSound?.ID));
+      if (result.exists && typeof result.point === "number") {
+        setCurrentRating(result.point);
+        setExitRating(result.point);
+        setEditRating(true);
+    
+      }
+    } catch (error) {
+      console.error('Error sending rating:', error);
+  }
+}
+
+function openReview() {
+  checkReview();
+  setShowRating(true);
+}
+function closeReview() {
+  setShowRating(false);
+  setCurrentRating(0);
+}
+
+
+
   return (
-    <div className="flex flex-col min-h-full duration-300 items-center bg-background-blue dark:bg-background-dark ">
-      <div className="sm:mt-4   sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
+    <div className="flex flex-col min-h-full h-fit overflow-y-auto scrollbar-hide duration-300 items-center bg-background-blue dark:bg-background-dark ">
+      <div className="sm:mt-4  sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
       dark:bg-box-dark duration-300 bg-transparent md:rounded-xl ">
         {/* Grid Layout - ปรับให้ responsive ดีขึ้น */}
-        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2  h-[88vh]">
+        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2  h-[88vh]   ">
           {/* Main Player Section */}
-          <div className="sm:col-span-2 sm:rounded-2xl flex flex-col h-full gap-4 px-4 py-4 bg-white/50 justify-between backdrop-blur-md shadow-md
+          <div className="sm:col-span-2 sm:rounded-2xl flex flex-col  h-[100%] gap-4 px-4 py-4 bg-white/50 justify-between backdrop-blur-md shadow-md
           dark:bg-box-dark dark:text-text-dark">
             {/* Header */}
             <div className="flex gap-4 items-center">
@@ -371,7 +441,7 @@ function Player() {
             <div
               ref={playerContainerRef}
               id="yt-player"
-              className="w-full rounded-2xl  flex-1 min-h-[200px] md: lg:min-h-[300px] lg:max-h-[calc(100vh - 280px)] h-[300px]"
+              className="w-full rounded-2xl  flex-1 min-h-[200px]  lg:min-h-[300px] lg:max-h-[calc(100vh - 280px)] h-[300px]"
             ></div>
 
             {/* Controls Section */}
@@ -510,11 +580,11 @@ function Player() {
                   {/* Next Button */}
                   <button
                     onClick={handleNext}
-                    disabled={
-                      !isShuffle &&
-                      chantingSounds.findIndex((s) => s.ID === soundId) ===
-                        chantingSounds.length - 1
-                    }
+                    // disabled={
+                    //   // !isShuffle &&
+                    //   // chantingSounds.findIndex((s) => s.ID === soundId) ===
+                    //   //   chantingSounds.length - 1
+                    // }
                     className="p-2 lg:p-3 bg-gradient-to-tl from-[#BBF0FC] to-[#5DE2FF] rounded-full transition-all duration-200 text-white
                       dark:bg-gradient-to-tl dark:from-midnight-blue/70 dark:to-midnight-blue/70"
                     title="เพลงถัดไป"
@@ -544,14 +614,14 @@ function Player() {
 
           {/* Playlist Section - ปรับให้เหมาะกับหน้าจอเล็ก */}
           <div className="bg-transparent rounded-2xl col-span-1  flex flex-col h-full">
-  <div className="bg-white/10 dark:bg-transparent backdrop-blur-lg rounded-2xl flex flex-col flex-1">
+  <div className="bg-white/10 dark:bg-transparent  rounded-2xl flex flex-col flex-1">
     {/* Header */}
     <div className="flex gap-4 items-center mb-4">
       <h1 className="text-lg lg:text-xl font-semibold dark:text-text-dark">รายการเสียง</h1>
     </div>
 
     {/* Content area (list หรือ rating) */}
-    <div className="flex-1 overflow-y-auto scrollbar-hide p-2  rounded-xl">
+    <div className="overflow-y-auto scrollbar-hide p-2 flex-1   rounded-xl">
       {!showRating ? (
         <div className="space-y-2">
           {chantingSounds.map((item) => {
@@ -624,16 +694,11 @@ function Player() {
           })}
         </div>
       ) : (
-        <div className="text-center space-y-4 p-4">
+        <div className="text-center space-y-4 p-4 relative">
           <h4 className="text-xl font-medium text-basic-text dark:text-text-dark">
             คุณให้คะแนนบทสวดนี้เท่าไหร่?
           </h4>
-          <button
-            onClick={() => setShowRating(false)}
-            className="absolute top-4 right-4 text-sm text-gray-500 dark:text-text-dark p-2 bg-white/10 rounded-full"
-          >
-            ปิด
-          </button>
+          
 
           <div className="flex justify-center">
             <StarRating
@@ -651,17 +716,17 @@ function Player() {
           </p>
 
           <div className="flex gap-3 justify-center pt-4">
-            {currentRating > 0 && (
+           (
               <button
-                onClick={() => setCurrentRating(0)}
+                onClick={closeReview}
                 className="px-6 py-2 bg-transparent text-red-600 dark:bg-red-600/10 rounded-lg"
               >
                 ยกเลิก
               </button>
-            )}
+            )
             <button
               onClick={handleRatingSubmit}
-              disabled={currentRating === 0}
+              disabled={currentRating === 0 || currentRating === exitRating}
               className="px-6 py-2 bg-button-blue text-white rounded-lg disabled:bg-gray-400"
             >
               ส่งคะแนน
@@ -675,7 +740,7 @@ function Player() {
     {!showRating && (
       <div className="text-center py-4">
         <button
-          onClick={() => setShowRating(true)}
+          onClick={() =>openReview()}
           className="px-6 py-2 bg-button-blue text-white rounded-lg hover:scale-105 transition"
         >
           รีวิวบทสวด

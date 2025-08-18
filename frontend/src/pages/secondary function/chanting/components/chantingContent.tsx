@@ -15,9 +15,9 @@ interface ChantingContentProps {
 
 function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingContentProps) {
     return  (
-        <div>
-        <h1 className="text-xl  text-basic-text mb-4 dark:text-text-dark">สวดมนต์</h1>
-        <div className="grid lg:grid-cols-6 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+        <div className="prompt-regular">
+        <h1 className="text-xl  text-basic-text mb-4 dark:text-text-dark  ">สวดมนต์</h1>
+        <div className="grid lg:grid-cols-6 sm:grid-cols-3 md:grid-cols-4 grid-cols-1 sm:gap-2 gap-2  px-4 sm:px-0">
           {filteredSounds?.map((sound) => {
             const videoId = extractYouTubeID(sound.sound!);
             const thumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
@@ -51,10 +51,10 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
             return (
               <div
                 key={sound.ID}
-                className="bg-white w-full h-60 rounded-xl group  text-basic-text border-gray-200 border 
+                className="bg-white w-full h-fit rounded-xl group  text-basic-text border-gray-200 border 
                 dark:text-text-dark dark:bg-transparent dark:border-stoke-dark "
               >
-                <div className="h-[70%]  w-full rounded-2xl relative ">
+                <div className="h-auto  w-full rounded-2xl relative ">
                   <img
                     src={thumbnail}
                     alt=""
