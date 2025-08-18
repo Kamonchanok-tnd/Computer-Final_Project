@@ -313,7 +313,7 @@ export default function SignInPages() {
 
   const handleLogin = async () => {
     const values: SignInInterface = { email, password };
-    let res = await SignIn(values);
+    const res = await SignIn(values);
 
     if (res.status === 200) {
       messageApi.success("เข้าสู่ระบบ สำเร็จ!");
