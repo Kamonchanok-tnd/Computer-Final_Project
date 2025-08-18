@@ -170,7 +170,7 @@ function DoctorCard({ d }: { d: Doctor }) {
             href={telHref(d.phone)}
             className="h-10 px-4 rounded-xl bg-sky-600 text-white font-medium inline-flex items-center gap-2 hover:bg-sky-700 active:scale-[0.99] transition"
           >
-            <PhoneOutlined /> โทรเลย
+            โทรเลย
           </a>
           <a
             href={mapHref(d)}
@@ -178,7 +178,7 @@ function DoctorCard({ d }: { d: Doctor }) {
             rel="noreferrer"
             className="h-10 px-4 rounded-xl bg-white text-sky-700 font-medium ring-1 ring-sky-200 hover:bg-sky-50 inline-flex items-center gap-2"
           >
-            <EnvironmentOutlined /> เปิดแผนที่
+           เปิดแผนที่
           </a>
         </div>
       </div>
