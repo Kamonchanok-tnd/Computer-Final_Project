@@ -72,7 +72,7 @@ function RelaxActivities() {
   ];
 
   return (
-    <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white to-[#C2F4FF]">
+    <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white to-[#C2F4FF] font-ibmthai">
       {/* Greeting bubble */}
       <div className="w-full max-w-4xl relative mb-20">
         <div className="bg-[#E6F9FF] rounded-xl p-4 w-[75%] shadow-sm">

@@ -27,6 +27,7 @@ import PlayerPlaylist from "../pages/secondary function/playermedia/playerPlayli
 import ChantingMain from "../pages/secondary function/chanting/chatingMain";
 import Playermediameditation from "../pages/secondary function/meditation/playermeditation/playmedia";
 import AddSoundPlaylistMeditation from "../pages/secondary function/meditation/editplaylistmeditation/editplaylistmeditation";
+import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
 
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
@@ -171,6 +172,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
     {
       path: "/user/mirror/overview", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
       element: isLoggedIn ? <MonthlyOverviewPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    },
+     {
+      path: "/doctors", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <DoctorRecommendPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
     },
   ];
 };

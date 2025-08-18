@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Avatar, Button, Drawer, Dropdown, Layout, theme, type MenuProps } from 'antd';
+import { Avatar, Button, Drawer, Dropdown, Layout, type MenuProps } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-const { Header, Content, Footer } = Layout;
-import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus, Space, Sun, User } from 'lucide-react';
+const { Header, Content } = Layout;
+import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus,  Sun, User } from 'lucide-react';
 import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
 
 const items = [
   { key: 'home', label: 'หน้าหลัก', path: '/user', icon: <House size={24} /> },
   { key: 'chat', label: 'แชท', path: '/chat', icon: <MessageCircleMore size={24} /> },
   { key: 'contents', label: 'คอนเท้นต์', path: '/audiohome', icon: <Music size={24} /> },
-  { key: 'message', label: 'ทีมพัฒนา', path: '/contents', icon: <Book size={24} /> },
+  { key: 'message', label: 'จิตแพทย์', path: '/doctors', icon: <Book size={24} /> },
 ];
 
 function Headers() {
@@ -87,6 +87,7 @@ function Headers() {
             backgroundColor: isDarkMode ? '#0F172A' : '#fff',
             boxShadow:isDarkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0px 4px 4px rgba(0, 0, 0, 0.02)',
             padding: '0 24px',
+            fontFamily: "var(--font-ibmthai)",
           }}
         >
           <div className='flex gap-4'>

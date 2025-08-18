@@ -702,7 +702,7 @@ function Playermediameditation() {
 
   // ⭐ Review
   const [currentRating, setCurrentRating] = useState<number>(0);
-  const [showRating, setShowRating] = useState<boolean>(true);
+  const [showRating, setShowRating] = useState<boolean>(false);
 
   const currentSound = meditationSounds.find((s) => s.ID === soundId);
 

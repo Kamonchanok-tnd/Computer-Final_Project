@@ -203,7 +203,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
                     : "bg-button-blue text-white cursor-pointer"
                 }`}
             >
-              Start <Play className="w-4 h-4" />
+              เริ่ม <Play className="w-4 h-4" />
             </button>
           </div>
 

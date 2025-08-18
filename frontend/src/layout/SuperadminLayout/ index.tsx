@@ -1,7 +1,6 @@
-import React from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
-import { Layout, Menu, Button } from "antd";
-import { DashboardOutlined, SettingOutlined } from '@ant-design/icons';
+import { Outlet, useLocation } from "react-router-dom";
+import { Layout, Button } from "antd";
+// import { DashboardOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
 import './FullLayout.css';
 
