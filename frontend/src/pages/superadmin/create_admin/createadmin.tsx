@@ -16,6 +16,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { UsersInterface } from "../../../interfaces/IUser";
 import { CreateUser } from "../../../services/https/login";
 import { useNavigate, Link } from "react-router-dom";
+import "./create_admin.css";
 
 function CreateAdmin() {
   const navigate = useNavigate();
@@ -50,11 +51,13 @@ function CreateAdmin() {
     <div
       style={{
         minHeight: "100vh",
-        background: "bg-blue-50",
+        backgroundColor: "#EBF8FF", // แทน bg-blue-50
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         padding: "30px",
+        fontFamily: "var(--font-ibmthai)", // <-- เพิ่มตรงนี้
+        
       }}
     >
       {contextHolder}
@@ -65,9 +68,17 @@ function CreateAdmin() {
           boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
           borderRadius: "12px",
           padding: "20px",
+          fontFamily: "var(--font-ibmthai)", // <-- เพิ่มตรงนี้
         }}
       >
-        <h2 style={{ fontSize: "24px", fontWeight: "bold", textAlign: "center" }}>
+        <h2
+          style={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            textAlign: "center",
+            fontFamily: "var(--font-ibmthai)", // <-- เพิ่มตรงนี้
+          }}
+        >
           เพิ่มข้อมูลผู้ดูแลระบบ
         </h2>
         <Divider />
@@ -76,6 +87,7 @@ function CreateAdmin() {
           layout="vertical"
           onFinish={onFinish}
           autoComplete="off"
+          className="create-admin-form"
         >
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={12}>
@@ -152,19 +164,22 @@ function CreateAdmin() {
               <Form.Item>
                 <Space>
                   <Link to="/superadmin">
-                    <Button htmlType="button" size="large" className="!bg-gray-200 !hover:bg-gray-300 !text-gray-800 px-8">
-                      
+                    <Button
+                      htmlType="button"
+                      size="large"
+                      className="!bg-gray-200 !hover:bg-gray-300 !text-gray-800 px-8 !font-ibmthai"
+                    >
                       ยกเลิก
                     </Button>
                   </Link>
                   <Button
-            type="primary"
-            htmlType="submit"
-            size="large"
-            className="!bg-blue-500 !hover:bg-blue-600 !text-white px-8"
-          >
-            บันทึก
-          </Button>
+                    type="primary"
+                    htmlType="submit"
+                    size="large"
+                    className="!bg-blue-500 !hover:bg-blue-600 !text-white px-8 !font-ibmthai"
+                  >
+                    บันทึก
+                  </Button>
                 </Space>
               </Form.Item>
             </Col>

@@ -6,7 +6,7 @@ import type { ColumnsType } from "antd/es/table";
 import { getAllAdmins, deleteAdminById } from "../../../services/https/admin";
 import { AdminInterface } from "../../../interfaces/IAdmin";
 import { Link, useNavigate } from "react-router-dom";
-
+import "./DashboardAdmin.css";
 function DashboardAdmin() {
   const navigate = useNavigate();
   const [users, setUsers] = useState<AdminInterface[]>([]);
@@ -101,7 +101,7 @@ function DashboardAdmin() {
   };
 
   return (
-  <div className="min-h-screen w-full bg-blue-50 p-6"> {/* พื้นหลังเต็มจอ */}
+  <div className="min-h-screen w-full bg-blue-50 p-6 dashboard-admin"> {/* พื้นหลังเต็มจอ */}
     <div className="bg-white rounded-lg shadow-md p-6">
       {contextHolder}
 

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, MessageOutlined, CommentOutlined, SmileOutlined, UserOutlined,CustomerServiceOutlined} from '@ant-design/icons';
+import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined} from '@ant-design/icons';
 const { Header, Content, Sider } = Layout;
 import './index.css';
 
@@ -31,14 +31,14 @@ const AdminLayout = () => {
       <Menu.Item key="editProfile" onClick={handleEditProfile} >
         <Link to="/admin/edityourself">แก้ไขข้อมูลส่วนตัว</Link>
       </Menu.Item>
-      <Menu.Item key="logout" onClick={handleLogout} danger>
+      <Menu.Item key="logout" onClick={handleLogout} danger >
         ออกจากระบบ
       </Menu.Item>
     </Menu>
   );
 
   return (
-    <Layout className="layout" style={{ minHeight: "100vh" }}>
+    <Layout className="layout admin-layout" style={{ minHeight: "100vh" }}>
       <Header className="layout-header">
   <div className="layout-header-left">
   <Button 

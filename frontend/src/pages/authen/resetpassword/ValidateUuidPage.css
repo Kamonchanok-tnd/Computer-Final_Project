@@ -1,5 +1,5 @@
 /* container ตั้งให้เต็มหน้าจอ และจัดกึ่งกลางทั้งแนวตั้ง-แนวนอน */
-.validate-container {
+/*.validate-container {
   max-width: 400px;
   width: 100%;
   padding: 30px 25px;
@@ -8,7 +8,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
-  /* เพิ่มส่วนนี้ */
+  /* เพิ่มส่วนนี้ 
   position: fixed;
   top: 50%;
   left: 50%;
@@ -71,5 +71,5 @@
 .submit-btn:focus {
   background-color: #40a9ff;
   border-color: #40a9ff;
-}
+}*/
 

@@ -1,4 +1,4 @@
-.register-page {
+/* .register-page {
   display: flex;
   min-height: 100vh;
   background: linear-gradient(to top, #DFF6FF, #e8f2f9);
@@ -53,7 +53,7 @@
   font-weight: 600;
 }
 
-/* Responsive */
+/* Responsive 
 @media (max-width: 768px) {
   .register-page {
     flex-direction: column;
@@ -78,4 +78,4 @@
     border-radius: 12px;
     background: #ffffff;
   }
-}
+} */

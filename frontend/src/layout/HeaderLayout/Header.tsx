@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Avatar, Button, Drawer, Dropdown, Layout, theme, type MenuProps } from 'antd';
+import { Avatar, Button, Drawer, Dropdown, Layout, type MenuProps } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-const { Header, Content, Footer } = Layout;
-import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus, Space, Sun, User } from 'lucide-react';
+const { Header, Content } = Layout;
+import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus,  Sun, User } from 'lucide-react';
 import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
 
 const items = [

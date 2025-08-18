@@ -3,7 +3,7 @@ import { Form, Input, Button, message, Spin, Select, Divider, Row, Col, Space, I
 import { useNavigate, useParams } from "react-router-dom";
 import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminById } from "../../../services/https/admin";
-
+import "./EditAdmin.css";
 function EditAdmin() {
   const [admin, setAdmin] = useState<AdminInterface | null>(null);
   const [loading, setLoading] = useState(false);
@@ -97,6 +97,7 @@ function EditAdmin() {
     textAlign: "center",
     color: "#1F2937", // เทียบกับ text-gray-800
     marginBottom: "24px", // เทียบกับ mb-6
+    fontFamily: "var(--font-ibmthai)", // <-- เพิ่มตรงนี้
   }}
 >
   แก้ไขข้อมูลผู้ดูแลระบบ
@@ -109,6 +110,7 @@ function EditAdmin() {
       layout="vertical"
       onFinish={handleSubmit}
       autoComplete="off"
+      className="edit-admin-form"
     >
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={12}>
@@ -185,6 +187,7 @@ function EditAdmin() {
                 onClick={() => navigate("/superadmin")}
                 size="large"
                 className="!bg-gray-200 !hover:bg-gray-300 !text-gray-800 px-8"
+                style={{ fontFamily: "var(--font-ibmthai)" }}
               >
                 ยกเลิก
               </Button>
@@ -194,6 +197,7 @@ function EditAdmin() {
                 size="large"
                 className="!bg-blue-500 !hover:bg-blue-600 !text-white px-8"
                 loading={loading}
+                style={{ fontFamily: "var(--font-ibmthai)" }}
               >
                 บันทึก
               </Button>
