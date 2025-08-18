@@ -112,7 +112,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
   };
 
   return (
-    <div className="bg-gradient-to-t from-[#b3e5fc] to-white w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px]">
+    <div className="bg-gradient-to-t from-[#b3e5fc] to-white w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px] font-ibmthai">
       {/* รูป + หัวใจ */}
       <div className="w-full rounded-t-xl relative">
         <div
@@ -197,7 +197,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
                     : "bg-button-blue text-white cursor-pointer"
                 }`}
             >
-              Start <Play className="w-4 h-4" />
+              เริ่ม <Play className="w-4 h-4" />
             </button>
           </div>
 

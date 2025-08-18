@@ -137,7 +137,7 @@ function MeditationMain() {
 
   return (
     <div
-      className={`flex flex-col min-h-screen duration-300 items-center
+      className={`flex flex-col min-h-screen duration-300 items-center font-ibmthai
          ${isDarkMode ? "bg-background-dark" : "bg-background-blue"}`}
     >
       <div

@@ -1,11 +1,11 @@
-import { Button, Dropdown, MenuProps, message, Modal, Spin, Typography } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import {  message, Modal, Spin } from "antd";
+import { useEffect, useState } from "react";
 import {
   deleteSoundByID,
   getAllSounds,
 
 } from "../../../services/https/sounds";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Mic, Play, Plus, Search, SquarePen, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,  Play, Plus, SquarePen, Trash2 } from "lucide-react";
 import { Sound } from "../../../interfaces/ISound";
 import {
   ColumnDef,
@@ -30,7 +30,7 @@ export interface SoundList extends Sound {
 
 
 // filter
-const globalFilterFn: FilterFn<SoundList> = (row, columnId, value) => {
+const globalFilterFn: FilterFn<SoundList> = (row,  value) => {
   const search = value.toLowerCase();
 
   return (

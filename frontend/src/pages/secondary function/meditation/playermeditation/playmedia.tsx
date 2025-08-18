@@ -933,7 +933,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="flex flex-col min-h-full items-center bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] dark:bg-background-dark">
+    <div className="flex flex-col min-h-full items-center bg-gradient-to-b from-[#E0F7FA] to-[#B2EBF2] dark:bg-background-dark font-ibmthai">
       <div className="sm:mt-4 px-4 sm:px-10 w-full flex flex-col gap-8 max-w-[1600px]">
         
         {/* ✅ Responsive Grid */}
