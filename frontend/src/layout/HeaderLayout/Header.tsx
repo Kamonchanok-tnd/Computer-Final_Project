@@ -10,7 +10,7 @@ const items = [
   { key: 'home', label: 'หน้าหลัก', path: '/user', icon: <House size={24} /> },
   { key: 'chat', label: 'แชท', path: '/chat', icon: <MessageCircleMore size={24} /> },
   { key: 'contents', label: 'คอนเท้นต์', path: '/audiohome', icon: <Music size={24} /> },
-  { key: 'message', label: 'ทีมพัฒนา', path: '/contents', icon: <Book size={24} /> },
+  { key: 'message', label: 'จิตแพทย์', path: '/doctors', icon: <Book size={24} /> },
 ];
 
 function Headers() {
