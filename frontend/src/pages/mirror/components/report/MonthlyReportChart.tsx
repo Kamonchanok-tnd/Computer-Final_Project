@@ -16,7 +16,14 @@ import type {
 type Props = { rows: IMonthlySummary[]; loading: boolean };
 type ChartDatum = { name: string; value: number };
 
-const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#00bcd4"];
+const COLORS = [
+  "#A5BFF0", // ฟ้าอ่อนพาสเทล
+  "#A8E6CF", // เขียวมิ้นต์พาสเทล
+  "#FFD3B6", // ส้มอ่อนพาสเทล
+  "#FFAAA5", // ชมพูพาสเทล
+  "#DAB6FC", // ม่วงอ่อนพาสเทล
+  "#FFF5BA", // เหลืองอ่อนพาสเทล
+];
 
 /** hook เช็คมือถือ (type-safe) */
 function useIsMobile(): boolean {

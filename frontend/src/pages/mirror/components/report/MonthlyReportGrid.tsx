@@ -16,8 +16,12 @@ export default function MonthlyReportGrid({ rows, loading }: Props) {
     <section className="mt-4 rounded-2xl ring-1 ring-white/60 bg-white/50 backdrop-blur-md p-3 sm:p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {rows.map((r, i) => (
-          <MoodCard key={`card-${r.eid ?? r.mood ?? i}`} row={r} />
-        ))}
+  <MoodCard
+    key={`card-${i}-${String(r.eid ?? 'e')}-${String(r.mood ?? 'm')}`}
+    row={r}
+  />
+))}
+
       </div>
     </section>
   );
