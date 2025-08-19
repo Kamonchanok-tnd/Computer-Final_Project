@@ -18,7 +18,7 @@ function RelaxActivities() {
       description: "รับข้อความให้กำลังใจ ที่อาจเป็นสิ่งเล็ก ๆ แต่ช่วยได้มากกว่าที่คิด",
       icon: <Heart className="w-10 h-10 text-[#F06292]" />,
       gradient: "bg-gradient-to-br from-[#F8BBD0] to-[#F48FB1]",
-      path: "/audiohome/motivation",
+      path: "/message",
     },
     {
       title: "สวดมนต์",

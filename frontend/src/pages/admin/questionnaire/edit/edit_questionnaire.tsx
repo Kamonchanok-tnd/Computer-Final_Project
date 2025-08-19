@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Form, Input, InputNumber, Modal, Tag, Collapse, Upload, message } from "antd";
-import { DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined, UploadOutlined } from "@ant-design/icons";
+import { DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined, UploadOutlined, EyeOutlined} from "@ant-design/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { getQuestionnaireById, updateQuestionnaire, deleteQuestion, deleteAnswer } from "../../../../services/https/questionnaire";
 import "./edit_questionnaire.css";
-
 
 import questionIcon from "../../../../assets/question-mark.png";
 
@@ -163,18 +162,18 @@ const EditQuestionnaire: React.FC = () => {
   return (
     <div className="edit-questionnaire-container">
       <div className="edit-questionnaire-box">
-        {/* ✅ หัวข้อใหญ่ตรงกลาง */}
+        {/* หัวข้อใหญ่ตรงกลาง */}
         <h2 style={{ fontSize: 30, display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
           แก้ไขรายละเอียดคำถามและคำตอบ
         </h2>
 
         <Form layout="vertical" form={form}>
-          {/* ✅ ชื่อแบบทดสอบ */}
+          {/* ชื่อแบบทดสอบ */}
           <Form.Item label={<span style={{ display: "flex", alignItems: "center", fontWeight: "bold" }}>ชื่อแบบทดสอบ</span>}name="name">
            <Input />
           </Form.Item>
 
-          {/* ✅ รายละเอียดแบบทดสอบ */}
+          {/* รายละเอียดแบบทดสอบ */}
           <Form.Item label={<span style={{ display: "flex", alignItems: "center", fontWeight: "bold" }}>รายละเอียดแบบทดสอบ</span>}name="description">
             <Input.TextArea rows={3} />
            </Form.Item>
@@ -185,7 +184,7 @@ const EditQuestionnaire: React.FC = () => {
           <Button onClick={collapseAll}>ย่อทั้งหมด</Button>
         </div>
 
-        {/* ✅ Drag & Drop Questions */}
+        {/* Drag & Drop Questions */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="question-list">
             {(provided) => (
@@ -248,7 +247,7 @@ const EditQuestionnaire: React.FC = () => {
                                   <Button type="dashed" onClick={() => addAnswer(qIndex)} block>+ เพิ่มตัวเลือก</Button>
                                 </div>
 
-                                {/* ✅ Upload Image */}
+                                {/* Upload Image with Custom Icons */}
                                 <div className="question-panel-right">
                                   <div className="upload-label">อัปโหลดรูป (ถ้ามี)</div>
                                   <div className="full-upload">
@@ -267,7 +266,12 @@ const EditQuestionnaire: React.FC = () => {
                                       }}
                                       fileList={
                                         q.picture
-                                          ? [{ uid: "-1", name: "image.png", status: "done", url: q.picture }]
+                                          ? [{
+                                              uid: "-1",
+                                              name: "image.png",
+                                              status: "done",
+                                              url: q.picture,
+                                            }]
                                           : []
                                       }
                                       onPreview={() => {
@@ -279,9 +283,72 @@ const EditQuestionnaire: React.FC = () => {
                                         updated[qIndex].picture = null;
                                         setQuestions(updated);
                                       }}
+                                      showUploadList={{
+                                        showPreviewIcon: true,
+                                        showRemoveIcon: true,
+                                        // Custom preview icon (ตาซ้าย)
+                                        previewIcon: (
+                                          <span 
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              width: '32px',
+                                              height: '32px',
+                                              backgroundColor: '#4096ff',
+                                              borderRadius: '50%',
+                                              color: 'white',
+                                              fontSize: '16px',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.3s',
+                                              marginRight: '8px'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              e.currentTarget.style.backgroundColor = '#85bee1';
+                                              e.currentTarget.style.transform = 'scale(1.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              e.currentTarget.style.backgroundColor = '#87CEFA';
+                                              e.currentTarget.style.transform = 'scale(1)';
+                                            }}
+                                          >
+                                            <EyeOutlined />
+                                          </span>
+                                        ),
+                                        // Custom remove icon (ลบขวา)
+                                        removeIcon: (
+                                          <span
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              width: '32px',
+                                              height: '32px',
+                                              backgroundColor: '#ff4d4f',
+                                              borderRadius: '4px',
+                                              color: 'white',
+                                              fontSize: '16px',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.3s',
+                                              marginLeft: '8px'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              e.currentTarget.style.backgroundColor = '#ff7875';
+                                              e.currentTarget.style.transform = 'scale(1.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              e.currentTarget.style.backgroundColor = '#ff4d4f';
+                                              e.currentTarget.style.transform = 'scale(1)';
+                                            }}
+                                          >
+                                            <DeleteOutlined />
+                                          </span>
+                                        ),
+                                      }}
+                                      className="custom-upload-centered"
                                     >
                                       {!q.picture && (
-                                        <div >
+                                        <div>
                                           <UploadOutlined />
                                           <div style={{ marginTop: 8 }}>เพิ่มรูปภาพ</div>
                                         </div>
@@ -308,7 +375,7 @@ const EditQuestionnaire: React.FC = () => {
           <Button type="primary" onClick={handleSubmit}>บันทึกการแก้ไขทั้งหมด</Button>
         </div>
 
-        {/* ✅ Preview Modal */}
+        {/* Preview Modal */}
           <Modal
           open={previewVisible}
           footer={null}
@@ -332,19 +399,21 @@ const EditQuestionnaire: React.FC = () => {
           />
         </Modal>
 
-        {/* ✅ Modal แจ้งบันทึกสำเร็จ */}
+      {/* Success -> ส่ง flash กลับไปหน้า list เท่านั้น */}
         <Modal
-          title="แก้ไขข้อมูลเรียบร้อย"
+          title="แก้ไขข้อมูลแบบทดสอบเรียบร้อย"
           open={isEditSuccessModalVisible}
           centered
           onOk={() => {
             setIsEditSuccessModalVisible(false);
-            navigate("/admin/questionnairePage");
+            navigate("/admin/questionnairePage", {
+              state: { flash: { type: "success", content: "บันทึกการเเก้ไขข้อมูลเเบบทดสอบลงฐานข้อมูลสำเร็จ!" } },
+            });
           }}
           onCancel={() => setIsEditSuccessModalVisible(false)}
           okText="ตกลง"
         >
-          <p style={{ textAlign: "center" }}>บันทึกข้อมูลสำเร็จ!</p>
+          <p style={{ textAlign: "center" }}>บันทึกการเเก้ข้อมูลเเบบทดสอบสำเร็จ!</p>
         </Modal>
       </div>
     </div>

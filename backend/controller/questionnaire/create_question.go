@@ -8,7 +8,7 @@ import (
 	
 )
 
-// ✅ ฟังก์ชันสำหรับดึงรายการแบบทดสอบทั้งหมด
+// ฟังก์ชันสำหรับดึงรายการแบบทดสอบทั้งหมด
 func GetAllQuestionnaires(c *gin.Context) {
 	var questionnaires []entity.Questionnaire
 	db := config.DB()
@@ -27,7 +27,7 @@ func GetAllQuestionnaires(c *gin.Context) {
 }
 
 
-// ✅ ฟังก์ชันสำหรับดึงคำถามทั้งหมด
+// ฟังก์ชันสำหรับดึงคำถามทั้งหมด
 func GetAllQuestions(c *gin.Context) {
 	var questions []entity.Question
 	// ดึงคำถามทั้งหมดพร้อม preload แบบทดสอบที่เชื่อมโยง
@@ -49,7 +49,7 @@ func GetAllQuestions(c *gin.Context) {
 }
 
 
-// ✅ ฟังก์ชันสำหรับดึงผู้ใช้งานทั้งหมด พร้อม Preload แบบทดสอบที่ผู้ใช้สร้าง
+// ฟังก์ชันสำหรับดึงผู้ใช้งานทั้งหมด พร้อม Preload แบบทดสอบที่ผู้ใช้สร้าง
 func GetAllUsers(c *gin.Context) {
 	var users []entity.Users
 
@@ -72,7 +72,7 @@ func GetAllUsers(c *gin.Context) {
 }
 
 
-// ✅ ฟังก์ชันสำหรับสร้างเเบบทดสอบ
+// ฟังก์ชันสำหรับสร้างเเบบทดสอบ
 func CreateQuestionnaire(c *gin.Context) {
 	type AnswerInput struct {
 		Description string `json:"description"`
@@ -151,7 +151,7 @@ func CreateQuestionnaire(c *gin.Context) {
 
 }
 
-// ✅ ฟังก์ชันสำหรับสร้างคำถาม, คำตอบเเละลำดับ
+// ฟังก์ชันสำหรับสร้างคำถาม, คำตอบเเละลำดับ
 type QuestionWithAnswers struct {
 	Question entity.Question       `json:"question"`
 	Answers  []entity.AnswerOption `json:"answers"`
@@ -168,7 +168,7 @@ func CreateQuestions(c *gin.Context) {
 	tx := db.Begin()
 
 	for _, item := range input {
-		q := item.Question // ✅ priority จะถูก bind อัตโนมัติ
+		q := item.Question // priority จะถูก bind อัตโนมัติ
 		if err := tx.Create(&q).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถบันทึกคำถามได้"})

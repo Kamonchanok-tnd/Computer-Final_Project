@@ -18,6 +18,8 @@ import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 import ChatingMain from "../pages/secondary function/chanting/chatingMain";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
 
+import UserMessagePage from "../pages/secondary function/message/userMessagePage";
+
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
 const Home = Loadable(lazy(() => import("../pages/homeuser/homeuser")));
@@ -72,6 +74,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/audiohome/chanting",
           element: isLoggedIn ? <ChatingMain /> : <Navigate to="/" />,
+        },
+        {
+          path: "/message", // เส้นทางสำหรับหน้า message
+          element: isLoggedIn ? <UserMessagePage/> : <Navigate to="/" />,
         },
       
 

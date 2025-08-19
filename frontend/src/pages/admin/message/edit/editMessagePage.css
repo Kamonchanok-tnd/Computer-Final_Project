@@ -1,5 +1,5 @@
-/* Container หลัก */
-.createMessagePage .createMessage-container {
+/* Container หลัก สำหรับหน้า EditMessage */
+.editMessagePage .editMessage-container {
   padding: 40px;
   background-color: #f5f5f5;
   min-height: 7000px;
@@ -10,13 +10,13 @@
 }
 
 /* ส่วนหัว */
-.createMessagePage .createMessage-header {
+.editMessagePage .editMessage-header {
   margin-top: 50px;
   margin-bottom: 32px;
 }
 
 /* หัวข้อใหญ่ */
-.createMessagePage .createMessage-title {
+.editMessagePage .editMessage-title {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,8 +27,8 @@
 }
 
 /* ฟอร์ม */
-.createMessagePage .message-form {
- display: flex;
+.editMessagePage .message-form {
+  display: flex;
   height: auto; /* เปลี่ยนจาก 560px เป็น auto เพื่อให้สูงพอดีกับเนื้อหา */
   max-width: 1500px;
   width: 100%;  /* ฟอร์มจะขยายเต็มความกว้างของคอนเทนเนอร์ */
@@ -43,13 +43,13 @@
 }
 
 /* กล่องแต่ละช่องของฟอร์ม */
-.createMessagePage .message-form div {
+.editMessagePage .message-form div {
   display: flex;
   flex-direction: column;
 }
 
 /* Label */
-.createMessagePage .message-form label {
+.editMessagePage .message-form label {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 6px;
@@ -57,7 +57,7 @@
 }
 
 /* Input */
-.createMessagePage .message-form input {
+.editMessagePage .message-form input {
   padding: 10px 12px;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -67,20 +67,21 @@
   color: #000;
 }
 
-.createMessagePage .message-form input:focus {
-  border-color: #000 !important;
+.editMessagePage .message-form input:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.4);
   outline: none;
 }
 
 /* ฟอร์มแบ่งซ้ายขวา 70:30 */
-.createMessagePage .message-form.split-form {
+.editMessagePage .message-form.split-form {
   flex-direction: row;
   gap: 24px;
   align-items: flex-start;
 }
 
 /* ฝั่งซ้าย 70% */
-.createMessagePage .message-form.split-form .form-left {
+.editMessagePage .message-form.split-form .form-left {
   flex: 7;
   display: flex;
   flex-direction: column;
@@ -88,7 +89,7 @@
 }
 
 /* ฝั่งขวา 30% */
-.createMessagePage .message-form.split-form .form-right {
+.editMessagePage .message-form.split-form .form-right {
   flex: 3;
   display: flex;
   flex-direction: column;
@@ -103,7 +104,7 @@
 }
 
 /* ส่วนกล่องอัพโหลดไฟล์บทความ */
-.createMessagePage .upload-icon-wrapper {
+.editMessagePage .upload-icon-wrapper {
   border: none;
   padding: 16px;
   width: 100%;  /* ใช้ width 100% เพื่อให้อยู่ตรงกลาง */
@@ -120,17 +121,17 @@
   text-align: center;
 }
 
-.createMessagePage .upload-icon-wrapper:hover {
+.editMessagePage .upload-icon-wrapper:hover {
   background-color: rgba(24, 144, 255, 0.3);
 }
 
 /* รูป preview + ปุ่มลบรูป */
-.createMessagePage .preview-wrapper {
+.editMessagePage .preview-wrapper {
   position: relative;
   display: inline-block;
 }
 
-.createMessagePage .image-preview {
+.editMessagePage .image-preview {
   max-width: 100%;
   border-radius: 12px;
   object-fit: contain;
@@ -138,13 +139,12 @@
   box-shadow: 0 0 8px rgba(24, 144, 255, 0.3);
 }
 
-
-.createMessagePage .btn-clear-image:hover {
+.editMessagePage .btn-clear-image:hover {
   background-color: rgba(0,0,0,0.8);
 }
 
 /* ✅ ปุ่มย้อนกลับ + บันทึก อยู่ในแถวเดียวกัน */
-.createMessagePage .form-buttons {
+.editMessagePage .form-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -153,7 +153,7 @@
 }
 
 /* ✅ ปุ่มย้อนกลับ */
-.createMessagePage .btn-back {
+.editMessagePage .btn-back {
   font-size: 16px;
   font-weight: 600;
   padding: 10px 24px;
@@ -166,12 +166,12 @@
   white-space: nowrap;
 }
 
-.createMessagePage .btn-back:hover {
+.editMessagePage .btn-back:hover {
   background-color: #e0e0e0;
 }
 
 /* ✅ ปุ่มบันทึก */
-.createMessagePage .btn-submit {
+.editMessagePage .btn-submit {
   font-size: 16px;
   font-weight: 600;
   padding: 10px 24px;
@@ -184,12 +184,48 @@
   white-space: nowrap;
 }
 
-.createMessagePage .btn-submit:hover {
+.editMessagePage .btn-submit:hover {
   background-color: #85bee1;
 }
 
-.createMessagePage .btn-submit:active {
+.editMessagePage .btn-submit:active {
   transform: scale(0.98);
 }
 
 
+
+/* สีพื้นหลัง + ตัวอักษรหัวตาราง */
+.message-page-container :where(.ant-table-thead) > tr > th {
+  background: #0ea5e9;   /* ฟ้า */
+  color: #fff;
+  font-weight: 600;
+}
+
+/* เส้นขอบหัวตารางให้กลืนกับพื้นหลัง */
+.message-page-container :where(.ant-table-thead) > tr > th.ant-table-cell {
+  background: #87CEFA !important;
+}
+
+/* ปุ่มแก้ไขเป็นสีเขียว */
+.message-page-container .edit-button {
+  background: #87CEFA !important;   /* เขียว emerald */
+  border-color: #87CEFA !important;
+  color: #fff !important;
+}
+.message-page-container .edit-button:hover {
+  background: #85bee1 !important;   /* เขียวเข้มขึ้น */
+  border-color: #85bee1 !important;
+  color: #fff !important;
+}
+
+/* ไอคอนประแจเป็นสีขาวบนปุ่มสี */
+.message-page-container .edit-icon {
+  color: #fff !important;
+  font-size: 16px;
+}
+
+/* เปลี่ยนสีและขนาดไอคอนแก้ไข */
+.message-page-container .edit-icon {
+  color: #000 !important;    /* สีขาว */
+  font-size: 16px;            /* ปรับขนาด */
+}

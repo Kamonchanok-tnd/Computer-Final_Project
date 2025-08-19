@@ -21,6 +21,7 @@ import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuesti
 import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
 import ListSound from "../pages/admin/Listsound/Listsound";
 import MessagePage from "../pages/admin/message/home/messagePage";
+import EditMessagePage from "../pages/admin/message/edit/editMesagePage";
 import CreateMessagePage from "../pages/admin/message/create/createMessagePage";
 import EditSound from "../pages/admin/meditation/editSound";
 
@@ -102,6 +103,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                     path :"/admin/createMessagePage",
                     element: <CreateMessagePage/>
+                },
+                   {
+                    path :"/admin/editMessagePage",
+                    element: <EditMessagePage/>
                 },
                 {
                     path: "/admin/sounds/:id", //ดูรายการเสียง
