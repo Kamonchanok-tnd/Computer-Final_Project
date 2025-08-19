@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Steps } from "antd";
-import Q2Q from "../../assets/Q2Q.png";
-import EmojiSad from "../../assets/2Q1.png";
-import EmojiHappy from "../../assets/2Q2.png";
-import EmotionLevel0 from "../../assets/0.png"
-import EmotionLevel1 from "../../assets/1.png"
-import EmotionLevel2 from "../../assets/2.png"
-import EmotionLevel3 from "../../assets/3.png"
-import EmotionLevel4 from "../../assets/4.png"
-import EmotionLevel5 from "../../assets/5.png"
-import EmotionLevel6 from "../../assets/6.png"
-import EmotionLevel7 from "../../assets/7.png"
-import EmotionLevel8 from "../../assets/8.png"
-import EmotionLevel9 from "../../assets/9.png"
-import EmotionLevel10 from "../../assets/10.png"
+import Q2Q from "../../assets/assessment/Q2Q.png";
+import EmojiSad from "../../assets/assessment/2Q1.png";
+import EmojiHappy from "../../assets/assessment/2Q2.png";
+import EmotionLevel0 from "../../assets/assessment/0.png"
+import EmotionLevel1 from "../../assets/assessment/1.png"
+import EmotionLevel2 from "../../assets/assessment/2.png"
+import EmotionLevel3 from "../../assets/assessment/3.png"
+import EmotionLevel4 from "../../assets/assessment/4.png"
+import EmotionLevel5 from "../../assets/assessment/5.png"
+import EmotionLevel6 from "../../assets/assessment/6.png"
+import EmotionLevel7 from "../../assets/assessment/7.png"
+import EmotionLevel8 from "../../assets/assessment/8.png"
+import EmotionLevel9 from "../../assets/assessment/9.png"
+import EmotionLevel10 from "../../assets/assessment/10.png"
 
 import { useNavigate } from "react-router-dom";
 import {

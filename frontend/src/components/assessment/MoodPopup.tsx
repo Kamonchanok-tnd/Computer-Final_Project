@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import QQ from "../../assets/QQ.png";
+import QQ from "../../assets/assessment/QQ.png";
 
 const MoodPopup: React.FC = () => {
   const navigate = useNavigate();

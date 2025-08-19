@@ -4,10 +4,15 @@ import (
 )
 type AssessmentResult struct {
 	gorm.Model
-	Date  string `json:"date"`
-	UID   uint   `json:"uid"`
-	QuID  uint   `json:"quid"`
 
-	Answers []AssessmentAnswer `gorm:"foreignKey:ARID"`
-	Transaction  Transaction        `gorm:"foreignKey:ARID"`
+	Date string `json:"date"`
+
+	UID uint `json:"uid"` // FK to Users.ID
+	QuID uint `json:"quid"` // FK to Questionnaire.ID
+
+	User          Users         `gorm:"foreignKey:UID;references:ID"`
+	Questionnaire Questionnaire `gorm:"foreignKey:QuID;references:ID"`
+
+	Answers     []AssessmentAnswer `gorm:"foreignKey:ARID;constraint:OnDelete:CASCADE"`
+	Transaction Transaction        `gorm:"foreignKey:ARID"`
 }
