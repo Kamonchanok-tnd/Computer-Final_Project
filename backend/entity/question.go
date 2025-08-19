@@ -8,6 +8,7 @@ type Question struct {
 	QuID           uint            `json:"quID"`
 	Priority       int             `json:"priority"`
 	Picture        *string         `json:"picture" gorm:"type:text;null"` 
+	
 	Questionnaire  Questionnaire   `gorm:"foreignKey:QuID" json:"questionnaire"`
 	AnswerOptions  []AnswerOption  `gorm:"foreignKey:QID;constraint:OnDelete:CASCADE;" json:"answerOptions"`
 }
