@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined} from '@ant-design/icons';
+import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined} from '@ant-design/icons';
 const { Header, Content, Sider } = Layout;
 import './index.css';
 
