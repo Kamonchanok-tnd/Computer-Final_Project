@@ -72,7 +72,7 @@ function ListSound() {
       cell: ({ row }) => row.index + 1,
     },
     {
-      header: "Preview",
+      header: "ตัวอย่างวิดีโอ",
       accessorKey: "sound",
       cell: (info) => {
   
@@ -94,7 +94,7 @@ function ListSound() {
       )},
     },
     {
-      header: "ชื่อเสียง",
+      header: "ชื่อ",
       accessorKey: "name", // หรือจะไม่ใส่ก็ได้ถ้าจะใช้ข้อมูลหลายฟิลด์ใน cell
       cell: (info) => {
         const name = info.getValue() as string;
@@ -165,7 +165,7 @@ function ListSound() {
       },
     },
     {
-      header: "Action",
+      header: "แก้ไข",
       cell: ({ row }) => (
         <div className="flex gap-2">
           <button className="text-gray-400 hover:text-gray-600  transition-all duration-500 bg-gray-100 p-2 rounded-md "
