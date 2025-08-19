@@ -13,7 +13,7 @@ import { DeletePlaylistByID, getPlaylistsByUserAndType, IMG_URL } from "../../..
 import { IBackground } from "../../../interfaces/IBackground";
 import { Dropdown, MenuProps, message } from "antd";
 import DeleteConfirmModal from "../Playlist/Component/DeleteConfirmModal";
-
+import { GetSoundPlaylistByPID } from "../../../services/https/soundplaylist";
 
 function MeditationMain() {
   const { isDarkMode } = useDarkMode();
@@ -132,8 +132,25 @@ function MeditationMain() {
   };
 
   const GotoEditPlaylist = (id: number) => {
-    navigate(`/editplaylist/${id}`);
+    navigate(`/editplaylist/${id}`); 
   };
+
+  const GotoPlaylistplayer = async (pid: number) => {
+  try {
+    // ดึงเสียงทั้งหมดใน playlist
+    const res = await GetSoundPlaylistByPID(pid);
+    if (res.length > 0) {
+      const firstSoundId = res[0].sid;
+      navigate(`/audiohome/meditation/playlist/play/${pid}/${firstSoundId}`);
+    } else {
+      message.warning("Playlist นี้ไม่มีเสียง");
+    }
+  } catch (error) {
+    console.error("Error fetching playlist sounds:", error);
+  }
+};
+
+
   async function DeletePlaylist(id: number) {
       try {
         await DeletePlaylistByID(Number(id));
@@ -235,7 +252,7 @@ function MeditationMain() {
                         className="flex items-center gap-2 font-ibmthai"
                         onClick={(e) => {
                           e.stopPropagation();
-                          GotoEditPlaylist(Number(pl.ID));
+                          GotoPlaylistplayer(Number(pl.ID)); 
                         }}
                       >
                         <Play size={16} /> เล่น
