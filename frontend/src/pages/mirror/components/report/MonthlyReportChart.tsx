@@ -82,7 +82,7 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
   };
 
   return (
-    <div className="rounded-2xl ring-1 ring-white/60 bg-white/40 backdrop-blur-md p-4">
+    <div className="mt-4 rounded-2xl ring-1 ring-white/60 bg-white/50 backdrop-blur-md p-3 sm:p-4">
       <div className={isMobile ? "h-[280px]" : "h-[360px]"}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart
