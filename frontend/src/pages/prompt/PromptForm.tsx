@@ -47,7 +47,6 @@ export default function PromptForm({
     height: 96,   // พอดีจอใหญ่
     maxHeight: 96,
     overflow: "auto",
-    resize: "none" as const,
   };
 
   return (
@@ -55,7 +54,7 @@ export default function PromptForm({
       form={form}
       layout="vertical"
       onFinish={handleSubmit}
-      className="grid gap-2"
+      className="grid gap-2 prompt-form" 
     >
       {/* ชื่อ Prompt */}
       <Form.Item name="name" className="mb-1" rules={[{ required: true }]} style={{ marginBottom: 8 }}>
@@ -69,7 +68,8 @@ export default function PromptForm({
       </Form.Item>
 
       {/* ฟิลด์หลัก: iPad/แท็บเล็ต = แถวเดียว, Desktop ใหญ่ค่อยเป็น 2 คอลัมน์ */}
-      <div className="min-h-0 grid grid-cols-1 xl:grid-cols-2 gap-3 xl:gap-4">
+
+      <div className="min-h-0 grid grid-cols-1 xl:grid-cols-2 gap-3 xl:gap-4 mr-2">
         <Form.Item label={<><AimOutlined /> วัตถุประสงค์</>} name="objective" rules={[{ required: true }]} style={{ marginBottom: 10 }}>
           <TextArea style={textAreaStyle} />
         </Form.Item>
@@ -132,7 +132,7 @@ export default function PromptForm({
           "
         >
           <PlusOutlined />
-          {editingPrompt ? "บันทึกการแก้ไข" : "บันทึก Prompt"}
+          {editingPrompt ? "บันทึกการแก้ไข" : "บันทึกพร้อมพ์"}
         </button>
       </div>
     </Form>

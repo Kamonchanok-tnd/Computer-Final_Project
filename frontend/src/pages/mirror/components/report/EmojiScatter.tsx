@@ -12,7 +12,6 @@ type Props = {
 export default function EmojiScatter({
   count,
   src,
-  seed = "seed",
   className = "",
   maxPerRow = 6,
 }: Props) {
@@ -67,7 +66,7 @@ export default function EmojiScatter({
       left: `${p.x * 100}%`,
       top: `${p.y * 100}%`,
     }));
-  }, [count, seed, maxPerRow]);
+  }, [count, maxPerRow]);
 
   if (cells.length === 0) {
     return <div className={`relative ${className}`} />;
