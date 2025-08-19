@@ -6,7 +6,6 @@ import (
 	"os"
 	"sukjai_project/entity" // เพิ่มการนำเข้า package ของ entity
 	"time"
-
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -122,6 +121,7 @@ func SetupDatabase() {
 		&entity.SoundType{},
 		&entity.Transaction{},
 		&entity.QuestionnaireGroupQuestionnaire{},
+		&entity.ArticleType{}, 
 	)
 	if err != nil {
 		log.Fatalf("Error migrating database: %v", err)
@@ -132,13 +132,15 @@ func SetupDatabase() {
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
-	SeedQuestionnaires(db)
-	SeedQuestionnaireGroups(db)
-	SeedCriteriaAndCalculations(db)
+	// SeedQuestionnaires(db)
+	// SeedQuestionnaireGroups(db)
+	// SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
+	CreateArticleTypes(db)
 	SeedEmojis(db)
 	SeedMirrorJuly2025(db)
 	SeedMirrorAug2025FirstHalf(db)
+
 }
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
@@ -813,6 +815,58 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 	}
 
 	fmt.Println("✅ Seeded Questionnaire Groups พร้อม OrderInGroup แล้ว")
+}
+
+
+// สร้างข้อมูล type ของบทความ
+func CreateArticleTypes(db *gorm.DB) {
+    // เช็คว่ามีข้อมูลประเภทบทความแล้วหรือไม่
+    var count int64
+    db.Model(&entity.ArticleType{}).Count(&count)
+
+    // ถ้ายังไม่มีข้อมูลให้สร้างประเภทบทความ
+    if count == 0 {
+        // สร้างข้อมูลประเภทบทความ
+        articleTypes := []entity.ArticleType{
+            {Name: "บทความความคิดเห็น", Description: "เน้นมุมมอง ความคิดเห็น และประสบการณ์ส่วนตัว"},
+            {Name: "บทความเชิงวิเคราะห์", Description: "วิเคราะห์เหตุการณ์ ประเด็น หรือสถานการณ์"},
+            {Name: "บทความเล่าเรื่อง", Description: "เน้นการเล่าเรื่อง ดึงดูดอารมณ์"},
+            {Name: "บทความ How-to", Description: "แนะนำวิธีการ ขั้นตอน โดยไม่ต้องอ้างอิงงานวิจัย"},
+            {Name: "บทความรีวิว", Description: "แชร์ประสบการณ์ ความรู้สึก เกี่ยวกับสินค้า บริการ"},
+            {Name: "บทความไลฟ์สไตล์", Description: "แชร์เรื่องราวเกี่ยวกับไลฟ์สไตล์"},
+            {Name: "บทความบันเทิง", Description: "แชร์ข่าวสาร เรื่องราว เกี่ยวกับวงการบันเทิง"},
+            {Name: "บทความท่องเที่ยว", Description: "แชร์ประสบการณ์ แนะนำสถานที่ท่องเที่ยว"},
+            {Name: "บทความสุขภาพ", Description: "แชร์ความรู้ ข้อมูล เกี่ยวกับสุขภาพ"},
+            {Name: "บทความการเงิน", Description: "แชร์ความรู้ ข้อมูล เกี่ยวกับการเงิน"},
+            {Name: "บทความ SEO", Description: "ดึงดูดผู้อ่านและติดอันดับบน Google"},
+            {Name: "บทความเชิงวิจารณ์", Description: "วิพากษ์วิจารณ์ผลงาน สินค้า บริการ หรือเหตุการณ์"},
+            {Name: "บทความเชิงสารคดี", Description: "นำเสนอข้อมูลเชิงลึก เจาะลึกประเด็นหรือเรื่องราว"},
+            {Name: "บทความเชิงข่าว", Description: "นำเสนอเหตุการณ์ ข่าวสาร"},
+            {Name: "บทความเชิงวิชาการ", Description: "นำเสนอผลงานวิจัย ความรู้ทางวิชาการ"},
+            {Name: "บทความเชิงกวี", Description: "เน้นการใช้ภาษา สื่ออารมณ์ ความรู้สึก"},
+            {Name: "บทความบันทึกประจำวัน", Description: "แชร์เรื่องราว ประสบการณ์ ความคิดเห็นส่วนตัว"},
+            {Name: "บทความเชิงจดหมาย", Description: "แสดงความคิดเห็นหรือเสนอแนะต่อบรรณาธิการ"},
+            {Name: "บทความเชิงสัมภาษณ์", Description: "นำเสนอการสัมภาษณ์บุคคลน่าสนใจ"},
+            {Name: "บทความเชิงเปิดเผย", Description: "เขียนเกี่ยวกับเรื่องราวส่วนตัว ประสบการณ์ ความรู้สึก"},
+            {Name: "บทความเชิงเทคโนโลยี", Description: "นำเสนอข่าวสาร ความรู้ เกี่ยวกับเทคโนโลยี"},
+            {Name: "บทความเชิงวิทยาศาสตร์", Description: "นำเสนอความรู้ ข้อมูล เกี่ยวกับวิทยาศาสตร์"},
+            {Name: "บทความเชิงปรัชญา", Description: "นำเสนอความคิด แนวคิด เกี่ยวกับปรัชญา"},
+            {Name: "บทความเชิงกฎหมาย", Description: "นำเสนอความรู้ ข้อมูล เกี่ยวกับกฎหมาย"},
+            {Name: "บทความเชิงธุรกิจ", Description: "นำเสนอความรู้ ข้อมูล เกี่ยวกับธุรกิจ"},
+            {Name: "บทความเชิงจิตวิทยา", Description: "นำเสนอความรู้ ข้อมูล เกี่ยวกับจิตวิทยา"},
+            {Name: "บทความเชิงศาสนา", Description: "นำเสนอความรู้ ข้อมูล เกี่ยวกับศาสนา"},
+            {Name: "บทความแอสเส", Description: "งานเขียนที่มักมอบหมายให้นักเรียน นักศึกษา เขียนเพื่อแสดงความคิด"},
+        }
+
+        // สร้างประเภทบทความในฐานข้อมูล
+        if err := db.Create(&articleTypes).Error; err != nil {
+            log.Fatalf("ไม่สามารถสร้างประเภทบทความ: %v", err)
+        }
+
+        fmt.Println("Article types created successfully!")
+    } else {
+        fmt.Println("Article types already exist in the database.")
+    }
 }
 
 func SeedEmojis(db *gorm.DB) {

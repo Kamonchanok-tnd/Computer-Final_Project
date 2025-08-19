@@ -112,7 +112,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
   };
 
   return (
-    <div className="bg-gradient-to-t from-[#dff5ff] to-white  w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px] 
+    <div className="bg-gradient-to-t from-[#5de2ffcf] to-white  w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px] 
     dark:text-text-dark font-ibmthai dark:bg-bg-gradient-to-t dark:from-chat-dark/20 dark:to-chat-dark/20 dark:backdrop:blur-lg
     dark:border dark:border-stoke-dark">
       {/* รูป + หัวใจ */}

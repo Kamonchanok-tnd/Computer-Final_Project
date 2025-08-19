@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-// ✅ ฟังก์ชันสำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
+// ฟังก์ชันสำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
 func DeleteQuestionnaire(c *gin.Context) {
 	id := c.Param("id")
 	db := config.DB()
 	tx := db.Begin()
 
-	fmt.Println("➡️ เริ่มลบแบบทดสอบ (Soft Delete) ID:", id)
+	fmt.Println(" เริ่มลบแบบทดสอบ (Soft Delete) ID:", id)
 
 	// 1. Soft delete คำตอบ (AnswerOption) ที่ผูกกับคำถามในแบบทดสอบนี้
 	if err := tx.Where(`
@@ -47,18 +47,18 @@ func DeleteQuestionnaire(c *gin.Context) {
 	}
 
 	tx.Commit()
-	fmt.Println("✅ ลบแบบทดสอบแบบ Soft Delete สำเร็จ ID:", id)
+	fmt.Println("ลบแบบทดสอบแบบ Soft Delete สำเร็จ ID:", id)
 	c.JSON(http.StatusOK, gin.H{"message": "ลบแบบทดสอบสำเร็จ (Soft Delete)"})
 }
 
 
-// ✅ ฟังก์ชันสำหรับลบคำถามและคำตอบ พร้อมอัปเดตจำนวนข้อ
+// ฟังก์ชันสำหรับลบคำถามและคำตอบ พร้อมอัปเดตจำนวนข้อ
 func DeleteQuestion(c *gin.Context) {
 	id := c.Param("id")
 	db := config.DB()
 	tx := db.Begin()
 
-	fmt.Println("➡️ เริ่มลบคำถามแบบ Soft Delete พร้อมคำตอบ และอัปเดตจำนวนข้อ")
+	fmt.Println("เริ่มลบคำถามแบบ Soft Delete พร้อมคำตอบ และอัปเดตจำนวนข้อ")
 
 	var question entity.Question
 	// ค้นหาคำถาม
@@ -96,13 +96,13 @@ func DeleteQuestion(c *gin.Context) {
 	}
 
 	tx.Commit()
-	fmt.Println("✅ ลบคำถาม (Soft Delete) และอัปเดตจำนวนข้อเรียบร้อย ID:", id)
+	fmt.Println("ลบคำถาม (Soft Delete) และอัปเดตจำนวนข้อเรียบร้อย ID:", id)
 	c.JSON(http.StatusOK, gin.H{"message": "ลบคำถามเรียบร้อยแล้ว"})
 }
 
 
 
-// ✅ ฟังก์ชันลบคำตอบจากคำถาม
+// ฟังก์ชันลบคำตอบจากคำถาม
 func DeleteAnswer(c *gin.Context) {
     answerId := c.Param("id")
     var answer entity.AnswerOption

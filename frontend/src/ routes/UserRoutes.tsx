@@ -9,7 +9,7 @@ import MeditationMain from "../pages/secondary function/meditation/meditation";
 import ChatSpace from "../pages/Chat-space/chat";
 
 import MirrorPage from "../pages/mirror/MirrorPage";
-import MonthlyOverviewPage from "../pages/mirror/MonthlyReport.tsx";
+import MonthlyOverviewPage from "../pages/mirror/MonthlyOverviewPage";
 import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
 
@@ -28,6 +28,8 @@ import ChantingMain from "../pages/secondary function/chanting/chatingMain";
 import Playermediameditation from "../pages/secondary function/meditation/playermeditation/playmedia";
 import AddSoundPlaylistMeditation from "../pages/secondary function/meditation/editplaylistmeditation/editplaylistmeditation";
 import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
+
+import UserMessagePage from "../pages/secondary function/message/userMessagePage";
 
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
@@ -129,6 +131,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           ),
         },
 
+        {
+          path: "/message", // เส้นทางสำหรับหน้า message
+          element: isLoggedIn ? <UserMessagePage/> : <Navigate to="/" />,
+        },
         //assessment
         {
           path: "/assessment", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์

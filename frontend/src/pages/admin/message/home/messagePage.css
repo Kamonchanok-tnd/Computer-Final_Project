@@ -1,0 +1,134 @@
+/*  Container หลัก */
+.message-page-container {
+  padding: 40px;
+  background-color: #f9fafa;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/*  ส่วนหัว */
+.message-page-header {
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/*  หัวข้อใหญ่ */
+.message-page-title {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  gap: 16px;
+}
+
+/*  ไอคอน */
+.message-page-icon {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/*  ปุ่มสร้างบทความ */
+.message-create-btn {
+  font-size: 18px;
+  padding: 6px 20px;
+  font-weight: 600 !important;
+  background-color: #87CDFA;  /* สีพื้นหลังปุ่ม */
+  border-color: #87CDFA;  /* สีกรอบปุ่ม */
+  border-radius: 6px;
+  color: #000;  /* สีตัวอักษรในปุ่ม */
+}
+
+.message-create-btn:hover,
+.message-create-btn:focus {
+  background-color: #85bee1 !important;  /* สีพื้นหลังเมื่อ hover */
+  border-color: #85bee1 !important;  /* สีกรอบเมื่อ hover */
+  color: #000 !important;  /* สีตัวอักษรเมื่อ hover */
+}
+
+/*  ตาราง - เฉพาะในหน้าของ message-page */
+.message-page-container .message-page-table .ant-table {
+  margin-top: 20px;
+  background-color: #ffffff; /* กำหนดพื้นหลังของตาราง */
+  border-collapse: collapse;  /* รวมเส้นขอบไม่ให้ทับซ้อน */
+}
+
+.message-page-container .message-page-table .ant-table th {
+  text-align: center !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  color: #000; /* สีตัวอักษรใน header */
+  background-color: #87CDFA !important; /* สีพื้นหลังใน header */
+  border-top: 1px solid #dcdcdc;  /* เพิ่มเส้นขอบด้านบน */
+}
+
+.message-page-container .message-page-table .ant-table td {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000; /* สีตัวอักษรในแถวข้อมูล */
+  border-top: 1px solid #dcdcdc;  /* เพิ่มเส้นขอบด้านบน */
+}
+
+/* กำหนดเส้นขอบระหว่างแถว */
+.message-page-container .message-page-table .ant-table-row {
+  border-bottom: 1px solid #f0f0f0; /* เส้นขอบระหว่างแถว */
+}
+
+/*  ปุ่มลบและแก้ไขในตาราง */
+.message-page-container .message-page-table .ant-btn-danger {
+  margin-right: 10px;
+}
+
+/*  ปรับเส้นขอบในตาราง */
+.message-page-container .message-page-table .ant-table-bordered th,
+.message-page-container .message-page-table .ant-table-bordered td {
+  border-right: none !important; /* ลบเส้นขอบระหว่างคอลัมน์ */
+}
+
+/*  ปรับเส้นขอบของคอลัมน์สุดท้าย */
+.message-page-container .message-page-table .ant-table-bordered td:last-child,
+.message-page-container .message-page-table .ant-table-bordered th:last-child {
+  border-right: none; /* ลบเส้นขอบที่ขวาสุดของตาราง */
+}
+
+/*  กำหนดการเลื่อนในตาราง */
+.message-page-container .message-page-table .ant-table-body {
+  overflow-x: auto;  /* เลื่อนตารางในแนวนอนได้ถ้าข้อมูลเยอะ */
+}
+
+/*  ปุ่มแก้ไขสีฟ้า */
+.ant-btn-primary {
+  background-color: #87CDFA !important;  /* สีพื้นหลังของปุ่มแก้ไข */
+  border-color: #87CDFA !important;  /* สีกรอบของปุ่มแก้ไข */
+  color: #000 !important;  /* สีตัวอักษรในปุ่มแก้ไข */
+}
+
+.ant-btn-primary:hover {
+  background-color: #85bee1 !important;  /* สีพื้นหลังเมื่อ hover */
+  border-color: #85bee1 !important;  /* สีกรอบเมื่อ hover */
+  color: #000 !important;  /* สีตัวอักษรเมื่อ hover */
+}
+
+/*  ปุ่มลบสีแดง */
+.ant-btn-dangerous {
+  background-color: #ff4d4f !important;  /* สีพื้นหลังของปุ่มลบ */
+  color: #fff !important;  /* สีตัวอักษรในปุ่มลบ */
+}
+
+.ant-btn-dangerous:hover {
+  background-color: #ff7875 !important;  /* สีพื้นหลังเมื่อ hover */
+  color: #fff !important;  /* สีตัวอักษรเมื่อ hover */
+}
+
+/*  หัวตาราง */
+.message-page-container .message-page-table .ant-table th {
+  text-align: center !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  color: #fff !important;  /* สีตัวอักษรใน header */
+  background-color: #87CDFA !important;  /* สีพื้นหลังใน header */
+  border-top: 1px solid #dcdcdc;  /* เพิ่มเส้นขอบด้านบน */
+}

@@ -20,6 +20,9 @@ import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
 import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
 import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
 import ListSound from "../pages/admin/Listsound/Listsound";
+import MessagePage from "../pages/admin/message/home/messagePage";
+import EditMessagePage from "../pages/admin/message/edit/editMesagePage";
+import CreateMessagePage from "../pages/admin/message/create/createMessagePage";
 import EditSound from "../pages/admin/meditation/editSound";
 
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
@@ -89,6 +92,22 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     element: <ListSound/>,
                 },
                 
+                {
+                    path :"/admin/listsound",
+                    element: <ListSound/>
+                },
+                {
+                    path :"/admin/messagePage",
+                    element: <MessagePage/>
+                },
+                {
+                    path :"/admin/createMessagePage",
+                    element: <CreateMessagePage/>
+                },
+                   {
+                    path :"/admin/editMessagePage",
+                    element: <EditMessagePage/>
+                },
                 {
                     path: "/admin/sounds/:id", //ดูรายการเสียง
                     element: <EditSound/>,

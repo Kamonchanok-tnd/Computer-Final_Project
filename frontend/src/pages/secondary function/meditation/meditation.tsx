@@ -258,81 +258,81 @@ function MeditationMain() {
                   },
                 ]
 
-                return(
-                <div
-                  key={pl.ID}
-                  className="group bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
-                dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark"
-                  onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
-                >
-                  <img
-                    className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
-                    src={
-                      pl.Background && pl.Background.Picture
-                        ? `${IMG_URL}${pl.Background.Picture}`
-                        : `${IMG_URL}defaultPlaylist.png`
-                    }
-                    alt={pl.name}
-                  />
-                  <div className="h-full w-full flex items-center justify-start">
-                    <p className="text-basic-text font-bold truncate">{pl.name}</p>
-                  </div>
-                  <Dropdown menu={{ items }} trigger={["click"]}  overlayClassName="custom-dropdown">
-                  <button className="mr-4 cursor-pointer h-full  "
-                   onClick={(e) => {
-                    e.stopPropagation();
-                  }}>
-                    <EllipsisVertical size={20}  />
-                  </button>
-                </Dropdown>
-                <DeleteConfirmModal
-                  open={openDeletePlaylist}
-                  onConfirm={() => DeletePlaylist(Number(pl.ID))}
-                  onCancel={() => setOpenDeletePlaylist(false)}
-                  loading={loading}
-                />
-                </div>
-              )})}
-            </div>
-          </div>
-        )}
+        //         return(
+        //         <div
+        //           key={pl.ID}
+        //           className="group bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
+        //         dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark"
+        //           onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
+        //         >
+        //           <img
+        //             className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
+        //             src={
+        //               pl.Background && pl.Background.Picture
+        //                 ? `${IMG_URL}${pl.Background.Picture}`
+        //                 : `${IMG_URL}defaultPlaylist.png`
+        //             }
+        //             alt={pl.name}
+        //           />
+        //           <div className="h-full w-full flex items-center justify-start">
+        //             <p className="text-basic-text font-bold truncate">{pl.name}</p>
+        //           </div>
+        //           <Dropdown menu={{ items }} trigger={["click"]}  overlayClassName="custom-dropdown">
+        //           <button className="mr-4 cursor-pointer h-full  "
+        //            onClick={(e) => {
+        //             e.stopPropagation();
+        //           }}>
+        //             <EllipsisVertical size={20}  />
+        //           </button>
+        //         </Dropdown>
+        //         <DeleteConfirmModal
+        //           open={openDeletePlaylist}
+        //           onConfirm={() => DeletePlaylist(Number(pl.ID))}
+        //           onCancel={() => setOpenDeletePlaylist(false)}
+        //           loading={loading}
+        //         />
+        //         </div>
+        //       )})}
+        //     </div>
+        //   </div>
+        // )}
 
-        {/* 🎵 Breathing Playlist */}
-        {playlist && breathingPlaylists.length > 0 && (
-          <div className="font-ibmthai">
-            <h1 className="text-xl text-basic-text mb-4 dark:text-text-dark">เพลยลิสต์ฝึกลมหายใจของฉัน</h1>
-            <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
-              {breathingPlaylists.map((pl) => {
-                 const items: MenuProps["items"] = [
-                  {
-                    key: "play",
-                    label: (
-                      <div
-                        className="flex items-center gap-2 font-ibmthai"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          GotoEditPlaylist(Number(pl.ID));
-                        }}
-                      >
-                        <Play size={16} /> เล่น
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "delete",
-                    label: (
-                      <div className="flex items-center gap-2 font-ibmthai"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenDeletePlaylist(true);
-                      }}
-                      >
-                        <Trash2 size={16} /> ลบ
-                      </div>
-                    ),
-                    danger: true,
-                  },
-                ]
+        // 🎵 Breathing Playlist
+        // {playlist && breathingPlaylists.length > 0 && (
+        //   <div className="font-ibmthai">
+        //     <h1 className="text-xl text-basic-text mb-4 dark:text-text-dark">เพลยลิสต์ฝึกลมหายใจของฉัน</h1>
+        //     <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+        //       {breathingPlaylists.map((pl) => {
+        //          const items: MenuProps["items"] = [
+        //           {
+        //             key: "play",
+        //             label: (
+        //               <div
+        //                 className="flex items-center gap-2 font-ibmthai"
+        //                 onClick={(e) => {
+        //                   e.stopPropagation();
+        //                   GotoEditPlaylist(Number(pl.ID));
+        //                 }}
+        //               >
+        //                 <Play size={16} /> เล่น
+        //               </div>
+        //             ),
+        //           },
+        //           {
+        //             key: "delete",
+        //             label: (
+        //               <div className="flex items-center gap-2 font-ibmthai"
+        //               onClick={(e) => {
+        //                 e.stopPropagation();
+        //                 setOpenDeletePlaylist(true);
+        //               }}
+        //               >
+        //                 <Trash2 size={16} /> ลบ
+        //               </div>
+        //             ),
+        //             danger: true,
+        //           },
+        //         ]
 
                 return  (
                 <div
