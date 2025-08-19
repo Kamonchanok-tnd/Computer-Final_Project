@@ -26,6 +26,8 @@ import { Sound } from "../../../interfaces/ISound";
 import { CustomPlaylist, CustomSoundPlaylist } from "../Playlist/Playlist";
 import { GetPlaylistByID } from "../../../services/https/playlist";
 import { GetSoundPlaylistByPID } from "../../../services/https/soundplaylist";
+import { IHistory } from "../../../interfaces/IHistory";
+import { CreateHistory } from "../../../services/https/history";
 
 declare global {
   interface Window {
@@ -72,6 +74,17 @@ function PlayerPlaylist() {
   const realId = Number(id);
   const uid = Number(localStorage.getItem("id"));
   const [hasCountedView, setHasCountedView] = useState(false); //เอาไว้เพิ่ม view
+
+    async function addHistory(sid:number) {
+      try {
+        const data:IHistory = { sid: sid, uid: Number(uid) }
+         await CreateHistory(data)
+      }catch (error) {
+        console.error('Error sending rating:', error);
+       
+      }
+     
+    }
   
   async function addView(sid:number) {
      try {
@@ -173,6 +186,7 @@ function PlayerPlaylist() {
                   if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
                     // นับ view แล้วส่ง API
                     addView(realId);
+                    addHistory(realId);
                     setHasCountedView(true);
                     clearInterval(checkView);
                   }
@@ -180,13 +194,7 @@ function PlayerPlaylist() {
               }, 1000);
             }
           
-            if (event.data === 0) { // วิดีโอจบ
-              if (isRepeat) {
-                playerRef.current.playVideo();
-              } else {
-                handleNext();
-              }
-            }
+            handleStateChange(event);
           },
           onPlaybackQualityChange: (event: any) => {
             setQuality(event.data);
@@ -200,7 +208,20 @@ function PlayerPlaylist() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoId, isRepeat]);
+  }, [videoId]);
+
+  function handleStateChange(event: any) {
+    setIsPlaying(event.data === 1);
+
+    if (event.data === 0) {
+      // วิดีโอจบ
+      if (isRepeat) {
+        playerRef.current.playVideo(); // เล่นซ้ำ
+      } else {
+        handleNext();
+      }
+    }
+  }
 
   useEffect(() => {
     if (!isReady) return;
@@ -304,9 +325,9 @@ function PlayerPlaylist() {
   };
 
   return (
-    <div className="flex flex-col min-h-full duration-300 items-center bg-background-blue dark:bg-background-dark ">
+    <div className="flex flex-col min-h-full overflow-y-auto scrollbar-hide duration-300 items-center bg-background-blue dark:bg-background-dark ">
       <div className="sm:mt-4   sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
-      dark:bg-box-dark duration-300 bg-transparent md:rounded-xl">
+      dark:bg-box-dark duration-300 bg-transparent md:rounded-xl font-ibmthai">
         {/* Grid Layout - ปรับให้ responsive ดีขึ้น */}
         <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2   h-[88vh]">
           {/* Main Player Section */}

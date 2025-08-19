@@ -77,8 +77,7 @@ function AddSoundPlaylist() {
   const [selectedID , setSelectedID] = useState<number | null>(null);
   const [allPicture, setAllPicture] = useState<IBackground[]>([]);
 
-  const [openDeletePlaylist, setOpenDeletePlaylist] = useState(false);
-  const [loading, setLoading] = useState(false);
+
  
   async function DeleteSoundPlaylist(id: number) {
     try {
@@ -258,28 +257,9 @@ function AddSoundPlaylist() {
   }
 }
 
- async function DeletePlaylist() {
-    try {
-      await DeletePlaylistByID(Number(p_id));
-      message.success("ลบเพลย์ลิสต์แล้ว");
-      setTimeout(() => {
-        navigate("/audiohome/chanting");
-      })
-      
-    } catch (error) {
-      console.error("Error deleting playlist:", error);
-      message.error("เกิดข้อผิดพลาดในการลบเพลย์ลิสต์");
-    }finally{
-      setLoading(false);
-      setOpenDeletePlaylist(false)
-    }
-  }
-
-  
-  
 
   return (
-    <div className="flex flex-col  min-h-full max-h-fit duration-300 items-center bg-background-blue dark:bg-background-dark ">
+    <div className="font-ibmthai flex flex-col  min-h-full max-h-fit duration-300 items-center bg-background-blue dark:bg-background-dark ">
       <div
         className={`sm:mt-2 sm:py-4 px:2 py-2 px-1 sm:px-8 sm:w-[95%] w-full  flex flex-col gap-8 dark:border-stoke-dark dark:bg-[linear-gradient(180deg,_#1e293b_0%,_#0f172a_100%)] duration-300
             bg-transparent  sm:rounded-xl  min-h-[90vh] max-h-fit `}
@@ -377,7 +357,7 @@ function AddSoundPlaylist() {
 
    
     {!showPreview ? (
-       <Tooltip placement="top" title="เปลี่ยนภาพพื้นหลัง" color="#5DE2FF">
+       <Tooltip placement="top" title={<span className="font-ibmthai text-[14px]">เปลี่ยนภาพพื้นหลัง</span>} color="#5DE2FF">
       <button
         className="dark:text-text-dark dark:hover:bg-midnight-blue dark:hover:text-button-blue transition-colors duration-300
          p-2 rounded-full hover:bg-background-button hover:text-blue-word"
@@ -403,21 +383,7 @@ function AddSoundPlaylist() {
         </button>
       </div>
     )}
-       <Tooltip placement="top" title="ลบเพลยลิสต์" color="#5DE2FF">
-        <button 
-          className="dark:text-text-dark text-basic-text hover:text-red-600 hover:bg-red-600/10
-       p-2 
-      dark:hover:bg-red-600/20 duration-300 transition-colors rounded-full"
-          onClick={() => setOpenDeletePlaylist(true)}>
-          <Trash2 size={20}/>
-        </button>
-        </Tooltip>
-        <DeleteConfirmModal
-        open={openDeletePlaylist}
-        onConfirm={DeletePlaylist}
-        onCancel={() => setOpenDeletePlaylist(false)}
-        loading={loading}
-      />
+    
    
   </div>
 </div>

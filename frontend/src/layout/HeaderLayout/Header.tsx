@@ -87,6 +87,7 @@ function Headers() {
             backgroundColor: isDarkMode ? '#0F172A' : '#fff',
             boxShadow:isDarkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0px 4px 4px rgba(0, 0, 0, 0.02)',
             padding: '0 24px',
+            fontFamily: "var(--font-ibmthai)",
           }}
         >
           <div className='flex gap-4'>

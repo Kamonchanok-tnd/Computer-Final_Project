@@ -15,9 +15,9 @@ interface ChantingContentProps {
 
 function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingContentProps) {
     return  (
-        <div>
-        <h1 className="text-xl  text-basic-text mb-4 dark:text-text-dark">สวดมนต์</h1>
-        <div className="grid lg:grid-cols-6 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+        <div className="font-ibmthai">
+        <h1 className="text-xl  text-basic-text mb-4 dark:text-text-dark  ">สวดมนต์</h1>
+        <div className="grid lg:grid-cols-6 sm:grid-cols-3 md:grid-cols-4 grid-cols-1 sm:gap-2 gap-2  px-4 sm:px-0">
           {filteredSounds?.map((sound) => {
             const videoId = extractYouTubeID(sound.sound!);
             const thumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
@@ -51,28 +51,28 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
             return (
               <div
                 key={sound.ID}
-                className="bg-white w-full h-60 rounded-xl group  text-basic-text border-gray-200 border 
+                className="bg-white w-full h-fit rounded-xl group  text-basic-text border-gray-200 border 
                 dark:text-text-dark dark:bg-transparent dark:border-stoke-dark "
               >
-                <div className="h-[70%]  w-full rounded-2xl relative ">
+                <div className="h-auto  w-full rounded-2xl relative ">
                   <img
                     src={thumbnail}
                     alt=""
                     className="w-full h-full object-center rounded-t-xl"
                   />
 
-                  <button onClick={() => gotoSound(Number(sound.ID))} className="absolute bottom-[-20px]  right-3 w-12 h-12 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white
-             opacity-0 scale-75 translate-y-1
+                  <button onClick={() => gotoSound(Number(sound.ID))} className="absolute bottom-[-25px] sm:button-[-20]  right-3 w-15 sm:w-12 sm:h-12 h-15 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white
+             opacity-100 sm:opacity-0 scale-75 translate-y-1
              group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0
              transition-all duration-300 ease-out btn-glow-play">
                     <Play className="text-white" />
                   </button>
                   <div
                   onClick={handleLike}
-                  className="absolute top-3 right-3 w-8 h-8 bg-white flex items-center justify-center rounded-full shadow-md hover:scale-105 duration-300 cursor-pointer"
+                  className="absolute top-3 right-3 w-10 h-10 bg-white flex items-center justify-center rounded-full shadow-md hover:scale-105 duration-300 cursor-pointer"
                 >
                   <Heart
-                    className={`h-4 w-4 transition-all duration-300 ${isLiked ? "text-red-500" : "text-gray-400"}`}
+                    className={`h-5 w-5 transition-all duration-300 ${isLiked ? "text-red-500" : "text-gray-400"}`}
                     fill={isLiked ? "currentColor" : "none"}
                   />
                 </div>

@@ -5,6 +5,9 @@
   }
 
 /* Modal container */
+.custom-dropdown{
+  font-family: var(--font-ibmthai) !important;
+}
 /* Light mode */
 .custom-dropdown .ant-dropdown-menu {
   background-color: #f9fafb; /* ตัวอย่างสี background light */
@@ -40,7 +43,7 @@
 
 .custom-dropdown .ant-dropdown-menu-item:hover {
   background-color: #e5e7eb; /* สีพื้นหลังตอน hover */
-  color: #1d4ed8; /* เปลี่ยนสีตัวหนังสือตอน hover */
+  color: #5DE2FF; /* เปลี่ยนสีตัวหนังสือตอน hover */
 }
 
 /* Dark mode */
