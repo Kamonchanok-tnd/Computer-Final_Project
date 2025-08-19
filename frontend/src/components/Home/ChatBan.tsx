@@ -15,15 +15,15 @@ function ChatBan() {
         <div className="flex flex-col items-start">
           <p className="text-3xl font-ibmthai text-[#1F1F22] text-wrap">
             <span
-              className="font-ibmthai-bold bg-clip-text text-transparent 
+              className="font-ibmthai-bold font-extrabold bg-clip-text text-transparent 
                      bg-gradient-to-r to-[#5D7285] from-[#2196F3]"
             >
               SUT SUKJAI{" "}
-            </span>
+            </span >
             ไม่ใช่แค่บอท แต่คือเพื่อนที่คุณวางใจได้ <br />
             เพราะ
             <span
-              className="font-ibmthai-bold bg-clip-text text-transparent 
+              className="font-ibmthai-bold font-extrabold bg-clip-text text-transparent 
                      bg-gradient-to-r to-[#5D7285] from-[#2196F3]"
             >
               {" "}

@@ -9,7 +9,7 @@ import MeditationMain from "../pages/secondary function/meditation/meditation";
 import ChatSpace from "../pages/Chat-space/chat";
 
 import MirrorPage from "../pages/mirror/MirrorPage";
-import MonthlyOverviewPage from "../pages/mirror/MonthlyReport.tsx";
+import MonthlyOverviewPage from "../pages/mirror/MonthlyOverviewPage";
 import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
 

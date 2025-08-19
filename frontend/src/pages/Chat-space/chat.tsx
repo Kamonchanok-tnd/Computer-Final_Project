@@ -226,7 +226,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   }
 
   return (
-    <div className={`min-h-[calc(100vh-64px)] transition-colors duration-300 overflow-auto 
+    <div className={`min-h-[calc(100vh-64px)] transition-colors duration-300 overflow-auto font-ibmthai
        flex justify-center items-center sm:px-4 
       ${
       isDarkMode 

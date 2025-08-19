@@ -811,10 +811,10 @@ func SeedEmojis(db *gorm.DB) {
     db.Model(&entity.Emotion{}).Count(&count)
     if count == 0 {
         emojis := []entity.Emotion{
-            {Mood: "ยิ้ม", Picture: "happy.png"},
+            {Mood: "มีความสุข", Picture: "happy.png"},
             {Mood: "โกรธ", Picture: "grumpy.png"},
             {Mood: "เศร้า", Picture: "sad.png"},
-            {Mood: "เฉยๆ", Picture: "neutral.png"},
+            {Mood: "เฉย ๆ", Picture: "neutral.png"},
         }
         if err := db.Create(&emojis).Error; err != nil {
             log.Fatalf("ไม่สามารถ seed emoji: %v", err)
