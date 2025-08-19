@@ -2,10 +2,9 @@ import { Questionnaire } from "../../../interfaces/IQuestionnaire";
 import { Question } from "../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../interfaces/IAnswerOption";
 
-
 const apiUrl = "http://localhost:8000";
 
-// ✅ ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
+// ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
 export const getAllQuestionnaires = async (): Promise<Questionnaire[]> => {
     try {
         const token = localStorage.getItem("token");
@@ -41,7 +40,7 @@ export const getAllQuestionnaires = async (): Promise<Questionnaire[]> => {
 };
 
 
-//  ✅ ฟังก์ชันสำหรับสร้างแบบทดสอบ
+// ฟังก์ชันสำหรับสร้างแบบทดสอบ
 export const createQuestionnaire = async (questionnaireData: Questionnaire) => {
   try {
     const response = await fetch(`${apiUrl}/createQuestionnaires`, {
@@ -65,7 +64,7 @@ export const createQuestionnaire = async (questionnaireData: Questionnaire) => {
 
 
 
-// ✅ ฟังก์ชันสำหรับสร้างคำถามตัวเลือกของคำถาม
+// ฟังก์ชันสำหรับสร้างคำถามตัวเลือกของคำถาม
 export interface QuestionWithAnswers {
   question: Question;
   answers: AnswerOption[];
@@ -80,14 +79,14 @@ export const createQuestions = async (questions: QuestionWithAnswers[]) => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token || ""}`,
     },
-    body: JSON.stringify(questions), // ✅ priority จะถูกส่งมาด้วย
+    body: JSON.stringify(questions), // priority จะถูกส่งมาด้วย
   });
   if (!response.ok) throw new Error(`Error: ${response.status}`);
   return response.json();
 };
 
 
-// ✅ ฟังก์ชันสำหรับดึงผู้ใช้งานทั้งหมด
+// ฟังก์ชันสำหรับดึงผู้ใช้งานทั้งหมด
 export const getAllUsers = async () => {
   const token = localStorage.getItem("token");
   const response = await fetch(`${apiUrl}/users`, {
@@ -100,7 +99,7 @@ export const getAllUsers = async () => {
 };
 
 
-// ✅ ฟังก์ชันสำหรับลบแบบทดสอบ (พร้อมคำถามทั้งหมด)
+// ฟังก์ชันสำหรับลบแบบทดสอบ (พร้อมคำถามทั้งหมด)
 export const deleteQuestionnaire = async (id: number) => {
   const token = localStorage.getItem("token");
   const response = await fetch(`${apiUrl}/deletequestionnaire/${id}`, {
@@ -119,7 +118,7 @@ export const deleteQuestionnaire = async (id: number) => {
 };
 
 
-// ✅ ฟังก์ชันสำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตค่าจำนวนข้อ
+// ฟังก์ชันสำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตค่าจำนวนข้อ
 export const deleteQuestion = async (id: number) => {
   const token = localStorage.getItem("token");
 
@@ -143,7 +142,7 @@ export const deleteQuestion = async (id: number) => {
   }
 };
 
-// ✅ ฟังก์ชันสำหรับลบคำตอบ
+// ฟังก์ชันสำหรับลบคำตอบ
 export const deleteAnswer = async (
   id: number
 ): Promise<any> => {
@@ -185,14 +184,14 @@ export const getQuestionnaireById = async (id: number): Promise<Questionnaire> =
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("❌ Server Response:", response.status, errText);
+      console.error(" Server Response:", response.status, errText);
       throw new Error(`Error: ${response.status}`);
     }
 
     const rawData = await response.json();
     console.log("📦 rawData จาก backend:", rawData);
 
-    // ✅ แปลงข้อมูลจาก backend ให้ตรงกับ interface
+    // แปลงข้อมูลจาก backend ให้ตรงกับ interface
     const questionnaire: Questionnaire = {
       id: rawData.ID,
       nameQuestionnaire: rawData.NameQuestionnaire,
@@ -204,13 +203,14 @@ export const getQuestionnaireById = async (id: number): Promise<Questionnaire> =
         nameQuestion: q.nameQuestion,
         quID: q.quID,
         priority: q.priority,
-        picture: q.picture || null, // ✅ เพิ่มตรงนี้
+        picture: q.picture || null, 
         answers: (q.answerOptions ?? []).map((a: any) => ({
           id: a.ID,
           description: a.description,
           point: a.point,
         })),
       })),
+      groups: []
     };
 
     return questionnaire;
@@ -222,13 +222,13 @@ export const getQuestionnaireById = async (id: number): Promise<Questionnaire> =
 
 
 
-// ✅ ฟังก์ชันสำหรับอัปเดตแบบทดสอบพร้อมคำถามและตัวเลือก
+// ฟังก์ชันสำหรับอัปเดตแบบทดสอบพร้อมคำถามและตัวเลือก
 export const updateQuestionnaire = async (id: number, data: any) => {
   try {
     const token = localStorage.getItem("token");
 
     const response = await fetch(`${apiUrl}/updatequestionnaire/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token || ""}`,

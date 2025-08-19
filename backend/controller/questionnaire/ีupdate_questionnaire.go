@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// ✅ ดึงข้อมูลแบบทดสอบพร้อมคำถามและตัวเลือก
+// ดึงข้อมูลแบบทดสอบพร้อมคำถามและตัวเลือก
 func GetQuestionnaire(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
@@ -34,7 +34,7 @@ func GetQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusOK, questionnaire)
 }
 
-// ✅ Request Struct
+// Request Struct
 type UpdateQuestionnaireRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -42,7 +42,7 @@ type UpdateQuestionnaireRequest struct {
 		ID           *uint   `json:"id"`
 		NameQuestion string  `json:"nameQuestion"`
 		Priority     int     `json:"priority"`
-		Picture      *string `json:"picture"` // ✅ รองรับ null หรือ Base64
+		Picture      *string `json:"picture"` // รองรับ null หรือ Base64
 		Answers      []struct {
 			ID          *uint  `json:"id"`
 			Description string `json:"description"`
@@ -51,7 +51,7 @@ type UpdateQuestionnaireRequest struct {
 	} `json:"questions"`
 }
 
-// ✅ ฟังก์ชันอัปเดตแบบสอบถาม
+// ฟังก์ชันอัปเดตแบบสอบถาม
 func UpdateQuestionnaire(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -71,7 +71,7 @@ func UpdateQuestionnaire(c *gin.Context) {
 		return
 	}
 
-	// ✅ อัปเดตข้อมูลหลัก
+	// อัปเดตข้อมูลหลัก
 	questionnaire.NameQuestionnaire = req.Name
 	questionnaire.Description = req.Description
 	config.DB().Save(&questionnaire)
@@ -79,15 +79,15 @@ func UpdateQuestionnaire(c *gin.Context) {
 	var keepQuestionIDs []uint
 	var keepAnswerIDs []uint
 
-	// ✅ อัปเดตคำถามและคำตอบ
+	// อัปเดตคำถามและคำตอบ
 	for _, q := range req.Questions {
 		var question entity.Question
 		if q.ID != nil {
-			// ✅ แก้คำถามเดิม
+			// แก้คำถามเดิม
 			if err := config.DB().First(&question, *q.ID).Error; err == nil {
 				question.NameQuestion = q.NameQuestion
 				question.Priority = q.Priority
-				// ✅ ตรวจสอบว่า picture เป็น null หรือไม่
+				// ตรวจสอบว่า picture เป็น null หรือไม่
 				if q.Picture != nil {
 					question.Picture = q.Picture // ถ้ามีรูปใหม่ ให้เก็บ Base64
 				} else {
@@ -101,11 +101,11 @@ func UpdateQuestionnaire(c *gin.Context) {
 				keepQuestionIDs = append(keepQuestionIDs, question.ID)
 			}
 		} else {
-			// ✅ เพิ่มคำถามใหม่
+			// เพิ่มคำถามใหม่
 			question = entity.Question{
 				NameQuestion: q.NameQuestion,
 				Priority:     q.Priority,
-				Picture:      q.Picture, // ✅ รองรับรูปใหม่หรือ null
+				Picture:      q.Picture, // รองรับรูปใหม่หรือ null
 				QuID:         questionnaire.ID,
 			}
 			config.DB().Create(&question)
@@ -117,7 +117,7 @@ func UpdateQuestionnaire(c *gin.Context) {
             config.DB().Save(&questionnaire) // อัปเดตจำนวนข้อในแบบทดสอบ
 		}
 
-		// ✅ จัดการตัวเลือก
+		// จัดการตัวเลือก
 		for _, a := range q.Answers {
 			var answer entity.AnswerOption
 			if a.ID != nil {
@@ -139,7 +139,7 @@ func UpdateQuestionnaire(c *gin.Context) {
 		}
 	}
 
-	// ✅ ลบคำถามที่หายไป
+	// ลบคำถามที่หายไป
 	var oldQuestions []entity.Question
 	config.DB().Where("qu_id = ?", questionnaire.ID).Find(&oldQuestions)
 	for _, oldQ := range oldQuestions {
@@ -148,7 +148,7 @@ func UpdateQuestionnaire(c *gin.Context) {
 		}
 	}
 
-	// ✅ ลบคำตอบที่หายไป
+	// ลบคำตอบที่หายไป
 	var oldAnswers []entity.AnswerOption
 	config.DB().Joins("JOIN questions ON questions.id = answer_options.q_id").
 		Where("questions.qu_id = ?", questionnaire.ID).
@@ -159,7 +159,7 @@ func UpdateQuestionnaire(c *gin.Context) {
 		}
 	}
 
-	// ✅ ดึงข้อมูลล่าสุดส่งกลับ
+	// ดึงข้อมูลล่าสุดส่งกลับ
 	config.DB().Preload("Questions.AnswerOptions").First(&questionnaire, id)
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "Update successful",

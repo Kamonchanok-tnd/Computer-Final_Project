@@ -23,7 +23,7 @@
 }
 
 
-/* ✅ Scrollbar เฉพาะใน Box */
+/* Scrollbar เฉพาะใน Box */
 .form-step-question-container .form-step-question-box::-webkit-scrollbar {
   width: 8px;
 }
@@ -34,7 +34,7 @@
   background: #f0f0f0;
 }
 
-/* ✅ Typography เฉพาะใน Container */
+/* Typography เฉพาะใน Container */
 .form-step-question-container .form-step-question-box,
 .form-step-question-container .ant-input,
 .form-step-question-container .ant-input-number,
@@ -46,7 +46,7 @@
   font-weight: 500;
 }
 
-/* ✅ ปุ่มปกติ */
+/* ปุ่มปกติ */
 .form-step-question-container .ant-btn:not(.ant-btn-dangerous) {
   background-color: #87CEFA !important;
   color: #000 !important;
@@ -55,26 +55,26 @@
   border-radius: 8px !important;
 }
 
-/* ✅ ปุ่มปกติ Hover */
+/* ปุ่มปกติ Hover */
 .form-step-question-container .ant-btn:not(.ant-btn-dangerous):hover {
   background-color: #85bee1 !important;
 }
 
-/* ✅ ปุ่มลบ */
+/* ปุ่มลบ */
 .form-step-question-container .ant-btn.ant-btn-dangerous {
   background-color: #ff4d4f !important;
   color: #fff !important;
   border-radius: 8px !important;
 }
 
-/* ✅ ปุ่มลบ Hover */
+/* ปุ่มลบ Hover */
 .form-step-question-container .ant-btn.ant-btn-dangerous:hover {
   background-color: #ff7875 !important;
   transform: scale(1.05);
   transition: all 0.2s ease-in-out;
 }
 
-/* ✅ Upload Box */
+/* Upload Box */
 .form-step-question-container .full-upload .ant-upload.ant-upload-select-picture-card,
 .form-step-question-container .full-upload .ant-upload-list-picture-card-container,
 .form-step-question-container .full-upload .ant-upload-list-item {
@@ -89,7 +89,7 @@
   object-fit: cover;
 }
 
-/* ✅ เพิ่มสไตล์สำหรับไอคอนคำถาม */
+/* เพิ่มสไตล์สำหรับไอคอนคำถาม */
 .form-step-question-container .panel-header-icon {
   width: 24px;
   height: 24px;

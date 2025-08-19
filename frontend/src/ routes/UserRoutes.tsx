@@ -29,6 +29,8 @@ import Playermediameditation from "../pages/secondary function/meditation/player
 import AddSoundPlaylistMeditation from "../pages/secondary function/meditation/editplaylistmeditation/editplaylistmeditation";
 import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
 
+import UserMessagePage from "../pages/secondary function/message/userMessagePage";
+
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
   lazy(() => import("../pages/users/edit_user/edituser"))
@@ -129,6 +131,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           ),
         },
 
+        {
+          path: "/message", // เส้นทางสำหรับหน้า message
+          element: isLoggedIn ? <UserMessagePage/> : <Navigate to="/" />,
+        },
         //assessment
         {
           path: "/assessment", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์

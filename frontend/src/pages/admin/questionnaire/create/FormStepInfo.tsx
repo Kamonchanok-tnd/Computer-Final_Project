@@ -23,6 +23,7 @@ const FormStepInfo: React.FC = () => {
       quantity: values.quantity,
       uid,
       questions: [],
+      groups: []  // เพิ่มบรรทัดนี้เพื่อรวม 'groups' ที่ขาดหายไป
     };
 
     try {
@@ -47,13 +48,13 @@ const FormStepInfo: React.FC = () => {
 
   return (
     <div className="form-step-info-container">
-      {/* ✅ หัวข้อ */}
+      {/* หัวข้อ */}
       <h3 className="form-step-info-title">
         สร้างแบบทดสอบ
       </h3>
 
       <Form layout="vertical" form={form} onFinish={handleFinish} className="form-step">
-        {/* ✅ ชื่อแบบทดสอบ */}
+        {/* ชื่อแบบทดสอบ */}
         <Form.Item className="form-input-questionnaire"
           label={
             <span className="form-label">
@@ -66,7 +67,7 @@ const FormStepInfo: React.FC = () => {
           <Input placeholder="กรอกชื่อแบบทดสอบ เช่น แบบทดสอบคณิตศาสตร์" style={{height : "45px", fontSize:"24px"}} />
         </Form.Item>
 
-        {/* ✅ คำอธิบาย */}
+        {/* คำอธิบาย */}
         <Form.Item
           label={
             <span className="form-label">
@@ -79,7 +80,7 @@ const FormStepInfo: React.FC = () => {
           <Input.TextArea placeholder="อธิบายรายละเอียดของแบบทดสอบ"  style={{height : "200px",fontSize:"24px"}} /> 
         </Form.Item>
 
-        {/* ✅ จำนวนคำถาม */}
+        {/* จำนวนคำถาม */}
         <Form.Item
           label={
             <span className="form-label">
@@ -92,7 +93,7 @@ const FormStepInfo: React.FC = () => {
           <InputNumber min={1} className="input-quantity" />
         </Form.Item>
 
-        {/* ✅ ปุ่มตรงกลาง */}
+        {/* ปุ่มตรงกลาง */}
         <Form.Item>
           <div className="questionnaire-button-wrapper">
             <Button className="questionnaire-cancle-btn" htmlType="button" onClick={() => navigate(-1)}>

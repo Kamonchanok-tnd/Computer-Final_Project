@@ -1,29 +1,52 @@
 import React, { useEffect, useState } from "react";
-import {Button,Modal,Row,Col,Spin,Alert,Table,message,Space,Input,Select,} from "antd";
-import { DeleteOutlined, SettingOutlined } from "@ant-design/icons";
-import {getAllQuestionnaires,deleteQuestionnaire,getAllUsers,} from "../../../../services/https/questionnaire";
+import { Button, Modal, Row, Col, Spin, Alert, Table, message, Space, Input, Select } from "antd";
+import { DeleteOutlined, SettingOutlined, SearchOutlined } from "@ant-design/icons";
+import { getAllQuestionnaires, deleteQuestionnaire, getAllUsers } from "../../../../services/https/questionnaire";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import manageIcon from "../../../../assets/manage.png";
 import "./questionnairePage.css";
 
-const { Search } = Input;
 const { Option } = Select;
 
 const QuestionnairePage: React.FC = () => {
+  // antd toast
+  const [msgApi, contextHolder] = message.useMessage();
+
+  // states
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
   const [filteredQuestionnaires, setFilteredQuestionnaires] = useState<Questionnaire[]>([]);
   const [loadingQuestionnaires, setLoadingQuestionnaires] = useState(true);
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedToDelete, setSelectedToDelete] = useState<Questionnaire | null>(null);
-  const [isDeleteSuccessModalVisible, setIsDeleteSuccessModalVisible] = useState(false);
 
   const [usersMap, setUsersMap] = useState<Record<number, string>>({});
   const [searchText, setSearchText] = useState<string>("");
+
   const [sortOption, setSortOption] = useState<string>("default");
 
   const navigate = useNavigate();
+  const location = useLocation() as unknown as {
+    state?: { flash?: { type: "success" | "error"; content: string } };
+  };
+
+  // รับ flash จากหน้าสร้าง/แก้ไข แล้วแสดง toast ครั้งเดียว
+  useEffect(() => {
+    const flash = location.state?.flash;
+    if (flash) {
+      // ใช้ window.history เพื่อล้างสถานะ flash หลังจากการแสดงผลเพื่อไม่ให้แสดงซ้ำ
+      if (!window.history.state?.flash) {
+        if (flash.type === "success") {
+          msgApi.success(flash.content);
+        } else {
+          msgApi.error(flash.content);
+        }
+        window.history.replaceState({ flash }, document.title, window.location.pathname + window.location.search);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   useEffect(() => {
     loadQuestionnaires();
@@ -32,10 +55,16 @@ const QuestionnairePage: React.FC = () => {
 
   const loadQuestionnaires = async () => {
     setLoadingQuestionnaires(true);
-    const data = await getAllQuestionnaires();
-    setQuestionnaires(data);
-    setFilteredQuestionnaires(data);
-    setLoadingQuestionnaires(false);
+    try {
+      const data = await getAllQuestionnaires();
+      setQuestionnaires(data);
+      setFilteredQuestionnaires(data);
+    } catch (err) {
+      msgApi.error("เกิดข้อผิดพลาดในการโหลดแบบทดสอบ");
+      console.error(err);
+    } finally {
+      setLoadingQuestionnaires(false);
+    }
   };
 
   const loadUsers = async () => {
@@ -48,6 +77,7 @@ const QuestionnairePage: React.FC = () => {
       setUsersMap(map);
     } catch (error) {
       console.error("โหลดข้อมูลผู้ใช้ล้มเหลว:", error);
+      msgApi.error("โหลดข้อมูลผู้ใช้ล้มเหลว");
     }
   };
 
@@ -67,10 +97,10 @@ const QuestionnairePage: React.FC = () => {
     try {
       await deleteQuestionnaire(selectedToDelete.id!);
       setDeleteModalVisible(false);
-      setIsDeleteSuccessModalVisible(true);
+      msgApi.success("ลบแบบทดสอบเรียบร้อยแล้ว!");
       await loadQuestionnaires();
     } catch (error) {
-      message.error("เกิดข้อผิดพลาดในการลบ");
+      msgApi.error("เกิดข้อผิดพลาดในการลบ");
     }
   };
 
@@ -80,35 +110,37 @@ const QuestionnairePage: React.FC = () => {
     filterAndSort(value, sortOption);
   };
 
-  const onSearch = (value: string) => {
-    filterAndSort(value, sortOption);
-  };
-
   const filterAndSort = (searchValue: string, sortKey: string) => {
-    let data = [...questionnaires];
+  let data = [...questionnaires];
 
-    if (searchValue.trim() !== "") {
-      data = data.filter((q) => {
-        const userName = usersMap[q.uid] || "";
-        return (
-          q.nameQuestionnaire.toLowerCase().includes(searchValue.toLowerCase()) ||
-          userName.toLowerCase().includes(searchValue.toLowerCase())
-        );
-      });
-    }
+  // ฟิลเตอร์ตามคำค้น
+  if (searchValue.trim() !== "") {
+    data = data.filter((q) => {
+      const userName = usersMap[q.uid] || "";
+      return (
+        q.nameQuestionnaire.toLowerCase().includes(searchValue.toLowerCase()) ||
+        userName.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    });
+  }
 
-    if (sortKey === "nameAsc") {
-      data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire));
-    } else if (sortKey === "nameDesc") {
-      data.sort((a, b) => b.nameQuestionnaire.localeCompare(a.nameQuestionnaire));
-    } else if (sortKey === "quantityAsc") {
-      data.sort((a, b) => a.quantity - b.quantity);
-    } else if (sortKey === "quantityDesc") {
-      data.sort((a, b) => b.quantity - a.quantity);
-    }
+  // เรียงลำดับตามที่เลือก
+  if (sortKey === "nameAsc") {
+    data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire));
+  } else if (sortKey === "nameDesc") {
+    data.sort((a, b) => b.nameQuestionnaire.localeCompare(a.nameQuestionnaire));
+  } else if (sortKey === "quantityAsc") {
+    data.sort((a, b) => a.quantity - b.quantity);
+  } else if (sortKey === "quantityDesc") {
+    data.sort((a, b) => b.quantity - a.quantity);
+  } else if (sortKey === "idAsc") {
+    data.sort((a, b) => (a.id ?? 0) - (b.id ?? 0)); // ใช้ `??` เพื่อตรวจสอบ undefined และกำหนดค่าเป็น 0 ถ้าเป็น undefined
+  } else if (sortKey === "idDesc") {
+    data.sort((a, b) => (b.id ?? 0) - (a.id ?? 0)); // ใช้ `??` เพื่อตรวจสอบ undefined และกำหนดค่าเป็น 0 ถ้าเป็น undefined
+  }
 
-    setFilteredQuestionnaires(data);
-  };
+  setFilteredQuestionnaires(data);
+};
 
   const handleSortChange = (value: string) => {
     setSortOption(value);
@@ -116,6 +148,12 @@ const QuestionnairePage: React.FC = () => {
   };
 
   const questionnaireColumns = [
+    {
+      title: "ลำดับ",
+      dataIndex: "id",
+      key: "id",
+      align: "center" as const,
+    },
     {
       title: "ชื่อแบบทดสอบ",
       dataIndex: "nameQuestionnaire",
@@ -147,15 +185,8 @@ const QuestionnairePage: React.FC = () => {
       align: "center" as const,
       render: (_: any, record: Questionnaire) => (
         <Space>
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => showDeleteModal(record)}
-          />
-          <Button
-            icon={<SettingOutlined />}
-            onClick={() => handleEdit(record)}
-          />
+          <Button icon={<SettingOutlined />} onClick={() => handleEdit(record)} />
+          <Button danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)} />
         </Space>
       ),
     },
@@ -163,62 +194,61 @@ const QuestionnairePage: React.FC = () => {
 
   return (
     <div className="questionnaire-page-container">
+      {/* สำหรับแสดง antd message */}
+      {contextHolder}
+
       <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
         <Col>
           <h2
             className="questionnaire-page-title"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              fontSize: "24px",
-              fontWeight: 700
-            }}
+            style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "24px", fontWeight: 700 }}
           >
-            <img
-              src={manageIcon}
-              alt="manage icon"
-              style={{ width: 50, height: 50, objectFit: "contain" }}
-            />
+            <img src={manageIcon} alt="manage icon" style={{ width: 50, height: 50, objectFit: "contain" }} />
             จัดการแบบทดสอบ
           </h2>
         </Col>
-        <Col>
-          <Button
-            className="questionnaire-create-btn"
-            type="primary"
-            onClick={() => navigate("/admin/createQuestionnaire")}
-          >
-            สร้างแบบทดสอบ
-          </Button>
-        </Col>
+        <Row gutter={16}>
+          <Col>
+            <Button
+              className="questionnaire-create-btn"
+              type="primary"
+              onClick={() => navigate("/admin/createQuestionnaire")}
+            >
+              จัดการลำดับ
+            </Button>
+          </Col>
+          <Col>
+            <Button
+              className="questionnaire-create-btn"
+              type="primary"
+              onClick={() => navigate("/admin/createQuestionnaire")}
+            >
+              + สร้าง
+            </Button>
+          </Col>
+        </Row>
       </Row>
 
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col span={8}>
-          <Search
+          <Input
             placeholder="ค้นหาแบบทดสอบหรือผู้สร้าง..."
-            allowClear
-            enterButton="ค้นหา"
             size="large"
             value={searchText}
             onChange={handleSearchChange}
-            onSearch={onSearch}
-            className="questionnaire-search"
+            addonBefore={<SearchOutlined />}
+            allowClear
           />
         </Col>
         <Col span={6}>
-          <Select
-            value={sortOption}
-            onChange={handleSortChange}
-            size="large"
-            style={{ width: "100%" }}
-          >
+          <Select value={sortOption} onChange={handleSortChange} size="large" style={{ width: "100%" }}>
             <Option value="default">เรียงลำดับ</Option>
             <Option value="nameAsc">ชื่อแบบทดสอบ (A → Z)</Option>
             <Option value="nameDesc">ชื่อแบบทดสอบ (Z → A)</Option>
             <Option value="quantityAsc">จำนวนข้อ (น้อย → มาก)</Option>
             <Option value="quantityDesc">จำนวนข้อ (มาก → น้อย)</Option>
+            <Option value="idAsc">ID (น้อย → มาก)</Option>
+            <Option value="idDesc">ID (มาก → น้อย)</Option>
           </Select>
         </Col>
       </Row>
@@ -253,21 +283,9 @@ const QuestionnairePage: React.FC = () => {
         className="questionnaire-modal"
       >
         <p>คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบ?</p>
-        <p style={{ fontWeight: "bold", fontSize: "18px",  textAlign: "center", color: "#cf1322" }}>
+        <p style={{ fontWeight: "bold", fontSize: "18px", textAlign: "center", color: "#cf1322" }}>
           {selectedToDelete?.nameQuestionnaire}
         </p>
-      </Modal>
-
-      <Modal
-        title="ลบแบบทดสอบเรียบร้อยแล้ว"
-        open={isDeleteSuccessModalVisible}
-        onOk={() => setIsDeleteSuccessModalVisible(false)}
-        onCancel={() => setIsDeleteSuccessModalVisible(false)}
-        okText="ตกลง"
-        centered
-        className="questionnaire-modal"
-      >
-        <p style={{ textAlign: "center" }}>ลบข้อมูลแบบทดสอบเรียบร้อยแล้ว!</p>
       </Modal>
     </div>
   );

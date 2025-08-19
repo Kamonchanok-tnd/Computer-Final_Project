@@ -16,7 +16,7 @@
 
 
 
-/* ✅ หัวข้อ */
+/* หัวข้อ */
 .form-step-info-container .form-step-info-title {
   display: flex;
   align-items: center;
@@ -27,7 +27,7 @@
   color: #333;
 }
 
-/* ✅ ฟอร์มกึ่งกลาง */
+/* ฟอร์มกึ่งกลาง */
 .form-step-info-container .form-step {
   display: flex;
   flex-direction: column;
@@ -43,7 +43,7 @@
   
 }
 
-/* ✅ Label */
+/* Label */
 .form-step-info-container .form-label {
   display: flex;
   align-items: center;
@@ -53,7 +53,7 @@
   
 }
 
-/* ✅ Input */
+/* Input */
 .form-step-info-container .ant-input-number {
   font-size: 20px;
  
@@ -61,7 +61,7 @@
 }
 
 
-/* ✅ ปุ่มกลางหน้า */
+/* ปุ่มกลางหน้า */
 .form-step-info-container .questionnaire-button-wrapper {
   display: flex;
   justify-content: center; /* กลางแนวนอน */
@@ -70,7 +70,7 @@
   gap: 16px;
 }
 
-/* ✅ ปุ่มสไตล์เหมือนเดิม */
+/* ปุ่มสไตล์เหมือนเดิม */
 .form-step-info-container .questionnaire-create-btn {
   background-color: #87CEFA !important; /* ฟ้าอ่อน */
   color: #000 !important;
@@ -100,13 +100,13 @@
 
 }
 
-/* ✅ Hover Effect */
+/* Hover Effect */
 .form-step-info-container .questionnaire-create-btn:hover {
   background-color: #85bee1 !important; /* เขียวอ่อน */
   transform: scale(1.03);
 }
 
-/* ✅ Hover Effect */
+/* Hover Effect */
 .form-step-info-container .questionnaire-cancle-btn:hover {
   background-color: #ff7875 !important; /* เขียวอ่อน */
   transform: scale(1.03);

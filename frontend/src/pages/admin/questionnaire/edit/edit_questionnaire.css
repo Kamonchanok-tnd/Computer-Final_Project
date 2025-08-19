@@ -57,7 +57,7 @@ html, body {
   margin-bottom: 16px;
 }
 
-/* ✅ ปุ่มปกติ (ไม่ใช่ปุ่มลบ) = ฟ้า */
+/* ปุ่มปกติ (ไม่ใช่ปุ่มลบ) = ฟ้า */
 .edit-questionnaire-box .ant-btn:not(.ant-btn-dangerous) {
   background-color: #87CEFA !important;
   color: #000 !important;
@@ -66,13 +66,13 @@ html, body {
   border-radius: 8px;
 }
 
-/* ✅ ปุ่มปกติ hover = เขียว */
+/* ปุ่มปกติ hover = เขียว */
 .edit-questionnaire-box .ant-btn:not(.ant-btn-dangerous):hover {
   background-color: #85bee1 !important;
   color: #000 !important;
 }
 
-/* ✅ ปุ่มลบ = แดง */
+/* ปุ่มลบ = แดง */
 .edit-questionnaire-box .ant-btn.ant-btn-dangerous {
   background-color: #ff4d4f !important;
   color: #fff !important;
@@ -80,7 +80,7 @@ html, body {
   border-radius: 8px;
 }
 
-/* ✅ ปุ่มลบ hover = แดงอ่อน + ขยาย */
+/* ปุ่มลบ hover = แดงอ่อน + ขยาย */
 .edit-questionnaire-box .ant-btn.ant-btn-dangerous:hover {
   background-color: #ff7875 !important; /* แดงอ่อน */
   color: #fff !important;
@@ -88,7 +88,7 @@ html, body {
   transition: all 0.2s ease-in-out;
 }
 
-/* ✅ Layout ส่วนต่างๆ */
+/* Layout ส่วนต่างๆ */
 .bottom-buttons {
   margin-top: 24px;
   display: flex;
@@ -170,7 +170,7 @@ html, body {
   text-align: left;
 }
 
-/* ✅ Upload ขนาดใหญ่ */
+/* Upload ขนาดใหญ่ */
 .full-upload .ant-upload.ant-upload-select-picture-card,
 .full-upload .ant-upload-list-picture-card-container,
 .full-upload .ant-upload-list-item {
@@ -187,3 +187,36 @@ html, body {
   width: 450px !important;
   height: 280px !important;
 }
+
+/* ปุ่มดูรูปพรีวิวใช้สีเดียวกับปุ่มทั่วไป */
+.preview-btn {
+  background-color: #87CEFA !important;
+  color: #000 !important;
+  border: none !important;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* ปุ่มดูรูปพรีวิว hover ใช้สีเขียว */
+.preview-btn:hover {
+  background-color: #85bee1 !important;
+  color: #000 !important;
+}
+
+/* ปุ่มลบรูปใช้สีแดงตามปุ่มลบ */
+.delete-btn {
+  background-color: #ff4d4f !important;
+  color: #fff !important;
+  border: none !important;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* ปุ่มลบรูป hover ใช้สีแดงอ่อน */
+.delete-btn:hover {
+  background-color: #ff7875 !important; 
+  color: #fff !important;
+  transform: scale(1.05);
+  transition: all 0.2s ease-in-out;
+}
+

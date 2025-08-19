@@ -22,6 +22,7 @@ import (
 	"sukjai_project/controller/soundplaylist"
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/users"
+    "sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/middlewares"
 
 	// "fmt"
@@ -96,6 +97,7 @@ func main() {
         router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
         router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
         router.GET("/admin/prompt/:id", prompt.GetPromptByID)
+
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
         router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
@@ -106,11 +108,18 @@ func main() {
         router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
 
         router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)                // route สำหรับดึงค่าเก่าเเบบทดสอบ 
-        router.PUT("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)          // route สำหรับเเก้ไขเเบบทดสอบ 
+        router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)        // route สำหรับเเก้ไขเเบบทดสอบ 
 
         router.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
 
-        
+        //Healing mesage route
+        router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)           // route ดึงบทความทั้งหมด
+        router.POST("/createwordhealingmessage", wordhealingmessage.CreateWordHealingMessages)          // route สำหรับสร้างบทความ (WordHealingMesasage)
+        router.DELETE("/deletewordhealingmessage/:id", wordhealingmessage.DeleteWordHealingContent)     // route สำหรับลบบทความ (WordHealingMesasage)
+        router.GET("/getwordhealingmessage/:id", wordhealingmessage.GetWordHealingMessage)              // route สำหรับดึงค่าเก่าบทความ
+        router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)      // route สำหรับเเก้ไขเเบบบทความ
+        router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                               // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
+
 
         router.POST("/videos", meditation.CreateVideo)
         router.GET("/sound-types", meditation.GetSoundTypes)
@@ -173,6 +182,12 @@ func main() {
         userRouter.DELETE("/mirror/:id", mirror.DeleteMirror)
         userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
         userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
+
+        userRouter.GET("/getallwordhealingmessageforuser", wordhealingmessage.GetAllWordhealingmessagesForUser)    // route ดึงบทความทั้งหมดโดย user
+        userRouter.POST("/wordhealing/like/:wid", wordhealingmessage.LikeMessage)                                  // route บันทึกการถูกใจบทความโดย user
+        userRouter.DELETE("/wordhealing/like/:wid", wordhealingmessage.UnlikeMessage)                              // route บันทึกการยกเลิกถูกใจบทความโดย user
+        userRouter.GET("/getuserlikedMessages", wordhealingmessage.GetUserLikedMessages)                           // route ดึงบทความที่ถูกใจ user
+
         userRouter.POST("/sounds/:id/like", sounds.LikeSound)
         userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
         userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
@@ -210,6 +225,9 @@ func main() {
         userRouter.POST("/new-chat", controller.CreateChatRoom)
         userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
         // userRouter.GET("/recent", controller.GetRecentChat)
+
+
+
     }
 
     r.GET("/", func(c *gin.Context) {
