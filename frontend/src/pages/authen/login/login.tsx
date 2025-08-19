@@ -472,62 +472,71 @@ export default function SignInPages() {
           </div>
 
 
-          {/* ฟอร์มล็อกอิน */}
-          <div className="flex flex-col gap-5">
-            <div className="relative bg-white rounded-md shadow-sm">
-              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-ibmthai " />
-              <input
-                type="email"
-                placeholder="อีเมล"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="border border-gray-300 rounded-md p-3 pl-10 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
+          
+<form
+  onSubmit={(e) => {
+    e.preventDefault(); // ป้องกันการรีเฟรชหน้า
+    handleLogin();
+  }}
+  className="flex flex-col gap-5"
+>
+  <div className="relative bg-white rounded-md shadow-sm">
+    <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-ibmthai " />
+    <input
+      type="email"
+      placeholder="อีเมล"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      className="border border-gray-300 rounded-md p-3 pl-10 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+      required
+    />
+  </div>
 
-            <div className="relative bg-white rounded-md shadow-sm">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-ibmthai" />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="รหัสผ่าน"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="border border-gray-300 rounded-md p-3 pl-10 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FiEye /> : <FiEyeOff />}
-              </button>
-            </div>
+  <div className="relative bg-white rounded-md shadow-sm">
+    <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-ibmthai" />
+    <input
+      type={showPassword ? "text" : "password"}
+      placeholder="รหัสผ่าน"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      className="border border-gray-300 rounded-md p-3 pl-10 w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+      required
+    />
+    <button
+      type="button"
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? <FiEye /> : <FiEyeOff />}
+    </button>
+  </div>
 
-            <div className="flex justify-between items-center text-xs md:text-sm text-gray-500 font-ibmthai">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={staySignedIn}
-                  onChange={() => setStaySignedIn(!staySignedIn)}
-                />
-                จำฉันไว้ในระบบ
-              </label>
-              <button
-                className="text-blue-900 hover:underline"
-                onClick={() => navigate("/forgot-password")}
-              >
-                ลืมรหัสผ่าน?
-              </button>
-            </div>
+  <div className="flex justify-between items-center text-xs md:text-sm text-gray-500 font-ibmthai">
+    <label className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={staySignedIn}
+        onChange={() => setStaySignedIn(!staySignedIn)}
+      />
+      จำฉันไว้ในระบบ
+    </label>
+    <button
+      type="button"
+      className="text-blue-900 hover:underline"
+      onClick={() => navigate("/forgot-password")}
+    >
+      ลืมรหัสผ่าน?
+    </button>
+  </div>
 
-            <button
-              onClick={handleLogin}
-              className="bg-blue-600 font-ibmthai text-white py-3 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={!email || !password}
-            >
-              เข้าสู่ระบบ
-            </button>
-          </div>
+  <button
+    type="submit"
+    className="bg-blue-600 font-ibmthai text-white py-3 rounded-md hover:bg-blue-700 disabled:opacity-50"
+    disabled={!email || !password}
+  >
+    เข้าสู่ระบบ
+  </button>
+</form>
 
           <p className="text-center font-ibmthai text-gray-500 mt-6 text-sm md:text-base">
             ยังไม่มีบัญชี?{" "}
