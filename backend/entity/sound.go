@@ -14,6 +14,7 @@ type Sound struct {
 	Duration   float64 `json:"duration"`
 	LikeSound uint  `gorm:"default:0" json:"like_sound"`
 	View      uint  `gorm:"default:0" json:"view"`
+	Score  		float64  `gorm:"default:0" json:"score"`
 	STID      uint    `json:"stid"`  // Foreign key สำหรับ SoundType 
 	UID       uint     `json:"uid"` // Foreign key สำหรับ Users
 

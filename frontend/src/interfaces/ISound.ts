@@ -1,5 +1,5 @@
 export interface Sound {
-    id?: number;
+    ID?: number;
     name?: string;
     sound?: string;
     lyric?: string;
@@ -11,3 +11,5 @@ export interface Sound {
     stid?: number;
     uid?: number;
 }
+
+export type PanelType = 'background' | 'sound' | 'timer' | null;

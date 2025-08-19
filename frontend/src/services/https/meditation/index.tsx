@@ -3,9 +3,9 @@ import axios from 'axios';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 // ฟังก์ชันในการดึงข้อมูลเสียงประเภทสมาธิ
-export const getMeditationSounds = async () => {
+export const getMeditationSounds = async (uid: number) => {
     try {
-        const response = await axios.get(`${apiUrl}/sounds/meditation`, {
+        const response = await axios.get(`${apiUrl}/sounds/meditation?uid=${uid}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`  // ถ้าคุณใช้ JWT token ในการยืนยันตัวตน
             }

@@ -25,12 +25,74 @@ func CreatePlaylist(c*gin.Context){
 	c.JSON(http.StatusOK, playlist)
 }	
 
+func GetPlaylistsByUserAndType(c *gin.Context) {
+	db := config.DB()
+
+	var playlists []entity.Playlist
+
+	// รับ uid และ stid จาก query parameter
+	uid := c.Query("uid")
+	stid := c.Query("stid")
+
+	if uid == "" || stid == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "uid and stid are required"})
+		return
+	}
+
+	// ดึง playlists ตาม uid และ stid
+	if err := db.Preload("Users").
+		Preload("Background").
+		Preload("Sounds").
+		Preload("SoundType").
+		Where("uid = ? AND st_id = ?", uid, stid).
+		Find(&playlists).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch playlists"})
+		return
+	}
+
+	c.JSON(http.StatusOK, playlists)
+}
+
+
+
+
 func GetPlaylistByUID(c*gin.Context){
 	id := c.Param("uid")
 	db := config.DB()
-	var playlist []entity.Playlist
+	var playlist []PlaylistWithBackground
 
-	err := db.Where("uid = ?", id).Find(&playlist).Error
+	err := db.Table("playlists").
+	Select("playlists.id, playlists.name, playlists.uid, playlists.b_id, backgrounds.picture").
+	Joins("LEFT JOIN backgrounds ON playlists.b_id = backgrounds.id").
+	Where("playlists.uid = ? AND playlists.deleted_at IS NULL", id).
+	Scan(&playlist).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get playlist"})
+		return
+	} 
+
+	c.JSON(http.StatusOK, playlist)
+}
+
+
+type PlaylistWithBackground struct {
+	entity.Playlist
+	Picture string `json:"picture"`
+}
+
+func GetPlaylistByID(c *gin.Context) {
+	id := c.Param("id")
+	db := config.DB()
+
+	var playlist PlaylistWithBackground
+
+	err := db.Table("playlists").
+		Select("playlists.name, playlists.uid, playlists.b_id, backgrounds.picture").
+		Joins("LEFT JOIN backgrounds ON playlists.b_id = backgrounds.id").
+		Where("playlists.id = ? AND playlists.deleted_at IS NULL", id).
+		Scan(&playlist).Error
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get playlist"})
 		return

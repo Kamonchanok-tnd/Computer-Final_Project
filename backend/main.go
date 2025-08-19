@@ -5,16 +5,21 @@ import (
 	"net/http"
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
-
+	history "sukjai_project/controller/History"
 	"sukjai_project/controller/admin"
 	"sukjai_project/controller/assessment"
+	"sukjai_project/controller/background"
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
+	"sukjai_project/controller/emotion"
 	"sukjai_project/controller/meditation"
+	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
 	"sukjai_project/controller/prompt"
 	"sukjai_project/controller/questionnaire"
 	"sukjai_project/controller/resettoken"
+	"sukjai_project/controller/reviewsound"
+	"sukjai_project/controller/soundplaylist"
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/users"
     "sukjai_project/controller/wordhealingmessage"
@@ -64,6 +69,9 @@ func main() {
 
     // Auth Routes
     r.Static("/BgImage", "./images/background")
+    r.Static("/images/emoji", "./images/emoji")
+
+
     r.POST("/signup", users.SignUp)
     r.POST("/signin", users.SignIn)
     r.POST("/forgot-password", users.ForgotPasswordController)
@@ -87,9 +95,8 @@ func main() {
         router.GET("/admin/prompt", prompt.GetAllPrompts)
         router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
         router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
-        router.POST("/admin/prompt/use/:id", prompt.UsePrompt)
-        router.GET("/admin/prompt/:id", prompt.GetPromptByID)  
-
+        router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
+        router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
         router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
@@ -122,12 +129,32 @@ func main() {
         router.PATCH("/Sound/Update/:id",sounds.EditSound)
         router.DELETE("/Sound/Delete/:id",sounds.DeleteSoundByID)
         router.GET("/sounds/type/:typeID", sounds.GetSoundsByType)
+
+        //review sound
+        router.POST("/ReviewSound", reviewsound.CreateReview)
+        router.PATCH("/UpdateReviewSound", reviewsound.UpdateReview)
+        router.GET("/ReviewSound/:uid/:sid", reviewsound.CheckReview)
         
         //Playlist
         router.POST("/Playlist", playlist.CreatePlaylist)
         router.GET("/Playlist/:uid", playlist.GetPlaylistByUID)
+        router.GET("/PlaylistByID/:id", playlist.GetPlaylistByID)
         router.DELETE("/Playlist/:id", playlist.DeletePlaylistByID)
         router.PATCH("/Playlist/:id", playlist.EditPlaylistByID)
+
+        //SoundPlaylist
+        router.POST("/CreateSoundPlaylist", soundplaylist.CreateSoundPlaylist)
+        router.GET("/SoundPlaylistByPID/:pid", soundplaylist.GetSoundPlaylistByPID)
+        router.DELETE("/DeleteSoundPlaylist/:id", soundplaylist.DeleteSoundPlaylistByID)
+        router.GET("/CheckFirstSoundPlaylist/:pid", soundplaylist.GetTopSoundPlaylistByPID)
+        router.DELETE("/DeleteSoundPlaylistByPID/:pid", soundplaylist.DeleteSoundPlaylistByPID)
+
+
+        //Background
+        router.GET("/Background", background.GetBackground)
+
+        //history
+        router.POST("/History", history.CreateHistory)
      
         
         // Routes for superadmin only
@@ -135,6 +162,7 @@ func main() {
         router.DELETE("/admin/:id", admin.DeleteAdmin)
         router.PUT("/admin/:id", admin.EditAdmin)
         router.POST("/create-admin", admin.CreateAdmin)
+
     }
 
     userRouter := r.Group("/")
@@ -143,12 +171,30 @@ func main() {
         userRouter.Use(middlewares.Authorizes("user"))
         userRouter.GET("/user/:id", users.Get)
         userRouter.PUT("/user/:id", users.Update)
+
+        userRouter.GET("/emotions", emotion.GetEmotions)
+        userRouter.GET("/emotions/:id", emotion.GetEmotionByID)
+        // routes/mirror.go หรือที่คุณ register route
+        userRouter.GET("/mirror/summary", mirror.GetMonthlySummary)
+        userRouter.POST("/mirror", mirror.CreateMirror)
+        userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
+        userRouter.PUT("/mirror/:id", mirror.UpdateMirror)
+        userRouter.DELETE("/mirror/:id", mirror.DeleteMirror)
         userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
         userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
+
         userRouter.GET("/getallwordhealingmessageforuser", wordhealingmessage.GetAllWordhealingmessagesForUser)    // route ดึงบทความทั้งหมดโดย user
         userRouter.POST("/wordhealing/like/:wid", wordhealingmessage.LikeMessage)                                  // route บันทึกการถูกใจบทความโดย user
         userRouter.DELETE("/wordhealing/like/:wid", wordhealingmessage.UnlikeMessage)                              // route บันทึกการยกเลิกถูกใจบทความโดย user
         userRouter.GET("/getuserlikedMessages", wordhealingmessage.GetUserLikedMessages)                           // route ดึงบทความที่ถูกใจ user
+
+        userRouter.POST("/sounds/:id/like", sounds.LikeSound)
+        userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
+        userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
+
+        //playlist
+        userRouter.GET("/playlists", playlist.GetPlaylistsByUserAndType)
+
 
         //assessment
         router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)

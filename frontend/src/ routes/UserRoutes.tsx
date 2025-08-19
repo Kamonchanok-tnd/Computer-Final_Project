@@ -7,21 +7,34 @@ import BreathingPage from "../pages/secondary function/breathing/breath";
 import MeditationMain from "../pages/secondary function/meditation/meditation";
 
 import ChatSpace from "../pages/Chat-space/chat";
+
+import MirrorPage from "../pages/mirror/MirrorPage";
+import MonthlyOverviewPage from "../pages/mirror/MonthlyOverviewPage";
 import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
-
 
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result";
 import MoodPopup from "../components/assessment/MoodPopup";
+import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
-import ChatingMain from "../pages/secondary function/chanting/chatingMain";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
+import AddSoundPlaylist from "../pages/secondary function/Playlist/Playlist";
+import MeditationPage from "../pages/secondary function/meditation/meditation";
+// import Playermediameditation from "../pages/secondary function/meditation/playermedia/playmedia";
+import Player from "../pages/secondary function/playermedia/player";
+import PlayerPlaylist from "../pages/secondary function/playermedia/playerPlaylist";
+import ChantingMain from "../pages/secondary function/chanting/chatingMain";
+import Playermediameditation from "../pages/secondary function/meditation/playermeditation/playmedia";
+import AddSoundPlaylistMeditation from "../pages/secondary function/meditation/editplaylistmeditation/editplaylistmeditation";
+import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
 
 import UserMessagePage from "../pages/secondary function/message/userMessagePage";
 
 // Lazy load หน้า EditProfile และ Home
-const EditProfile = Loadable(lazy(() => import("../pages/users/edit_user/edituser")));
+const EditProfile = Loadable(
+  lazy(() => import("../pages/users/edit_user/edituser"))
+);
 const Home = Loadable(lazy(() => import("../pages/homeuser/homeuser")));
 
 const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
@@ -54,17 +67,30 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
           path: "/audiohome/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <MeditationMain /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
-        
+
+        {
+          path: "/audiohome/asmr",
+          element: isLoggedIn ? <ASMRApp /> : <Navigate to="/" />,
+        },
+
         {
           path: "/chat/new", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <ChatSpace isNewChatDefault={true}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+          element: isLoggedIn ? (
+            <ChatSpace isNewChatDefault={true} />
+          ) : (
+            <Navigate to="/" />
+          ), // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
         {
           path: "/chat/:chatroom_id", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <ChatSpace isNewChatDefault={false}/> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+          element: isLoggedIn ? (
+            <ChatSpace isNewChatDefault={false} />
+          ) : (
+            <Navigate to="/" />
+          ), // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
         {
-          path: "/chat/voice-chat/:id", 
+          path: "/chat/voice-chat/:id",
           element: isLoggedIn ? <VoiceChat /> : <Navigate to="/" />,
         },
         {
@@ -73,27 +99,55 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         },
         {
           path: "/audiohome/chanting",
-          element: isLoggedIn ? <ChatingMain /> : <Navigate to="/" />,
+          element: isLoggedIn ? <ChantingMain /> : <Navigate to="/" />,
         },
+        {
+          path: "/audiohome/chanting/play/:id",
+          element: isLoggedIn ? <Player /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/chanting/playlist/play/:pid/:id",
+          element: isLoggedIn ? <PlayerPlaylist /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/Playlist/:id",
+          element: isLoggedIn ? <AddSoundPlaylist /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/meditation/play/:ID",
+          element: isLoggedIn ? <Playermediameditation /> : <Navigate to="/" />,
+        },
+
+        {
+          path: "/playmediameditation/:ID",
+          element: isLoggedIn ? <Playermediameditation /> : <Navigate to="/" />,
+        },
+        {
+          path: "/editplaylist/:id",
+          element: isLoggedIn ? (
+            <AddSoundPlaylistMeditation />
+          ) : (
+            <Navigate to="/" />
+          ),
+        },
+
         {
           path: "/message", // เส้นทางสำหรับหน้า message
           element: isLoggedIn ? <UserMessagePage/> : <Navigate to="/" />,
         },
-      
-
         //assessment
         {
           path: "/assessment", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <MoodPopup /> : <Navigate to="/" />, // 
+          element: isLoggedIn ? <MoodPopup /> : <Navigate to="/" />, //
         },
         {
           path: "/assessments", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <Assessments /> : <Navigate to="/" />, // 
+          element: isLoggedIn ? <Assessments /> : <Navigate to="/" />, //
         },
         {
           path: "/result", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <Result /> : <Navigate to="/" />, // 
-        }
+          element: isLoggedIn ? <Result /> : <Navigate to="/" />, //
+        },
       ],
     },
     // {
@@ -108,15 +162,27 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
     //   path: "/user/breath-in", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
     //   element: isLoggedIn ? <BreathingPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
     // },
-    
-    // {
-    //   path: "/user/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-    //   element: isLoggedIn ? <MeditationPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
-    // },
-    // {
-    //   path: "/user/chat", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-    //   element: isLoggedIn ? <ChatSpace /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
-    // }
+
+    {
+      path: "/user/meditation", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <MeditationPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    },
+    {
+      path: "/user/chat", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <ChatSpace /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    },
+    {
+      path: "/audiohome/mirror", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <MirrorPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    },
+    {
+      path: "/user/mirror/overview", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <MonthlyOverviewPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    },
+     {
+      path: "/doctors", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+      element: isLoggedIn ? <DoctorRecommendPage /> : <Navigate to="/" />, // หากล็อกอินแล้วจะแสดงหน้า EditProfile
+    },
   ];
 };
 

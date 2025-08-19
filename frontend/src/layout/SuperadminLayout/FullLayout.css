@@ -73,7 +73,7 @@
 
 
 /* ให้ปุ่ม Hamburger แสดงเฉพาะในขนาดหน้าจอเล็ก */
-@media (max-width: 991px) {
+/* @media (max-width: 991px) {
   .layout-sider {
     display: none;
   }
@@ -89,4 +89,36 @@
   .layout-footer {
     text-align: center;
   }
+} */
+
+
+/* ใช้ฟอนต์ IBM Plex Thai สำหรับทั้ง layout */
+.layout,
+.layout * {
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* เพิ่มฟอนต์ให้ Header */
+.layout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* Logo */
+.layout-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* ปุ่ม Logout */
+.layout-logout-button1 {
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* Content */
+.layout-content {
+  font-family: var(--font-ibmthai) !important;
 }

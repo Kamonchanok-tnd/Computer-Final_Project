@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Thai:wght@400;500;700&display=swap');
 @import "tailwindcss";
 @import 'tailwind-scrollbar-hide/v4'; 
+@custom-variant dark (&:where(.dark, .dark *));
 @theme {
   --color-regal-blue: #9AEDFF;  /*สีปุ่ม */
   --color-midnight-blue: #356ea4;  /* สีฟ้ากลาง */
@@ -29,11 +31,13 @@
   --color-chat-dark:#2F3C51;
   --color-dark-gradient: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
 
-  --shadow-dark: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-dark: 0 1px 2px rgba(0, 0, 0, 0.3);
 
   --animate-fade-in: fadeInDown 0.5s ease-in-out;
   --animate-fade-out: fadeOurLeft 0.5s ease-in-out ;
- 
+
+
+  
   
   @keyframes fadeInDown {
     from {
@@ -56,7 +60,19 @@
         transform: "translate3d(-100%, 0, 0)";
     }
   }
+  @keyframes showIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
 }
+
+
 
 /* Fade Animation Keyframes */
 
@@ -65,7 +81,13 @@ html, body {
   padding: 0;
   height: 100%;  /* ให้ความสูงเต็มหน้าจอ */
   width: 100%;   /* ให้ความกว้างเต็มหน้าจอ */
+  font-family: var(--font-ibmthai);
 }
+
+.font-ibmthai {
+  font-family: var(--font-ibmthai);
+}
+
 .kanit-thin {
   font-family: "Kanit", sans-serif;
   font-weight: 100;
@@ -173,3 +195,45 @@ html, body {
   font-weight: 900;
   font-style: italic;
 }
+.prompt-form .ant-form-item-label > label {
+  @apply inline-flex items-center gap-2;
+}
+
+
+
+.btn-glow-play {
+  @apply  overflow-visible  bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white;
+}
+
+.btn-glow-play::before {
+  @apply absolute -inset-0 rounded-full blur-xl opacity-30 -z-10 bg-button-blue;
+  content: "";
+}
+
+@theme {
+  --font-ibmthai: "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+}
+
+
+@keyframes twinkle { 0%,100% { opacity:.25; transform:scale(.9) } 50% { opacity:.75; transform:scale(1.05) } }
+@keyframes float   { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }
+@keyframes rise {
+  0%   { transform: translateY(8vh);  opacity: 0; }
+  10%  { opacity: .45; }
+  90%  { opacity: .45; }
+  100% { transform: translateY(-110vh); opacity: 0; }
+}
+@keyframes sway {
+  0%,100% { transform: translateX(0); }
+  50%     { transform: translateX(var(--amp, 12px)); }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0) }
+  50%     { transform: translateY(-10px) }
+}
+@keyframes twinkle {
+  0%,100% { opacity:.25; transform:scale(.9) }
+  50%     { opacity:.75; transform:scale(1.05) }
+}
+
+

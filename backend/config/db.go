@@ -139,6 +139,10 @@ func SetupDatabase() {
 	// SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	CreateArticleTypes(db)
+	SeedEmojis(db)
+	SeedMirrorJuly2025(db)
+	SeedMirrorAug2025FirstHalf(db)
+
 }
 
 
@@ -253,19 +257,48 @@ func SetupInitialData(db *gorm.DB) {
 
     // เพิ่มข้อมูล Sound (เสียงประเภท สมาธิ)
     sounds := []entity.Sound{
-        {Name: "Meditation Sound 1", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
-        {Name: "Meditation Sound 2", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
-        {Name: "Meditation Sound 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 1-2", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 1-2 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 5000,Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 6-7", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 6-7 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4000,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
+        {Name: "สมาธิบำบัดแบบ SKT ท่าที่ 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "",Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 3 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ",Duration: 10,LikeSound: 80,View: 4500,Owner: "SKT Meditation",STID: meditationType.ID, UID: user.ID},
 
-		// เสียงฝึกหายใจใหม่
-    	{Name: "Breathing Sound 1", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "", STID: breathingType.ID, UID: user.ID},
-    	{Name: "Breathing Sound 2", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "", STID: breathingType.ID, UID: user.ID},
+		// เสียงฝึกหายใจใหม่ 
+    	{Name: "Seed of growth", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "",Description: "เพลงผ่อนคลายสำหรับฝึกหายใจ แนว Ambient เหมาะกับการทำสมาธิ, สร้างสมาธิและฝึกหายใจ",Duration: 60,LikeSound: 90,View: 12000,Owner: "Relaxing Music Channel", STID: breathingType.ID, UID: user.ID},
+    	{Name: "Alpha waves", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "",Description: "คลื่นสมอง Alpha สำหรับการผ่อนคลาย ลดความเครียด และทำสมาธิ",Duration: 120,LikeSound: 95,View: 30000,Owner: "Brainwave Music", STID: breathingType.ID, UID: user.ID},
+		{Name: "Relaxing music", Sound: "https://youtu.be/-c7GHrC8HTY?si=7dqAHDMZoRhL5Uj9", Lyric: "",Description: "เพลงสปาแนวบรรเลงผสมเสียงธรรมชาติ เหมาะสำหรับนวด, ผ่อนคลาย, ทำสมาธิ และสร้างบรรยากาศสงบ",Duration: 300,LikeSound: 100,View: 2000000,Owner: "Spa Music, Relaxing music",STID: breathingType.ID, UID: user.ID},
+		{Name: "Sunny Mornings", Sound: "https://youtu.be/hlWiI4xVXKY?si=56vNV_ddESYwTnkH", Lyric: "",Description:"เป็น เพลงคลายเครียดแนวบรรเลง พาโน, กีตาร์ พร้อมเสียงนกร้อง สร้างบรรยากาศสงบ และเหมาะสำหรับผ่อนคลายหรือทำสมาธิ" ,Duration: 183 , LikeSound: 100, View: 20,  Owner: "Peder B. Helland", STID: breathingType.ID, UID: user.ID},
 
-		{Name: "พระคาถามหาจักรพรรดิ (9 จบ) | พร้อมคำอ่าน | สวดภาวนาทุกวัน บุญจะส่งผลในทันที" , Sound: "https://youtu.be/2TThc3B1CPI?si=dMDtSih9uBsj_6Cy", Lyric: "" ,Description:"#คาถามหาจักรพรรดิ ตัวคาถาเป็นบทบูชาพระ รจนาโดยหลวงปู่ดู่ พรหมปัญโญ ในคลิปมีคำให้อ่านง่ายขึ้น เหมาะกับยุคที่ใช้สมาร์ทโฟน มือถือในการเปิดสวดมนต์ และเหมาะกับผู้ที่กำลัง #ฝึกสวดมนต์ ด้วยเช่นกัน ท่านสามารถใช้บทสวดมนต์นี้ในการ สวดมนต์ก่อนนอน ตอนเช้าและระหว่างวันได้เช่นกัน เวลาที่เหมาะสมในการสวดพระคาถาบทนี้คือ สองทุ่มครึ่ง หรือเริ่มสวดภาวนาประมาณเวลา 20:20-20:40 น. เพราะเป็นเวลาที่เชื่อว่าเป็นเวลาที่สามแดนโลกธาตุเปิดเชื่อมกันจะทำให้ผลบุญแผ่ไปได้ทันที ผลบุญจะสำเร็จทันตา หากสวดทุกวันจะยิ่งมีพลานุภาพมากขึ้น สามารถเปิดฟังได้ตลอดทั้งวันร่วมกับบทคาถาอื่นๆเพื่อความเป็นสิริมงคล" ,
-		Duration: 135, LikeSound: 100, View: 20,  Owner: "เวสสะเศรษฐี",   STID: chantingType.ID, UID: user.ID},
 		{
-			Name: "บทสวดมนต์ก่อนนอน (แบบย่อ) หนุนนำชีวิต เทวดาคุ้มครอง ชีวิตมีแต่ความสุขความเจริญ",Sound: "https://youtu.be/T80Cb1PKdrU?si=SI0mirxwxGlPJ5QG", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "Dekwat Channel - เด็กวัดแชนแน",
+			Name: "บทเมตตาหลวง ทำนองสรภัญญะ",Sound : "https://youtu.be/6i1YyT3fzPs?si=--nqYHK_wzKNtHtb", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
 		},
+		{
+			Name: "บทกราบพระ 5 ครั้ง",Sound: "https://youtu.be/1TzRW28rhZ4?si=VVMVrd8mKxRGbreb", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "คาถามหาจักรพรรดิ มีคำแปล (ไม่มีโฆษณาคั่นกลาง)",Sound: "https://youtu.be/YgnFJiobS58?si=zEI6yZKEw-eTHr4v", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},{
+			Name:"บทสวด อิติปิโส",Sound: "https://youtu.be/Jkz_iQ8rjz4?si=VSqQDQjE8ripYvMW", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},{
+			Name: "บทสรภัญญะ องค์ใดพระสัมพุทธ",Sound: "https://youtu.be/ftkK-Po2So4?si=eJsOhqRRIvZdIrcu", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "บทสวดสรภัญญะ ปางเมื่อพระองค์ ปะระมะพุธ",Sound: "https://youtu.be/uOtbIwDMz6w?si=8S_xKsVmoYHpD7U9", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+		{
+			Name: "คาถาชินบัญชร พระคาถาชินบัญชร สมเด็จพระพุฒาจารย์ (โต พรหมรังสี) เสถียรพงษ์ วรรณปก",Sound: "https://youtu.be/sqOeFloH6tU?si=VEyGbfdeuytxawPC", Lyric: "", STID: chantingType.ID, UID: user.ID,Description:"" ,Duration: 135,LikeSound: 100, View: 20,  Owner: "ChadolChannel",
+		},
+
+		// ASMR
+    	{Name: "Swans, Ducks & Other Water Birds by a Summer River in Ukraine", Sound: "https://www.youtube.com/watch?v=zB1tL1wwqak", Lyric: "",Description: "#Nature",Duration: 287,LikeSound: 90,View: 12000,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+    	{Name: "May Valley Trail Issaquah, Washington", Sound: "https://www.youtube.com/watch?v=HGOYvgb2SJY", Lyric: "",Description: "#Nature",Duration: 175,LikeSound: 95,View: 30000,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Central Park, NYC", Sound: "https://www.youtube.com/watch?v=YmCJKmbprnE", Lyric: "",Description: "#Nature #Winter",Duration: 55,LikeSound: 100,View: 2000000,Owner: "4K Relaxation Channel",STID: asmrType.ID, UID: user.ID},
+		{Name: "Skagit River in Late Fall, North Cascades Area, WA", Sound: "https://www.youtube.com/watch?v=JA1mxsfb4ak", Lyric: "",Description:"#Nature" ,Duration: 185 ,LikeSound: 100,View: 20,Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop", Sound: "https://www.youtube.com/watch?v=uU_RxnJOdMQ&t=13753s", Lyric: "",Description:"#Cafe" ,Duration:  420,LikeSound: 100,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Cockpit View Airplane", Sound: "https://www.youtube.com/watch?v=Q139Juah-NQ&t=40s", Lyric: "",Description:"#Window" ,Duration:  420,LikeSound: 99,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Rain Thunder Night Window View", Sound: "https://www.youtube.com/watch?v=TuBxM-qBmp8&t=1612s", Lyric: "",Description:"#Window" ,Duration:  420,LikeSound: 98,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Paris at Night", Sound: "https://www.youtube.com/watch?v=1B8fDmR72sY", Lyric: "",Description:"#City" ,Duration:  420,LikeSound: 97,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Walt Disney World Magic Kingdom Street", Sound: "https://www.youtube.com/watch?v=oDCf5bjrWOU&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1", Lyric: "",Description:"#City" ,Duration:  420,LikeSound: 101,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop at christmas", Sound: "https://www.youtube.com/watch?v=u88fH7HLszo&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1&index=5", Lyric: "",Description:"#Cafe" ,Duration:  420,LikeSound: 102,View: 200,Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+
 
 		
     }
@@ -680,6 +713,21 @@ func SeedBackground(db *gorm.DB) {
 			Picture: "q1.jpg",
 			UID:     1,
 		},
+		{
+			Name:    "รูปกอดตัวเอง",
+			Picture: "รูปกอดตัวเองสีชมพู.png.png",
+			UID:     1,
+		},
+		{
+			Name:    "รูปกอดตัวเองเสื้อสีแดง",
+			Picture: "กอดตัวเองเสื้อสีเเดง.png",
+			UID:     1,
+		},
+		{
+			Name:    "รูปกอดตัวเองผมชมพู",
+			Picture: "รูปกอดตัวเอง.png",
+			UID:     1,
+		},
 	}
 
 	for _, bg := range backgrounds {
@@ -811,3 +859,162 @@ func CreateArticleTypes(db *gorm.DB) {
         fmt.Println("Article types already exist in the database.")
     }
 }
+
+func SeedEmojis(db *gorm.DB) {
+    var count int64
+    db.Model(&entity.Emotion{}).Count(&count)
+    if count == 0 {
+        emojis := []entity.Emotion{
+            {Mood: "มีความสุข", Picture: "happy.png"},
+            {Mood: "โกรธ", Picture: "grumpy.png"},
+            {Mood: "เศร้า", Picture: "sad.png"},
+            {Mood: "เฉย ๆ", Picture: "neutral.png"},
+        }
+        if err := db.Create(&emojis).Error; err != nil {
+            log.Fatalf("ไม่สามารถ seed emoji: %v", err)
+        }
+        fmt.Println("✅ Seeded Emojis")
+    }
+}
+
+// ===== Seed: Mirror for user #2 in July 2025 (31 days) =====
+func SeedMirrorJuly2025(db *gorm.DB) {
+	uid := uint(2) // บันทึกให้ผู้ใช้คนที่ 2 เท่านั้น
+
+	// ข้อมูล 31 วัน (message จับคู่กับ eid ให้เรียบร้อย)
+	// eid: 1=ยิ้ม, 2=โกรธ, 3=เศร้า, 4=เฉยๆ  (อ้างอิงตามตาราง emotion ที่ seed ไว้)
+	type dayData struct {
+		Msg string
+		EID uint
+	}
+	days := []dayData{
+		{Msg: "วันนี้รู้สึกดีและมีพลัง", EID: 1},
+		{Msg: "เรื่อย ๆ ไม่มีอะไรพิเศษ", EID: 4},
+		{Msg: "หัวร้อนเพราะรถติดหนัก", EID: 2},
+		{Msg: "เหงาและเศร้าเล็กน้อย", EID: 3},
+		{Msg: "ได้ข่าวดีจากที่บ้าน ยิ้มทั้งวัน", EID: 1},
+		{Msg: "ทำงานยาว ๆ รู้สึกเฉย ๆ", EID: 4},
+		{Msg: "โมโหเพราะโดนต่อคิว", EID: 2},
+		{Msg: "คิดถึงบ้านเลยรู้สึกเศร้า", EID: 3},
+		{Msg: "ออกกำลังเช้า สดใสจัง", EID: 1},
+		{Msg: "ปกติ ไม่มีอะไรตื่นเต้น", EID: 4},
+		{Msg: "หัวเสียเพราะเน็ตล่ม", EID: 2},
+		{Msg: "ดูหนังดราม่าแล้วน้ำตาซึม", EID: 3},
+		{Msg: "กินของอร่อย อารมณ์ดีมาก", EID: 1},
+		{Msg: "วันสบาย ๆ อยู่บ้านทั้งวัน", EID: 4},
+		{Msg: "ไม่พอใจกับผลงานตัวเอง", EID: 2},
+		{Msg: "คิดมากเรื่องส่วนตัว เลยเศร้า", EID: 3},
+		{Msg: "ได้คุยกับเพื่อนเก่า มีความสุข", EID: 1},
+		{Msg: "นิ่ง ๆ เนิบ ๆ ทั้งวัน", EID: 4},
+		{Msg: "โกรธเพราะโดนเบี้ยวนัด", EID: 2},
+		{Msg: "พลาดเป้าหมายเลยรู้สึกเสียใจ", EID: 3},
+		{Msg: "อากาศดี เดินเล่นเพลิน ยิ้มง่าย", EID: 1},
+		{Msg: "ชีวิตไหลไปตามปกติ", EID: 4},
+		{Msg: "หงุดหงิดเพราะงานไม่คืบ", EID: 2},
+		{Msg: "เศร้าเพราะแพ้เกม", EID: 3},
+		{Msg: "สำเร็จงานใหญ่ ภูมิใจมาก", EID: 1},
+		{Msg: "ไม่มีอะไรใหม่ ๆ วันนี้", EID: 4},
+		{Msg: "หัวร้อนเพราะเจอทัศนคติแย่", EID: 2},
+		{Msg: "คิดถึงใครบางคน เลยหม่น ๆ", EID: 3},
+		{Msg: "ได้ของขวัญไม่คาดคิด ยิ้มทั้งวัน", EID: 1},
+		{Msg: "วันธรรมดาที่เรียบง่าย", EID: 4},
+		{Msg: "ข่าวร้ายทำให้ใจหาย เศร้า", EID: 3}, // วันสุดท้ายใส่โทนเศร้าให้ต่าง
+	}
+
+	// วนครอบ 1..31 ก.ค. 2025
+	for day := 1; day <= 31; day++ {
+		d := days[day-1]
+
+		// สร้างช่วงเวลา 00:00 - <+1 วัน> เพื่อกันซ้ำในวันเดียวกัน
+		start := time.Date(2025, time.July, day, 0, 0, 0, 0, time.UTC)
+		end := start.Add(24 * time.Hour)
+
+		// ถ้าวันนี้ของ user #2 มีอยู่แล้ว ให้ข้าม
+		var count int64
+		if err := db.Model(&entity.Mirror{}).
+			Where("uid = ? AND date >= ? AND date < ?", uid, start, end).
+			Count(&count).Error; err != nil {
+			log.Printf("❌ เช็คข้อมูลวันที่ %s ผิดพลาด: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		if count > 0 {
+			// มีแล้ว ไม่ seed ซ้ำ
+			continue
+		}
+
+		m := entity.Mirror{
+			Date:    start,
+			Message: d.Msg,
+			EID:     d.EID,
+			UID:     uid,
+		}
+		if err := db.Create(&m).Error; err != nil {
+			log.Printf("❌ บันทึก %s ไม่สำเร็จ: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		fmt.Printf("✅ Seeded mirror for %s (uid=%d, eid=%d)\n", start.Format("2006-01-02"), uid, d.EID)
+	}
+}
+
+// ===== Seed: Mirror for user #2 in Aug 2025 (day 1–15, mostly happy) =====
+func SeedMirrorAug2025FirstHalf(db *gorm.DB) {
+	uid := uint(2)
+
+	// eid: 1=ยิ้ม, 2=โกรธ, 3=เศร้า, 4=เฉยๆ
+	type dayData struct {
+		Msg string
+		EID uint
+	}
+
+	days := []dayData{
+		{Msg: "เริ่มเดือนใหม่ด้วยพลังบวก ยิ้มง่ายทั้งวัน", EID: 1},
+		{Msg: "ทำงานลื่นไหล รู้สึกดีมาก", EID: 1},
+		{Msg: "ออกกำลังกายเช้า อารมณ์ดี", EID: 1},
+		{Msg: "ท้องฟ้าสวย สดใส ทำให้ใจเบิกบาน", EID: 1},
+		{Msg: "ชวนครอบครัวทานข้าว อบอุ่นใจ", EID: 1},
+		{Msg: "วันสบาย ๆ เรื่อย ๆ ไม่รีบเร่ง", EID: 4},
+		{Msg: "ได้คำชมจากเพื่อนร่วมทีม ยิ้มทั้งวัน", EID: 1},
+		{Msg: "กาแฟอร่อย งานก็เดิน สนุกดี", EID: 1},
+		{Msg: "เดินเล่นยามเย็น อากาศดีมาก", EID: 1},
+		{Msg: "เจอเรื่องจุกจิกนิดหน่อย แต่ยังโอเค", EID: 4},
+		{Msg: "มีข่าวดีเล็ก ๆ ทำให้กำลังใจเพิ่ม", EID: 1},
+		{Msg: "ช่วยคนอื่นได้ รู้สึกมีคุณค่า", EID: 1},
+		{Msg: "หัวเราะเยอะมากวันนี้ สนุกสุด ๆ", EID: 1},
+		{Msg: "พักผ่อนเต็มที่ ใจสงบ ผ่อนคลาย", EID: 1},
+		{Msg: "ปิดงานค้างได้สำเร็จ โล่งใจและมีความสุข", EID: 1},
+	}
+
+	for day := 1; day <= 15; day++ {
+		d := days[day-1]
+
+		start := time.Date(2025, time.August, day, 0, 0, 0, 0, time.UTC)
+		end := start.Add(24 * time.Hour)
+
+		var count int64
+		if err := db.Model(&entity.Mirror{}).
+			Where("uid = ? AND date >= ? AND date < ?", uid, start, end).
+			Count(&count).Error; err != nil {
+			log.Printf("❌ เช็คข้อมูลวันที่ %s ผิดพลาด: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		if count > 0 {
+			continue
+		}
+
+		m := entity.Mirror{
+			Date:    start,
+			Message: d.Msg,
+			EID:     d.EID,
+			UID:     uid,
+		}
+		if err := db.Create(&m).Error; err != nil {
+			log.Printf("❌ บันทึก %s ไม่สำเร็จ: %v", start.Format("2006-01-02"), err)
+			continue
+		}
+		fmt.Printf("✅ Seeded mirror for %s (uid=%d, eid=%d)\n", start.Format("2006-01-02"), uid, d.EID)
+	}
+}
+
+
+
+

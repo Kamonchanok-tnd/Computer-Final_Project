@@ -1,9 +1,37 @@
-import { Heart, Book, Waves, Headphones, Play, ChevronDown } from "lucide-react";
+import {
+  Heart,
+  Book,
+  Waves,
+  Headphones,
+  Play,
+  ChevronDown,
+  PenTool,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import userImage from "../../../assets/user.png"; // รูปตัวละคร
+import { useEffect, useState } from "react";
+import userImage from "../../../assets/user.png";
+import { GetUsersById } from "../../../services/https/login";
 
 function RelaxActivities() {
   const navigate = useNavigate();
+  const [username, setUsername] = useState<string>("");
+
+  const userId = localStorage.getItem("id");
+
+  const getUserById = async (id: string) => {
+    const res = await GetUsersById(id);
+    if (res?.status === 200) {
+      setUsername(res.data.username);
+    } else {
+      setUsername("ผู้ใช้");
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      getUserById(userId);
+    }
+  }, [userId]);
 
   const activities = [
     {
@@ -34,32 +62,38 @@ function RelaxActivities() {
       gradient: "bg-gradient-to-br from-[#C8E6C9] to-[#A5D6A7]",
       path: "/audiohome/asmr",
     },
+    {
+      title: "เขียนระบายบนกระจก",
+      description: "ลองเขียนความรู้สึกลงบนกระจก เพื่อปล่อยวางและระบายความรู้สึก",
+      icon: <PenTool className="w-10 h-10 text-[#BA68C8]" />,
+      gradient: "bg-gradient-to-br from-[#E1BEE7] to-[#CE93D8]",
+      path: "/audiohome/mirror",
+    },
   ];
 
   return (
-    <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white to-[#C2F4FF]">
+    <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white to-[#C2F4FF] font-ibmthai">
       {/* Greeting bubble */}
       <div className="w-full max-w-4xl relative mb-20">
-        {/* กล่องข้อความ */}
         <div className="bg-[#E6F9FF] rounded-xl p-4 w-[75%] shadow-sm">
-          <p className="font-bold text-gray-900 mb-1">สวัสดี สุภัสสร</p>
+          <p className="font-bold text-gray-900 mb-1">สวัสดี {username || "..."}</p>
           <p className="text-gray-800 text-base leading-relaxed">
             Heal Jai ให้ใจได้พัก เมื่อทุกอย่างมันเยอะไป ลองแวะมาพักที่ SUT HealJai
             เรามีกิจกรรมสบาย ๆ และข้อความดี ๆ ที่พร้อมอยู่ข้างคุณเสมอ
           </p>
         </div>
 
-        {/* ปุ่มวงกลม ChevronDown */}
         <div
           className="absolute -right-10 top-1/2 -translate-y-1/2 w-10 h-10 
           bg-[#B3E5FC] rounded-full flex items-center justify-center shadow-lg 
           cursor-pointer hover:scale-110 transition"
-          onClick={() => window.scrollTo({ top: window.innerHeight, behavior: "smooth" })}
+          onClick={() =>
+            window.scrollTo({ top: window.innerHeight, behavior: "smooth" })
+          }
         >
           <ChevronDown className="text-white w-5 h-5" />
         </div>
 
-        {/* ตัวละคร */}
         <img
           src={userImage}
           alt="Character"
@@ -67,44 +101,46 @@ function RelaxActivities() {
         />
       </div>
 
-      {/* Header */}
       <div className="w-full max-w-4xl mb-4">
         <h2 className="text-xl font-bold text-gray-800">กิจกรรมผ่อนคลาย</h2>
       </div>
 
-      {/* Activity Cards */}
+      {/* Activities grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl">
-        {activities.map((act, idx) => (
-          <div
-            key={idx}
-            className={`${act.gradient} rounded-xl p-5 flex flex-col justify-between h-52 shadow-lg 
-              transition-transform duration-300 hover:scale-[1.03]`}
-          >
-            {/* เนื้อหาด้านบนของการ์ด */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-bold text-gray-800">{act.title}</h3>
-              <p className="text-gray-700 text-sm">{act.description}</p>
-              <div className="bg-white rounded-full p-3 inline-flex shadow-md">
-                {act.icon}
+        {activities.map((act, idx) => {
+          const isLastOdd =
+            activities.length % 2 !== 0 && idx === activities.length - 1;
+          return (
+            <div
+              key={idx}
+              className={`${act.gradient} rounded-xl p-5 flex flex-col justify-between h-52 shadow-lg 
+                transition-transform duration-300 hover:scale-[1.03] 
+                ${isLastOdd ? "sm:col-span-2 sm:mx-auto sm:w-1/2" : ""}`}
+            >
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-gray-800">{act.title}</h3>
+                <p className="text-gray-700 text-sm">{act.description}</p>
+                <div className="bg-white rounded-full p-3 inline-flex shadow-md">
+                  {act.icon}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => navigate(act.path)}
+                  className="flex items-center bg-white px-4 py-2 rounded-full 
+                    border border-gray-300 text-sm text-gray-700 shadow 
+                    hover:bg-gray-50 transition cursor-pointer"
+                >
+                  <span>ดูกิจกรรม</span>
+                  <div className="ml-2 w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                    <Play className="w-3 h-3 text-black" />
+                  </div>
+                </button>
               </div>
             </div>
-
-            {/* ปุ่มอยู่มุมขวาล่าง */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => navigate(act.path)}
-                className="flex items-center bg-white px-4 py-2 rounded-full 
-                  border border-gray-300 text-sm text-gray-700 shadow 
-                  hover:bg-gray-50 transition cursor-pointer"
-              >
-                <span>ดูกิจกรรม</span>
-                <div className="ml-2 w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-                  <Play className="w-3 h-3 text-black" />
-                </div>
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-/* CSS สำหรับ EditAdmin */
+/* CSS สำหรับ EditAdmin
 .edit-admin-container {
   padding: 20px;
   background-color: #f9f9f9;
@@ -30,7 +30,7 @@
   width: 100%;
   padding: 2px;
   /* border-radius: 4px;
-  border: 1px solid #ddd; */
+  border: 1px solid #ddd; 
 }
 
 .form-input:focus {
@@ -54,4 +54,30 @@
 .loading-container h3 {
   font-size: 18px;
   color: #666;
+} */
+
+/* บังคับใช้ฟอนต์ IBM Plex Thai สำหรับฟอร์มทั้งหมด */
+.edit-admin-form,
+.edit-admin-form input,
+.edit-admin-form textarea,
+.edit-admin-form select,
+.edit-admin-form button,
+.edit-admin-form .ant-select-selector,
+.edit-admin-form .ant-input,
+.edit-admin-form .ant-input-password,
+.edit-admin-form .ant-form-item-label > label,
+.edit-admin-form .ant-input-number {
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* เพิ่มความหนาสำหรับ label */
+.edit-admin-form .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+/* เพิ่มความหนาสำหรับ input, textarea, select */
+.edit-admin-form input,
+.edit-admin-form textarea,
+.edit-admin-form select {
+  font-weight: 400;
 }

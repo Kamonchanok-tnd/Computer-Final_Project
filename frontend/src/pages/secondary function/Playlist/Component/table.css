@@ -1,0 +1,61 @@
+
+.custom-dropdown .ant-dropdown-menu-item:hover {
+    background-color: #C8F3FD;
+    color: #1890ff;
+  }
+
+/* Modal container */
+.custom-dropdown{
+  font-family: var(--font-ibmthai) !important;
+}
+/* Light mode */
+.custom-dropdown .ant-dropdown-menu {
+  background-color: #f9fafb; /* ตัวอย่างสี background light */
+}
+
+/* Dark mode */
+.dark .custom-dropdown .ant-dropdown-menu {
+  background-color: #1f2937; /* Dark blue / gray-800 */
+  color: #f3f4f6; /* ตัวอักษรขาว */
+}
+
+/* ตัวเลือกแต่ละเมนู */
+.custom-dropdown .ant-dropdown-menu-item {
+  transition: background-color 0.3s;
+}
+
+.custom-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #e5e7eb; /* Light hover */
+}
+
+.dark .custom-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #374151; /* Dark hover */
+}
+/* Light mode */
+.custom-dropdown .ant-dropdown-menu {
+  background-color: #f9fafb; /* พื้นหลังเมนู */
+}
+
+.custom-dropdown .ant-dropdown-menu-item {
+  color: #111827; /* สีตัวหนังสือแต่ละปุ่ม */
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.custom-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #e5e7eb; /* สีพื้นหลังตอน hover */
+  color: #5DE2FF; /* เปลี่ยนสีตัวหนังสือตอน hover */
+}
+
+/* Dark mode */
+.dark .custom-dropdown .ant-dropdown-menu {
+  background-color: #1f2937; /* พื้นหลังเมนู dark */
+}
+
+.dark .custom-dropdown .ant-dropdown-menu-item {
+  color: #f3f4f6; /* ตัวหนังสือ light */
+}
+
+.dark .custom-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #374151; /* hover background dark */
+  color: #5DE2FF; /* hover text color dark */
+}

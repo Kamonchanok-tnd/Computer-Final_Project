@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Avatar, Button, Drawer, Dropdown, Layout, theme, type MenuProps } from 'antd';
+import { Avatar, Button, Drawer, Dropdown, Layout, type MenuProps } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-const { Header, Content, Footer } = Layout;
-import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus, Space, Sun, User } from 'lucide-react';
+const { Header, Content } = Layout;
+import { Book, House, LogOut, Menu, MessageCircleMore, Moon, Music, Plus,  Sun, User } from 'lucide-react';
 import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
 
 const items = [
-  { key: 'home', label: 'Home', path: '/user', icon: <House size={24} /> },
-  { key: 'chat', label: 'Chat', path: '/chat', icon: <MessageCircleMore size={24} /> },
-  { key: 'contents', label: 'Contents', path: '/audiohome', icon: <Music size={24} /> },
-  { key: 'message', label: 'Message', path: '/contents', icon: <Book size={24} /> },
+  { key: 'home', label: 'หน้าหลัก', path: '/user', icon: <House size={24} /> },
+  { key: 'chat', label: 'แชท', path: '/chat', icon: <MessageCircleMore size={24} /> },
+  { key: 'contents', label: 'คอนเท้นต์', path: '/audiohome', icon: <Music size={24} /> },
+  { key: 'message', label: 'จิตแพทย์', path: '/doctors', icon: <Book size={24} /> },
 ];
 
 function Headers() {
@@ -87,6 +87,7 @@ function Headers() {
             backgroundColor: isDarkMode ? '#0F172A' : '#fff',
             boxShadow:isDarkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0px 4px 4px rgba(0, 0, 0, 0.02)',
             padding: '0 24px',
+            fontFamily: "var(--font-ibmthai)",
           }}
         >
           <div className='flex gap-4'>
@@ -117,14 +118,14 @@ function Headers() {
                 </ul>
           </div>
           <div className='hidden md:flex gap-4 justify-center items-center'>
-            <button
-              onClick={() => navigate('/create')}
+            {/* <button
+              onClick={() => navigate('/audiohome/mirror')}
               className="flex gap-2 items-center px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm bg-button-blue
              text-white hover:bg-button-blue"
             >
               <Plus size={24} />
               Mirror
-            </button>
+            </button> */}
             <button
               onClick={toggleDarkMode}
               className={`
@@ -203,7 +204,7 @@ function Headers() {
           </Drawer>
 
         </Header>
-        <Content style={{ height: 'calc(100vh - 64px)' }}>
+        <Content style={{ height: 'calc(100vh - 64px) '  }}>
           <Outlet />
         </Content>
       </Layout>

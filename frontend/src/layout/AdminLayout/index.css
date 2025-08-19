@@ -93,11 +93,52 @@
     display: flex !important;
   }
 
-  .layout-content-layout {
+  /* .layout-content-layout {
     padding: 0 20px 20px 20px;
-  }
+  } */
 
   .layout-footer {
     text-align: center;
   }
+}
+
+/* บังคับฟอนต์ IBM Plex Thai สำหรับทั้ง layout */
+.admin-layout,
+.admin-layout *,
+.admin-layout .ant-menu,
+.admin-layout .ant-menu-item,
+.admin-layout .ant-menu-submenu-title,
+.admin-layout .ant-menu-item a,
+.admin-layout .ant-drawer-body,
+.admin-layout .layout-header,
+.admin-layout .layout-header-left,
+.admin-layout .layout-logo,
+.admin-layout .layout-content,
+.admin-layout button,
+.admin-layout .ant-avatar {
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* Logo */
+.layout-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* Header Button */
+.layout-hamburger-button {
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* บังคับใช้ฟอนต์ IBM Plex Thai สำหรับ Dropdown Menu ของ Ant Design */
+.admin-layout .ant-dropdown-menu,
+.admin-layout .ant-dropdown-menu-item,
+.admin-layout .ant-dropdown-menu-item a {
+  font-family: var(--font-ibmthai) !important;
+}
+
+/* ถ้าอยากให้มีน้ำหนักปานกลาง */
+.admin-layout .ant-dropdown-menu-item {
+  font-weight: 500;
 }
