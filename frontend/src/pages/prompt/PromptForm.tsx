@@ -132,7 +132,7 @@ export default function PromptForm({
           "
         >
           <PlusOutlined />
-          {editingPrompt ? "บันทึกการแก้ไข" : "บันทึก Prompt"}
+          {editingPrompt ? "บันทึกการแก้ไข" : "บันทึกพร้อมพ์"}
         </button>
       </div>
     </Form>
