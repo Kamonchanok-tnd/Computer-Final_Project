@@ -13,7 +13,8 @@ func GetAllQuestionnaires(c *gin.Context) {
 	var questionnaires []entity.Questionnaire
 	db := config.DB()
 
-	if err := db.Preload("Questions").Find(&questionnaires).Error; err != nil {
+	// ดึงข้อมูลแบบทดสอบทั้งหมดและเรียงลำดับตาม id จากน้อยไปมาก
+	if err := db.Preload("Questions").Order("id asc").Find(&questionnaires).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลแบบทดสอบได้"})
 		return
 	}
@@ -25,6 +26,7 @@ func GetAllQuestionnaires(c *gin.Context) {
 
 	c.JSON(http.StatusOK, questionnaires)
 }
+
 
 
 // ฟังก์ชันสำหรับดึงคำถามทั้งหมด

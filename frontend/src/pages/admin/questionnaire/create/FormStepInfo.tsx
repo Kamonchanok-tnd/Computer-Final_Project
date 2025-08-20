@@ -2,6 +2,7 @@ import React from "react";
 import { Form, Input, Button, InputNumber, Modal } from "antd";
 import { createQuestionnaire } from "../../../../services/https/questionnaire";
 import { useNavigate } from "react-router-dom";
+import createQuestionIcon from "../../../../assets/createQuestionnaire.png";
 import "./FormStepInfo.css";
 
 const FormStepInfo: React.FC = () => {
@@ -48,10 +49,15 @@ const FormStepInfo: React.FC = () => {
 
   return (
     <div className="form-step-info-container">
-      {/* หัวข้อ */}
-      <h3 className="form-step-info-title">
-        สร้างแบบทดสอบ
-      </h3>
+      
+          <h2
+            className="questionnaire-page-title"
+            style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "24px", fontWeight: 700, marginBottom:"24px"}}
+          >
+            <img src={createQuestionIcon} alt="manage icon" style={{ width: 50, height: 50, objectFit: "contain" }} />
+           สร้างแบบทดสอบ
+          </h2>
+        
 
       <Form layout="vertical" form={form} onFinish={handleFinish} className="form-step">
         {/* ชื่อแบบทดสอบ */}

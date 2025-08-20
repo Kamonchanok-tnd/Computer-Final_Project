@@ -8,6 +8,7 @@ import { AnswerOption } from "../../../../interfaces/IAnswerOption";
 import { createQuestions } from "../../../../services/https/questionnaire";
 import "./fromStepQuestion.css";
 import questionIcon from "../../../../assets/question-mark.png";
+import manageQuestionAndAnswerIcon from "../../../../assets/manageQuestionAndAnswer.png";
 
 const { Panel } = Collapse;
 
@@ -162,20 +163,14 @@ const FormStepQuestion: React.FC = () => {
   return (
     <div className="form-step-question-container">
       <div className="form-step-question-box">
+    
         <h2
-          style={{
-            fontSize: 30,
-            textAlign: "center",
-            fontWeight: 700,
-            marginBottom: 16,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: "12px",
-          }}
-        >
-          จัดการรายละเอียดคำถามและคำตอบ
-        </h2>
+            className="questionnaire-page-title"
+            style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "24px", fontWeight: 700, marginBottom:"24px"}}
+          >
+            <img src={manageQuestionAndAnswerIcon} alt="manage icon" style={{ width: 65, height: 65, objectFit: "contain" }} />
+           จัดการรายละเอียดคำถามและคำตอบ
+          </h2>
 
         <div style={{ textAlign: "right", marginBottom: 16 }}>
           <Button onClick={expandAll} style={{ marginRight: 8 }}>

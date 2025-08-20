@@ -99,17 +99,17 @@ func main() {
 		router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire) // route สำหรับสร้างแบบทดสอบ (Questionnaire)
 		router.POST("/createQuestions", questionnaire.CreateQuestions)          // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
 
-        router.POST("/admin/prompt", prompt.CreatePrompt)
-        router.GET("/admin/prompt", prompt.GetAllPrompts)
-        router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
-        router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
-        router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
-        router.GET("/admin/prompt/:id", prompt.GetPromptByID)
+        //router.POST("/admin/prompt", prompt.CreatePrompt)
+        //router.GET("/admin/prompt", prompt.GetAllPrompts)
+       // router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
+        // router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
+        // router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
+        // router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
-        router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
-        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
-        router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
-        router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+        //router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
+        // router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
+        // router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
+        // router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
         
         router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
         router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
@@ -235,16 +235,16 @@ func main() {
 		// userRouter.GET("/recent", controller.GetRecentChat)
 	}
 
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
-	})
+	// r.GET("/", func(c *gin.Context) {
+	// 	c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
+	// })
 
 
         //chat space
-        userRouter.POST("/gemini", controller.GeminiHistory)
-        userRouter.GET("/conversation/:id", controller.GetConversationHistory)
-        userRouter.POST("/new-chat", controller.CreateChatRoom)
-        userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
+        // userRouter.POST("/gemini", controller.GeminiHistory)
+        // userRouter.GET("/conversation/:id", controller.GetConversationHistory)
+        // userRouter.POST("/new-chat", controller.CreateChatRoom)
+        // userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
         // userRouter.GET("/recent", controller.GetRecentChat)
 
     r.GET("/", func(c *gin.Context) {
