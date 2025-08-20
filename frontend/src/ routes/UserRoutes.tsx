@@ -30,7 +30,7 @@ import AddSoundPlaylistMeditation from "../pages/secondary function/meditation/e
 import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
 
 import UserMessagePage from "../pages/secondary function/message/userMessagePage";
-
+import PlayerPlaylistMeditation from "../pages/secondary function/meditation/playermeditation/playerplaylistmeditation.tsx";
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
   lazy(() => import("../pages/users/edit_user/edituser"))
@@ -108,6 +108,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/audiohome/chanting/playlist/play/:pid/:id",
           element: isLoggedIn ? <PlayerPlaylist /> : <Navigate to="/" />,
+        },
+        {
+          path: "/audiohome/meditation/playlist/play/:pid/:id",
+          element: isLoggedIn ? <PlayerPlaylistMeditation /> : <Navigate to="/" />,
         },
         {
           path: "/audiohome/Playlist/:id",
