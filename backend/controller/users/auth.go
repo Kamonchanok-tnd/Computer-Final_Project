@@ -110,7 +110,7 @@ func SignUp(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-    c.JSON(http.StatusCreated, gin.H{"message": "Sign-up successful"})
+    c.JSON(http.StatusCreated, gin.H{"message": "ลงทะเบียนสำเร็จ"})
 }
 
 func SignIn(c *gin.Context) {
