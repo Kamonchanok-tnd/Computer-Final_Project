@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { getAllQuestionnaireGroups } from "../../services/https/assessment/index";
 import { Questionnaire } from "../../interfaces/IQuestionnaire";
+import iconas from "../../assets/assessment/priority.png";
 
 interface Column {
   id: number;
@@ -114,8 +115,9 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
-          จัดการลำดับแบบทดสอบ
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+          <img src={iconas} alt="priority" className="w-10 h-10" />  
+          จัดลำดับการแสดงแบบทดสอบ
         </h1>
       </div>
 

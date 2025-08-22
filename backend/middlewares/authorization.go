@@ -46,6 +46,8 @@ func Authorizes(requiredRole string) gin.HandlerFunc {
 		}
 
 		// ตั้งค่า userID และ userRole ใน context
+		c.Set("uid", claims.ID)       // ของดิว   
+        c.Set("role", claims.Role)    // ของดิว
 		c.Set("userID", claims.ID)
 		c.Set("userRole", claims.Role)
        fmt.Println("Claims ID in Middleware: ", claims.ID)
