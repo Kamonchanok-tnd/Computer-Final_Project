@@ -21,6 +21,10 @@ type Users struct {
 	ResetToken          string    `json:"reset_token"`
 	ResetTokenExpiry    time.Time `json:"reset_token_expiry"`
 
+	// ✅ ฟิลด์สำหรับการเก็บ Consent
+	ConsentAccepted   bool      `json:"consent_accepted"`    // true = กดยินยอม
+	ConsentAcceptedAt time.Time `json:"consent_accepted_at"` // เวลากดยินยอม
+
 	
 
 	// ความสัมพันธ์ One-to-Many กับ Feedback, Like, Mirror, AssessmentResult, Questionnaire, WordHealingContent, ChatRoom

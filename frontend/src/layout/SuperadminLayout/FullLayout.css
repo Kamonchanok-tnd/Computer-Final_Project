@@ -16,14 +16,14 @@
 .layout .layout-logout-button1 {
   margin-top: 5px;
   float: right;
-  background-color: rgb(166, 218, 255); /* สีพื้นฐานของปุ่ม */
-  color: white; /* สีตัวอักษร */
+  background-color: #FF7B7B !important; /* สีพื้นฐานของปุ่ม */
+  color: white !important; /* สีตัวอักษร */
   
 }
 
 /* เมื่อเอาเมาส์ไป hover */
 .layout .ant-btn.layout-logout-button1:hover {
-  background-color: rgb(212, 236, 253) !important;
+  background-color: #EB4343 !important;
 }
 
 
