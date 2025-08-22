@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Button, Table, Input, Select, Space, Modal, Spin, Alert, message, Tag, Tooltip } from "antd";
-import { DeleteOutlined, SettingOutlined, SearchOutlined } from "@ant-design/icons";
+import { DeleteOutlined, SettingOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { getAllWordHealingMessages, deleteWordHealingMessage } from "../../../../services/https/message";
 import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
 import { useNavigate } from "react-router-dom";
@@ -231,13 +231,14 @@ const MessagePage: React.FC = () => {
           </h2>
         </Col>
         <Col>
-          <Button
-            type="primary"
+            <button className="bg-button-blue text-white py-2 px-4 rounded mr-2"
             onClick={() => navigate("/admin/createMessagePage")}
-            className="message-create-btn"
-          >
-            + สร้าง
-          </Button>
+            >
+            <div className="flex gap-2">
+              <PlusOutlined />
+              <span>สร้าง</span>
+            </div>
+          </button>
         </Col>
       </Row>
 

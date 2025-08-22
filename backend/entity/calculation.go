@@ -11,4 +11,6 @@ type Calculation struct {
 
 	// การเชื่อมโยงกับ Criteria
 	Criteria Criteria `gorm:"foreignKey:CID"`
+	// การเชื่อมโยงกับ Questionnaire
+	Questionnaire Questionnaire `gorm:"foreignKey:QuID"`
 }

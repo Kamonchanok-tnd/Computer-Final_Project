@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@types/jwt-decode": "^3.1.0",
     "@types/node": "^24.0.7",
     "@types/react": "^19.0.10",
     "@types/react-beautiful-dnd": "^13.1.8",

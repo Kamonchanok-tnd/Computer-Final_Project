@@ -3,9 +3,7 @@ import { Upload, message as antdMessage, Modal, Form, Select } from "antd";
 import type { DefaultOptionType } from "antd/es/select";
 import { UploadOutlined } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  getWordHealingMessageById,
-  updateWordHealingMessage,
+import {getWordHealingMessageById,updateWordHealingMessage,
 } from "../../../../services/https/message";
 import { getArticleTypeOptionsDetailed } from "../../../../services/https/message";
 import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";

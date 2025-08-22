@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal, Row, Col, Spin, Alert, Table, message, Space, Input, Select } from "antd";
-import { DeleteOutlined, SettingOutlined, SearchOutlined } from "@ant-design/icons";
+import { DeleteOutlined, SettingOutlined, SearchOutlined, PlusOutlined, TableOutlined } from "@ant-design/icons";
 import { getAllQuestionnaires, deleteQuestionnaire, getAllUsers } from "../../../../services/https/questionnaire";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -207,24 +207,26 @@ const QuestionnairePage: React.FC = () => {
             จัดการแบบทดสอบ
           </h2>
         </Col>
-        <Row gutter={16}>
+        <Row gutter={8}>
           <Col>
-            <Button
-              className="questionnaire-create-btn"
-              type="primary"
-              onClick={() => navigate("/admin/createQuestionnaire")}
+          <button className="bg-button-blue text-white py-2 px-2 rounded "
+            onClick={() => navigate("/admin/manageTestOrder")}
             >
-              จัดการลำดับ
-            </Button>
+            <div className="flex gap-2">
+              <TableOutlined />
+              <span>จัดการลำดับ</span>
+            </div>
+          </button>
           </Col>
           <Col>
-            <Button
-              className="questionnaire-create-btn"
-              type="primary"
-              onClick={() => navigate("/admin/createQuestionnaire")}
+          <button className="bg-button-blue text-white py-2 px-4 rounded mr-2"
+            onClick={() => navigate("/admin/createQuestionnaire")}
             >
-              + สร้าง
-            </Button>
+            <div className="flex gap-2">
+              <PlusOutlined />
+              <span>สร้าง</span>
+            </div>
+          </button>
           </Col>
         </Row>
       </Row>

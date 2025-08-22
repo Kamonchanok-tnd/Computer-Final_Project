@@ -25,6 +25,7 @@ import (
     "sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/middlewares"
 
+
 	// "fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv" // เพิ่มการนำเข้า godotenv
@@ -70,6 +71,8 @@ func main() {
 	// Auth Routes
 	r.Static("/BgImage", "./images/background")
 	r.Static("/images/emoji", "./images/emoji")
+	r.Static("/images/emotion_choice", "./images/emotion_choice")
+
 
 	r.POST("/signup", users.SignUp)
 	r.POST("/signin", users.SignIn)
@@ -95,18 +98,20 @@ func main() {
 		router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
 		router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
 		router.GET("/admin/prompt/:id", prompt.GetPromptByID)
-        router.POST("/admin/prompt", prompt.CreatePrompt)
-        router.GET("/admin/prompt", prompt.GetAllPrompts)
-        router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
-        router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
-        router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
-        router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
-        // Questionnaire routes
-		router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)       // route ดึงแบบทดสอบทั้งหมด
-		router.GET("/users", questionnaire.GetAllUsers)                         // route ดึงผู้ใช้ทั้งหมด
-		router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire) // route สำหรับสร้างแบบทดสอบ (Questionnaire)
-		router.POST("/createQuestions", questionnaire.CreateQuestions)          // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+        //router.POST("/admin/prompt", prompt.CreatePrompt)
+        //router.GET("/admin/prompt", prompt.GetAllPrompts)
+       // router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
+        // router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
+        // router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
+        // router.GET("/admin/prompt/:id", prompt.GetPromptByID)
+
+        router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
+        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
+		router.GET("/getallemotionchoices", questionnaire.GetAllEmotionChoices)            // route ดึงตัวเลือกอีโมจิทั้งหมด
+        router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
+        router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+        
         router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
         router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
         router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
@@ -118,6 +123,7 @@ func main() {
         router.GET("/admin/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)
         router.PATCH("/admin/questionnaire-groups/:id/frequency", assessment.UpdateQuestionnaireGroupFrequency)
 		router.PUT("/admin/questionnaire-groups/:id/order", assessment.ReorderQuestionnairesInGroup)
+
 
         //Healing mesage route
         router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)           // route ดึงบทความทั้งหมด
@@ -188,10 +194,10 @@ func main() {
         userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
 
         userRouter.GET("/getallwordhealingmessageforuser", wordhealingmessage.GetAllWordhealingmessagesForUser)    // route ดึงบทความทั้งหมดโดย user
-        userRouter.POST("/wordhealing/like/:wid", wordhealingmessage.LikeMessage)                                  // route บันทึกการถูกใจบทความโดย user
-        userRouter.DELETE("/wordhealing/like/:wid", wordhealingmessage.UnlikeMessage)                              // route บันทึกการยกเลิกถูกใจบทความโดย user
-        userRouter.GET("/getuserlikedMessages", wordhealingmessage.GetUserLikedMessages)                           // route ดึงบทความที่ถูกใจ user
-
+        userRouter.POST("/article/:id/like", wordhealingmessage.LikeArticle)                                       // route สำหรีบ like บทความของ  user
+		userRouter.DELETE("/article/:id/like", wordhealingmessage.LikeArticle)                                     // route สำหรีบ unlike บทความของ  user
+	    userRouter.GET("/article/:id/liked", wordhealingmessage.CheckLikedArticle)                                 // route ดึงบทความของที่ถูกใจ user
+       
         userRouter.POST("/sounds/:id/like", sounds.LikeSound)
         userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
         userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
@@ -232,16 +238,16 @@ func main() {
 		// userRouter.GET("/recent", controller.GetRecentChat)
 	}
 
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
-	})
+	// r.GET("/", func(c *gin.Context) {
+	// 	c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
+	// })
 
 
         //chat space
-        userRouter.POST("/gemini", controller.GeminiHistory)
-        userRouter.GET("/conversation/:id", controller.GetConversationHistory)
-        userRouter.POST("/new-chat", controller.CreateChatRoom)
-        userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
+        // userRouter.POST("/gemini", controller.GeminiHistory)
+        // userRouter.GET("/conversation/:id", controller.GetConversationHistory)
+        // userRouter.POST("/new-chat", controller.CreateChatRoom)
+        // userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
         // userRouter.GET("/recent", controller.GetRecentChat)
 
     r.GET("/", func(c *gin.Context) {

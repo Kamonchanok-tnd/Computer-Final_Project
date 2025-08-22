@@ -41,20 +41,20 @@ function EditAdmin() {
   };
 
   const handleSubmit = async (values: AdminInterface) => {
-    if (!admin) return message.error("ข้อมูลแอดมินไม่พร้อมใช้งาน.");
+    if (!admin) return message.error("ข้อมูลผู้ดูแลระบบไม่พร้อมใช้งาน.");
     setLoading(true);
     const updatedAdmin = { ...admin, ...values, age: parseInt(values.age.toString(), 10) };
     try {
       const response = await updateAdminById(admin.ID, updatedAdmin);
       if (response && response.status === "success") {
-        messageApi.success("อัปเดตข้อมูลแอดมินสำเร็จ");
+        messageApi.success("อัปเดตข้อมูลผู้ดูแลระบบสำเร็จ");
         setTimeout(() => navigate("/superadmin"), 1500);
       } else {
-        messageApi.error("ไม่สามารถอัปเดตข้อมูลแอดมินได้");
+        messageApi.error("ไม่สามารถอัปเดตข้อมูลผู้ดูแลระบบได้");
       }
     } catch (error) {
       console.error(error);
-      message.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลแอดมิน.");
+      message.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลผู้ดูแลระบบ.");
     } finally {
       setLoading(false);
     }
