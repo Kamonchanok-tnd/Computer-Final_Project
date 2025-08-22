@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, Form, Input, InputNumber, Modal, Tag, Collapse, Upload } from "antd";
-import {DeleteOutlined,MenuOutlined,MinusSquareOutlined,PlusSquareOutlined,UploadOutlined,EyeOutlined,} from "@ant-design/icons";
+import { Button, Form, Input, InputNumber, Modal, Tag, Collapse, Upload, Select } from "antd";
+import { DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined, UploadOutlined, EyeOutlined } from "@ant-design/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Question } from "../../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../../interfaces/IAnswerOption";
-import { createQuestions } from "../../../../services/https/questionnaire";
+import { EmotionChoice } from "../../../../interfaces/IEmotionChoices";
+import { createQuestions,getAllEmotionChoices } from "../../../../services/https/questionnaire";
 import "./fromStepQuestion.css";
 import questionIcon from "../../../../assets/question-mark.png";
 import manageQuestionAndAnswerIcon from "../../../../assets/manageQuestionAndAnswer.png";
@@ -49,7 +50,7 @@ const FormStepQuestion: React.FC = () => {
     }
     const init: QuestionWithAnswers[] = Array.from({ length: quantity }, (_, i) => ({
       question: { id: 0, nameQuestion: "", quID: questionnaireId, priority: i + 1, picture: null },
-      answers: Array.from({ length: 4 }, (_, aIndex) => ({ id: aIndex, description: "", point: 0 })),
+      answers: Array.from({ length: 4 }, (_, aIndex) => ({ id: aIndex, description: "", point: 0, EmotionChoiceID: 0 })), 
     }));
     setQuestions(init);
     setActiveKeys(init.map((_, i) => i.toString()));
@@ -80,7 +81,7 @@ const FormStepQuestion: React.FC = () => {
 
   const addAnswer = (qIndex: number) => {
     const updated = [...questions];
-    updated[qIndex].answers.push({ id: updated[qIndex].answers.length, description: "", point: 0 });
+    updated[qIndex].answers.push({ id: updated[qIndex].answers.length, description: "", point: 0, EmotionChoiceID: 0 });
     setQuestions(updated);
   };
 
@@ -130,47 +131,99 @@ const FormStepQuestion: React.FC = () => {
     setQuestions(updated);
   };
 
-  const handleSubmit = async () => {
-    if (submitting) return;
-    // validate
-    const cleaned = questions.map((q) => ({
-      question: q.question,
-      answers: q.answers.filter((a) => a.description.trim() !== ""),
-    }));
-    for (const [index, q] of cleaned.entries()) {
-      if (!q.question.nameQuestion.trim()) {
-        Modal.warning({ title: "ข้อมูลไม่ครบ", content: `กรุณากรอกคำถามที่ ${index + 1}` });
-        return;
-      }
-      if (q.answers.length === 0) {
-        Modal.warning({ title: "ข้อมูลไม่ครบ", content: `กรุณากรอกอย่างน้อย 1 ตัวเลือกในคำถามที่ ${index + 1}` });
-        return;
-      }
+const handleSubmit = async () => {
+  if (submitting) return;
+
+  // validate
+  const cleaned = questions.map((q) => ({
+    question: q.question,
+    answers: q.answers.filter((a) => a.description.trim() !== ""),
+  }));
+
+  for (const [index, q] of cleaned.entries()) {
+    if (!q.question.nameQuestion.trim()) {
+      Modal.warning({
+        title: "ข้อมูลไม่ครบ",
+        content: `กรุณากรอกคำถามที่ ${index + 1}`,
+      });
+      return;
+    }
+    if (q.answers.length === 0) {
+      Modal.warning({
+        title: "ข้อมูลไม่ครบ",
+        content: `กรุณากรอกอย่างน้อย 1 ตัวเลือกในคำถามที่ ${index + 1}`,
+      });
+      return;
     }
 
-    try {
-      setSubmitting(true);
-      await createQuestions(cleaned);
-      setIsEditSuccessModalVisible(true);
-    } catch (error) {
-      console.error("Error creating questions:", error);
-      Modal.error({ title: "บันทึกไม่สำเร็จ", content: "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง" });
-    } finally {
-      setSubmitting(false);
+    // ✅ เช็คว่ามี answer ไหนที่ยังไม่ได้เลือก emotion
+    for (const [aIndex, a] of q.answers.entries()) {
+      if (!a.EmotionChoiceID || a.EmotionChoiceID === 0) {
+        Modal.warning({
+          title: "ข้อมูลไม่ครบ",
+          content: `กรุณาเลือกอารมณ์สำหรับคำตอบที่ ${aIndex + 1} ของคำถามที่ ${index + 1}`,
+        });
+        return;
+      }
     }
+  }
+
+  try {
+    setSubmitting(true);
+    await createQuestions(cleaned);
+    console.log("🎯 Questions created successfully:", cleaned);
+    setIsEditSuccessModalVisible(true);
+  } catch (error) {
+    console.error("Error creating questions:", error);
+    Modal.error({
+      title: "บันทึกไม่สำเร็จ",
+      content: "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+    });
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+
+  const apiUrl = import.meta.env.VITE_API_URL as string;
+
+  const joinUrl = (base: string, path: string): string => {
+    return `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
   };
+
+  const buildImageSrc = (picture: string): string => {
+    if (/^https?:\/\//i.test(picture)) return picture;
+    if (/^\/?images\/emotion_choice\//i.test(picture)) {
+      return joinUrl(apiUrl, picture);
+    }
+    return joinUrl(apiUrl, `images/emotion_choice/${picture}`);
+  };
+
+
+  const [emotionChoices, setEmotionChoices] = useState<EmotionChoice[]>([]);
+  useEffect(() => {
+  const fetchEmotionChoices = async () => {
+    const data = await getAllEmotionChoices();
+    console.log("🎯 Emotion Choices from API:", data);
+    setEmotionChoices(data);
+    console.log(data)
+
+  };
+
+  fetchEmotionChoices();
+}, []);
+
 
   return (
     <div className="form-step-question-container">
       <div className="form-step-question-box">
-    
         <h2
-            className="questionnaire-page-title"
-            style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "24px", fontWeight: 700, marginBottom:"24px"}}
-          >
-            <img src={manageQuestionAndAnswerIcon} alt="manage icon" style={{ width: 65, height: 65, objectFit: "contain" }} />
-           จัดการรายละเอียดคำถามและคำตอบ
-          </h2>
+          className="questionnaire-page-title"
+          style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "24px", fontWeight: 700, marginBottom:"24px"}}
+        >
+          <img src={manageQuestionAndAnswerIcon} alt="manage icon" style={{ width: 65, height: 65, objectFit: "contain" }} />
+          จัดการรายละเอียดคำถามและคำตอบ
+        </h2>
 
         <div style={{ textAlign: "right", marginBottom: 16 }}>
           <Button onClick={expandAll} style={{ marginRight: 8 }}>
@@ -187,171 +240,257 @@ const FormStepQuestion: React.FC = () => {
                   {questions.map((q, qIndex) => {
                     const panelKey = qIndex.toString();
                     return (
-                      <Draggable key={`question-${qIndex}`} draggableId={`question-${qIndex}`} index={qIndex}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            style={{
-                              marginBottom: 16,
-                              borderRadius: 12,
-                              overflow: "hidden",
-                              ...provided.draggableProps.style,
-                            }}
-                          >
-                            <Collapse
-                              activeKey={activeKeys}
-                              bordered={false}
-                              style={{ background: backgroundPatterns[qIndex % backgroundPatterns.length], borderRadius: 12 }}
-                            >
-                              <Panel
-                                header={
-                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                      <img src={questionIcon} alt="question" style={{ width: 24, height: 24, objectFit: "contain" }} />
-                                      <span style={{ fontSize: 16, fontWeight: 600 }}>คำถามข้อที่ {qIndex + 1}</span>
-                                    </div>
-                                    <Tag
-                                      color="black"
-                                      style={{
-                                        marginLeft: "16px",
-                                        fontSize: "16px",
-                                        height: "30px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        padding: "0 10px",
-                                        borderRadius: "6px",
-                                        color: "#fff",
-                                      }}
+                        <Draggable key={`question-${qIndex}`} draggableId={`question-${qIndex}`} index={qIndex}>
+                            {(provided) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    style={{
+                                        marginBottom: 16,
+                                        borderRadius: 12,
+                                        overflow: "hidden",
+                                        ...provided.draggableProps.style,
+                                    }}
+                                >
+                                    <Collapse
+                                        activeKey={activeKeys}
+                                        bordered={false}
+                                        style={{
+                                            background: backgroundPatterns[qIndex % backgroundPatterns.length],
+                                            borderRadius: 12,
+                                        }}
                                     >
-                                      ลำดับข้อ : {q.question.priority}
-                                    </Tag>
-                                  </div>
-                                }
-                                key={panelKey}
-                                extra={
-                                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                                    <Button
-                                      type="text"
-                                      icon={activeKeys.includes(panelKey) ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        togglePanel(panelKey);
-                                      }}
-                                    />
-                                    <div {...provided.dragHandleProps} style={{ cursor: "grab", fontSize: 18, color: "#444" }} title="ลากเพื่อเปลี่ยนลำดับ">
-                                      <MenuOutlined />
-                                    </div>
-                                  </div>
-                                }
-                              >
-                                <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                                  <div style={{ flex: 7, display: "flex", flexDirection: "column", gap: "12px" }}>
-                                    <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
-                                      <label style={{ fontSize: "16px", fontWeight: "bold", marginRight: "8px" }}>คำถาม:</label>
-                                      <Input value={q.question.nameQuestion} onChange={(e) => updateQuestionText(qIndex, e.target.value)} style={{ flex: 1 }} />
-                                    </div>
-
-                                    <div style={{ display: "flex", alignItems: "center", fontSize: "16px", fontWeight: 600, marginBottom: 8 }}>
-                                      <span style={{ width: "70%" }}>ตัวเลือกคำตอบ</span>
-                                      <span style={{ width: "15%" }}>คะแนน</span>
-                                      <span style={{ width: "15%" }}></span>
-                                    </div>
-
-                                    {q.answers.map((a, aIndex) => (
-                                      <div key={aIndex} style={{ display: "flex", gap: "8px", marginBottom: 8 }}>
-                                        <Input
-                                          placeholder={`ตัวเลือกที่ ${aIndex + 1}`}
-                                          value={a.description}
-                                          onChange={(e) => updateAnswer(qIndex, aIndex, "description", e.target.value)}
-                                          style={{ width: "70%" }}
-                                        />
-                                        <InputNumber
-                                          placeholder="คะแนน"
-                                          value={a.point}
-                                          onChange={(value) => updateAnswer(qIndex, aIndex, "point", value || 0)}
-                                          style={{ width: "20%" }}
-                                          min={0}
-                                        />
-                                        <Button danger icon={<DeleteOutlined />} onClick={() => removeAnswer(qIndex, aIndex)} style={{ width: "10%" }} />
-                                      </div>
-                                    ))}
-
-                                    <Button type="dashed" onClick={() => addAnswer(qIndex)} block>
-                                      + เพิ่มตัวเลือก
-                                    </Button>
-                                  </div>
-
-                                  <div style={{ flex: 3, minHeight: "200px" }}>
-                                    <Form.Item label={<span style={{ fontSize: "16px", fontWeight: "bold" }}>อัปโหลดรูป (ถ้ามี)</span>} style={{ width: "100%" }}>
-                                      {!q.question.picture ? (
-                                        <div className="question-panel-right">
-                                          <div className="full-upload">
-                                            <Upload
-                                              listType="picture-card"
-                                              style={{ width: "450px", height: "340px" }}
-                                              beforeUpload={(file) => handleImageUpload(file, qIndex)}
-                                              fileList={
-                                                q.question.picture
-                                                  ? [{ uid: "-1", name: "image.png", status: "done" as const, url: q.question.picture }]
-                                                  : []
-                                              }
-                                              onPreview={() => handlePreview(q.question.picture!)}
-                                              onRemove={() => handleRemoveImage(qIndex)}
-                                            >
-                                              {!q.question.picture && (
-                                                <div>
-                                                  <UploadOutlined />
-                                                  <div style={{ marginTop: 8 }}>เพิ่มรูปภาพ</div>
+                                        <Panel
+                                            header={
+                                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                        <img
+                                                            src={questionIcon}
+                                                            alt="question"
+                                                            style={{ width: 24, height: 24, objectFit: "contain" }}
+                                                        />
+                                                        <span style={{ fontSize: 16, fontWeight: 600 }}>คำถามข้อที่ {qIndex + 1}</span>
+                                                    </div>
+                                                    <Tag
+                                                        color="black"
+                                                        style={{
+                                                            marginLeft: "16px",
+                                                            fontSize: "16px",
+                                                            height: "30px",
+                                                            display: "flex",
+                                                            justifyContent: "center",
+                                                            alignItems: "center",
+                                                            padding: "0 10px",
+                                                            borderRadius: "6px",
+                                                            color: "#fff",
+                                                        }}
+                                                    >
+                                                        ลำดับข้อ : {q.question.priority}
+                                                    </Tag>
                                                 </div>
-                                              )}
-                                            </Upload>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div style={{ position: "relative", display: "inline-block" }}>
-                                          <img
-                                            src={q.question.picture}
-                                            alt="Preview"
-                                            style={{ maxWidth: "450px", maxHeight: "340px", borderRadius: "12px" }}
-                                            onClick={() => handlePreview(q.question.picture!)}
-                                          />
-                                          <div
-                                            style={{
-                                              display: "flex",
-                                              gap: "10px",
-                                              position: "absolute",
-                                              top: "50%",
-                                              left: "50%",
-                                              transform: "translate(-50%, -50%)",
-                                              zIndex: 10,
-                                            }}
-                                          >
-                                            <Button
-                                              icon={<EyeOutlined />}
-                                              onClick={() => handlePreview(q.question.picture!)}
-                                              type="text"
-                                              style={{ color: "#ffffff", backgroundColor: "rgba(0, 0, 0, 0.5)", borderRadius: "50%", padding: "5px" }}
-                                            />
-                                            <Button
-                                              icon={<DeleteOutlined />}
-                                              onClick={() => handleRemoveImage(qIndex)}
-                                              type="text"
-                                              danger
-                                              style={{ color: "#ffffff", backgroundColor: "rgba(0, 0, 0, 0.5)", borderRadius: "50%", padding: "5px" }}
-                                            />
-                                          </div>
-                                        </div>
-                                      )}
-                                    </Form.Item>
-                                  </div>
+                                            }
+                                            key={panelKey}
+                                            extra={
+                                                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                                    <Button
+                                                        type="text"
+                                                        icon={
+                                                            activeKeys.includes(panelKey) ? <MinusSquareOutlined /> : <PlusSquareOutlined />
+                                                        }
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            togglePanel(panelKey);
+                                                        }}
+                                                    />
+                                                    <div
+                                                        {...provided.dragHandleProps}
+                                                        style={{ cursor: "grab", fontSize: 18, color: "#444" }}
+                                                        title="ลากเพื่อเปลี่ยนลำดับ"
+                                                    >
+                                                        <MenuOutlined />
+                                                    </div>
+                                                </div>
+                                            }
+                                        >
+                                            <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                                                <div style={{ flex: 7, display: "flex", flexDirection: "column", gap: "12px" }}>
+                                                    <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                                                        <label style={{ fontSize: "16px", fontWeight: "bold", marginRight: "8px" }}>
+                                                            คำถาม:
+                                                        </label>
+                                                        <Input
+                                                            value={q.question.nameQuestion}
+                                                            onChange={(e) => updateQuestionText(qIndex, e.target.value)}
+                                                            style={{ flex: 1 }}
+                                                        />
+                                                    </div>
+
+                                                    <div
+                                                        style={{
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            fontSize: "16px",
+                                                            fontWeight: 600,
+                                                            marginBottom: 8,
+                                                        }}
+                                                    >
+                                                        <span style={{ width: "60%" }}>ตัวเลือกคำตอบ</span>
+                                                        <span style={{ width: "15%", marginLeft: "-50px" }}>คะแนน</span>
+                                                        <span style={{ width: "15%" }}></span>
+                                                    </div>
+
+                                                    {q.answers.map((a, aIndex) => (
+                                                        <div key={aIndex} style={{ display: "flex", gap: "8px", marginBottom: 8 }}>
+                                                            <Input
+                                                                placeholder={`ตัวเลือกที่ ${aIndex + 1}`}
+                                                                value={a.description}
+                                                                onChange={(e) =>
+                                                                    updateAnswer(qIndex, aIndex, "description", e.target.value)
+                                                                }
+                                                                style={{ width: "60%" }}
+                                                            />
+                                                            <InputNumber
+                                                                placeholder="คะแนน"
+                                                                value={a.point}
+                                                                onChange={(value) => updateAnswer(qIndex, aIndex, "point", value || 0)}
+                                                                style={{ width: "20%" }}
+                                                                min={0}
+                                                            />
+                                                            {/* Dropdown for each answer */}
+                                                            <Select
+                                                                style={{ width: "15%" }}
+                                                                placeholder="เลือกอารมณ์"
+                                                                value={a.EmotionChoiceID || undefined}
+                                                                onChange={(value) => {
+                                                                    const updated = [...questions];
+                                                                    updated[qIndex].answers[aIndex].EmotionChoiceID = value;
+                                                                    setQuestions(updated);
+                                                                }}
+                                                                optionLabelProp="label"
+                                                            >
+                                                                {emotionChoices.map((choice) => (
+                                                                    <Select.Option key={choice.id} value={choice.id} label={choice.name}>
+                                                                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                                            <img
+                                                                                src={buildImageSrc(choice.picture)}
+                                                                                alt={choice.name}
+                                                                                style={{
+                                                                                    width: 24,
+                                                                                    height: 24,
+                                                                                    objectFit: "cover",
+                                                                                    borderRadius: "50%",
+                                                                                }}
+                                                                            />
+                                                                            <span>{choice.name}</span>
+                                                                        </div>
+                                                                    </Select.Option>
+                                                                ))}
+                                                            </Select>
+
+                                                            <Button
+                                                                danger
+                                                                icon={<DeleteOutlined />}
+                                                                onClick={() => removeAnswer(qIndex, aIndex)}
+                                                                style={{ width: "10%" }}
+                                                            />
+                                                        </div>
+                                                    ))}
+
+                                                    <Button type="dashed" onClick={() => addAnswer(qIndex)} block>
+                                                        + เพิ่มตัวเลือก
+                                                    </Button>
+
+                                                    {/* อัปโหลดรูปภาพ */}
+                                                    <Form.Item
+                                                        label={
+                                                            <span style={{ fontSize: "16px", fontWeight: "bold" }}>อัปโหลดรูป (ถ้ามี)</span>
+                                                        }
+                                                        style={{ width: "100%" }}
+                                                    >
+                                                        {!q.question.picture ? (
+                                                            <div className="question-panel-right">
+                                                                <div className="full-upload">
+                                                                    <Upload
+                                                                        listType="picture-card"
+                                                                        style={{ width: "450px", height: "300px" }}
+                                                                        beforeUpload={(file) => handleImageUpload(file, qIndex)}
+                                                                        fileList={
+                                                                            q.question.picture
+                                                                                ? [
+                                                                                      {
+                                                                                          uid: "-1",
+                                                                                          name: "image.png",
+                                                                                          status: "done" as const,
+                                                                                          url: q.question.picture,
+                                                                                      },
+                                                                                  ]
+                                                                                : []
+                                                                        }
+                                                                        onPreview={() => handlePreview(q.question.picture!)}
+                                                                        onRemove={() => handleRemoveImage(qIndex)}
+                                                                    >
+                                                                        {!q.question.picture && (
+                                                                            <div>
+                                                                                <UploadOutlined />
+                                                                                <div style={{ marginTop: 8 }}>เพิ่มรูปภาพ</div>
+                                                                            </div>
+                                                                        )}
+                                                                    </Upload>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div style={{ position: "relative", display: "inline-block" }}>
+                                                                <img
+                                                                    src={q.question.picture}
+                                                                    alt="Preview"
+                                                                    style={{ maxWidth: "450px", maxHeight: "340px", borderRadius: "12px" }}
+                                                                    onClick={() => handlePreview(q.question.picture!)}
+                                                                />
+                                                                <div
+                                                                    style={{
+                                                                        display: "flex",
+                                                                        gap: "10px",
+                                                                        position: "absolute",
+                                                                        top: "50%",
+                                                                        left: "50%",
+                                                                        transform: "translate(-50%, -50%)",
+                                                                        zIndex: 10,
+                                                                    }}
+                                                                >
+                                                                    <Button
+                                                                        icon={<EyeOutlined />}
+                                                                        onClick={() => handlePreview(q.question.picture!)}
+                                                                        type="text"
+                                                                        style={{
+                                                                            color: "#ffffff",
+                                                                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                                                            borderRadius: "50%",
+                                                                            padding: "5px",
+                                                                        }}
+                                                                    />
+                                                                    <Button
+                                                                        icon={<DeleteOutlined />}
+                                                                        onClick={() => handleRemoveImage(qIndex)}
+                                                                        type="text"
+                                                                        danger
+                                                                        style={{
+                                                                            color: "#ffffff",
+                                                                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                                                                            borderRadius: "50%",
+                                                                            padding: "5px",
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </Form.Item>
+                                                </div>
+                                            </div>
+                                        </Panel>
+                                    </Collapse>
                                 </div>
-                              </Panel>
-                            </Collapse>
-                          </div>
-                        )}
-                      </Draggable>
+                            )}
+                        </Draggable>
                     );
                   })}
                 </div>
@@ -376,7 +515,7 @@ const FormStepQuestion: React.FC = () => {
         />
       </Modal>
 
-      {/* Success -> ส่ง flash ไปหน้า list เท่านั้น */}
+      {/* Success Modal */}
       <Modal
         title="สร้างแบบทดสอบเรียบร้อยแล้ว"
         open={isEditSuccessModalVisible}
@@ -397,3 +536,5 @@ const FormStepQuestion: React.FC = () => {
 };
 
 export default FormStepQuestion;
+
+

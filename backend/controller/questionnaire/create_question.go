@@ -74,11 +74,35 @@ func GetAllUsers(c *gin.Context) {
 }
 
 
+// ฟังก์ชันสำหรับดึงข้อมูล EmotionChoice ทั้งหมดพร้อม AnswerOptions
+func GetAllEmotionChoices(c *gin.Context) {
+	var emotionChoices []entity.EmotionChoice
+	db := config.DB()
+
+	// ดึงข้อมูล EmotionChoice ทั้งหมดและ preload AnswerOptions ที่เชื่อมโยงกับ EmotionChoice
+	if err := db.Preload("AnswerOptions").Order("id asc").Find(&emotionChoices).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูล EmotionChoice ได้"})
+		return
+	}
+
+	// ตรวจสอบว่าไม่มีข้อมูลในระบบ
+	if len(emotionChoices) == 0 {
+		c.JSON(http.StatusNoContent, gin.H{"message": "ไม่มีข้อมูล EmotionChoice ในระบบ"})
+		return
+	}
+
+	// ส่งข้อมูล EmotionChoice ที่มีข้อมูล AnswerOptions กลับไปในรูปแบบ JSON
+	c.JSON(http.StatusOK, emotionChoices)
+}
+
+
+
 // ฟังก์ชันสำหรับสร้างเเบบทดสอบ
 func CreateQuestionnaire(c *gin.Context) {
 	type AnswerInput struct {
 		Description string `json:"description"`
 		Point       int    `json:"point"`
+		EmotionChoiceID *uint  `json:"EmotionChoiceID"`
 	}
 
 	type QuestionInput struct {
@@ -91,6 +115,10 @@ func CreateQuestionnaire(c *gin.Context) {
 		Description       string          `json:"description"`
 		Quantity          int             `json:"quantity"`
 		UID               uint            `json:"uid"`
+		TestType          string          `json:"testType"`       // เพิ่มฟิลด์ TestType สำหรับประเภทแบบทดสอบ
+		ConditionOnID     *uint           `json:"conditionOnID"`  // เลือกแบบทดสอบก่อนหน้า
+		ConditionScore    *int            `json:"conditionScore"` // คะแนนที่ต้องได้
+		ConditionType     *string         `json:"conditionType"`  // เงื่อนไขคะแนน
 		Questions         []QuestionInput `json:"questions"`
 	}
 
@@ -109,8 +137,17 @@ func CreateQuestionnaire(c *gin.Context) {
 		Description:       input.Description,
 		Quantity:          input.Quantity,
 		UID:               input.UID,
+		TestType:          &input.TestType, //ใช้ &input.TestType เพื่อแปลง string เป็น *string
 	}
 
+	// ถ้ามีเงื่อนไข (ConditionOnID, ConditionScore, ConditionType ไม่เป็น nil)
+	if input.ConditionOnID != nil || input.ConditionScore != nil || input.ConditionType != nil {
+		questionnaire.ConditionOnID = input.ConditionOnID
+		questionnaire.ConditionScore = input.ConditionScore
+		questionnaire.ConditionType = input.ConditionType
+	}
+
+	// บันทึกข้อมูล Questionnaire ลงในฐานข้อมูล
 	if err := tx.Create(&questionnaire).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถสร้างแบบทดสอบได้"})
@@ -137,6 +174,10 @@ func CreateQuestionnaire(c *gin.Context) {
 				QID:         question.ID,
 			}
 
+			if a.EmotionChoiceID != nil {
+            answer.EmotionChoiceID = answer.EmotionChoiceID
+        }
+
 			if err := tx.Create(&answer).Error; err != nil {
 				tx.Rollback()
 				c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถสร้างคำตอบได้"})
@@ -147,11 +188,12 @@ func CreateQuestionnaire(c *gin.Context) {
 
 	tx.Commit()
 	c.JSON(http.StatusCreated, gin.H{
-  "message": "สร้างแบบทดสอบสำเร็จ",
-  "id": questionnaire.ID,
-})
-
+		"message": "สร้างแบบทดสอบสำเร็จ",
+		"id": questionnaire.ID,
+	})
 }
+
+
 
 // ฟังก์ชันสำหรับสร้างคำถาม, คำตอบเเละลำดับ
 type QuestionWithAnswers struct {

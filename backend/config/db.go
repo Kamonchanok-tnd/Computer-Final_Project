@@ -97,6 +97,7 @@ func SetupDatabase() {
 		&entity.Score{},
 		&entity.WordHealingContent{},
 		&entity.Emotion{},
+		&entity.EmotionChoice{},
 		&entity.AnswerOption{},
 		&entity.ASMR{},
 		&entity.AssessmentAnswer{},
@@ -132,6 +133,7 @@ func SetupDatabase() {
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
+	CreateDefaultEmotionChoices(db)
 	// SeedQuestionnaires(db)
 	// SeedQuestionnaireGroups(db)
 	// SeedCriteriaAndCalculations(db)
@@ -140,7 +142,7 @@ func SetupDatabase() {
 	SeedEmojis(db)
 	SeedMirrorJuly2025(db)
 	SeedMirrorAug2025FirstHalf(db)
-
+	
 }
 
 // SetupInitialData - เพิ่มข้อมูลเริ่มต้นในตารางต่างๆ
@@ -475,11 +477,12 @@ func SeedQuestionnaires(db *gorm.DB) {
 		"ใน 2 สัปดาห์ที่ผ่านมา รวมวันนี้ ท่านรู้สึก เบื่อ ทำอะไรก็ไม่เพลิดเพลิน หรือไม่",
 	}
 	options2Q := []entity.AnswerOption{
-		{Description: "มี", Point: 1},
-		{Description: "ไม่มี", Point: 0},
+		{Description: "มี", Point: 1,EmotionChoiceID: 12}, // สมมุติว่า 1 คือ ID ของอารมณ์ "เศร้า"
+		{Description: "ไม่มี", Point: 0,EmotionChoiceID: 10},
 	}
-
-	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 2Q", "ใช้คัดกรองเบื้องต้น", 2, admin.ID, questions2Q, options2Q, nil, nil)
+	testTypeNegative := "negative"
+	testTypePositive := "positive"
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 2Q", "ใช้คัดกรองเบื้องต้น", 2, admin.ID, questions2Q, options2Q, nil, nil,nil,&testTypeNegative)
 
 	// == 2. แบบประเมิน 9Q ==
 	questions9Q := []string{
@@ -494,10 +497,10 @@ func SeedQuestionnaires(db *gorm.DB) {
 		"ในช่วง 2 สัปดาห์ที่ผ่านมารวมทั้งวันนี้ ท่านมีความคิดทำร้ายตนเอง หรือคิดว่าถ้าตายไปคงจะดี",
 	}
 	options9Q := []entity.AnswerOption{
-		{Description: "ไม่มีเลย", Point: 0},
-		{Description: "เป็นบางวัน (1–7 วัน)", Point: 1},
-		{Description: "เป็นบ่อย (>7 วัน)", Point: 2},
-		{Description: "เป็นทุกวัน", Point: 3},
+		{Description: "ไม่มีเลย", Point: 0,EmotionChoiceID: 10},
+		{Description: "เป็นบางวัน (1–7 วัน)", Point: 1,EmotionChoiceID: 7},
+		{Description: "เป็นบ่อย (>7 วัน)", Point: 2,EmotionChoiceID: 4},
+		{Description: "เป็นทุกวัน", Point: 3,EmotionChoiceID: 1},
 	}
 
 	var questionnaire2Q entity.Questionnaire
@@ -506,8 +509,8 @@ func SeedQuestionnaires(db *gorm.DB) {
 	}
 
 	scoreThreshold := 1
-
-	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 9Q", "ใช้วัดความรุนแรงของอาการ", 9, admin.ID, questions9Q, options9Q, &questionnaire2Q.ID, &scoreThreshold)
+	greaterThan := "greaterThan"
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบคัดกรองโรคซึมเศร้า 9Q", "ใช้วัดความรุนแรงของอาการ", 9, admin.ID, questions9Q, options9Q, &questionnaire2Q.ID, &scoreThreshold,&greaterThan,&testTypeNegative)
 
 	// == 3. แบบวัดระดับสติ State Mindfulness Scale (ฉบับย่อ) ==
 	questionsMindfulness := []string{
@@ -518,15 +521,15 @@ func SeedQuestionnaires(db *gorm.DB) {
 		"ฉันรีบทำอะไรบางอย่างโดยไม่ได้ตั้งใจจริงๆ",
 	}
 	optionsMindfulness := []entity.AnswerOption{
-		{Description: "เกือบตลอดเวลา", Point: 1},
-		{Description: "บ่อยมาก", Point: 2},
-		{Description: "ค่อนข้างบ่อย", Point: 3},
-		{Description: "เป็นบางครั้ง", Point: 4},
-		{Description: "แทบไม่เคย", Point: 5},
-		{Description: "ไม่เคย", Point: 6},
+		{Description: "เกือบตลอดเวลา", Point: 1,EmotionChoiceID: 1},
+		{Description: "บ่อยมาก", Point: 2,EmotionChoiceID: 4},
+		{Description: "ค่อนข้างบ่อย", Point: 3,EmotionChoiceID: 5},
+		{Description: "เป็นบางครั้ง", Point: 4,EmotionChoiceID: 7},
+		{Description: "แทบไม่เคย", Point: 5,EmotionChoiceID: 9},
+		{Description: "ไม่เคย", Point: 6,EmotionChoiceID: 10},
 	}
 
-	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับสติ (State Mindfulness)", "ประเมินระดับสติในขณะปัจจุบัน", 5, admin.ID, questionsMindfulness, optionsMindfulness, nil, nil)
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับสติ (State Mindfulness)", "ประเมินระดับสติในขณะปัจจุบัน", 5, admin.ID, questionsMindfulness, optionsMindfulness, nil, nil, nil,&testTypePositive)
 
 	// == 4. แบบวัดระดับความสุข คะแนน 0-10 ==
 	questionsHappinessLevel := []string{
@@ -534,20 +537,20 @@ func SeedQuestionnaires(db *gorm.DB) {
 	}
 
 	optionsHappinessLevel := []entity.AnswerOption{
-		{Description: "0", Point: 0},
-		{Description: "1", Point: 1},
-		{Description: "2", Point: 2},
-		{Description: "3", Point: 3},
-		{Description: "4", Point: 4},
-		{Description: "5", Point: 5},
-		{Description: "6", Point: 6},
-		{Description: "7", Point: 7},
-		{Description: "8", Point: 8},
-		{Description: "9", Point: 9},
-		{Description: "10", Point: 10},
+		{Description: "0", Point: 0,EmotionChoiceID: 1},
+		{Description: "1", Point: 1,EmotionChoiceID: 2},
+		{Description: "2", Point: 2,EmotionChoiceID: 3},
+		{Description: "3", Point: 3,EmotionChoiceID: 4},
+		{Description: "4", Point: 4,EmotionChoiceID: 5},
+		{Description: "5", Point: 5,EmotionChoiceID: 6},
+		{Description: "6", Point: 6,EmotionChoiceID: 7},
+		{Description: "7", Point: 7,EmotionChoiceID: 8},
+		{Description: "8", Point: 8,EmotionChoiceID: 9},
+		{Description: "9", Point: 9,EmotionChoiceID: 10},
+		{Description: "10", Point: 10,EmotionChoiceID: 11},
 	}
 
-	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับความสุข คะแนน 0-10", "วัดระดับความสุขในขณะปัจจุบัน", 1, admin.ID, questionsHappinessLevel, optionsHappinessLevel, nil, nil)
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับความสุข คะแนน 0-10", "วัดระดับความสุขในขณะปัจจุบัน", 1, admin.ID, questionsHappinessLevel, optionsHappinessLevel, nil, nil, nil,&testTypePositive)
 
 	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness, HappinessLevel")
 }
@@ -562,6 +565,10 @@ func insertQuestionnaireWithQuestionsAndOptions(
 	options []entity.AnswerOption,
 	ConditionOnID *uint,
 	ConditionScore *int,
+	ConditionType     *string, // เงื่อนไขที่เลือก: greaterThan, lessThan
+	TestType *string, // ประเภทแบบทดสอบ: "positive", "negative"
+
+
 ) {
 	questionnaire := entity.Questionnaire{
 		NameQuestionnaire: name,
@@ -570,6 +577,8 @@ func insertQuestionnaireWithQuestionsAndOptions(
 		UID:               uid,
 		ConditionOnID:     ConditionOnID,
 		ConditionScore:    ConditionScore,
+		ConditionType:     ConditionType,
+		TestType:          TestType,
 	}
 
 	if err := db.Create(&questionnaire).Error; err != nil {
@@ -599,12 +608,15 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 	criterias := []entity.Criteria{
 		{Description: "ปกติ ไม่เป็นโรคซึมเศร้า", CriteriaScore: 0},
 		{Description: "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า", CriteriaScore: 1}, // Note: CriteriaScore for range will be handled in logic
+
 		{Description: "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก", CriteriaScore: 7},
 		{Description: "มีอาการของโรคซึมเศร้า ระดับน้อย", CriteriaScore: 12},
 		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", CriteriaScore: 18},
-		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", CriteriaScore: 19},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", CriteriaScore: 27},
+
 		{Description: "ขาดสติ ในขณะนั้น", CriteriaScore: 3},
 		{Description: "มีสติ อยู่กับปัจจุบัน", CriteriaScore: 6},
+		
 		{Description: "ไม่มีความสุขเลย", CriteriaScore: 0},
 		{Description: "มีความสุขน้อยที่สุด", CriteriaScore: 2},
 		{Description: "มีความสุขน้อย", CriteriaScore: 4},
@@ -1022,4 +1034,40 @@ func SeedMirrorAug2025FirstHalf(db *gorm.DB) {
 		}
 		fmt.Printf("✅ Seeded mirror for %s (uid=%d, eid=%d)\n", start.Format("2006-01-02"), uid, d.EID)
 	}
+}
+
+
+//สร้าง emotion choices เริ่มต้นในตาราง EmotionChoice
+func CreateDefaultEmotionChoices(db *gorm.DB) error {
+	// ตรวจสอบว่ามีข้อมูลในตาราง EmotionChoice อยู่แล้วหรือยัง
+	var count int64
+	if err := db.Model(&entity.EmotionChoice{}).Count(&count).Error; err != nil {
+		return fmt.Errorf("error checking emotion choices: %w", err)
+	}
+
+	// ถ้ายังไม่มีข้อมูลในตาราง EmotionChoice, เพิ่มข้อมูลเริ่มต้น
+	if count == 0 {
+		// ข้อมูลตัวอย่าง
+		emotionChoices := []entity.EmotionChoice{
+			{Name: "Angry", Picture: "0.png"},
+			{Name: "Angry", Picture: "1.png"},
+			{Name: "Angry", Picture: "2.png"},
+			{Name: "Sad", Picture: "3.png"},
+			{Name: "Sad", Picture: "4.png"},
+			{Name: "Normal", Picture: "5.png"},
+			{Name: "Normal", Picture: "6.png"},
+			{Name: "Happy", Picture: "7.png"},	
+			{Name: "Happy", Picture: "8.png"},
+			{Name: "Happy", Picture: "9.png"},
+			{Name: "Happyer", Picture: "10.png"},
+			{Name: "Cry", Picture: "11.png"},
+		}
+
+		// เพิ่มข้อมูลลงในฐานข้อมูล
+		if err := db.Create(&emotionChoices).Error; err != nil {
+			return fmt.Errorf("error creating default emotion choices: %w", err)
+		}
+	}
+
+	return nil
 }

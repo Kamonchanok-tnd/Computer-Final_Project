@@ -50,13 +50,11 @@
   gap: 8px;
   font-size: 24px;
   font-weight: 400;
-  
 }
 
 /* Input */
 .form-step-info-container .ant-input-number {
   font-size: 20px;
- 
   border-radius: 8px;
 }
 
@@ -111,3 +109,22 @@
   background-color: #ff7875 !important; /* เขียวอ่อน */
   transform: scale(1.03);
 }
+
+
+
+/* เพิ่มกรอบให้กับช่องกรอก (input) และ dropdown เมื่อ hover */
+.form-step-info-container .ant-input:hover,
+.form-step-info-container .ant-select-selector:hover,
+.form-step-info-container .ant-input-number:hover {
+  border: 2px solid #87CEFA !important;  /* สีฟ้าอ่อน หรือสีที่คุณต้องการ */
+  outline: none; /* ลบเส้นขอบจากการ focus */
+}
+
+/* เมื่อเอาเมาส์ไปวางที่ช่องกรอก */
+.form-step-info-container .ant-input:focus,
+.form-step-info-container .ant-select-selector:focus,
+.form-step-info-container .ant-input-number:focus {
+  border: 2px solid #87CEFA !important;  /* สีฟ้าอ่อน หรือสีที่คุณต้องการ */
+}
+
+

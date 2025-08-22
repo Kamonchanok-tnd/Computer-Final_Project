@@ -10,4 +10,3 @@ type Like struct {
 	SID uint `json:"sid"`
 }
 
-func (Like) TableName() string { return "likes" }
