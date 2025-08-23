@@ -2,6 +2,7 @@ import { Questionnaire } from "../../../interfaces/IQuestionnaire";
 import { Question } from "../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../interfaces/IAnswerOption";
 import { EmotionChoice } from "../../../interfaces/IEmotionChoices";
+// import { Criteria } from "../../../interfaces/ICriteria";
 const apiUrl = "http://localhost:8000";
 
 // ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
@@ -145,6 +146,32 @@ export const createQuestions = async (input: QuestionWithAnswers[]) => {
   if (!res.ok) throw new Error(`Error: ${res.status}`);
   return res.json();
 };
+
+
+export const createCriteria = async (
+  criteriaList: Array<{ description: string; minScore: number; maxScore: number }>,questionnaireId: number): Promise<any> => {
+  try {
+    const response = await fetch(`${apiUrl}/createCriterias`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        questionnaireId,
+        criterias: criteriaList
+      }), // ส่งทั้ง questionnaireId และ criterias
+    });
+
+    if (!response.ok) throw new Error(`Error: ${response.status} ${response.statusText}`);
+    const resJson = await response.json();
+    return resJson; // ส่งข้อมูลที่ได้กลับ
+  } catch (error) {
+    console.error("Error creating criterias:", error);
+    throw error;
+  }
+};
+
 
 
 

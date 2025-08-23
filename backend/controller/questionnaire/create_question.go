@@ -5,7 +5,7 @@ import (
 	"sukjai_project/config"
 	"sukjai_project/entity"
 	"github.com/gin-gonic/gin"
-	
+	"gorm.io/gorm"
 )
 
 // ฟังก์ชันสำหรับดึงรายการแบบทดสอบทั้งหมด
@@ -231,4 +231,88 @@ func CreateQuestions(c *gin.Context) {
 
 	tx.Commit()
 	c.JSON(http.StatusOK, gin.H{"message": "บันทึกสำเร็จ"})
+}
+
+
+// DTO สำหรับ Calculation
+type CalculationDTO struct {
+	CID  uint `json:"cid"`
+	QuID uint `json:"quid"`
+}
+
+// ฟังก์ชันสำหรับสร้าง Calculation
+func createCalculation(db *gorm.DB, criteriaID uint, questionnaireID uint) error {
+	calculation := entity.Calculation{
+		CID:  criteriaID,
+		QuID: questionnaireID,
+	}
+
+	// บันทึก Calculation
+	if err := db.Create(&calculation).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DTO สำหรับ Criteria
+type CriteriaDTO struct {
+	Description string `json:"description"`
+	MinScore    int    `json:"minScore"`
+	MaxScore    int    `json:"maxScore"`
+}
+
+// POST /createCriterias
+func CreateCriterias(c *gin.Context) {
+	var input struct {
+		QuestionnaireID uint         `json:"questionnaireId"`
+		Criterias       []CriteriaDTO `json:"criterias"`
+	}
+
+	// Bind JSON from the request
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "❌ รูปแบบข้อมูลไม่ถูกต้อง"})
+		return
+	}
+	if len(input.Criterias) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "❌ ไม่มีข้อมูลสำหรับบันทึก"})
+		return
+	}
+
+	db := config.DB()
+	tx := db.Begin()
+
+	created := make([]entity.Criteria, 0, len(input.Criterias))
+	for _, it := range input.Criterias {
+		criteria := entity.Criteria{
+			Description:       it.Description,
+			MinCriteriaScore:  it.MinScore,
+			MaxCriteriaScore:  it.MaxScore,
+		}
+
+		// สร้าง Criteria
+		if err := tx.Create(&criteria).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "❌ บันทึกเกณฑ์ไม่สำเร็จ"})
+			return
+		}
+		created = append(created, criteria)
+
+		// สร้าง Calculation โดยใช้ QuID และ CID
+		if err := createCalculation(tx, criteria.ID, input.QuestionnaireID); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "❌ บันทึก Calculation ไม่สำเร็จ"})
+			return
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "❌ Commit ล้มเหลว"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "บันทึกสำเร็จ",
+		"data":    created, // ส่งข้อมูลที่ถูกสร้างกลับไป
+	})
 }
