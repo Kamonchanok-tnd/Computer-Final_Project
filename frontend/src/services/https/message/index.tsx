@@ -1,10 +1,10 @@
 
 import { WordHealingContent } from "../../../interfaces/IWordHealingContent";
-
+import axios from "axios";
 const apiUrl = "http://localhost:8000";
 
 
-// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมด
+// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน Admin
 export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]> => {
   try {
     const token = localStorage.getItem("token");
@@ -53,7 +53,7 @@ export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]>
 };
 
 
-// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดโดย user
+// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน  user
 export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingContent[]> => {
   try {
     const token = localStorage.getItem("token");
@@ -312,29 +312,50 @@ export const getWordHealingMessageById = async (id: string): Promise<WordHealing
 
 
 
-export const likeMessage = async (wid: number): Promise<boolean> => {
-  const token = localStorage.getItem("token") || "";
-  const res = await fetch(`${apiUrl}/wordhealing/like/${wid}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.ok;
+// ฟังก์ชันสำหรับไลค์บทความ
+export const likeMessage = async (id: number, uid: string) => {
+  try {
+    const response = await axios.post(
+      `${apiUrl}/article/${id}/like`,
+      {}, // เนื้อหาของ body เป็นอ็อบเจกต์ว่าง (เนื่องจากเราใช้ query params)
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        params: { uid },
+      }
+    );
+    return response.data; // คืนค่าผลลัพธ์จาก API
+  } catch (error) {
+    console.error("Error liking message:", error);
+    return false;
+  }
 };
 
-export const unlikeMessage = async (wid: number): Promise<boolean> => {
-  const token = localStorage.getItem("token") || "";
-  const res = await fetch(`${apiUrl}/wordhealing/like/${wid}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.ok;
+// ฟังก์ชันสำหรับยกเลิกไลค์บทความ
+export const unlikeMessage = async (id: number, uid: string) => {
+  try {
+    const response = await axios.delete(
+      `${apiUrl}/article/${id}/like`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        params: { uid },
+      }
+    );
+    return response.data; // คืนค่าผลลัพธ์จาก API
+  } catch (error) {
+    console.error("Error unliking message:", error);
+    return false;
+  }
 };
 
 
 // ดึงข้อมูลการ like
 export const getUserLikedMessages = async (): Promise<number[]> => {
   const token = localStorage.getItem("token") || "";
-  const res = await fetch(`${apiUrl}/getuserlikedMessages`, {
+  const res = await fetch(`${apiUrl}/user/likedMessages`, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -346,3 +367,22 @@ export const getUserLikedMessages = async (): Promise<number[]> => {
     throw new Error("ไม่สามารถดึงข้อมูลการถูกใจบทความได้");
   }
 };
+
+// ฟังก์ชันเช็คว่า user เคยกดหัวใจบทความนี้หรือไม่
+export const checkIfLikedArticle = async (id: number, uid: string) => {
+  try {
+    const response = await axios.get(`${apiUrl}/article/${id}/liked`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        params: { uid },
+      
+    });
+    return response.data; // คืนค่าผลลัพธ์ว่าเคยไลค์หรือไม่
+  } catch (error) {
+    console.error("Error checking liked article:", error);
+    return false;
+  }
+};
+
+

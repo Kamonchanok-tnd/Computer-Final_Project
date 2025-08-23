@@ -1,8 +1,7 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Button } from "antd";
-// import { DashboardOutlined, SettingOutlined } from '@ant-design/icons';
-import { useNavigate } from "react-router-dom";
-import './FullLayout.css';
+import { LogoutOutlined } from "@ant-design/icons"; // ✅ เพิ่ม icon
+import "./FullLayout.css";
 
 const { Header, Content } = Layout;
 
@@ -20,7 +19,12 @@ const FullLayout = () => {
     <Layout className="layout" style={{ minHeight: "100vh" }}>
       <Header className="layout-header">
         <div className="layout-logo">SUT SUKJAI</div>
-        <Button onClick={handleLogout} type="primary" className="layout-logout-button1">
+        <Button
+          onClick={handleLogout}
+          type="primary"
+          icon={<LogoutOutlined />} // ✅ ใช้ icon ที่นี่
+          className="layout-logout-button1"
+        >
           ออกจากระบบ
         </Button>
       </Header>

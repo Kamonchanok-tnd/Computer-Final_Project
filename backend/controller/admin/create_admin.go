@@ -105,5 +105,5 @@ func CreateAdmin(c *gin.Context) {
     }
 
     // ส่งข้อความยืนยันว่า admin ถูกสร้าง
-    c.JSON(http.StatusCreated, gin.H{"message": "Admin created successfully"})
+    c.JSON(http.StatusCreated, gin.H{"message": "เพิ่มผู้ดูแลระบบสำเร็จแล้ว"})
 }

@@ -17,8 +17,8 @@ func GetAllWordhealingmessages(c *gin.Context) {
     var messages []entity.WordHealingContent
     db := config.DB()
 
-    // ดึงข้อมูลทั้งหมดจากฐานข้อมูล
-    if err := db.Find(&messages).Error; err != nil {
+    // ดึงข้อมูลทั้งหมดจากฐานข้อมูลและเรียงลำดับตาม id จากน้อยไปมาก
+    if err := db.Order("id asc").Find(&messages).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลบทความได้"})
         return
     }
@@ -38,8 +38,8 @@ func GetAllWordhealingmessagesForUser(c *gin.Context) {
     var messages []entity.WordHealingContent
     db := config.DB()
 
-    // ดึงข้อมูลทั้งหมดจากฐานข้อมูล
-    if err := db.Find(&messages).Error; err != nil {
+    // ดึงข้อมูลทั้งหมดจากฐานข้อมูลและเรียงลำดับตาม id จากน้อยไปมาก
+    if err := db.Order("id asc").Find(&messages).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลบทความได้"})
         return
     }

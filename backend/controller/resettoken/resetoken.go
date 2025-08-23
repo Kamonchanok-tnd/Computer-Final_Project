@@ -58,7 +58,7 @@ func ValidateResetTokenController(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, gin.H{
-        "message": "รหัสยืนยันถูกต้อง",
+        "message": "รหัสยืนยันถูกต้อง กรุณาตั้งรหัสผ่านใหม่",
         "jwt":     token, // ส่ง JWT token ที่ใช้ในการรีเซ็ตรหัสผ่าน
         "id":      user.ID,
     })
@@ -116,6 +116,6 @@ func UpdatePasswordController(c *gin.Context) {
     // ตอบกลับสำเร็จ
     c.JSON(http.StatusOK, gin.H{
         "status":  "success",
-        "message": "Password reset successfully",
+        "message": "ตั้งรหัสผ่านใหม่สำเร็จ",
     })
 }

@@ -1,7 +1,8 @@
 import { Questionnaire } from "../../../interfaces/IQuestionnaire";
 import { Question } from "../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../interfaces/IAnswerOption";
-
+import { EmotionChoice } from "../../../interfaces/IEmotionChoices";
+// import { Criteria } from "../../../interfaces/ICriteria";
 const apiUrl = "http://localhost:8000";
 
 // ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
@@ -39,6 +40,42 @@ export const getAllQuestionnaires = async (): Promise<Questionnaire[]> => {
     }
 };
 
+// ฟังก์ชันสำหรับดึง EmotionChoice ทั้งหมด
+export const getAllEmotionChoices = async (): Promise<EmotionChoice[]> => {
+    try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(`${apiUrl}/getallemotionchoices`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+        }
+
+        const rawData = await response.json();
+
+        // แปลงข้อมูลให้ตรงกับรูปแบบที่ต้องการใน frontend
+        const data: EmotionChoice[] = rawData.map((e: any) => ({
+            id: e.ID,
+            name: e.name, // ✅ ใช้ตัวเล็กให้ตรงกับ JSON
+            picture: e.picture, // ✅ ใช้ตัวเล็กให้ตรงกับ JSON
+            answerOptions: e.AnswerOptions,
+        }));
+
+
+        return data;
+    } catch (error) {
+        console.error("Error fetching emotion choices:", error);
+        return [];
+    }
+};
+
+
 
 // ฟังก์ชันสำหรับสร้างแบบทดสอบ
 export const createQuestionnaire = async (questionnaireData: Questionnaire) => {
@@ -71,19 +108,71 @@ export interface QuestionWithAnswers {
 }
 
 
-export const createQuestions = async (questions: QuestionWithAnswers[]) => {
+export const createQuestions = async (input: QuestionWithAnswers[]) => {
   const token = localStorage.getItem("token");
-  const response = await fetch(`${apiUrl}/createQuestions`, {
+
+  const payload = input.map(({ question, answers }) => ({
+    question: {
+      // *** อย่าส่ง id ***
+      nameQuestion: question.nameQuestion,
+      quID: question.quID,
+      priority: (question as any).priority,      // ถ้าหลังบ้านรองรับ
+      picture: question.picture ?? null,         // ถ้ารองรับรูป
+    },
+    answers: answers
+      .filter(a => a.description.trim() !== "")
+      .map(a => ({
+        // *** อย่าส่ง id ***
+        description: a.description,
+        point: a.point,
+        EmotionChoiceID:
+          a.EmotionChoiceID === 0 || a.EmotionChoiceID === undefined
+            ? null
+            : a.EmotionChoiceID,
+      })),
+  }));
+
+  console.log("🚀 createQuestions payload =", payload);
+  console.log("🧾 JSON =", JSON.stringify(payload, null, 2));
+
+  const res = await fetch(`${apiUrl}/createQuestions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token || ""}`,
     },
-    body: JSON.stringify(questions), // priority จะถูกส่งมาด้วย
+    body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`Error: ${response.status}`);
-  return response.json();
+  if (!res.ok) throw new Error(`Error: ${res.status}`);
+  return res.json();
 };
+
+
+export const createCriteria = async (
+  criteriaList: Array<{ description: string; minScore: number; maxScore: number }>,questionnaireId: number): Promise<any> => {
+  try {
+    const response = await fetch(`${apiUrl}/createCriterias`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        questionnaireId,
+        criterias: criteriaList
+      }), // ส่งทั้ง questionnaireId และ criterias
+    });
+
+    if (!response.ok) throw new Error(`Error: ${response.status} ${response.statusText}`);
+    const resJson = await response.json();
+    return resJson; // ส่งข้อมูลที่ได้กลับ
+  } catch (error) {
+    console.error("Error creating criterias:", error);
+    throw error;
+  }
+};
+
+
 
 
 // ฟังก์ชันสำหรับดึงผู้ใช้งานทั้งหมด
@@ -198,6 +287,7 @@ export const getQuestionnaireById = async (id: number): Promise<Questionnaire> =
       description: rawData.Description,
       quantity: rawData.Quantity,
       uid: rawData.UID,
+      testType: rawData.TestType, // Add this line to include testType
       questions: (rawData.Questions ?? []).map((q: any) => ({
         id: q.ID,
         nameQuestion: q.nameQuestion,

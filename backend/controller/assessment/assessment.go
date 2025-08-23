@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"fmt"
+	"gorm.io/gorm"
+	"time"
 )
 
 func GetAllAnswerOptions(c *gin.Context) {
@@ -256,5 +258,244 @@ func GetAllQuestionnaireGroups(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, groups)
+}
+
+// ดึงกลุ่มแบบสอบถามแบบ “เรียงตาม OrderInGroup”
+// GET /questionnaire-groups/:id
+func GetQuestionnaireGroupByID(c *gin.Context) {
+    id := c.Param("id")
+
+    var group entity.QuestionnaireGroup
+    // ดึงกลุ่ม + join table + เรียงตาม order
+    if err := config.DB().
+        Preload("QuestionnaireGroupQuestionnaires", func(db *gorm.DB) *gorm.DB {
+            return db.Order("order_in_group ASC")
+        }).
+        Preload("QuestionnaireGroupQuestionnaires.Questionnaire").
+        First(&group, id).Error; err != nil {
+        util.HandleError(c, http.StatusNotFound, "ไม่พบ Group", "NOT_FOUND")
+        return
+    }
+
+    // แปลงเป็น payload ที่ frontend ใช้ง่าย
+    type Q struct {
+        ID             uint   `json:"id"`
+        Name           string `json:"name"`
+        OrderInGroup   uint   `json:"order_in_group"`
+        ConditionOnID  *uint  `json:"condition_on_id"`
+        ConditionScore *int   `json:"condition_score"`
+    }
+    payload := struct {
+        ID            uint    `json:"id"`
+        Name          string  `json:"name"`
+        Description   string  `json:"description"`
+        FrequencyDays *uint   `json:"frequency_days"`
+        Items         []Q     `json:"questionnaires"`
+    }{
+        ID:            group.ID,
+        Name:          group.Name,
+        Description:   group.Description,
+        FrequencyDays: group.FrequencyDays,
+    }
+
+    for _, link := range group.QuestionnaireGroupQuestionnaires {
+        payload.Items = append(payload.Items, Q{
+            ID:             link.Questionnaire.ID,
+            Name:           link.Questionnaire.NameQuestionnaire,
+            OrderInGroup:   link.OrderInGroup,
+            ConditionOnID:  link.Questionnaire.ConditionOnID,
+            ConditionScore: link.Questionnaire.ConditionScore,
+        })
+    }
+
+    c.JSON(http.StatusOK, payload)
+}
+
+// อัปเดตความถี่ของกลุ่ม (เปลี่ยน 14 เป็น 7/21 ฯลฯ)
+// PATCH /questionnaire-groups/:id/frequency
+type updateFreqReq struct {
+    FrequencyDays *uint `json:"frequency_days"` // null = ทำครั้งเดียว
+}
+func UpdateQuestionnaireGroupFrequency(c *gin.Context) {
+    id := c.Param("id")
+    var body updateFreqReq
+    if err := c.ShouldBindJSON(&body); err != nil {
+        util.HandleError(c, http.StatusBadRequest, "ข้อมูลไม่ถูกต้อง", "INVALID_INPUT")
+        return
+    }
+    if err := config.DB().Model(&entity.QuestionnaireGroup{}).
+        Where("id = ?", id).
+        Update("frequency_days", body.FrequencyDays).Error; err != nil {
+        util.HandleError(c, http.StatusInternalServerError, "อัปเดตความถี่ไม่สำเร็จ", "UPDATE_FAILED")
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "updated"})
+}
+
+
+// จัดลำดับแบบสอบถามในกลุ่ม (drag & drop แล้วส่งมาเป็น array)
+// PUT /questionnaire-groups/:id/order
+type reorderReq struct {
+    QuestionnaireIDs []uint `json:"questionnaire_ids"` // ลำดับใหม่จากซ้าย→ขวา
+}
+func ReorderQuestionnairesInGroup(c *gin.Context) {
+    gid := c.Param("id")
+
+    var body reorderReq
+    if err := c.ShouldBindJSON(&body); err != nil || len(body.QuestionnaireIDs) == 0 {
+        util.HandleError(c, http.StatusBadRequest, "payload ไม่ถูกต้อง", "INVALID_INPUT")
+        return
+    }
+
+    // loop อัปเดต order_in_group
+    for idx, qid := range body.QuestionnaireIDs {
+        if err := config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
+            Where("questionnaire_group_id = ? AND questionnaire_id = ?", gid, qid).
+            Update("order_in_group", idx+1).Error; err != nil {
+            util.HandleError(c, http.StatusInternalServerError, "อัปเดตลำดับไม่สำเร็จ", "UPDATE_FAILED")
+            return
+        }
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "reordered"})
+}
+
+
+// บอก “กลุ่มไหนพร้อมให้ทำ” ตามความถี่ (FrequencyDays)
+// GET /questionnaire-groups/available?user_id=123
+func GetAvailableGroupsForUser(c *gin.Context) {
+    uid := c.Query("user_id")
+    if uid == "" {
+        util.HandleError(c, http.StatusBadRequest, "ต้องมี user_id", "MISSING_USER")
+        return
+    }
+
+    var groups []entity.QuestionnaireGroup
+    if err := config.DB().Find(&groups).Error; err != nil {
+        util.HandleError(c, http.StatusInternalServerError, "โหลดกลุ่มไม่สำเร็จ", "FETCH_FAILED")
+        return
+    }
+
+    type item struct {
+        ID            uint   `json:"id"`
+        Name          string `json:"name"`
+        Description   string `json:"description"`
+        FrequencyDays *uint  `json:"frequency_days"`
+        Available     bool   `json:"available"`
+        Reason        string `json:"reason"`
+    }
+    var out []item
+
+    for _, g := range groups {
+        // แนวคิด: ดูจาก Transaction/AssessmentResult ล่าสุดใน group นี้ (ต้องมีวิธีผูก group กับ result/tx ของ user)
+        // ตัวอย่างเชิงแนวทาง: ถ้าไม่มี FrequencyDays => ยังไม่เคยทำ -> available
+        // ถ้ามี FrequencyDays => ถ้าห่างจากครั้งล่าสุด >= N วัน -> available
+        // *** ปรับ logic ให้ตรงกับ schema จริงของคุณ ***
+
+        available := true
+        reason := "first time"
+
+        if g.FrequencyDays != nil {
+            // หาเวลาทำล่าสุดในกลุ่มนี้ (ตัวอย่าง query ทั่วไป—คุณต้องปรับให้ตรงกับโครงสร้างจริง)
+            var lastTx entity.Transaction
+            err := config.DB().
+                Joins("JOIN assessment_results ar ON ar.id = transactions.arid").
+                Where("ar.uid = ? AND ar.group_id = ?", uid, g.ID). // ถ้าไม่มี group_id ใน AR ให้ปรับเป็นเงื่อนไขที่หา last ของกลุ่ม
+                Order("transactions.created_at DESC").
+                First(&lastTx).Error
+
+            if err == nil {
+                days := *g.FrequencyDays
+                // เช็คเวลา (ตัวอย่างแบบง่าย)
+                if time.Since(lastTx.CreatedAt) < (time.Duration(days) * 24 * time.Hour) {
+                    available = false
+                    reason = fmt.Sprintf("ต้องรอครบ %d วัน", days)
+                } else {
+                    reason = "ครบกำหนดรอบ"
+                }
+            } else {
+                reason = "ยังไม่เคยทำกลุ่มนี้"
+            }
+        }
+
+        out = append(out, item{
+            ID: g.ID, Name: g.Name, Description: g.Description,
+            FrequencyDays: g.FrequencyDays, Available: available, Reason: reason,
+        })
+    }
+
+    c.JSON(http.StatusOK, out)
+}
+
+// GET /assessments/next?user_id=123&group_id=1
+func GetNextQuestionnaire(c *gin.Context) {
+    uid := c.Query("user_id")
+    gid := c.Query("group_id")
+    if uid == "" || gid == "" {
+        util.HandleError(c, http.StatusBadRequest, "ต้องมี user_id และ group_id", "MISSING_PARAMS")
+        return
+    }
+
+    // ดึงรายการ questionnaire ของ group นี้ตามลำดับ
+    var links []entity.QuestionnaireGroupQuestionnaire
+    if err := config.DB().
+        Preload("Questionnaire").
+        Where("questionnaire_group_id = ?", gid).
+        Order("order_in_group ASC").
+        Find(&links).Error; err != nil {
+        util.HandleError(c, http.StatusInternalServerError, "โหลดรายการแบบสอบถามไม่สำเร็จ", "FETCH_FAILED")
+        return
+    }
+
+    // หาว่า user ทำไปถึงไหนแล้วในกลุ่มนี้ (ปรับ logic ให้ตรง schema จริงของคุณ)
+    // ไอเดีย: ดู AssessmentResult ล่าสุดต่อ questionnaire (ของ user) ว่าทำครบ/ยัง
+    for _, l := range links {
+        q := l.Questionnaire
+
+        // ข้ามถ้าทำเสร็จแล้ว (ตัวอย่าง query; ปรับให้ตรง schema)
+        var done int64
+        config.DB().
+            Model(&entity.AssessmentResult{}).
+            Where("uid = ? AND quid = ?", uid, q.ID).
+            Count(&done)
+        if done > 0 {
+            continue
+        }
+
+        // ตรวจเงื่อนไขก่อนหน้า (เช่น 9Q ต้องผ่าน 2Q >= 1)
+        if q.ConditionOnID != nil && q.ConditionScore != nil {
+            // ดึงคะแนนล่าสุดของ ConditionOnID
+            var tx entity.Transaction
+            // ตัวอย่าง: join AR (ต้องมี mapping UID + QuID)
+            err := config.DB().
+                Joins("JOIN assessment_results ar ON ar.id = transactions.arid").
+                Where("ar.uid = ? AND ar.quid = ?", uid, *q.ConditionOnID).
+                Order("transactions.created_at DESC").
+                First(&tx).Error
+            if err != nil || tx.TotalScore < *q.ConditionScore {
+                // ไม่ถึงเกณฑ์ → ข้ามไปตัวถัดไป
+                continue
+            }
+        }
+
+        // เจอข้อถัดไปที่ควรทำ
+        c.JSON(http.StatusOK, gin.H{
+            "group_id": gid,
+            "next": gin.H{
+                "id":              q.ID,
+                "name":            q.NameQuestionnaire,
+                "order_in_group":  l.OrderInGroup,
+                "condition_on_id": q.ConditionOnID,
+                "condition_score": q.ConditionScore,
+            },
+        })
+        return
+    }
+
+    // ถ้าไม่มีอะไรให้ทำแล้ว
+    c.JSON(http.StatusOK, gin.H{
+        "group_id": gid,
+        "next":     nil,
+        "message":  "ทำแบบสอบถามในกลุ่มนี้ครบแล้ว",
+    })
 }
 
