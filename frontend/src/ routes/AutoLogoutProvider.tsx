@@ -61,23 +61,29 @@ const AutoLogoutProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   useEffect(() => {
-    const activityEvents = ["mousemove", "mousedown", "keypress", "scroll", "click"];
+  const activityEvents = ["mousemove", "mousedown", "keypress", "scroll", "click"];
 
-    // 🔥 เช็ค token ตอนเปิดเว็บครั้งแรกเลย
+  // 🔥 เช็ค token ตอนเปิดเว็บครั้งแรก
+  checkTokenExpiry();
+
+  // 🔥 ตั้ง idle timer
+  resetTimer();
+
+  // 🔥 ฟัง event user activity
+  activityEvents.forEach(event => window.addEventListener(event, handleActivity));
+
+  // 🔥 เพิ่ม interval มาตรวจ token expiry ทุกๆ 1 นาที
+  const interval = setInterval(() => {
     checkTokenExpiry();
+  }, 60 * 1000); // 1 นาที
 
-    // 🔥 ตั้ง idle timer ครั้งแรก
-    resetTimer();
-
-    // 🔥 ฟัง event user activity
-    activityEvents.forEach(event => window.addEventListener(event, handleActivity));
-
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (warningRef.current) clearTimeout(warningRef.current);
-      activityEvents.forEach(event => window.removeEventListener(event, handleActivity));
-    };
-  }, []);
+  return () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (warningRef.current) clearTimeout(warningRef.current);
+    activityEvents.forEach(event => window.removeEventListener(event, handleActivity));
+    clearInterval(interval);
+  };
+}, []);
 
   return (
     <>
