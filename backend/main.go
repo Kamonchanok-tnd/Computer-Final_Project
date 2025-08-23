@@ -80,12 +80,7 @@ func main() {
 	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
 	r.GET("/recent", controller.GetRecentChat)
 
-	r.POST("/signup", users.SignUp)
-	r.POST("/signin", users.SignIn)
-	r.POST("/forgot-password", users.ForgotPasswordController)
-	r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
-	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
-	r.GET("/recent", controller.GetRecentChat)
+	
 
 	// Protect routes with role-based access
 	router := r.Group("/")
@@ -244,20 +239,7 @@ func main() {
 		// userRouter.GET("/recent", controller.GetRecentChat)
 	}
 
-	// r.GET("/", func(c *gin.Context) {
-	// 	c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
-	// })
-
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
-	})
-
-        //chat space
-        // userRouter.POST("/gemini", controller.GeminiHistory)
-        // userRouter.GET("/conversation/:id", controller.GetConversationHistory)
-        // userRouter.POST("/new-chat", controller.CreateChatRoom)
-        // userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
-        // userRouter.GET("/recent", controller.GetRecentChat)
+	
 
     r.GET("/", func(c *gin.Context) {
         c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
