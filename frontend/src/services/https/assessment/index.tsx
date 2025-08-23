@@ -2,6 +2,7 @@ import axios from "axios";
 import { Question } from '../../../interfaces/IQuestion';
 import { AnswerOption } from '../../../interfaces/IAnswerOption';
 import { QuestionnaireGroup } from '../../../interfaces/IQuestionnaireGroup';
+import { AssessmentAnswer } from '../../../interfaces/IAssessmentAnswer';
 
 // ✅ Inline axiosInstance พร้อมแนบ token
 const axiosInstance = axios.create({
@@ -26,31 +27,34 @@ export const fetchAnswerOptions = async (): Promise<AnswerOption[]> => {
   return res.data;
 };
 
-// ✅ ฟังก์ชันใหม่: ส่งคำตอบ
 export const submitAnswer = async (
-  ARID: number,
-  QID: number,
-  AOID: number,
-  Point: number
+  answer: AssessmentAnswer
 ): Promise<void> => {
   await axiosInstance.post("/assessment/answer", {
-    ARID,
-    QID,
-    AOID,
-    Point,
+    ARID: answer.arid,
+    QID: answer.qid,
+    AOID: answer.answerOptionID,
+    Point: answer.point,
+    QuestionNumber: answer.question_number,
   });
 };
+
 
 // ✅ ฟังก์ชันใหม่: สรุปผล
 export const finishAssessment = async (ARID: number): Promise<void> => {
   await axiosInstance.post(`/assessment/finish/${ARID}`);
 };
 
-// ✅ เพิ่มฟังก์ชันนี้
-export const createAssessmentResult = async (quID: number): Promise<number> => {
-  const res = await axiosInstance.post("/assessment/result", { QuID: quID });
-  return res.data.ID; // สมมุติว่า backend ส่งกลับ ID ของ result
+export const createAssessmentResult = async (quID: number, uid: number): Promise<number> => {
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const res = await axiosInstance.post("/assessment/result", {
+    QuID: quID,
+    UID: uid,
+    Date: today,
+  });
+  return res.data.ID;
 };
+
 
 export const getAllQuestionnaireGroups = async (): Promise<QuestionnaireGroup[]> => {
   try {
