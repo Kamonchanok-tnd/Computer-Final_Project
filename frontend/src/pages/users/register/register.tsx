@@ -30,15 +30,37 @@ function SignUpPages() {
     { value: "Other", label: "อื่นๆ" },
   ];
 
+  // state สำหรับ consent
   const [isConsentVisible, setIsConsentVisible] = useState(true);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [consentAcceptedAt, setConsentAcceptedAt] = useState<Date | null>(null);
 
-  const handleConsentOk = () => setIsConsentVisible(false);
+  // ฟังก์ชันกดยอมรับ
+  const handleConsentOk = () => {
+    const now = new Date();
+    setConsentAccepted(true);
+    setConsentAcceptedAt(now);
+    setIsConsentVisible(false);
+  };
+
   const handleConsentCancel = () =>
     messageApi.warning("คุณต้องยินยอมก่อนสมัครสมาชิก");
 
   const onFinish = async (values: UsersInterface) => {
-    values.Role = "user";
-    let res = await CreateUser(values);
+    if (!consentAccepted || !consentAcceptedAt) {
+      messageApi.error("คุณต้องยินยอมก่อนสมัครสมาชิก");
+      return;
+    }
+
+    const payload = {
+    ...values,
+    consent_accepted: consentAccepted,
+    consent_accepted_at: consentAcceptedAt,
+    role: "user"
+  };
+
+  let res = await CreateUser(payload);
+    console.log("ข้อมูลผู้ใช้",res);
 
     if (res.status === 201) {
       messageApi.success("ลงทะเบียนสำเร็จ!");
@@ -77,7 +99,6 @@ function SignUpPages() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            // padding: "2rem",
           }}
         >
           <div className="w-full">
@@ -189,9 +210,7 @@ function SignUpPages() {
 
             
           </div>
-
             <Title level={2}>สมัครสมาชิก</Title>
-            
             <Text type="secondary">กรอกข้อมูลเพื่อสร้างบัญชีของคุณ</Text>
             <Divider />
 

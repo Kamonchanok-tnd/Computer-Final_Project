@@ -84,7 +84,10 @@ const AdminLayout = () => {
               <Link to="/admin/sounds">Sounds</Link>
             </Menu.Item>
             <Menu.Item key="/admin/messagePage" icon={<MailOutlined />}> 
-              <Link to="/admin/messagePage">Message</Link>
+              <Link to="/admin/messagePage">Message</Link> 
+            </Menu.Item>
+            <Menu.Item key="/admin/dashboard/contents" icon={<MailOutlined />}> 
+              <Link to="/admin/dashboard/contents">DashboardContents</Link> 
             </Menu.Item>
           </Menu>
         </Sider>
