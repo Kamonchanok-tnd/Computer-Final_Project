@@ -6,6 +6,29 @@ import { useNavigate } from "react-router-dom";
 import { Check, CheckCircle, X, Play, Music } from 'lucide-react';
 const { Option } = Select;
 
+
+const formatDurationHMS = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  const hh = h > 0 ? `${h}:` : "";
+  return `${hh}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+const parseDurationHMS = (input: string) => {
+  const parts = input.split(":").map(Number);
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    return h * 3600 + m * 60 + s;
+  } else if (parts.length === 2) {
+    const [m, s] = parts;
+    return m * 60 + s;
+  } else if (parts.length === 1) {
+    return parts[0]; // วินาทีอย่างเดียว
+  }
+  return 0;
+};
+
 const VideoForm: React.FC = () => {
   const [form] = Form.useForm();
   const [soundTypes, setSoundTypes] = useState<any[]>([]);
@@ -13,6 +36,8 @@ const VideoForm: React.FC = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const navigate = useNavigate();
   const previewRef = useRef<HTMLDivElement>(null);
+ 
+  const playerRef = useRef<any>(null);
 
   useEffect(() => {
     const fetchSoundTypes = async () => {
@@ -43,8 +68,8 @@ const VideoForm: React.FC = () => {
       values.uid = Number(userId);
     }
     values.stid = Number(values.stid);
-    values.duration = Number(values.duration);
-    console.log(values);
+    values.duration = parseDurationHMS(values.duration); // แปลงเป็นวินาทีก่อนส่ง backend
+
     try {
       await createVideo(values);
       message.success('เพิ่มข้อมูลสำเร็จ!');
@@ -53,31 +78,63 @@ const VideoForm: React.FC = () => {
       form.setFieldsValue({ uid: Number(userId) });
     } catch (err) {
       message.error('เกิดข้อผิดพลาดในการเพิ่มวิดีโอ');
+    }finally {
+      setTimeout(() => {
+        navigate('/admin/sounds');
+      }, 2000);
     }
   };
-
+  useEffect(() => {
+    if (!(window as any).YT) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.body.appendChild(tag);
+    }
+  }, []);
+  
   const handlePreview = () => {
     const url = form.getFieldValue("sound");
     const videoId = extractYouTubeID(url);
-    if (videoId && previewRef.current) {
-      previewRef.current.innerHTML = `
-        <iframe width="100%" height="400"
-          src="https://www.youtube.com/embed/${videoId}"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-          class="rounded-lg shadow-lg">
-        </iframe>
-      `;
-    } else {
+  
+    if (!videoId) {
       message.error("ลิงก์ไม่ถูกต้อง หรือไม่พบวิดีโอ");
+      return;
     }
+  
+    // แสดง iframe preview
+    if (previewRef.current) {
+      previewRef.current.innerHTML = `<div id="yt-player"></div>`;
+    }
+  
+    const waitForYT = () => {
+      if ((window as any).YT && (window as any).YT.Player) {
+        playerRef.current = new (window as any).YT.Player("yt-player", {
+          height: "400",
+          width: "100%",
+          videoId,
+          events: {
+            onReady: (event: any) => {
+              // ดึงความยาวจริงของวิดีโอ
+              const durationSeconds = event.target.getDuration();
+              const formatted = formatDurationHMS(durationSeconds);
+              form.setFieldsValue({ duration: formatted });
+          
+            },
+          },
+        });
+      } else {
+        setTimeout(waitForYT, 300); // รอโหลด YouTube API
+      }
+    };
+  
+    waitForYT();
   };
   
-  // ดึง video ID จาก youtube link
+  
+  // regex ใหม่
   const extractYouTubeID = (url: string): string | null => {
     const regex =
-      /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+      /(?:youtube\.com\/(?:.*v=|v\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
@@ -203,23 +260,14 @@ const VideoForm: React.FC = () => {
                   </div>
                 </Form.Item>
                 <div className="grid grid-cols-2 gap-4">
-                  <Form.Item
-                    label={<span className="text-sm font-medium text-gray-700">ความยาว</span>}
-                    name="duration"
-                    rules={[{ required: true, message: 'กรุณากรอกความยาว' }]}
-                  >
-                    <div className="flex">
-                      <Input 
-                        className="h-10 rounded-l-lg border-gray-300 focus:border-indigo-500" 
-                        placeholder=""
-                        type="number"
-                        step="0.01"
-                      />
-                      <span className=" px-3 h-10 flex items-center text-gray-600 rounded-r-lg text-sm">
-                        นาที
-                      </span>
-                    </div>
-                  </Form.Item>
+                <Form.Item
+  label="ความยาว"
+  name="duration"
+  rules={[{ required: true, message: 'กรุณากรอกความยาว' }]}
+>
+<Input placeholder="h:mm:ss" />
+</Form.Item>
+
                   <div></div>
                 </div>
                 </div>

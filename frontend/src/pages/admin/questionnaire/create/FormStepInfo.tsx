@@ -126,9 +126,9 @@ const FormStepInfo: React.FC = () => {
           name="testType"
           rules={[{ required: true, message: "กรุณาเลือกประเภทแบบทดสอบ!" }]}
         >
-          <Select placeholder="เลือกประเภทแบบทดสอบ" style={{ width: "50%" ,height: "45px", fontSize: "24px" }}>
-            <Select.Option value="positive">เชิงบวก</Select.Option>
-            <Select.Option value="negative">เชิงลบ</Select.Option>
+          <Select placeholder="เลือกประเภทแบบทดสอบ" style={{ width: "70%" ,height: "45px", fontSize: "24px" }}>
+            <Select.Option value="positive">เชิงบวก (เชิงบวก หมายถึง เเบบทดสอบที่ยิ่งได้ผลรวมคะเเนนมาก ยิ่งดี เช่น เเบบวัดความสุข) </Select.Option>
+            <Select.Option value="negative">เชิงลบ (เชิงลบ หมายถึง เเบบทดสอบที่ยิ่งได้ผลรวมคะเเนนมาก ยิ่งไม่ดี เช่น เเบบวัดความเสี่ยงที่จะเป็นโรคซึมเศร้า) </Select.Option>
           </Select>
         </Form.Item>
 
