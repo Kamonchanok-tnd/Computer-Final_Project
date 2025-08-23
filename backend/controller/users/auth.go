@@ -31,7 +31,8 @@ type (
        Role       string    `json:"role"`
        Age        int       `json:"age"`      
        Gender     string    `json:"gender"`
-       BirthDay   time.Time `json:"birthday"`
+       ConsentAccepted   bool      `json:"consent_accepted"`
+       ConsentAcceptedAt time.Time `json:"consent_accepted_at"`
    }
 )
 
@@ -93,17 +94,20 @@ func SignUp(c *gin.Context) {
     }
 
     // สร้างผู้ใช้ใหม่
-    user := entity.Users{
-        Username:   payload.Username,
-        Email:      payload.Email,
-        Password:   hashedPassword,
-        Facebook:   payload.Facebook,
-        Line:       payload.Line,
-        PhoneNumber: payload.PhoneNumber,
-        Role:       payload.Role, // บันทึก role เป็น admin หากเป็น superadmin
-        Age:        payload.Age, 
-        Gender:     payload.Gender,
-    }
+user := entity.Users{
+    Username:         payload.Username,
+    Email:            payload.Email,
+    Password:         hashedPassword,
+    Facebook:         payload.Facebook,
+    Line:             payload.Line,
+    PhoneNumber:      payload.PhoneNumber,
+    Role:             payload.Role, // บันทึก role เป็น admin หากเป็น superadmin
+    Age:              payload.Age, 
+    Gender:           payload.Gender,
+    ConsentAccepted:  payload.ConsentAccepted,       // เพิ่มตรงนี้
+    ConsentAcceptedAt: payload.ConsentAcceptedAt,    // เพิ่มตรงนี้
+}
+
 
     // บันทึกผู้ใช้ลงในฐานข้อมูล
     if err := db.Create(&user).Error; err != nil {
