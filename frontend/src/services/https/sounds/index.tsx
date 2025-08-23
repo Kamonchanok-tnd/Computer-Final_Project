@@ -112,3 +112,18 @@ export const addSoundView = async (id: number) => {
     throw error;
   }
 };
+
+export const addSoundViewBlock = async (id: number,uid: number) => {
+  try {
+    const response = await axios.post(`${apiUrl}/sounds/${id}/view-block/${uid}`, {}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    return response.data; // { message: "View updated", view: <number> }
+  } catch (error) {
+    console.error("Error adding view:", error);
+    throw error;
+  }
+};
+
