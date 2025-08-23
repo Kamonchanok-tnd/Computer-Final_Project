@@ -624,22 +624,22 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 	// Seed Criteria
 	criterias := []entity.Criteria{
 		{Description: "ปกติ ไม่เป็นโรคซึมเศร้า", MinCriteriaScore: 0 ,MaxCriteriaScore: 0},
-		{Description: "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า", MinCriteriaScore: 0 ,MaxCriteriaScore: 1}, // Note: CriteriaScore for range will be handled in logic
+		{Description: "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า", MinCriteriaScore: 1 ,MaxCriteriaScore: 2},
 
-		{Description: "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก", MinCriteriaScore: 0 ,MaxCriteriaScore: 7},
-		{Description: "มีอาการของโรคซึมเศร้า ระดับน้อย", MinCriteriaScore: 0 ,MaxCriteriaScore: 12},
-		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", MinCriteriaScore: 0 ,MaxCriteriaScore: 18},
-		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", MinCriteriaScore: 0 ,MaxCriteriaScore: 27},
+		{Description: "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก", MinCriteriaScore: 0 ,MaxCriteriaScore: 6},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับน้อย", MinCriteriaScore: 7 ,MaxCriteriaScore: 12},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", MinCriteriaScore: 13 ,MaxCriteriaScore: 18},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", MinCriteriaScore: 19 ,MaxCriteriaScore: 27},
 
-		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 0 ,MaxCriteriaScore: 3},
-		{Description: "มีสติ อยู่กับปัจจุบัน", MinCriteriaScore: 0 ,MaxCriteriaScore: 6},
+		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 1 ,MaxCriteriaScore: 3},
+		{Description: "มีสติ อยู่กับปัจจุบัน", MinCriteriaScore: 4 ,MaxCriteriaScore: 6},
 		
 		{Description: "ไม่มีความสุขเลย", MinCriteriaScore: 0 ,MaxCriteriaScore: 0},
-		{Description: "มีความสุขน้อยที่สุด", MinCriteriaScore: 0 ,MaxCriteriaScore: 2},
-		{Description: "มีความสุขน้อย", MinCriteriaScore: 0 ,MaxCriteriaScore: 4},
-		{Description: "มีความสุขปานกลาง", MinCriteriaScore: 0 ,MaxCriteriaScore: 6},
-		{Description: "มีความสุขมาก", MinCriteriaScore: 0 ,MaxCriteriaScore: 8},
-		{Description: "มีความสุขมากที่สุด", MinCriteriaScore: 0 ,MaxCriteriaScore: 10},
+		{Description: "มีความสุขน้อยที่สุด", MinCriteriaScore: 1 ,MaxCriteriaScore: 2},
+		{Description: "มีความสุขน้อย", MinCriteriaScore: 3 ,MaxCriteriaScore: 4},
+		{Description: "มีความสุขปานกลาง", MinCriteriaScore: 5 ,MaxCriteriaScore: 6},
+		{Description: "มีความสุขมาก", MinCriteriaScore: 7 ,MaxCriteriaScore: 8},
+		{Description: "มีความสุขมากที่สุด", MinCriteriaScore: 9 ,MaxCriteriaScore: 10},
 
 		{Description: "ไม่มีความเครียด", MinCriteriaScore: 0 ,MaxCriteriaScore: 4},
 		{Description: "เครียดปานกลาง ", MinCriteriaScore: 5 ,MaxCriteriaScore: 7},
