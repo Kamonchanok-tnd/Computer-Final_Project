@@ -567,7 +567,7 @@ func SeedQuestionnaires(db *gorm.DB) {
 		{Description: "เป็นประจำ", Point: 3,EmotionChoiceID: 1},
 	}
 
-	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดความเครียด (ST-5)", "แบบวัดความเครียด (ST-5) จำนวน 5 ข้อ ที่พัฒนาโดย อรวรรณ ศิลปะกิจ (Silpakit, 2008)", 5, admin.ID, questionsST5, optionsST5, nil, nil, nil,&testTypeNegative)
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับความเครียด (ST-5)", "แบบวัดความเครียด (ST-5) จำนวน 5 ข้อ ที่พัฒนาโดย อรวรรณ ศิลปะกิจ (Silpakit, 2008)", 5, admin.ID, questionsST5, optionsST5, nil, nil, nil,&testTypeNegative)
 
 	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness, HappinessLevel, ST-5")
 }
