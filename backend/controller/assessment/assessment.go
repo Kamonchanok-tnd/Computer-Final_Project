@@ -205,6 +205,10 @@ func SubmitAssessmentAnswer(c *gin.Context) {
 		util.HandleError(c, http.StatusBadRequest, "ข้อมูลไม่ถูกต้อง", "INVALID_INPUT")
 		return
 	}
+
+	// ✅ Log ค่าที่รับมา
+	fmt.Printf("รับค่าคำตอบ: %+v\n", input)
+
 	if err := config.DB().Create(&input).Error; err != nil {
 		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถบันทึกคำตอบได้", "CREATE_FAILED")
 		return

@@ -19,3 +19,4 @@ type AssessmentAnswer struct {
 	AnswerOption     AnswerOption     `gorm:"foreignKey:AOID;references:ID"`
 }
 
+
