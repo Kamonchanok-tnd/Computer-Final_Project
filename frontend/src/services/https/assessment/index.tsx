@@ -31,13 +31,14 @@ export const submitAnswer = async (
   answer: AssessmentAnswer
 ): Promise<void> => {
   await axiosInstance.post("/assessment/answer", {
-    ARID: answer.arid,
-    QID: answer.qid,
-    AOID: answer.answerOptionID,
-    Point: answer.point,
-    QuestionNumber: answer.question_number,
+    arid: answer.arid,
+    qid: answer.qid,
+    aoid: answer.answerOptionID,
+    point: answer.point,
+    question_number: answer.question_number, // ✅ ต้องใช้แบบนี้
   });
 };
+
 
 
 // ✅ ฟังก์ชันใหม่: สรุปผล

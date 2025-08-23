@@ -6,7 +6,7 @@ import QQ from "../../assets/assessment/QQ.png";
 import { createAssessmentResult } from "../../services/https/assessment";
 
 // ✅ สมมุติว่าได้ quID จาก backend หรือ prop
-const sampleQuestionnaireID = 2;
+const sampleQuestionnaireID = 3;
 
 const MoodPopup: React.FC = () => {
   const navigate = useNavigate();
@@ -23,8 +23,8 @@ const MoodPopup: React.FC = () => {
       // ✅ สร้างวันที่ในรูปแบบ YYYY-MM-DD
       const today = new Date().toISOString().split("T")[0];
 
-      // ✅ เรียก API พร้อมส่ง UID, QuID, Date
-      const resultID = await createAssessmentResult(sampleQuestionnaireID, uid, today);
+      // ✅ เรียก API พร้อมส่ง UID, QuID
+      const resultID = await createAssessmentResult(sampleQuestionnaireID, uid);
 
       // ✅ เก็บไว้ใน localStorage (หรือ context/state ถ้ามี)
       localStorage.setItem("assessmentResultID", resultID.toString());
