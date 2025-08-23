@@ -249,10 +249,13 @@ function AddSoundPlaylist() {
       console.log("Playlist updated:", updated);
       setEditMode(false);
       message.success("เปลียนพื้นหลังเพลย์ลิสต์แล้ว");
+
       fetchPlaylist();
     } catch (error) {
       console.error("Error updating name:", error);
       message.error("เกิดข้อผิดพลาดในการเปลี่ยนพื้นหลัง");
+    }finally {
+      setShowPreview(false);
     }
   }
 }
