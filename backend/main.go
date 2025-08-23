@@ -104,13 +104,15 @@ func main() {
         // router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
         // router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
         // router.GET("/admin/prompt/:id", prompt.GetPromptByID)
-
+        
+		//Questionnaire routes
         router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
         router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
 		router.GET("/getallemotionchoices", questionnaire.GetAllEmotionChoices)            // route ดึงตัวเลือกอีโมจิทั้งหมด
         router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
         router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
-        
+        router.POST("/createCriterias", questionnaire.CreateCriterias)                     // route สำหรับสร้างเกณฑ์การให้คะแนน (Criterias)
+
         router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
         router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
         router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
