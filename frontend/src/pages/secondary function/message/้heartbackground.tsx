@@ -15,8 +15,8 @@ export default function HeartBackground() {
     const interval = setInterval(() => {
       const id = Date.now();
       const size = Math.random() * 20 + 10; // ขนาดหัวใจ
-      const left = Math.random() * 100;     // ตำแหน่งซ้าย (%)
-      const duration = Math.random() * 5 + 5; // ความเร็วลอย
+      const left = Math.random() < 0.5 ? Math.random() * 25 : 75 + Math.random() * 25; // สุ่มระหว่าง 0-25% หรือ 75-100%
+      const duration = Math.random() * 1 + 10; // ความเร็วลอย
       setHearts((prev) => [...prev, { id, size, left, duration }]);
 
       // ลบหัวใจเก่าหลัง animation จบ
@@ -29,7 +29,7 @@ export default function HeartBackground() {
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0"> {/* ใส่ z-index */}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 h-250"> {/* ใส่ z-index */}
       {hearts.map((h) => (
         <div
           key={h.id}

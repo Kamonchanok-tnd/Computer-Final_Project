@@ -38,6 +38,7 @@ export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]>
         articleType: message.article_type ?? message.articleType ?? "",   
         photo: message.photo ?? "/default-image.png",
         no_of_like: message.no_of_like ?? 0,
+        viewCount: message.view_count ?? message.viewCount ?? 0,
         date: dateIso || "ไม่มีวันที่",
         // หน้านี้ไม่ใช้ error แต่ interface บังคับ → ทำ no-op
         error: () => {},
@@ -94,6 +95,7 @@ export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingCon
         articleType: m.article_type ?? m.articleType ?? "",              
         photo,
         no_of_like: m.no_of_like ?? 0,
+        viewCount: m.view_count ?? m.viewCount ?? 0,
         date: dateStr,
         // ให้ตรงกับ interface (แม้หน้านี้จะไม่ใช้)
         error: () => {},
@@ -243,10 +245,7 @@ interface UpdateWordHealingRequest {
   article_type: string;      
 }
 
-export const updateWordHealingMessage = async (
-  id: string,
-  data: UpdateWordHealingRequest
-): Promise<boolean> => {
+export const updateWordHealingMessage = async (id: string,data: UpdateWordHealingRequest): Promise<boolean> => {
   try {
     const token = localStorage.getItem("token");
 
@@ -299,6 +298,7 @@ export const getWordHealingMessageById = async (id: string): Promise<WordHealing
           : `data:image/jpeg;base64,${rawData.photo}`
         : "/default-image.png",
       no_of_like: rawData.no_of_like ?? 0,
+      viewCount: rawData.view_count ?? rawData.viewCount ?? 0,
       date: dateIso || "",
       error: () => {},
     };
@@ -385,4 +385,23 @@ export const checkIfLikedArticle = async (id: number, uid: string) => {
   }
 };
 
+// ฟังก์ชันสำหรับอัปเดตจำนวนการดูบทความ
+export const updateViewCount = async (id: string): Promise<boolean> => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${apiUrl}/updateviewcountmessage/${id}`, {
+      method: "PATCH",  // ใช้ PATCH สำหรับการอัปเดต
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.ok; // ถ้าตอบกลับสำเร็จ จะ return true
+  } catch (error) {
+    console.error("Error updating view count:", error); // แสดงข้อผิดพลาดใน console
+    return false; // ถ้ามีข้อผิดพลาด จะ return false
+  }
+};
 
