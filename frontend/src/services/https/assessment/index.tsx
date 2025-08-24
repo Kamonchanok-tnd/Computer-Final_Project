@@ -40,20 +40,34 @@ export const submitAnswer = async (
 };
 
 
-
 // ✅ ฟังก์ชันใหม่: สรุปผล
-export const finishAssessment = async (ARID: number): Promise<void> => {
-  await axiosInstance.post(`/assessment/finish/${ARID}`);
+// services/https/assessment/index.ts
+export const finishAssessment = async (ARID: number): Promise<any> => {
+  const res = await axiosInstance.post(`/assessment/finish/${ARID}`);
+  return res.data.transaction; // ✅ ส่งกลับเฉพาะ transaction
 };
 
-export const createAssessmentResult = async (quID: number, uid: number): Promise<number> => {
+
+export const createAssessmentResult = async (
+  quID: number,
+  uid: number,
+  qgID?: number
+): Promise<number> => {
   const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-  const res = await axiosInstance.post("/assessment/result", {
-    QuID: quID,
-    UID: uid,
-    Date: today,
-  });
-  return res.data.ID;
+
+  const payload: any = { QuID: quID, UID: uid, Date: today };
+  if (typeof qgID === "number") payload.QGID = qgID;
+
+  const res = await axiosInstance.post("/assessment/result", payload);
+
+  // รองรับกรณี backend ส่ง { ID } หรือส่ง object เต็ม { ID, Date, ... }
+  const id =
+    res.data?.ID ?? res.data?.id ?? res.data?.Id ?? res.data?.data?.ID;
+  if (!id) {
+    // เผื่อ backend เปลี่ยนรูปแบบในอนาคต
+    throw new Error("Cannot read created AssessmentResult ID from response");
+  }
+  return Number(id);
 };
 
 
@@ -65,4 +79,9 @@ export const getAllQuestionnaireGroups = async (): Promise<QuestionnaireGroup[]>
     console.error("Failed to fetch questionnaire groups", error);
     return [];
   }
+};
+
+export const getTransactionByID = async (id: number): Promise<any> => {
+  const res = await axiosInstance.get(`/assessment/Transaction/${id}`);
+  return res.data;
 };

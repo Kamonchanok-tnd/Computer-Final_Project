@@ -8,6 +8,9 @@ import { createAssessmentResult } from "../../services/https/assessment";
 // ✅ สมมุติว่าได้ quID จาก backend หรือ prop
 const sampleQuestionnaireID = 3;
 
+// ✅ สมมุติว่า QGID เป็นกลุ่ม 1 (Pre-test / Mood แบบเร็ว)
+const sampleQuestionnaireGroupID = 1;
+
 const MoodPopup: React.FC = () => {
   const navigate = useNavigate();
 
@@ -23,12 +26,17 @@ const MoodPopup: React.FC = () => {
       // ✅ สร้างวันที่ในรูปแบบ YYYY-MM-DD
       const today = new Date().toISOString().split("T")[0];
 
-      // ✅ เรียก API พร้อมส่ง UID, QuID
-      const resultID = await createAssessmentResult(sampleQuestionnaireID, uid);
+      // ✅ เรียก API พร้อมส่ง UID, QuID, QGID
+      const resultID = await createAssessmentResult(
+        sampleQuestionnaireID,
+        uid,
+        sampleQuestionnaireGroupID // ✅ ส่ง QGID เข้าไป
+      );
 
       // ✅ เก็บไว้ใน localStorage (หรือ context/state ถ้ามี)
       localStorage.setItem("assessmentResultID", resultID.toString());
       localStorage.setItem("questionnaireID", sampleQuestionnaireID.toString());
+      localStorage.setItem("questionnaireGroupID", sampleQuestionnaireGroupID.toString()); // ✅ เก็บ QGID ด้วย
 
       // ✅ ไปหน้าแบบสอบถาม
       navigate("/assessments");

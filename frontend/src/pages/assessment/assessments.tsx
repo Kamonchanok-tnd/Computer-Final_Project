@@ -133,12 +133,18 @@ const Assessments: React.FC = () => {
     setCurrent(current + 1);
   } else {
     if (assessmentResultID != null) {
-      await finishAssessment(assessmentResultID);
+      const transaction = await finishAssessment(assessmentResultID); // ✅ ได้ transaction
+      navigate("/result", {
+        state: {
+          answers,
+          questions,
+          transaction, // ✅ ส่ง transaction ไปด้วย
+        },
+      });
+      console.log("✅ ส่งคำตอบทั้งหมดและรับ:", answers, questions, transaction); // ✅ Log ตรงนี้
     }
-    navigate("/result", { state: { answers, questions } });
   }
-};
-
+}
 
   const currentQuestion = questions[current];
 
