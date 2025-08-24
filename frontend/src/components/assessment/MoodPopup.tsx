@@ -25,6 +25,7 @@ const MoodPopup: React.FC = () => {
 
       // ✅ สร้างวันที่ในรูปแบบ YYYY-MM-DD
       const today = new Date().toISOString().split("T")[0];
+      console.log("📅 วันที่วันนี้:", today)  ;
 
       // ✅ เรียก API พร้อมส่ง UID, QuID, QGID
       const resultID = await createAssessmentResult(

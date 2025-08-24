@@ -43,11 +43,13 @@ const Assessments: React.FC = () => {
       return storedID ? parseInt(storedID) : null;
     }
   );
+  console.log("🆔 assessmentResultID:", setAssessmentResultID)  ;
 
   const [targetQuID, setTargetQuID] = useState<number | null>(() => {
     const storedQuID = localStorage.getItem("questionnaireID");
     return storedQuID ? parseInt(storedQuID) : null;
   });
+  console.log("🆔 targetQuID:", setTargetQuID);
 
   useEffect(() => {
     const loadData = async () => {

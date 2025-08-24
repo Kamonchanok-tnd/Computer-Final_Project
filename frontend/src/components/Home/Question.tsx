@@ -1,29 +1,36 @@
 import { ChevronRight } from "lucide-react";
-import q2 from "../../assets/q2.jpg";
-import q1 from "../../assets/q1.jpg";
-import q3 from "../../assets/maditaion.jpg";
-import q4 from "../../assets/q4.jpg";
+import q1 from "../../assets/assessment/depression.png";
+import q2 from "../../assets/assessment/depression1.png";
+import q3 from "../../assets/assessment/Mindfulness.png";
+import q4 from "../../assets/assessment/happy.png";
+import q5 from "../../assets/assessment/ST5.png";
+
 
 const card = [
   {
     id: 1,
-    name: "แบบคัดกรองโรคซึมเศร้า 2 Q",
+    name: "แบบคัดกรองโรคซึมเศร้า 2Q",
     image: q1,
   },
   {
     id: 2,
-    name: "แบบคัดกรองโรคซึมเศร้า 9 Q",
+    name: "แบบคัดกรองโรคซึมเศร้า 9Q",
     image: q2,
   },
   {
     id: 3,
-    name: "แบบวัดระดับสติ (State Mindfulness Scale)",
+    name: "แบบวัดระดับสติ (State Mindfulness)",
     image: q3,
   },
   {
     id: 4,
-    name: "แบบประเมินตระหนักรู้ในตนเอง",
+    name: "แบบวัดระดับความสุข คะแนน 0-10",
     image: q4,
+  },
+  {
+    id: 5,
+    name: "แบบวัดระดับความเครียด (ST-5)",
+    image: q5,
   },
 ];
 
