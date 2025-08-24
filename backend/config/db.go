@@ -136,9 +136,9 @@ func SetupDatabase() {
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
 	CreateDefaultEmotionChoices(db)
-	// SeedQuestionnaires(db)
-	// SeedQuestionnaireGroups(db)
-	// SeedCriteriaAndCalculations(db)
+	SeedQuestionnaires(db)
+	SeedQuestionnaireGroups(db)
+	SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	CreateArticleTypes(db)
 	SeedEmojis(db)
@@ -637,8 +637,8 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", MinCriteriaScore: 13 ,MaxCriteriaScore: 18},
 		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", MinCriteriaScore: 19 ,MaxCriteriaScore: 27},
 
-		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 1 ,MaxCriteriaScore: 3},
-		{Description: "มีสติ อยู่กับปัจจุบัน", MinCriteriaScore: 4 ,MaxCriteriaScore: 6},
+		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 1 ,MaxCriteriaScore: 15},
+		{Description: "มีสติ อยู่กับปัจจุบัน", MinCriteriaScore: 16 ,MaxCriteriaScore: 30},
 		
 		{Description: "ไม่มีความสุขเลย", MinCriteriaScore: 0 ,MaxCriteriaScore: 0},
 		{Description: "มีความสุขน้อยที่สุด", MinCriteriaScore: 1 ,MaxCriteriaScore: 2},

@@ -43,11 +43,13 @@ const Assessments: React.FC = () => {
       return storedID ? parseInt(storedID) : null;
     }
   );
+  console.log("🆔 assessmentResultID:", setAssessmentResultID)  ;
 
   const [targetQuID, setTargetQuID] = useState<number | null>(() => {
     const storedQuID = localStorage.getItem("questionnaireID");
     return storedQuID ? parseInt(storedQuID) : null;
   });
+  console.log("🆔 targetQuID:", setTargetQuID);
 
   useEffect(() => {
     const loadData = async () => {
@@ -133,12 +135,18 @@ const Assessments: React.FC = () => {
     setCurrent(current + 1);
   } else {
     if (assessmentResultID != null) {
-      await finishAssessment(assessmentResultID);
+      const transaction = await finishAssessment(assessmentResultID); // ✅ ได้ transaction
+      navigate("/result", {
+        state: {
+          answers,
+          questions,
+          transaction, // ✅ ส่ง transaction ไปด้วย
+        },
+      });
+      console.log("✅ ส่งคำตอบทั้งหมดและรับ:", answers, questions, transaction); // ✅ Log ตรงนี้
     }
-    navigate("/result", { state: { answers, questions } });
   }
-};
-
+}
 
   const currentQuestion = questions[current];
 
