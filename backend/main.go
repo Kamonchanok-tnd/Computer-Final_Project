@@ -22,7 +22,7 @@ import (
 	"sukjai_project/controller/soundplaylist"
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/users"
-    "sukjai_project/controller/wordhealingmessage"
+	"sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/middlewares"
 
 
@@ -73,13 +73,14 @@ func main() {
 	r.Static("/images/emoji", "./images/emoji")
 	r.Static("/images/emotion_choice", "./images/emotion_choice")
 
-
 	r.POST("/signup", users.SignUp)
 	r.POST("/signin", users.SignIn)
 	r.POST("/forgot-password", users.ForgotPasswordController)
 	r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
 	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
 	r.GET("/recent", controller.GetRecentChat)
+
+	
 
 	// Protect routes with role-based access
 	router := r.Group("/")
@@ -91,6 +92,7 @@ func main() {
 		router.GET("/admin/:id", admin.GetAdminById)
 		router.PUT("/adminyourself/:id", admin.EditAdminYourself)
 
+        // Prompt routes
 		router.POST("/admin/prompt", prompt.CreatePrompt)
 		router.GET("/admin/prompt", prompt.GetAllPrompts)
 		router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
@@ -117,10 +119,15 @@ func main() {
         router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
         router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
 
-        router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)                // route สำหรับดึงค่าเก่าเเบบทดสอบ 
-        router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)        // route สำหรับเเก้ไขเเบบทดสอบ 
+		router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)         // route สำหรับดึงค่าเก่าเเบบทดสอบ
+		router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire) // route สำหรับเเก้ไขเเบบทดสอบ
 
-		router.GET("/admin/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
+        // Assessment routes
+        router.GET("/admin/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
+        router.GET("/admin/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)
+        router.PATCH("/admin/questionnaire-groups/:id/frequency", assessment.UpdateQuestionnaireGroupFrequency)
+		router.PUT("/admin/questionnaire-groups/:id/order", assessment.ReorderQuestionnairesInGroup)
+
 
         //Healing mesage route
         router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)           // route ดึงบทความทั้งหมด
@@ -131,9 +138,18 @@ func main() {
 		router.PATCH("/updateviewcountmessage/:id", wordhealingmessage.UpdateViewcountMessage)          // route สำหรับเพิ่มจำนวนการเข้าชมบทความ
         router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                               // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
 
-		router.POST("/videos", meditation.CreateVideo)
-		router.GET("/sound-types", meditation.GetSoundTypes)
 
+		// //Healing mesage route
+		// router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)       // route ดึงบทความทั้งหมด
+		// router.POST("/createwordhealingmessage", wordhealingmessage.CreateWordHealingMessages)      // route สำหรับสร้างบทความ (WordHealingMesasage)
+		// router.DELETE("/deletewordhealingmessage/:id", wordhealingmessage.DeleteWordHealingContent) // route สำหรับลบบทความ (WordHealingMesasage)
+		// router.GET("/getwordhealingmessage/:id", wordhealingmessage.GetWordHealingMessage)          // route สำหรับดึงค่าเก่าบทความ
+		// router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)  // route สำหรับเเก้ไขเเบบบทความ
+		// router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                           // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
+
+        // Video routes
+        router.POST("/videos", meditation.CreateVideo)
+		router.GET("/sound-types", meditation.GetSoundTypes)
 		router.GET("/AllSounds", sounds.GetAllSounds)
 		router.GET("/Sound/:id", sounds.GetSoundByID)
 		router.PATCH("/Sound/Update/:id", sounds.EditSound)
@@ -180,16 +196,16 @@ func main() {
 		userRouter.GET("/user/:id", users.Get)
 		userRouter.PUT("/user/:id", users.Update)
 
-        userRouter.GET("/emotions", emotion.GetEmotions)
-        userRouter.GET("/emotions/:id", emotion.GetEmotionByID)
-        // routes/mirror.go หรือที่คุณ register route
-        userRouter.GET("/mirror/summary", mirror.GetMonthlySummary)
-        userRouter.POST("/mirror", mirror.CreateMirror)
-        userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
-        userRouter.PUT("/mirror/:id", mirror.UpdateMirror)
-        userRouter.DELETE("/mirror/:id", mirror.DeleteMirror)
-        userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
-        userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
+		userRouter.GET("/emotions", emotion.GetEmotions)
+		userRouter.GET("/emotions/:id", emotion.GetEmotionByID)
+		// routes/mirror.go หรือที่คุณ register route
+		userRouter.GET("/mirror/summary", mirror.GetMonthlySummary)
+		userRouter.POST("/mirror", mirror.CreateMirror)
+		userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
+		userRouter.PUT("/mirror/:id", mirror.UpdateMirror)
+		userRouter.DELETE("/mirror/:id", mirror.DeleteMirror)
+		userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
+		userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
 
         userRouter.GET("/getallwordhealingmessageforuser", wordhealingmessage.GetAllWordhealingmessagesForUser)    // route ดึงบทความทั้งหมดโดย user
         userRouter.POST("/article/:id/like", wordhealingmessage.LikeArticle)                                       // route สำหรีบ like บทความของ  user
@@ -199,36 +215,35 @@ func main() {
         userRouter.POST("/sounds/:id/like", sounds.LikeSound)
         userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
         userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
+		userRouter.POST("/sounds/:id/view-block/:uid", sounds.AddSoundViewBlock)
 
 		//playlist
 		userRouter.GET("/playlists", playlist.GetPlaylistsByUserAndType)
 
 		//assessment
-		router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
-		router.GET("/assessment/AssessmentAnswers", assessment.GetAllAssessmentAnswers)
-		router.GET("/assessment/AssessmentResults", assessment.GetAllAssessmentResults)
-		router.GET("/assessment/Calculations", assessment.GetAllCalculations)
-		router.GET("/assessment/Criteria", assessment.GetAllCriteria)
-		router.GET("/assessment/Questions", assessment.GetAllQuestions)
-		router.GET("/assessment/Questionnaires", assessment.GetAllQuestionnaires)
-		router.GET("/assessment/Transaction", assessment.GetAllTransaction)
-		router.GET("/assessment/AnswerOptions/:id", assessment.GetAnswerOptionByID)
-		router.GET("/assessment/AssessmentAnswers/:id", assessment.GetAssessmentAnswerByID)
-		router.GET("/assessment/AssessmentResults/:id", assessment.GetAssessmentResultByID)
-		router.GET("/assessment/Calculations/:id", assessment.GetCalculationByID)
-		router.GET("/assessment/Criteria/:id", assessment.GetCriteriaByID)
-		router.GET("/assessment/Questions/:id", assessment.GetQuestionByID)
-		router.GET("/assessment/Questionnaires/:id", assessment.GetQuestionnaireByID)
-		router.GET("/assessment/Transactions/:id", assessment.GetTransactionByID)
-		router.POST("/assessment/result", assessment.CreateAssessmentResult)
-		router.POST("/assessment/answer", assessment.SubmitAssessmentAnswer)
-		router.POST("/assessment/finish/:id", assessment.FinishAssessment)
-		router.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)                       
-		router.GET("/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)                    
-		router.PATCH("/questionnaire-groups/:id/frequency", assessment.UpdateQuestionnaireGroupFrequency) 
-		router.PUT("/questionnaire-groups/:id/order", assessment.ReorderQuestionnairesInGroup)           
-		router.GET("/questionnaire-groups/available", assessment.GetAvailableGroupsForUser)               
-		router.GET("/assessments/next", assessment.GetNextQuestionnaire)
+		userRouter.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
+		userRouter.GET("/assessment/AssessmentAnswers", assessment.GetAllAssessmentAnswers)
+		userRouter.GET("/assessment/AssessmentResults", assessment.GetAllAssessmentResults)
+		userRouter.GET("/assessment/Calculations", assessment.GetAllCalculations)
+		userRouter.GET("/assessment/Criteria", assessment.GetAllCriteria)
+		userRouter.GET("/assessment/Questions", assessment.GetAllQuestions)
+		userRouter.GET("/assessment/Questionnaires", assessment.GetAllQuestionnaires)
+		userRouter.GET("/assessment/Transaction", assessment.GetAllTransaction)
+		userRouter.GET("/assessment/AnswerOptions/:id", assessment.GetAnswerOptionByID)
+		userRouter.GET("/assessment/AssessmentAnswers/:id", assessment.GetAssessmentAnswerByID)
+		userRouter.GET("/assessment/AssessmentResults/:id", assessment.GetAssessmentResultByID)
+		userRouter.GET("/assessment/Calculations/:id", assessment.GetCalculationByID)
+		userRouter.GET("/assessment/Criteria/:id", assessment.GetCriteriaByID)
+		userRouter.GET("/assessment/Questions/:id", assessment.GetQuestionByID)
+		userRouter.GET("/assessment/Questionnaires/:id", assessment.GetQuestionnaireByID)
+		userRouter.GET("/assessment/Transactions/:id", assessment.GetTransactionByID)
+		userRouter.POST("/assessment/result", assessment.CreateAssessmentResult)
+		userRouter.POST("/assessment/answer", assessment.SubmitAssessmentAnswer)
+		userRouter.POST("/assessment/finish/:id", assessment.FinishAssessment)
+		userRouter.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
+		userRouter.GET("/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)
+		userRouter.GET("/questionnaire-groups/available", assessment.GetAvailableGroupsForUser)
+		userRouter.GET("/assessments/next", assessment.GetNextQuestionnaire)
 
 		//chat space
 		userRouter.POST("/gemini", controller.GeminiHistory)
@@ -238,17 +253,7 @@ func main() {
 		// userRouter.GET("/recent", controller.GetRecentChat)
 	}
 
-	// r.GET("/", func(c *gin.Context) {
-	// 	c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
-	// })
-
-
-        //chat space
-        // userRouter.POST("/gemini", controller.GeminiHistory)
-        // userRouter.GET("/conversation/:id", controller.GetConversationHistory)
-        // userRouter.POST("/new-chat", controller.CreateChatRoom)
-        // userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
-        // userRouter.GET("/recent", controller.GetRecentChat)
+	
 
     r.GET("/", func(c *gin.Context) {
         c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)

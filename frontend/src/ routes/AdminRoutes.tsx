@@ -13,7 +13,7 @@ const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/ed
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
 import VideoForm from "../pages/admin/meditation/meditation";
 import SoundListPage from "../pages/admin/sounds/soundslist";
-
+import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import ManageTestOrder from "../pages/assessment/ManageTestOrder";
 import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
@@ -47,10 +47,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 //   path: "/admin/create",
                 //   element: <CreateAdmin />, // หน้า Settings ของ Admin
                 // },
-                // {
-                //   path: "/admin/dashboard",
-                //   element: <DashboardAdmin />, // หน้า Settings ของ Admin
-                // },
+                {
+                  path: "/admin/dashboard/contents",
+                  element: <DashboardContents />, // หน้า Settings ของ Admin
+                },
                 // {
                 //    path: "/admin/edit/:id",
                 //   element: <EditAdmin />, // หน้า Settings ของ Admin

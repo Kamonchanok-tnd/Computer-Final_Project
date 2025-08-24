@@ -22,6 +22,8 @@ import STFilter from "../../../components/Search/Sound_type_filter";
 import { useNavigate } from "react-router-dom";
 // const { Title, Text } = Typography;
 import music from "../../../assets/music.png";
+import ConfirmDeleteModal from "./component/modalcomfirm";
+
 
 
 export interface SoundList extends Sound {
@@ -55,6 +57,9 @@ function ListSound() {
   const [AllSounds, setAllSounds] = useState<SoundList[]>([]);
   const [deletedRowIds, setDeletedRowIds] = useState<number[]>([]);
   const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedSound, setSelectedSound] = useState<SoundList | null>(null);
 
   useEffect(() => {
     fetchSounds();
@@ -108,9 +113,11 @@ function ListSound() {
               <img src={thumbnail} alt="" className="w-full h-full object-cover rounded-sm " />
             </div>
             <div>
-              <h1 className="text-lg ">{name}</h1>
-              <p className="text-sm text-subtitle">{owner ? owner : "ไม่ระบุ"}</p>
-            </div>
+                <h1 className="text-lg w-[250px] truncate overflow-hidden text-ellipsis">
+                  {name}
+                </h1>
+                <p className="text-sm text-subtitle">{owner ? owner : "ไม่ระบุ"}</p>
+              </div>
           </div>
         );
       },
@@ -174,7 +181,7 @@ function ListSound() {
           </button>
   
           <button className="text-gray-400 hover:text-red-600 transition-all duration-500 bg-gray-100 p-2 rounded-md"
-            onClick={() => deleteSound(Number(row.original.ID))}>
+           onClick={() => handleOpen(row.original)}>
             <Trash2 size = {20} />
           </button>
         </div>
@@ -234,22 +241,26 @@ function ListSound() {
     }
   };
 
-  async function deleteSound(id: number) {
-    setDeletedRowIds((prev) => [...prev, id]);
+  const handleOpen = (sound: SoundList) => {
+    setSelectedId(sound.ID ?? null);
+    setSelectedSound(sound);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedId) return;
     try {
-      
-      setTimeout(async () => {
-         await deleteSoundByID(id);
-        setAllSounds((prev) => prev.filter((item) => item.ID !== id)); // ลบจาก frontend
-        message.success("ลบเสียงสําเร็จ");
-      }, 300);
-    
-  
+      await deleteSoundByID(selectedId); // เรียก API ลบเสียง
+      setAllSounds(prev => prev.filter(item => item.ID !== selectedId));
+      message.success(`ลบเสียง "${selectedSound?.name}" สำเร็จ`);
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการลบเสียง");
-      console.error(error);
+    } finally {
+      setShowDeleteModal(false);
+      setSelectedSound(null);
+      setSelectedId(null);
     }
-  }
+  };
 
 
 
@@ -372,6 +383,14 @@ function ListSound() {
           </div>
         )}
       </Modal>
+
+      <ConfirmDeleteModal
+  open={showDeleteModal}
+  onCancel={() => setShowDeleteModal(false)}
+  onConfirm={handleDelete}
+  videoName={selectedSound?.name}
+/>
+
 
            {/* no result */}
         {table.getFilteredRowModel().rows.length === 0 && (

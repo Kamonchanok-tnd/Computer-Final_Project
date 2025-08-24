@@ -52,8 +52,12 @@ func GetAllSounds(c *gin.Context) {
 	var sounds []SoundWithTypeName
 
 	err := db.Table("sounds").
-		Select("sounds.id, sounds.name, sounds.sound, sounds.lyric, sounds.owner,sounds.description, sounds.duration, sounds.like_sound, sounds.view, sounds.st_id, sounds.uid, sounds.owner, sounds.description, sounds.duration, sounds.like_sound, sounds.view, sounds.st_id, sounds.uid, sound_types.type as sound_type_name").
-		Joins("left join sound_types on sound_types.id = sounds.st_id").Where("sounds.deleted_at IS NULL").
+		Select(`sounds.id, sounds.name, sounds.sound, sounds.lyric, sounds.owner, 
+		        sounds.description, sounds.duration, sounds.like_sound, sounds.view, 
+		        sounds.st_id, sounds.uid, sound_types.type as sound_type_name`).
+		Joins("LEFT JOIN sound_types ON sound_types.id = sounds.st_id").
+		Where("sounds.deleted_at IS NULL").
+		Order("sounds.created_at DESC"). // 👈 เรียงข้อมูลจากใหม่ไปเก่า
 		Scan(&sounds).Error
 
 	if err != nil {
@@ -63,6 +67,7 @@ func GetAllSounds(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"sounds": sounds})
 }
+
 
 func EditSound(c *gin.Context) {//เอาไว้สิ้นสุด ห้อง chat
 	var sound entity.Sound
@@ -226,6 +231,7 @@ func AddSoundView(c *gin.Context) {
     db := config.DB()
 
     soundID := c.Param("id")
+    
 
     // ✅ อัปเดตค่า view + 1 โดยตรง ป้องกัน race condition
     if err := db.Model(&entity.Sound{}).
@@ -247,3 +253,45 @@ func AddSoundView(c *gin.Context) {
         "view":    sound.View,
     })
 }
+
+func AddSoundViewBlock(c *gin.Context) {
+    db := config.DB()
+
+    soundIDParam := c.Param("id")
+    uidParam := c.Param("uid")
+
+    soundID, err := strconv.Atoi(soundIDParam)
+   
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sound ID"})
+        return
+    }
+
+    uid, err := strconv.Atoi(uidParam)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+        return
+    }
+
+    // ตรวจสอบว่าผู้ใช้เคย view แล้วหรือยัง
+    var historyCount int64
+    if err := db.Model(&entity.History{}).
+        Where("uid = ? AND s_id = ?", uid, soundID).
+        Count(&historyCount).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check history"})
+        return
+    }
+
+    if historyCount == 0 {
+        // บวก View ครั้งเดียว
+        if err := db.Model(&entity.Sound{}).
+            Where("id = ?", soundID).
+            UpdateColumn("view", gorm.Expr("view + ?", 1)).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update view"})
+            return
+        }
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "View counted"})
+}
+
