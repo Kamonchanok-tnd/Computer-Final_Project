@@ -128,6 +128,7 @@ func main() {
         router.DELETE("/deletewordhealingmessage/:id", wordhealingmessage.DeleteWordHealingContent)     // route สำหรับลบบทความ (WordHealingMesasage)
         router.GET("/getwordhealingmessage/:id", wordhealingmessage.GetWordHealingMessage)              // route สำหรับดึงค่าเก่าบทความ
         router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)      // route สำหรับเเก้ไขเเบบบทความ
+		router.PATCH("/updateviewcountmessage/:id", wordhealingmessage.UpdateViewcountMessage)          // route สำหรับเพิ่มจำนวนการเข้าชมบทความ
         router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                               // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
 
 		router.POST("/videos", meditation.CreateVideo)
