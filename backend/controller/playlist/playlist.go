@@ -58,13 +58,14 @@ func GetPlaylistsByUserAndType(c *gin.Context) {
 
 func GetPlaylistByUID(c*gin.Context){
 	id := c.Param("uid")
+	stid := c.Param("stid")
 	db := config.DB()
 	var playlist []PlaylistWithBackground
 
 	err := db.Table("playlists").
 	Select("playlists.id, playlists.name, playlists.uid, playlists.b_id, backgrounds.picture").
 	Joins("LEFT JOIN backgrounds ON playlists.b_id = backgrounds.id").
-	Where("playlists.uid = ? AND playlists.deleted_at IS NULL", id).
+	Where("playlists.uid = ? AND playlists.deleted_at IS NULL AND playlists.st_id = ?", id, stid).
 	Scan(&playlist).Error
 
 	if err != nil {

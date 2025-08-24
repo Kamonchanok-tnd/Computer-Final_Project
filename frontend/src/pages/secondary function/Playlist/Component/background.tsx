@@ -15,7 +15,7 @@ interface BackgroundPlaylistProps{
    
 }
 
-function BackgroundPlaylist({currentBackgrounds, showPreview, AllPicture, selectedPicture, handlePictureSelect, changeBg}: BackgroundPlaylistProps){
+function BackgroundPlaylist({currentBackgrounds, showPreview, AllPicture, selectedPicture, handlePictureSelect}: BackgroundPlaylistProps){
   useEffect(() => {
     console.log(selectedPicture);
   }, [selectedPicture]); 

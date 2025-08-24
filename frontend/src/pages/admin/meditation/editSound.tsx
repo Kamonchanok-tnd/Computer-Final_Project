@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Input, Button, Select, Form, message } from "antd";
-import { getSoundTypes, createVideo } from "../../../services/https/meditation";
+import { Input,  Select, Form, message } from "antd";
+import { getSoundTypes } from "../../../services/https/meditation";
 import "./meditation.css"; // import CSS ที่แยกออกมา
 import { useNavigate, useParams } from "react-router-dom";
-import { Check, CheckCircle, X, Play, Music } from "lucide-react";
+import { Play } from "lucide-react";
 import { getSoundByID, updateSoundByID } from "../../../services/https/sounds";
 const { Option } = Select;
 
-const formatDurationHMS = (seconds: number) => {
+export const formatDurationHMS = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
@@ -17,7 +17,7 @@ const formatDurationHMS = (seconds: number) => {
 };
 
 // แปลง h:mm:ss -> วินาที
-const parseDurationHMS = (input: string) => {
+export const parseDurationHMS = (input: string) => {
   const parts = input.split(":").map(Number);
   if (parts.length === 3) {
     const [h, m, s] = parts;

@@ -3,6 +3,7 @@ import { Sound } from "../../../../interfaces/ISound";
 import { useState, useEffect } from "react";
 import { likeSound, checkLikedSound } from "../../../../services/https/sounds"; // ✅ ใช้เหมือน BreathingCard
 import { useNavigate } from "react-router-dom";
+import { formatDurationHMS } from "../../../admin/meditation/editSound";
 interface MeditationContentProps {
   filteredSounds: Sound[];
   extractYouTubeID: (url: string) => string | null;
@@ -116,7 +117,7 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
           <h1>{sound.name}</h1>
         </div>
         <div className="flex justify-between text-subtitle dark:text-text-dark">
-          <p>{sound.duration} min</p>
+          <p>{formatDurationHMS(sound.duration ?? 0)} </p>
           <div className="flex gap-2">
             <div className="flex gap-1 items-center">
               <Eye className="text-subtitle h-4 w-4 dark:text-text-dark " />

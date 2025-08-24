@@ -110,6 +110,12 @@
     border: none;
     transition: all 0.3s;
   }
+  .dark .custom-modal .ant-btn-default:hover {
+    background-color: transparent;
+    color: #D1D5DB !important;
+    border: none;
+    transition: all 0.3s;
+  }
   
   
   .custom-modal .ant-btn-default:hover {
