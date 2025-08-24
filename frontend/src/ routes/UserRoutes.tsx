@@ -14,7 +14,7 @@ import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
 
 import Assessments from "../pages/assessment/assessments";
-import Result from "../pages/assessment/result";
+import Result from "../pages/assessment/result1.tsx";
 import MoodPopup from "../components/assessment/MoodPopup";
 import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
