@@ -4,6 +4,10 @@ import Question from "../../components/Home/Question";
 import Activity from "../../components/Home/Activity";
 import Footer from "../../components/Home/Footer";
 import MoodPopup from "../../components/assessment/MoodPopup"; // ✅ นำเข้า popup
+import HomeMeditation from "../../components/Home/Homemedation";
+import HomeChanting from "../../components/Home/Homechanting";
+import Homeasmr from "../../components/Home/Homeasmr";
+import Homemiror from "../../components/Home/Homemiror";
 
 function Home() {
   const [showPopup, setShowPopup] = useState(false);
@@ -26,7 +30,13 @@ function Home() {
 
       <ChatBan />
       <Question />
-      <Activity />
+     {/* <HomeMeditation/>
+     <HomeChanting/> */}
+      <Homeasmr/>
+      {/* <Homemiror/> */}
+      {/* message */}
+      {/* doctor */}
+      {/* <Activity /> */}
       <Footer />
     </div>
   );

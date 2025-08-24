@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Image1 from "../../assets/image1.png";
-import How from "./How";
+// import How from "./How";
 
 function ChatBan() {
   return (
@@ -47,9 +47,9 @@ function ChatBan() {
           </button>
         </div>
       </div>
-      <div>
+      {/* <div>
         <How />
-      </div>
+      </div> */}
     </div>
   );
 }

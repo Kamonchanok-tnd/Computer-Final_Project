@@ -15,23 +15,25 @@ interface FormDataType extends Omit<WordHealingContent, "photo"> {
   idts?: number;                        // เพิ่มฟิลด์ idts
   content: string;                      // ฟิลด์ใหม่สำหรับเนื้อหาบทความ
   articleType: string;                  // ฟิลด์ใหม่สำหรับประเภทบทความ (เก็บ key ที่ BE ต้องการ)
+  viewCount: number;                    // เพิ่ม viewCount ที่หายไป
 }
 
 const CreateMessagePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormDataType>({
-    id: 0,
-    name: "",
-    author: "",
-    no_of_like: 0,
-    date: "",
-    photo: null,
-    content: "",           // เนื้อหาบทความเริ่มต้นเป็นค่าว่าง
-    articleType: "OpinionPiece", // ค่าเริ่มต้น (key ที่ BE ต้องการ)
-    error: (message: string) => { console.error(message); },
-    idts: undefined,
-  });
+  id: 0,
+  name: "",
+  author: "",
+  no_of_like: 0,
+  date: "",
+  photo: null,
+  content: "",           // เนื้อหาบทความเริ่มต้นเป็นค่าว่าง
+  articleType: "OpinionPiece", // ค่าเริ่มต้น (key ที่ BE ต้องการ)
+  error: (message: string) => { console.error(message); },
+  idts: undefined,
+  viewCount: 0,           // เริ่มต้น viewCount เป็น 0
+});
 
   const [preview, setPreview] = useState<string>("");
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -288,28 +290,7 @@ const CreateMessagePage: React.FC = () => {
               }}
             />
           </div>
-
-          <div>
-              <label htmlFor="no_of_like">จำนวนการกดถูกใจ:</label>
-              <input
-                id="no_of_like"
-                name="no_of_like"
-                type="number"
-                min={0}
-                value={formData.no_of_like}
-                readOnly //  ล็อกไม่ให้พิมพ์
-                style={{
-                  backgroundColor: "#f5f5f5",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  padding: "10px",
-                  fontSize: "14px",
-                  width: "100%",
-                  transition: "border-color 0.3s ease",
-                }}
-              />
-            </div>
-
+          
           <div>
             <label htmlFor="date">วันที่เผยแพร่: <span style={{ color: "red" }}>*</span></label>
             <input

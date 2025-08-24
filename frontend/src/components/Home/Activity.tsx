@@ -5,7 +5,7 @@ const card = [
   {
     id: 1,
     image: meditaion,
-    title: "ทำสมาธิ",
+    title: "ทำสมาธิและฝึกลมหายใจ",
   },
   {
     id: 2,
@@ -22,6 +22,16 @@ const card = [
     image: prey,
     title: "ฝึกลมหายใจ",
   },
+  {
+    id: 5,
+    image: meditaion,
+    title: "เขียนระบายบนกระจก",
+  },
+  {
+    id: 6,
+    image: prey,
+    title: "อ่านหนังสือ",
+  }
 ];
 
 function Activity() {
@@ -31,7 +41,7 @@ function Activity() {
         <h1 className="font-ibmthai text-2xl px-2 text-gray-900">กิจกรรมต่างๆ</h1>
       </div>
       <div className="mt-4 flex justify-center w-full">
-        <div className="grid grid-cols-4 gap-4 md:gap-20 duration-300 bg-transparent">
+        <div className="grid grid-cols-6 gap-4 md:gap-20 duration-300 bg-transparent">
           {card.map((item) => (
             <div key={item.id} className="flex flex-col items-center">
               <img

@@ -110,7 +110,7 @@ const QuestionnairePage: React.FC = () => {
     filterAndSort(value, sortOption);
   };
 
-  const filterAndSort = (searchValue: string, sortKey: string) => {
+ const filterAndSort = (searchValue: string, sortKey: string) => {
   let data = [...questionnaires];
 
   // ฟิลเตอร์ตามคำค้น
@@ -126,9 +126,25 @@ const QuestionnairePage: React.FC = () => {
 
   // เรียงลำดับตามที่เลือก
   if (sortKey === "nameAsc") {
-    data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire));
+    data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire, 'th', { sensitivity: 'base' }));
   } else if (sortKey === "nameDesc") {
-    data.sort((a, b) => b.nameQuestionnaire.localeCompare(a.nameQuestionnaire));
+    data.sort((a, b) => b.nameQuestionnaire.localeCompare(a.nameQuestionnaire, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "descriptionAsc") {
+    data.sort((a, b) => a.description.localeCompare(b.description, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "descriptionDesc") {
+    data.sort((a, b) => b.description.localeCompare(a.description, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "authorAsc") {
+    data.sort((a, b) => {
+      const authorA = usersMap[a.uid] || "";
+      const authorB = usersMap[b.uid] || "";
+      return authorA.localeCompare(authorB, 'th', { sensitivity: 'base' });
+    });
+  } else if (sortKey === "authorDesc") {
+    data.sort((a, b) => {
+      const authorA = usersMap[a.uid] || "";
+      const authorB = usersMap[b.uid] || "";
+      return authorB.localeCompare(authorA, 'th', { sensitivity: 'base' });
+    });
   } else if (sortKey === "quantityAsc") {
     data.sort((a, b) => a.quantity - b.quantity);
   } else if (sortKey === "quantityDesc") {
@@ -245,8 +261,12 @@ const QuestionnairePage: React.FC = () => {
         <Col span={6}>
           <Select value={sortOption} onChange={handleSortChange} size="large" style={{ width: "100%" }}>
             <Option value="default">เรียงลำดับ</Option>
-            <Option value="nameAsc">ชื่อแบบทดสอบ (A → Z)</Option>
-            <Option value="nameDesc">ชื่อแบบทดสอบ (Z → A)</Option>
+            <Option value="nameAsc">ชื่อแบบทดสอบ (ก → ฮ)</Option>
+            <Option value="nameDesc">ชื่อแบบทดสอบ (ฮ → ก)</Option>
+            <Option value="descriptionAsc">คำอธิบาย (ก → ฮ)</Option>
+            <Option value="descriptionDesc">คำอธิบาย (ฮ → ก)</Option>
+            <Option value="authorAsc">ผู้สร้าง (ก → ฮ)</Option>
+            <Option value="authorDesc">ผู้สร้าง (ฮ → ก)</Option>
             <Option value="quantityAsc">จำนวนข้อ (น้อย → มาก)</Option>
             <Option value="quantityDesc">จำนวนข้อ (มาก → น้อย)</Option>
             <Option value="idAsc">ID (น้อย → มาก)</Option>

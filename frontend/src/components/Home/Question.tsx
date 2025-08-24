@@ -63,7 +63,7 @@ useEffect(() => {
       </div>
 
       {/* Card List Carousel */}
-      <div className="bg-white w-full xl:rounded-2xl md:p-4 py-4 shadow-sm relative">
+      <div className=" w-full xl:rounded-2xl md:p-4 py-4  relative">
         {/* Previous Button */}
         {showPrevButton && (
           <button
@@ -99,7 +99,7 @@ useEffect(() => {
                 style={{ width: `${100 / itemsPerView}%` }} // แก้ไขตรงนี้
               >
                 <div
-                  className="border max-w-full bg-cover bg-center rounded-xl p-2 w-60 h-68 flex items-end
+                  className=" max-w-full bg-cover bg-center rounded-xl p-2 w-60 h-68 flex items-end
                   hover:scale-105 transition-all duration-500 ease-in-out bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF]"
                   style={{
                     // backgroundImage: `url(${item.image})`,

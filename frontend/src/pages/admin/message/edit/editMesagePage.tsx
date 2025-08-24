@@ -12,6 +12,7 @@ import "./editMessagePage.css";
 interface FormDataType extends Omit<WordHealingContent, "photo"> {
   photo: string | null;
   error: (message: string) => void;
+  viewCount: number; // เพิ่ม viewCount
 }
 
 const EditMessagePage: React.FC = () => {
@@ -20,18 +21,20 @@ const EditMessagePage: React.FC = () => {
   const { id } = (location.state as { id?: number }) || {};
 
   const [formData, setFormData] = useState<FormDataType>({
-    id: id || 0,
-    name: "",
-    author: "",
-    no_of_like: 0,
-    date: "",
-    photo: null,
-    content: "",
-    articleType: "",
-    error: (msg: string) => {
-      antdMessage.error(msg);
-    },
-  });
+  id: id || 0,
+  name: "",
+  author: "",
+  no_of_like: 0,
+  date: "",
+  photo: null,
+  content: "",
+  articleType: "",
+  viewCount: 0, // เริ่มต้น viewCount เป็น 0
+  error: (msg: string) => {
+    antdMessage.error(msg);
+  },
+});
+
 
   const [preview, setPreview] = useState<string>("");
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -75,14 +78,16 @@ const EditMessagePage: React.FC = () => {
     const dateISO = d.toISOString(); // RFC3339
 
     const req = {
-      name: formData.name,
-      author: formData.author,
-      no_of_like: formData.no_of_like,
-      date: dateISO,                       // ส่ง ISO
-      photo: formData.photo,               
-      content: formData.content,           
-      article_type: formData.articleType,  
+    name: formData.name,
+    author: formData.author,
+    no_of_like: formData.no_of_like,
+    date: dateISO,                       
+    photo: formData.photo,               
+    content: formData.content,           
+    article_type: formData.articleType,  
+    viewCount: formData.viewCount,  // ส่ง viewCount
     };
+
 
     console.log("Update payload:", req);
 
@@ -250,6 +255,18 @@ const EditMessagePage: React.FC = () => {
               type="number"
               min={0}
               value={formData.no_of_like}
+              readOnly // ล็อกไม่ให้แก้ไข
+            />
+          </div>
+
+          <div>
+            <label htmlFor="viewCount">จำนวนการกดเข้าชม:</label>
+            <input
+              id="viewCount"
+              name="viewCount"
+              type="number"
+              min={0}
+              value={formData.viewCount}
               readOnly // ล็อกไม่ให้แก้ไข
             />
           </div>

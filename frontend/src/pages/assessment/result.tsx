@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import RSH from "../../assets/assessment/RSH.png";
+import RSH from "../../assets/assessment/ResultHappy.png";
 
 const Result: React.FC = () => {
   const navigate = useNavigate();

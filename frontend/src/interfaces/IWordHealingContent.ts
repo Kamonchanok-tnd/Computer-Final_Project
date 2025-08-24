@@ -9,5 +9,6 @@ export interface WordHealingContent {
   no_of_like: number;           // จำนวนการกดถูกใจ
   date: string;                 // วันที่เผยแพร่
   photo: string;                // URL ของภาพประกอบ
+  viewCount: number;            // จำนวนการเข้าชมบทความ
 }
 
