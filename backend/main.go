@@ -6,6 +6,7 @@ import (
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
 	history "sukjai_project/controller/History"
+	profileavatar "sukjai_project/controller/ProfileAvatar"
 	"sukjai_project/controller/admin"
 	"sukjai_project/controller/assessment"
 	"sukjai_project/controller/background"
@@ -24,7 +25,6 @@ import (
 	"sukjai_project/controller/users"
 	"sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/middlewares"
-
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -72,6 +72,7 @@ func main() {
 	r.Static("/BgImage", "./images/background")
 	r.Static("/images/emoji", "./images/emoji")
 	r.Static("/images/emotion_choice", "./images/emotion_choice")
+	r.Static("/images/profile", "./images/avatar")
 
 	r.POST("/signup", users.SignUp)
 	r.POST("/signin", users.SignIn)
@@ -147,7 +148,7 @@ func main() {
 
 		//Playlist
 		router.POST("/Playlist", playlist.CreatePlaylist)
-		router.GET("/Playlist/:uid", playlist.GetPlaylistByUID)
+		router.GET("/Playlist/:uid/:stid", playlist.GetPlaylistByUID)
 		router.GET("/PlaylistByID/:id", playlist.GetPlaylistByID)
 		router.DELETE("/Playlist/:id", playlist.DeletePlaylistByID)
 		router.PATCH("/Playlist/:id", playlist.EditPlaylistByID)
@@ -237,6 +238,9 @@ func main() {
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
 		// userRouter.GET("/recent", controller.GetRecentChat)
+
+		//profile
+		userRouter.GET("/profile", profileavatar.GetAllProfile)
 	}
 
 	

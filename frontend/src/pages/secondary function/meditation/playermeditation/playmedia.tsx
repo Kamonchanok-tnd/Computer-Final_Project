@@ -650,6 +650,7 @@ import {
   addSoundView,
   checkLikedSound,
   likeSound,
+  addSoundViewBlock,
 } from "../../../../services/https/sounds";
 import { useParams, useNavigate } from "react-router-dom";
 import StarRating from "../../Playlist/Component/starrating";
@@ -709,6 +710,10 @@ function Playermediameditation() {
   const [editRating, setEditRating] = useState<boolean>(false);
   const [exitRating, setExitRating] = useState<number>(0);
 
+  const viewTimer = useRef<NodeJS.Timeout | null>(null);
+  const repeatRef = useRef(isRepeat);
+    
+
    async function addHistory(sid:number) {
       try {
         const data:IHistory = { sid: sid, uid: Number(uid) }
@@ -721,9 +726,9 @@ function Playermediameditation() {
     }
 
   // เพิ่ม View
-  async function addView(sid: number) {
+  async function addView(sid:number,uid:number) {
     try {
-      await addSoundView(sid);
+       await addSoundViewBlock(sid,uid)
       fetchMeditation();
     } catch (error) {
       console.error("Error sending view:", error);
@@ -847,32 +852,44 @@ useEffect(() => {
         },
         onStateChange: (event: any) => {
           setIsPlaying(event.data === 1);
-
-          // ✅ ตรวจสอบว่ายังไม่นับวิวสำหรับ videoId นี้
-          if (event.data === 1 && !hasCountedViewRef.current[videoId]) {
-            const checkView = setInterval(() => {
+        
+          if (event.data === YT.PlayerState.PLAYING && !hasCountedView) {
+            // เริ่มจับเวลาเพื่อตรวจสอบการนับ View
+            if (viewTimer.current) clearTimeout(viewTimer.current);
+            viewTimer.current = setTimeout(() => {
               if (playerRef.current) {
                 const watchedTime = playerRef.current.getCurrentTime();
                 const totalTime = playerRef.current.getDuration();
-
+        
                 if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
-                  addHistory(soundId);
-                  addView(soundId); // ✅ บันทึกลงฐานข้อมูล
-                  hasCountedViewRef.current[videoId] = true; // กันนับซ้ำ
-                  clearInterval(checkView);
+                  const lastViewTime = localStorage.getItem(`view_${uid}_${soundId}`);
+                  if (!lastViewTime) {
+                    addView(soundId, uid);
+                    localStorage.setItem(`view_${uid}_${soundId}`, Date.now().toString());
+                    setHasCountedView(true);
+                  }
+        
+                  // ตรวจสอบ History (เว้น 5 นาที)
+                  const lastHistoryTime = localStorage.getItem(`history_${uid}_${soundId}`);
+                  const now = Date.now();
+                  if (!lastHistoryTime || now - parseInt(lastHistoryTime) > 5 * 60 * 1000) {
+                    addHistory(soundId);
+                    localStorage.setItem(`history_${uid}_${soundId}`, now.toString());
+                  }
                 }
               }
-            }, 1000);
+            }, 30000); // ตรวจหลัง 30 วิ (หรืออาจถึงก่อนด้วย 10%)
           }
-
-          if (event.data === 0) {
-            // ✅ วิดีโอจบ
-            if (isRepeat) {
-              playerRef.current.playVideo(); // เล่นซ้ำ → ไม่รีนับวิว
-            } else {
-              handleNext(); // ไปคลิปถัดไป → videoId เปลี่ยน → นับวิวใหม่
+        
+          if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
+            // หยุดจับเวลาถ้าผู้ใช้หยุดหรือวิดีโอจบ
+            if (viewTimer.current) {
+              clearTimeout(viewTimer.current);
+              viewTimer.current = null;
             }
           }
+        
+          handleStateChange(event);
         },
         onPlaybackQualityChange: (event: any) => {
           setQuality(event.data);
@@ -881,7 +898,25 @@ useEffect(() => {
       playerVars: { controls: 1, modestbranding: 1, autoplay: 1 },
     });
   }
-}, [videoId, isRepeat, soundId]);
+}, [videoId]);
+
+function handleStateChange(event: any) {
+  setIsPlaying(event.data === 1);
+
+  if (event.data === 0) {
+    // วิดีโอจบ
+    if (repeatRef.current) {
+      playerRef.current.seekTo(0); // กลับไปต้น
+      playerRef.current.playVideo(); // เล่นทันที
+    } else {
+      handleNext();
+    }
+  }
+}
+useEffect(() => {
+  repeatRef.current = isRepeat;
+}, [isRepeat]);
+
 
   
 

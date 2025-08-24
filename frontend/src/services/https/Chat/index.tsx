@@ -26,7 +26,8 @@ export async function ChatGemini(data: IConversation) {
     console.log(result);
     return result;
   } catch (error) {
-    console.error(error);
+    console.error(error)
+    throw error;
   }
 }
 
@@ -52,6 +53,7 @@ export async function GetChat(id: number) {
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -78,6 +80,7 @@ export async function NewChat(data: IChatRoom) {
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -100,6 +103,7 @@ export async function CloseChat(id: number) {
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
@@ -122,6 +126,7 @@ export async function RecentChat(id: number) { //เอาไว้ดู ห้
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 

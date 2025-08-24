@@ -1,9 +1,8 @@
-import { EllipsisVertical, Menu, Play, Trash2 } from "lucide-react"
-import { IPlaylist } from "../../../../interfaces/IPlaylist"
+import { EllipsisVertical, Play, Trash2 } from "lucide-react"
 import { DeletePlaylistByID, IMG_URL } from "../../../../services/https/playlist"
 import { CustomPlaylist } from "../../Playlist/Playlist"
 import { Dropdown, MenuProps, message } from "antd"
-import { use, useState } from "react"
+import { useState } from "react"
 import DeleteConfirmModal from "../../Playlist/Component/DeleteConfirmModal"
 
 interface PlaylistContentProps {

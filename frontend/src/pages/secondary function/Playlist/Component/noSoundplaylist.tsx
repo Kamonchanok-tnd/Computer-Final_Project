@@ -1,5 +1,5 @@
 import React from "react";
-import { Empty, Button } from "antd";
+import { Empty } from "antd";
 
 interface NoDataProps {
   message?: string; // ข้อความที่จะแสดง

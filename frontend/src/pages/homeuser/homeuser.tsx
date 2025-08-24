@@ -7,6 +7,7 @@ import MoodPopup from "../../components/assessment/MoodPopup"; // ✅ นำเ�
 
 function Home() {
   const [showPopup, setShowPopup] = useState(false);
+  
 
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem("mood_popup_shown");
@@ -19,7 +20,7 @@ function Home() {
   }, []);
 
   return (
-    <div className="bg-[#F4FFFF] relative">
+    <div className="bg-[#F4FFFF] relative dark:bg-background-dark ">
       {/* ✅ Popup เด้งทันทีเมื่อยังไม่เคยแสดง */}
       {showPopup && <MoodPopup />}
 

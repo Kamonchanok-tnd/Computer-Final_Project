@@ -123,11 +123,13 @@ func SetupDatabase() {
 		&entity.Transaction{},
 		&entity.ArticleType{}, 
 		&entity.QuestionnaireGroupQuestionnaire{},
+		&entity.ProfileAvatar{},
 	)
 	if err != nil {
 		log.Fatalf("Error migrating database: %v", err)
 	}
 	fmt.Println("Database migration completed successfully!")
+	SeedProfileAvatarsOnce(db)
 	SetupInitialData(db)
 	SeedSendTypes(db)
 	SeedChatRooms(db)
@@ -142,6 +144,7 @@ func SetupDatabase() {
 	SeedEmojis(db)
 	SeedMirrorJuly2025(db)
 	SeedMirrorAug2025FirstHalf(db)
+	
 	
 }
 
@@ -179,6 +182,7 @@ func SetupInitialData(db *gorm.DB) {
 			Gender:      "ผู้ชาย",
 			PhoneNumber: "1234567890",
 			Facebook:    "admin_fb",
+			PFID:        1,
 		})
 	}
 
@@ -194,6 +198,7 @@ func SetupInitialData(db *gorm.DB) {
 			Gender:      "ผู้หญิง",
 			PhoneNumber: "0987654321",
 			Facebook:    "user_fb",
+			PFID:        1,
 		})
 	}
 	if err := db.Where("username = ?", "superadmin").First(&superAdmin).Error; err != nil {
@@ -207,6 +212,7 @@ func SetupInitialData(db *gorm.DB) {
 			Gender:      "ผู้หญิง",
 			PhoneNumber: "0987654321",
 			Facebook:    "superadmin_fb",
+			PFID:        1,
 		})
 	}
 
@@ -1067,6 +1073,31 @@ func CreateDefaultEmotionChoices(db *gorm.DB) error {
 		if err := db.Create(&emotionChoices).Error; err != nil {
 			return fmt.Errorf("error creating default emotion choices: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func SeedProfileAvatarsOnce(db *gorm.DB) error {
+	var count int64
+	if err := db.Model(&entity.ProfileAvatar{}).Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to count profile avatars: %w", err)
+	}
+
+	if count > 0 {
+		// ถ้ามีข้อมูลแล้ว → ไม่ต้องสร้างซ้ำ
+		return nil
+	}
+
+	profiles := []entity.ProfileAvatar{
+		{Avatar: "a1.jpg", Name: "Cat Minimal"},
+		{Avatar: "a2.jpg", Name: "Dog Cute"},
+		{Avatar: "a3.jpg", Name: "Panda Chill"},
+		
+	}
+
+	if err := db.Create(&profiles).Error; err != nil {
+		return fmt.Errorf("failed to create profile avatars: %w", err)
 	}
 
 	return nil

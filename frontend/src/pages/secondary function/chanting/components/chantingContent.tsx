@@ -1,7 +1,8 @@
 import { Eye, Heart, Play } from "lucide-react";
 import { Sound } from "../../../../interfaces/ISound";
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { checkLikedSound, likeSound } from "../../../../services/https/sounds";
+import { formatDurationHMS } from "../../../admin/meditation/editSound";
 
 interface ChantingContentProps {
     filteredSounds: Sound[];
@@ -25,6 +26,9 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
             const uid = Number(localStorage.getItem("id"));
             const [isLiked, setIsLiked] = useState(false);
             const [likes, setLikes] = useState(sound.like_sound || 0);
+           
+
+
             useEffect(() => {
        
               if (uid && realId) fetchLikeStatus();
@@ -82,7 +86,7 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
                     <h1>{sound.name}</h1>
                   </div>
                   <div className="flex justify-between text-subtitle dark:text-text-dark" >
-                    <p>{sound.duration} min</p>
+                  <p>{formatDurationHMS(sound.duration ?? 0)}</p>
                     <div className="flex gap-2">
                       <div className="flex gap-1 items-center">
                         <Eye className="text-subtitle h-4 w-4 dark:text-text-dark " />
