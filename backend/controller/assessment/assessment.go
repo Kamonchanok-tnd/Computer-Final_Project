@@ -628,3 +628,92 @@ func GetNextQuestionnaire(c *gin.Context) {
 		"message":  "ทำแบบสอบถามในกลุ่มนี้ครบแล้ว",
 	})
 }
+
+// POST /admin/questionnaire-groups/:id/add-questionnaire
+type addQuestionnaireToGroupReq struct {
+	QuestionnaireID uint `json:"questionnaire_id"`
+}
+
+func AddQuestionnaireToGroup(c *gin.Context) {
+	groupID, _ := strconv.Atoi(c.Param("id"))
+	var body addQuestionnaireToGroupReq
+	if err := c.ShouldBindJSON(&body); err != nil || body.QuestionnaireID == 0 {
+		util.HandleError(c, http.StatusBadRequest, "ข้อมูลไม่ถูกต้อง", "INVALID_INPUT")
+		return
+	}
+
+	// นับว่ามีอยู่แล้วไหม
+	var count int64
+	config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
+		Where("questionnaire_group_id = ? AND questionnaire_id = ?", groupID, body.QuestionnaireID).
+		Count(&count)
+	if count > 0 {
+		util.HandleError(c, http.StatusConflict, "แบบสอบถามนี้อยู่ในกลุ่มแล้ว", "ALREADY_EXISTS")
+		return
+	}
+
+	// หา Order สูงสุดก่อนหน้า
+	var maxOrder uint
+	config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
+		Where("questionnaire_group_id = ?", groupID).
+		Select("COALESCE(MAX(order_in_group), 0)").Scan(&maxOrder)
+
+	link := entity.QuestionnaireGroupQuestionnaire{
+		QuestionnaireGroupID: uint(groupID),
+		QuestionnaireID:      body.QuestionnaireID,
+		OrderInGroup:         maxOrder + 1,
+	}
+
+	if err := config.DB().Create(&link).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถเพิ่มแบบสอบถามได้", "CREATE_FAILED")
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "เพิ่มแบบสอบถามสำเร็จ"})
+}
+
+// DELETE /admin/questionnaire-groups/:id/remove-questionnaire/:qid
+func RemoveQuestionnaireFromGroup(c *gin.Context) {
+	groupID, _ := strconv.Atoi(c.Param("id"))
+	qid, _ := strconv.Atoi(c.Param("qid"))
+
+	if err := config.DB().Where("questionnaire_group_id = ? AND questionnaire_id = ?", groupID, qid).
+		Delete(&entity.QuestionnaireGroupQuestionnaire{}).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถลบแบบสอบถามได้", "DELETE_FAILED")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ลบแบบสอบถามสำเร็จ"})
+}
+
+// GET /admin/questionnaire-groups/:id/available-questionnaires
+func GetAvailableQuestionnairesForGroup(c *gin.Context) {
+	groupID := c.Param("id")
+
+	// ดึง ID แบบสอบถามที่มีอยู่ในกลุ่มนี้ (เท่านั้น)
+	var existingIDs []uint
+	config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
+		Where("questionnaire_group_id = ?", groupID).
+		Pluck("questionnaire_id", &existingIDs)
+
+	// ดึงแบบสอบถามที่ "ยังไม่อยู่ในกลุ่มนี้"
+	var list []entity.Questionnaire
+	if len(existingIDs) == 0 {
+		// ถ้ายังไม่มีแบบสอบถามในกลุ่มเลย → แสดงทั้งหมด
+		config.DB().Find(&list)
+	} else {
+		config.DB().Where("id NOT IN ?", existingIDs).Find(&list)
+	}
+
+	type Out struct {
+		ID   uint   `json:"id"`
+		Name string `json:"name"`
+	}
+	var out []Out
+	for _, q := range list {
+		out = append(out, Out{ID: q.ID, Name: q.NameQuestionnaire})
+	}
+
+	c.JSON(http.StatusOK, out)
+}
+
