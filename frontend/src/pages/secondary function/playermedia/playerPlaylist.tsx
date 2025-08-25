@@ -17,17 +17,19 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  addSoundView,
+ 
+  addSoundViewBlock,
   checkLikedSound,
-  getSoundsByTypeID,
+
   likeSound,
 } from "../../../services/https/sounds";
-import { Sound } from "../../../interfaces/ISound";
-import { CustomPlaylist, CustomSoundPlaylist } from "../Playlist/Playlist";
-import { GetPlaylistByID } from "../../../services/https/playlist";
+
+import {  CustomSoundPlaylist } from "../Playlist/Playlist";
+
 import { GetSoundPlaylistByPID } from "../../../services/https/soundplaylist";
 import { IHistory } from "../../../interfaces/IHistory";
 import { CreateHistory } from "../../../services/https/history";
+import { formatDurationHMS } from "../../admin/meditation/editSound";
 
 declare global {
   interface Window {
@@ -58,7 +60,7 @@ function PlayerPlaylist() {
   const [isRepeat, setIsRepeat] = useState(false);
 
   const [volume, setVolume] = useState(100);
-  const [quality, setQuality] = useState("default");
+  // const [quality, setQuality] = useState("default");
 
   const playerRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -75,6 +77,9 @@ function PlayerPlaylist() {
   const uid = Number(localStorage.getItem("id"));
   const [hasCountedView, setHasCountedView] = useState(false); //เอาไว้เพิ่ม view
 
+  const viewTimer = useRef<NodeJS.Timeout | null>(null);
+  const repeatRef = useRef(isRepeat);
+
     async function addHistory(sid:number) {
       try {
         const data:IHistory = { sid: sid, uid: Number(uid) }
@@ -86,9 +91,9 @@ function PlayerPlaylist() {
      
     }
   
-  async function addView(sid:number) {
+  async function addView(sid:number,uid:number) {
      try {
-        await addSoundView(sid)
+         await addSoundViewBlock(sid,uid)
      }catch (error) {
        console.error('Error sending rating:', error);
       
@@ -177,28 +182,47 @@ function PlayerPlaylist() {
           onStateChange: (event: any) => {
             setIsPlaying(event.data === 1);
           
-            if (event.data === 1 && !hasCountedView) {
-              // เริ่มจับเวลา เมื่อวิดีโอเริ่มเล่น
-              const checkView = setInterval(() => {
+            if (event.data === YT.PlayerState.PLAYING && !hasCountedView) {
+              // เริ่มจับเวลาเพื่อตรวจสอบการนับ View
+              if (viewTimer.current) clearTimeout(viewTimer.current);
+              viewTimer.current = setTimeout(() => {
                 if (playerRef.current) {
                   const watchedTime = playerRef.current.getCurrentTime();
                   const totalTime = playerRef.current.getDuration();
+          
                   if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
-                    // นับ view แล้วส่ง API
-                    addView(realId);
-                    addHistory(realId);
-                    setHasCountedView(true);
-                    clearInterval(checkView);
+                    const lastViewTime = localStorage.getItem(`view_${uid}_${realId}`);
+                    if (!lastViewTime) {
+                      addView(realId, uid);
+                      localStorage.setItem(`view_${uid}_${realId}`, Date.now().toString());
+                      setHasCountedView(true);
+                    }
+          
+                    // ตรวจสอบ History (เว้น 5 นาที)
+                    const lastHistoryTime = localStorage.getItem(`history_${uid}_${realId}`);
+                    const now = Date.now();
+                    if (!lastHistoryTime || now - parseInt(lastHistoryTime) > 5 * 60 * 1000) {
+                      addHistory(realId);
+                      localStorage.setItem(`history_${uid}_${realId}`, now.toString());
+                    }
                   }
                 }
-              }, 1000);
+              }, 30000); // ตรวจหลัง 30 วิ (หรืออาจถึงก่อนด้วย 10%)
+            }
+          
+            if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
+              // หยุดจับเวลาถ้าผู้ใช้หยุดหรือวิดีโอจบ
+              if (viewTimer.current) {
+                clearTimeout(viewTimer.current);
+                viewTimer.current = null;
+              }
             }
           
             handleStateChange(event);
           },
-          onPlaybackQualityChange: (event: any) => {
-            setQuality(event.data);
-          },
+          // onPlaybackQualityChange: (event: any) => {
+          //   // setQuality(event.data);
+          // },
         },
         playerVars: {
           controls: 1,
@@ -215,14 +239,18 @@ function PlayerPlaylist() {
 
     if (event.data === 0) {
       // วิดีโอจบ
-      if (isRepeat) {
-        playerRef.current.playVideo(); // เล่นซ้ำ
+      if (repeatRef.current) {
+        playerRef.current.seekTo(0); // กลับไปต้น
+        playerRef.current.playVideo(); // เล่นทันที
       } else {
         handleNext();
       }
     }
   }
-
+  useEffect(() => {
+    repeatRef.current = isRepeat;
+  }, [isRepeat]);
+  
   useEffect(() => {
     if (!isReady) return;
     const interval = setInterval(() => {
@@ -568,7 +596,7 @@ function PlayerPlaylist() {
                           <div className="flex items-center gap-1">
                             <Clock size={12} />
                             <span className="hidden sm:inline">
-                              {item.duration}
+                              {formatDurationHMS(item.duration ?? 0)}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">

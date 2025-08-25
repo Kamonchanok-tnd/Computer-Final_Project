@@ -17,6 +17,9 @@ type Users struct {
 	Age         int    `json:"age"`
 	Gender      string `json:"gender"`
 
+	PFID      uint    `json:"pfid" gorm:"default:1"`
+	ProfileAvatar ProfileAvatar `gorm:"foreignKey:PFID"`
+
 	// เพิ่ม attributes สำหรับการรีเซ็ตรหัสผ่าน
 	ResetToken          string    `json:"reset_token"`
 	ResetTokenExpiry    time.Time `json:"reset_token_expiry"`

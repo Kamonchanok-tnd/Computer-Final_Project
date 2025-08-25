@@ -13,5 +13,6 @@ type WordHealingContent struct {
 	NoOfLike   int        `json:"no_of_like"`
 	Date       time.Time  `json:"date"`
 	Content    string     `json:"content"`    
-	ArticleType string    `json:"article_type"` 
+	ArticleType string    `json:"article_type"`
+	ViewCount  int        `json:"view_count"` 
 }

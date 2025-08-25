@@ -80,5 +80,6 @@ export async function CreateReview(data: IReview) {
       return result;
     } catch (error) {
       console.error(error);
+      throw error;
     }
   }

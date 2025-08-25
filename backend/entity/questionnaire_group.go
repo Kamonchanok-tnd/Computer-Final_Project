@@ -12,5 +12,6 @@ type QuestionnaireGroup struct {
 
 	Questionnaires []Questionnaire `gorm:"many2many:questionnaire_group_mappings;"`
     QuestionnaireGroupQuestionnaires []QuestionnaireGroupQuestionnaire `gorm:"foreignKey:QuestionnaireGroupID"`
+	AssessmentResults []AssessmentResult `gorm:"foreignKey:QGID"`
 }
 

@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Image1 from "../../assets/image1.png";
-import How from "./How";
+// import How from "./How";
 
 function ChatBan() {
   return (
@@ -38,16 +38,18 @@ function ChatBan() {
           </p>
 
           <button
-            className="font-ibmthai bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF]
-                text-white py-2 px-4 rounded-lg mt-4 text-xl flex gap-2 items-center"
+            className="group font-ibmthai bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF]
+                text-white py-2 px-4 rounded-lg mt-4 text-xl flex gap-2 items-center cursor-pointer hover:scale-110
+                transition duration-300 ease-in-out"
+            onClick={() => window.location.href = "/chat"}
           >
-            เริ่มการสนทนา <span><ArrowRight /></span>
+            เริ่มการสนทนา <span><ArrowRight className="transition-transform duration-300 group-hover:animate-bounce-x" /></span>
           </button>
         </div>
       </div>
-      <div>
+      {/* <div>
         <How />
-      </div>
+      </div> */}
     </div>
   );
 }

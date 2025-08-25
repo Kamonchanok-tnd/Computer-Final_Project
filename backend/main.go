@@ -6,6 +6,7 @@ import (
 	"os" // เพิ่มการนำเข้า os
 	"sukjai_project/config"
 	history "sukjai_project/controller/History"
+	profileavatar "sukjai_project/controller/ProfileAvatar"
 	"sukjai_project/controller/admin"
 	"sukjai_project/controller/assessment"
 	"sukjai_project/controller/background"
@@ -25,7 +26,6 @@ import (
 	"sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/controller/dashboardcontents"
 	"sukjai_project/middlewares"
-
 
 	// "fmt"
 	"github.com/gin-gonic/gin"
@@ -73,6 +73,7 @@ func main() {
 	r.Static("/BgImage", "./images/background")
 	r.Static("/images/emoji", "./images/emoji")
 	r.Static("/images/emotion_choice", "./images/emotion_choice")
+	r.Static("/images/profile", "./images/avatar")
 
 	r.POST("/signup", users.SignUp)
 	r.POST("/signin", users.SignIn)
@@ -80,8 +81,6 @@ func main() {
 	r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
 	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
 	r.GET("/recent", controller.GetRecentChat)
-
-	
 
 	// Protect routes with role-based access
 	router := r.Group("/")
@@ -93,6 +92,7 @@ func main() {
 		router.GET("/admin/:id", admin.GetAdminById)
 		router.PUT("/adminyourself/:id", admin.EditAdminYourself)
 
+		// Prompt routes
 		router.POST("/admin/prompt", prompt.CreatePrompt)
 		router.GET("/admin/prompt", prompt.GetAllPrompts)
 		router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
@@ -100,29 +100,36 @@ func main() {
 		router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
 		router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
-        //router.POST("/admin/prompt", prompt.CreatePrompt)
-        //router.GET("/admin/prompt", prompt.GetAllPrompts)
-       // router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
-        // router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
-        // router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
-        // router.GET("/admin/prompt/:id", prompt.GetPromptByID)
-        
-		//Questionnaire routes
-        router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)                  // route ดึงแบบทดสอบทั้งหมด
-        router.GET("/users", questionnaire.GetAllUsers)                                    // route ดึงผู้ใช้ทั้งหมด
-		router.GET("/getallemotionchoices", questionnaire.GetAllEmotionChoices)            // route ดึงตัวเลือกอีโมจิทั้งหมด
-        router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire)            // route สำหรับสร้างแบบทดสอบ (Questionnaire)
-        router.POST("/createQuestions", questionnaire.CreateQuestions)                     // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
-        router.POST("/createCriterias", questionnaire.CreateCriterias)                     // route สำหรับสร้างเกณฑ์การให้คะแนน (Criterias)
+		//router.POST("/admin/prompt", prompt.CreatePrompt)
+		//router.GET("/admin/prompt", prompt.GetAllPrompts)
+		// router.DELETE("/admin/prompt/:id", prompt.DeletePrompt)
+		// router.PUT("/admin/prompt/:id", prompt.UpdatePrompt)
+		// router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
+		// router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
-        router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
-        router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
-        router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
+		//Questionnaire routes
+		router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)       // route ดึงแบบทดสอบทั้งหมด
+		router.GET("/users", questionnaire.GetAllUsers)                         // route ดึงผู้ใช้ทั้งหมด
+		router.GET("/getallemotionchoices", questionnaire.GetAllEmotionChoices) // route ดึงตัวเลือกอีโมจิทั้งหมด
+		router.POST("/createQuestionnaires", questionnaire.CreateQuestionnaire) // route สำหรับสร้างแบบทดสอบ (Questionnaire)
+		router.POST("/createQuestions", questionnaire.CreateQuestions)          // route สำหรับสร้างข้อคำถามเเละคำตอบ (Questions and Answers)
+		router.POST("/createCriterias", questionnaire.CreateCriterias)          // route สำหรับสร้างเกณฑ์การให้คะแนน (Criterias)
+
+		router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire) // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
+		router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)           // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
+		router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)               // route สำหรับลบคำตอบ
 
 		router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)         // route สำหรับดึงค่าเก่าเเบบทดสอบ
 		router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire) // route สำหรับเเก้ไขเเบบทดสอบ
 
+		// Assessment routes
 		router.GET("/admin/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
+		router.GET("/admin/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)
+		router.PATCH("/admin/questionnaire-groups/:id/frequency", assessment.UpdateQuestionnaireGroupFrequency)
+		router.PUT("/admin/questionnaire-groups/:id/order", assessment.ReorderQuestionnairesInGroup)
+		router.POST("/admin/questionnaire-groups/:id/add-questionnaire", assessment.AddQuestionnaireToGroup)
+		router.DELETE("/admin/questionnaire-groups/:id/remove-questionnaire/:qid", assessment.RemoveQuestionnaireFromGroup)
+		router.GET("/admin/questionnaire-groups/:id/available-questionnaires", assessment.GetAvailableQuestionnairesForGroup)
 
 		//Healing mesage route
 		router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)       // route ดึงบทความทั้งหมด
@@ -130,11 +137,20 @@ func main() {
 		router.DELETE("/deletewordhealingmessage/:id", wordhealingmessage.DeleteWordHealingContent) // route สำหรับลบบทความ (WordHealingMesasage)
 		router.GET("/getwordhealingmessage/:id", wordhealingmessage.GetWordHealingMessage)          // route สำหรับดึงค่าเก่าบทความ
 		router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)  // route สำหรับเเก้ไขเเบบบทความ
+		router.PATCH("/updateviewcountmessage/:id", wordhealingmessage.UpdateViewcountMessage)      // route สำหรับเพิ่มจำนวนการเข้าชมบทความ
 		router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                           // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
 
+		// //Healing mesage route
+		// router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)       // route ดึงบทความทั้งหมด
+		// router.POST("/createwordhealingmessage", wordhealingmessage.CreateWordHealingMessages)      // route สำหรับสร้างบทความ (WordHealingMesasage)
+		// router.DELETE("/deletewordhealingmessage/:id", wordhealingmessage.DeleteWordHealingContent) // route สำหรับลบบทความ (WordHealingMesasage)
+		// router.GET("/getwordhealingmessage/:id", wordhealingmessage.GetWordHealingMessage)          // route สำหรับดึงค่าเก่าบทความ
+		// router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)  // route สำหรับเเก้ไขเเบบบทความ
+		// router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                           // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
+
+		// Video routes
 		router.POST("/videos", meditation.CreateVideo)
 		router.GET("/sound-types", meditation.GetSoundTypes)
-
 		router.GET("/AllSounds", sounds.GetAllSounds)
 		router.GET("/Sound/:id", sounds.GetSoundByID)
 		router.PATCH("/Sound/Update/:id", sounds.EditSound)
@@ -148,7 +164,7 @@ func main() {
 
 		//Playlist
 		router.POST("/Playlist", playlist.CreatePlaylist)
-		router.GET("/Playlist/:uid", playlist.GetPlaylistByUID)
+		router.GET("/Playlist/:uid/:stid", playlist.GetPlaylistByUID)
 		router.GET("/PlaylistByID/:id", playlist.GetPlaylistByID)
 		router.DELETE("/Playlist/:id", playlist.DeletePlaylistByID)
 		router.PATCH("/Playlist/:id", playlist.EditPlaylistByID)
@@ -198,45 +214,43 @@ func main() {
 		userRouter.GET("/sounds/meditation", meditation.GetMeditationSounds)
 		userRouter.GET("/sounds/breathing", breathing.GetBreathingSounds)
 
-        userRouter.GET("/getallwordhealingmessageforuser", wordhealingmessage.GetAllWordhealingmessagesForUser)    // route ดึงบทความทั้งหมดโดย user
-        userRouter.POST("/article/:id/like", wordhealingmessage.LikeArticle)                                       // route สำหรีบ like บทความของ  user
-		userRouter.DELETE("/article/:id/like", wordhealingmessage.LikeArticle)                                     // route สำหรีบ unlike บทความของ  user
-	    userRouter.GET("/article/:id/liked", wordhealingmessage.CheckLikedArticle)                                 // route ดึงบทความของที่ถูกใจ user
-       
-        userRouter.POST("/sounds/:id/like", sounds.LikeSound)
-        userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
-        userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
+		userRouter.GET("/getallwordhealingmessageforuser", wordhealingmessage.GetAllWordhealingmessagesForUser) // route ดึงบทความทั้งหมดโดย user
+		userRouter.POST("/article/:id/like", wordhealingmessage.LikeArticle)                                    // route สำหรีบ like บทความของ  user
+		userRouter.DELETE("/article/:id/like", wordhealingmessage.LikeArticle)                                  // route สำหรีบ unlike บทความของ  user
+		userRouter.GET("/article/:id/liked", wordhealingmessage.CheckLikedArticle)                              // route ดึงบทความของที่ถูกใจ user
+
+		userRouter.POST("/sounds/:id/like", sounds.LikeSound)
+		userRouter.GET("/sounds/:id/liked", sounds.CheckLikedSound)
+		userRouter.POST("/sounds/:id/view", sounds.AddSoundView)
 		userRouter.POST("/sounds/:id/view-block/:uid", sounds.AddSoundViewBlock)
 
 		//playlist
 		userRouter.GET("/playlists", playlist.GetPlaylistsByUserAndType)
 
 		//assessment
-		router.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
-		router.GET("/assessment/AssessmentAnswers", assessment.GetAllAssessmentAnswers)
-		router.GET("/assessment/AssessmentResults", assessment.GetAllAssessmentResults)
-		router.GET("/assessment/Calculations", assessment.GetAllCalculations)
-		router.GET("/assessment/Criteria", assessment.GetAllCriteria)
-		router.GET("/assessment/Questions", assessment.GetAllQuestions)
-		router.GET("/assessment/Questionnaires", assessment.GetAllQuestionnaires)
-		router.GET("/assessment/Transaction", assessment.GetAllTransaction)
-		router.GET("/assessment/AnswerOptions/:id", assessment.GetAnswerOptionByID)
-		router.GET("/assessment/AssessmentAnswers/:id", assessment.GetAssessmentAnswerByID)
-		router.GET("/assessment/AssessmentResults/:id", assessment.GetAssessmentResultByID)
-		router.GET("/assessment/Calculations/:id", assessment.GetCalculationByID)
-		router.GET("/assessment/Criteria/:id", assessment.GetCriteriaByID)
-		router.GET("/assessment/Questions/:id", assessment.GetQuestionByID)
-		router.GET("/assessment/Questionnaires/:id", assessment.GetQuestionnaireByID)
-		router.GET("/assessment/Transactions/:id", assessment.GetTransactionByID)
-		router.POST("/assessment/result", assessment.CreateAssessmentResult)
-		router.POST("/assessment/answer", assessment.SubmitAssessmentAnswer)
-		router.POST("/assessment/finish/:id", assessment.FinishAssessment)
-		router.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)                       
-		router.GET("/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)                    
-		router.PATCH("/questionnaire-groups/:id/frequency", assessment.UpdateQuestionnaireGroupFrequency) 
-		router.PUT("/questionnaire-groups/:id/order", assessment.ReorderQuestionnairesInGroup)           
-		router.GET("/questionnaire-groups/available", assessment.GetAvailableGroupsForUser)               
-		router.GET("/assessments/next", assessment.GetNextQuestionnaire)
+		userRouter.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
+		userRouter.GET("/assessment/AssessmentAnswers", assessment.GetAllAssessmentAnswers)
+		userRouter.GET("/assessment/AssessmentResults", assessment.GetAllAssessmentResults)
+		userRouter.GET("/assessment/Calculations", assessment.GetAllCalculations)
+		userRouter.GET("/assessment/Criteria", assessment.GetAllCriteria)
+		userRouter.GET("/assessment/Questions", assessment.GetAllQuestions)
+		userRouter.GET("/assessment/Questionnaires", assessment.GetAllQuestionnaires)
+		userRouter.GET("/assessment/Transaction", assessment.GetAllTransaction)
+		userRouter.GET("/assessment/AnswerOptions/:id", assessment.GetAnswerOptionByID)
+		userRouter.GET("/assessment/AssessmentAnswers/:id", assessment.GetAssessmentAnswerByID)
+		userRouter.GET("/assessment/AssessmentResults/:id", assessment.GetAssessmentResultByID)
+		userRouter.GET("/assessment/Calculations/:id", assessment.GetCalculationByID)
+		userRouter.GET("/assessment/Criteria/:id", assessment.GetCriteriaByID)
+		userRouter.GET("/assessment/Questions/:id", assessment.GetQuestionByID)
+		userRouter.GET("/assessment/Questionnaires/:id", assessment.GetQuestionnaireByID)
+		userRouter.GET("/assessment/Transactions/:id", assessment.GetTransactionByID)
+		userRouter.POST("/assessment/result", assessment.CreateAssessmentResult)
+		userRouter.POST("/assessment/answer", assessment.SubmitAssessmentAnswer)
+		userRouter.POST("/assessment/finish/:id", assessment.FinishAssessment)
+		userRouter.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
+		userRouter.GET("/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)
+		userRouter.GET("/questionnaire-groups/available", assessment.GetAvailableGroupsForUser)
+		userRouter.GET("/assessments/next", assessment.GetNextQuestionnaire)
 
 		//chat space
 		userRouter.POST("/gemini", controller.GeminiHistory)
@@ -244,16 +258,17 @@ func main() {
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
 		// userRouter.GET("/recent", controller.GetRecentChat)
+
+		//profile
+		userRouter.GET("/profile", profileavatar.GetAllProfile)
 	}
 
-	
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
+	})
 
-    r.GET("/", func(c *gin.Context) {
-        c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
-    })
-
-    // Run the server
-    r.Run("localhost:" + PORT)
+	// Run the server
+	r.Run("localhost:" + PORT)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

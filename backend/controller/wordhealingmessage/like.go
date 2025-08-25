@@ -4,10 +4,8 @@ package wordhealingmessage
 import (
 	"net/http"
 	"strconv"
-
 	"github.com/gin-gonic/gin"
-
-
+    "gorm.io/gorm"
 	"sukjai_project/config"
 	"sukjai_project/entity"
 )
@@ -110,4 +108,35 @@ func CheckLikedArticle(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, gin.H{"isLiked": true})
+}
+
+// เพิ่มจำนวนการเข้าชมบทความ
+func UpdateViewcountMessage(c *gin.Context) {
+    db := config.DB()
+	// ดึง id ของบทความจาก URL parameter
+	id := c.Param("id")
+
+	// เชื่อมต่อกับฐานข้อมูลเพื่อดึงข้อมูลบทความ
+	var message entity.WordHealingContent
+	if err := db.Where("id = ?", id).First(&message).Error; err != nil {
+		// ถ้าไม่พบบทความ ให้ส่งข้อผิดพลาด
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "ไม่พบบทความ"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการดึงข้อมูลบทความ"})
+		}
+		return
+	}
+
+	// เพิ่มจำนวนการเข้าชม
+	message.ViewCount++
+
+	// อัปเดตข้อมูลบทความในฐานข้อมูล
+	if err := db.Save(&message).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถอัปเดตจำนวนการเข้าชมได้"})
+		return
+	}
+
+	// ส่งคำตอบกลับว่าอัปเดตสำเร็จ
+	c.JSON(http.StatusOK, gin.H{"message": "อัปเดตจำนวนการเข้าชมสำเร็จ"})
 }

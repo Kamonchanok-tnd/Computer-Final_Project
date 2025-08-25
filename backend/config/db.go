@@ -123,25 +123,28 @@ func SetupDatabase() {
 		&entity.Transaction{},
 		&entity.ArticleType{}, 
 		&entity.QuestionnaireGroupQuestionnaire{},
+		&entity.ProfileAvatar{},
 	)
 	if err != nil {
 		log.Fatalf("Error migrating database: %v", err)
 	}
 	fmt.Println("Database migration completed successfully!")
+	SeedProfileAvatarsOnce(db)
 	SetupInitialData(db)
 	SeedSendTypes(db)
 	SeedChatRooms(db)
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
 	CreateDefaultEmotionChoices(db)
-	// SeedQuestionnaires(db)
-	// SeedQuestionnaireGroups(db)
-	// SeedCriteriaAndCalculations(db)
+	SeedQuestionnaires(db)
+	SeedQuestionnaireGroups(db)
+	SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	CreateArticleTypes(db)
 	SeedEmojis(db)
 	SeedMirrorJuly2025(db)
 	SeedMirrorAug2025FirstHalf(db)
+	
 	
 }
 
@@ -179,6 +182,7 @@ func SetupInitialData(db *gorm.DB) {
 			Gender:      "ผู้ชาย",
 			PhoneNumber: "1234567890",
 			Facebook:    "admin_fb",
+			PFID:        1,
 		})
 	}
 
@@ -194,6 +198,7 @@ func SetupInitialData(db *gorm.DB) {
 			Gender:      "ผู้หญิง",
 			PhoneNumber: "0987654321",
 			Facebook:    "user_fb",
+			PFID:        1,
 		})
 	}
 	if err := db.Where("username = ?", "superadmin").First(&superAdmin).Error; err != nil {
@@ -207,6 +212,7 @@ func SetupInitialData(db *gorm.DB) {
 			Gender:      "ผู้หญิง",
 			PhoneNumber: "0987654321",
 			Facebook:    "superadmin_fb",
+			PFID:        1,
 		})
 	}
 
@@ -552,7 +558,24 @@ func SeedQuestionnaires(db *gorm.DB) {
 
 	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับความสุข คะแนน 0-10", "วัดระดับความสุขในขณะปัจจุบัน", 1, admin.ID, questionsHappinessLevel, optionsHappinessLevel, nil, nil, nil,&testTypePositive)
 
-	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness, HappinessLevel")
+		// == 5. แบบวัดความเครียด (ST-5)  ==
+	questionsST5 := []string{
+		"ในระยะ 2-4 สัปดาห์ มีปัญหาการนอน นอนไม่หลับหรือนอนมาก",
+		"ในระยะ 2-4 สัปดาห์ มีสมาธิน้อยลง",
+		"ในระยะ 2-4 สัปดาห์ หงุดหงิด / กระวนกระวาย / ว้าวุ้นใจ",
+		"ในระยะ 2-4 สัปดาห์ รู้สึกเบื่อ เซ็ง",
+		"ในระยะ 2-4 สัปดาห์ ไม่อยากพบปะผู้คน",
+	}
+	optionsST5 := []entity.AnswerOption{
+		{Description: "เป็นน้อยมากหรือแทบไม่มี", Point: 0,EmotionChoiceID: 11},
+		{Description: "เป็นบางครั้ง", Point: 1,EmotionChoiceID: 5},
+		{Description: "เป็นบ่อยครั้ง", Point: 2,EmotionChoiceID: 3},
+		{Description: "เป็นประจำ", Point: 3,EmotionChoiceID: 1},
+	}
+
+	insertQuestionnaireWithQuestionsAndOptions(db, "แบบวัดระดับความเครียด (ST-5)", "แบบวัดความเครียด (ST-5) จำนวน 5 ข้อ ที่พัฒนาโดย อรวรรณ ศิลปะกิจ (Silpakit, 2008)", 5, admin.ID, questionsST5, optionsST5, nil, nil, nil,&testTypeNegative)
+
+	fmt.Println("✅ Seeded Questionnaires 2Q, 9Q, Mindfulness, HappinessLevel, ST-5")
 }
 
 func insertQuestionnaireWithQuestionsAndOptions(
@@ -607,22 +630,27 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 	// Seed Criteria
 	criterias := []entity.Criteria{
 		{Description: "ปกติ ไม่เป็นโรคซึมเศร้า", MinCriteriaScore: 0 ,MaxCriteriaScore: 0},
-		{Description: "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า", MinCriteriaScore: 0 ,MaxCriteriaScore: 1}, // Note: CriteriaScore for range will be handled in logic
+		{Description: "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า", MinCriteriaScore: 1 ,MaxCriteriaScore: 2},
 
-		{Description: "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก", MinCriteriaScore: 0 ,MaxCriteriaScore: 7},
-		{Description: "มีอาการของโรคซึมเศร้า ระดับน้อย", MinCriteriaScore: 0 ,MaxCriteriaScore: 12},
-		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", MinCriteriaScore: 0 ,MaxCriteriaScore: 18},
-		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", MinCriteriaScore: 0 ,MaxCriteriaScore: 27},
+		{Description: "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก", MinCriteriaScore: 0 ,MaxCriteriaScore: 6},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับน้อย", MinCriteriaScore: 7 ,MaxCriteriaScore: 12},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", MinCriteriaScore: 13 ,MaxCriteriaScore: 18},
+		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", MinCriteriaScore: 19 ,MaxCriteriaScore: 27},
 
-		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 0 ,MaxCriteriaScore: 3},
-		{Description: "มีสติ อยู่กับปัจจุบัน", MinCriteriaScore: 0 ,MaxCriteriaScore: 6},
+		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 1 ,MaxCriteriaScore: 15},
+		{Description: "มีสติ อยู่กับปัจจุบัน", MinCriteriaScore: 16 ,MaxCriteriaScore: 30},
 		
 		{Description: "ไม่มีความสุขเลย", MinCriteriaScore: 0 ,MaxCriteriaScore: 0},
-		{Description: "มีความสุขน้อยที่สุด", MinCriteriaScore: 0 ,MaxCriteriaScore: 2},
-		{Description: "มีความสุขน้อย", MinCriteriaScore: 0 ,MaxCriteriaScore: 4},
-		{Description: "มีความสุขปานกลาง", MinCriteriaScore: 0 ,MaxCriteriaScore: 6},
-		{Description: "มีความสุขมาก", MinCriteriaScore: 0 ,MaxCriteriaScore: 8},
-		{Description: "มีความสุขมากที่สุด", MinCriteriaScore: 0 ,MaxCriteriaScore: 10},
+		{Description: "มีความสุขน้อยที่สุด", MinCriteriaScore: 1 ,MaxCriteriaScore: 2},
+		{Description: "มีความสุขน้อย", MinCriteriaScore: 3 ,MaxCriteriaScore: 4},
+		{Description: "มีความสุขปานกลาง", MinCriteriaScore: 5 ,MaxCriteriaScore: 6},
+		{Description: "มีความสุขมาก", MinCriteriaScore: 7 ,MaxCriteriaScore: 8},
+		{Description: "มีความสุขมากที่สุด", MinCriteriaScore: 9 ,MaxCriteriaScore: 10},
+
+		{Description: "ไม่มีความเครียด", MinCriteriaScore: 0 ,MaxCriteriaScore: 4},
+		{Description: "เครียดปานกลาง ", MinCriteriaScore: 5 ,MaxCriteriaScore: 7},
+		{Description: "เครียดมาก", MinCriteriaScore: 8 ,MaxCriteriaScore: 9},
+		{Description: "เครียดมากที่สุด", MinCriteriaScore: 10 ,MaxCriteriaScore: 15},
 	}
 
 	for _, c := range criterias {
@@ -657,8 +685,13 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 		log.Fatalf("ไม่พบแบบประเมิน แบบวัดระดับความสุข คะแนน 0-10: %v", err)
 	}
 
+	var qST5 entity.Questionnaire
+	if err := db.Where("name_questionnaire = ?", "แบบวัดระดับความเครียด (ST-5)").First(&qST5).Error; err != nil {
+		log.Fatalf("ไม่พบแบบประเมิน แบบวัดระดับความเครียด (ST-5): %v", err)
+	}
+
 	// Fetch Criteria IDs
-	var c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14 entity.Criteria
+	var c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15,c16,c17,c18 entity.Criteria
 	db.Where("description = ?", "ปกติ ไม่เป็นโรคซึมเศร้า").First(&c1)
 	db.Where("description = ?", "เป็นผู้มีความเสี่ยง หรือ มีแนวโน้มที่จะเป็นโรคซึมเศร้า").First(&c2)
 	db.Where("description = ?", "ไม่มีอาการของโรคซึมเศร้าหรือมีอาการของโรคซึมเศร้าระดับน้อยมาก").First(&c3)
@@ -673,6 +706,10 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 	db.Where("description = ?", "มีความสุขปานกลาง").First(&c12)
 	db.Where("description = ?", "มีความสุขมาก").First(&c13)
 	db.Where("description = ?", "มีความสุขมากที่สุด").First(&c14)
+	db.Where("description = ?", "ไม่มีความเครียด").First(&c15)
+	db.Where("description = ?", "เครียดปานกลาง ").First(&c16)
+	db.Where("description = ?", "เครียดมาก").First(&c17)
+	db.Where("description = ?", "เครียดมากที่สุด").First(&c18)
 
 	// Seed Calculations
 	calculations := []entity.Calculation{
@@ -690,6 +727,10 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 		{CID: c12.ID, QuID: qHappinessLevel.ID},
 		{CID: c13.ID, QuID: qHappinessLevel.ID},
 		{CID: c14.ID, QuID: qHappinessLevel.ID},
+		{CID: c15.ID, QuID: qST5.ID},
+		{CID: c16.ID, QuID: qST5.ID},
+		{CID: c17.ID, QuID: qST5.ID},
+		{CID: c18.ID, QuID: qST5.ID},
 	}
 
 	for _, calc := range calculations {
@@ -770,6 +811,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 			QuestionnaireNames: []string{
 				"แบบวัดระดับความสุข คะแนน 0-10",
 				"แบบวัดระดับสติ (State Mindfulness)",
+				"แบบวัดระดับความเครียด (ST-5)",
 				"แบบคัดกรองโรคซึมเศร้า 2Q",
 				"แบบคัดกรองโรคซึมเศร้า 9Q",
 			},
@@ -781,6 +823,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 			QuestionnaireNames: []string{
 				"แบบวัดระดับความสุข คะแนน 0-10",
 				"แบบวัดระดับสติ (State Mindfulness)",
+				"แบบวัดระดับความเครียด (ST-5)",
 			},
 			FrequencyDays: nil,
 		},
@@ -790,6 +833,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 			QuestionnaireNames: []string{
 				"แบบวัดระดับความสุข คะแนน 0-10",
 				"แบบวัดระดับสติ (State Mindfulness)",
+				"แบบวัดระดับความเครียด (ST-5)",
 				"แบบคัดกรองโรคซึมเศร้า 2Q",
 				"แบบคัดกรองโรคซึมเศร้า 9Q",
 			},
@@ -1067,6 +1111,31 @@ func CreateDefaultEmotionChoices(db *gorm.DB) error {
 		if err := db.Create(&emotionChoices).Error; err != nil {
 			return fmt.Errorf("error creating default emotion choices: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func SeedProfileAvatarsOnce(db *gorm.DB) error {
+	var count int64
+	if err := db.Model(&entity.ProfileAvatar{}).Count(&count).Error; err != nil {
+		return fmt.Errorf("failed to count profile avatars: %w", err)
+	}
+
+	if count > 0 {
+		// ถ้ามีข้อมูลแล้ว → ไม่ต้องสร้างซ้ำ
+		return nil
+	}
+
+	profiles := []entity.ProfileAvatar{
+		{Avatar: "a1.jpg", Name: "Cat Minimal"},
+		{Avatar: "a2.jpg", Name: "Dog Cute"},
+		{Avatar: "a3.jpg", Name: "Panda Chill"},
+		
+	}
+
+	if err := db.Create(&profiles).Error; err != nil {
+		return fmt.Errorf("failed to create profile avatars: %w", err)
 	}
 
 	return nil

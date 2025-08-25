@@ -31,6 +31,7 @@ const MessagePage: React.FC = () => {
     setLoadingMessages(true);
     try {
       const data = await getAllWordHealingMessages();
+      console.log("ข้อมูลที่สงมา :", data);
       setMessages(data);
       setFilteredMessages(data);
     } catch (error) {
@@ -66,35 +67,49 @@ const MessagePage: React.FC = () => {
   };
 
   const filterAndSort = (searchValue: string, sortKey: string) => {
-    let data = [...messages];
+  let data = [...messages];
 
-    if (searchValue.trim() !== "") {
-      const q = searchValue.toLowerCase();
-      data = data.filter(
-        (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.author.toLowerCase().includes(q) ||
-          (m.articleType || "").toLowerCase().includes(q) ||
-          (m.content || "").toLowerCase().includes(q)
-      );
-    }
+  // Filter logic
+  if (searchValue.trim() !== "") {
+    const q = searchValue.toLowerCase();
+    data = data.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.author.toLowerCase().includes(q) ||
+        (m.articleType || "").toLowerCase().includes(q) ||
+        (m.content || "").toLowerCase().includes(q)
+    );
+  }
 
-    if (sortKey === "nameAsc") {
-      data.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortKey === "nameDesc") {
-      data.sort((a, b) => b.name.localeCompare(a.name));
-    } else if (sortKey === "dateAsc") {
-      data.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      );
-    } else if (sortKey === "dateDesc") {
-      data.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-    }
+  // Sorting logic
+  if (sortKey === "nameAsc") {
+    data.sort((a, b) => a.name.localeCompare(b.name, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "nameDesc") {
+    data.sort((a, b) => b.name.localeCompare(a.name, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "authorAsc") {
+    data.sort((a, b) => a.author.localeCompare(b.author, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "authorDesc") {
+    data.sort((a, b) => b.author.localeCompare(a.author, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "contentAsc") {
+    data.sort((a, b) => a.content.localeCompare(b.content, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "contentDesc") {
+    data.sort((a, b) => b.content.localeCompare(a.content, 'th', { sensitivity: 'base' }));
+  } else if (sortKey === "likesAsc") {
+    data.sort((a, b) => a.no_of_like - b.no_of_like);
+  } else if (sortKey === "likesDesc") {
+    data.sort((a, b) => b.no_of_like - a.no_of_like);
+  } else if (sortKey === "dateAsc") {
+    data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  } else if (sortKey === "dateDesc") {
+    data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }else if (sortKey === "viewsAsc") {
+    data.sort((a, b) => a.viewCount - b.viewCount);
+  } else if (sortKey === "viewsDesc") {
+    data.sort((a, b) => b.viewCount - a.viewCount);
+  }
 
-    setFilteredMessages(data);
-  };
+  setFilteredMessages(data);
+};
 
   const handleSortChange = (value: string) => {
     setSortOption(value);
@@ -168,6 +183,12 @@ const MessagePage: React.FC = () => {
       title: <span className="table-header">จำนวนการกดถูกใจ</span>,
       dataIndex: "no_of_like",
       key: "no_of_like",
+      align: "center",
+    },
+    {
+      title: <span className="table-header">จำนวนการกดเข้าชม</span>,
+      dataIndex: "viewCount",
+      key: "viewCount",
       align: "center",
     },
     {
@@ -256,17 +277,25 @@ const MessagePage: React.FC = () => {
         </Col>
         <Col span={6}>
           <Select
-            value={sortOption}
-            onChange={handleSortChange}
-            size="large"
-            style={{ width: "100%" }}
-          >
-            <Option value="default">เรียงลำดับ</Option>
-            <Option value="nameAsc">ชื่อบทความ (A → Z)</Option>
-            <Option value="nameDesc">ชื่อบทความ (Z → A)</Option>
-            <Option value="dateAsc">วันที่สร้าง (เก่าสุด → ใหม่สุด)</Option>
-            <Option value="dateDesc">วันที่สร้าง (ใหม่สุด → เก่าสุด)</Option>
-          </Select>
+              value={sortOption}
+              onChange={handleSortChange}
+              size="large"
+              style={{ width: "100%" }}
+            >
+              <Option value="default">เรียงลำดับ</Option>
+              <Option value="nameAsc">ชื่อบทความ (ก → ฮ)</Option>
+              <Option value="nameDesc">ชื่อบทความ (ฮ → ก)</Option>
+              <Option value="authorAsc">ชื่อผู้เขียน (ก → ฮ)</Option>
+              <Option value="authorDesc">ชื่อผู้เขียน (ฮ → ก)</Option>
+              <Option value="contentAsc">เนื้อหาบทความ (ก → ฮ)</Option>
+              <Option value="contentDesc">เนื้อหาบทความ (ฮ → ก)</Option>
+              <Option value="likesAsc">จำนวนการกดถูกใจ (น้อย → มาก)</Option>
+              <Option value="likesDesc">จำนวนการกดถูกใจ (มาก → น้อย)</Option>
+              <Option value="viewsAsc">จำนวนการเข้าชม (น้อย → มาก)</Option>
+              <Option value="viewsDesc">จำนวนการเข้าชม (มาก → น้อย)</Option>
+              <Option value="dateAsc">วันที่สร้าง (เก่าสุด → ใหม่สุด)</Option>
+              <Option value="dateDesc">วันที่สร้าง (ใหม่สุด → เก่าสุด)</Option>
+            </Select>
         </Col>
       </Row>
 

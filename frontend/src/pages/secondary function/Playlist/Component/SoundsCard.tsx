@@ -1,5 +1,6 @@
 import { CirclePlus, Clock, Eye, Heart } from "lucide-react";
 import { Sound } from "../../../../interfaces/ISound";
+import { formatDurationHMS } from "../../../admin/meditation/editSound";
 
 interface SoundDataprops {
   data: Sound[];
@@ -41,7 +42,7 @@ function SoundsCard({
                 <div className="flex gap-2  ">
                   <div className="flex gap-1 text-sm items-center text-text-basic dark:text-text-dark">
                     <Clock size={14} />
-                    <p>{sound.duration}</p>
+                    <p>{formatDurationHMS(sound.duration ?? 0)}</p>
                   </div>
                   <div className="flex gap-1 text-sm items-center text-text-basic dark:text-text-dark">
                     <Eye size={14} />
@@ -49,7 +50,7 @@ function SoundsCard({
                   </div>
                   <div className="flex gap-1 text-sm items-center text-text-basic dark:text-text-dark">
                     <Heart size={14} />
-                    <p>{sound.duration}</p>
+                    <p>{sound.like_sound}</p>
                   </div>
                 </div>
               </div>

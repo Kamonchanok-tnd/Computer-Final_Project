@@ -5,14 +5,14 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { CustomSoundPlaylist } from "../Playlist";
-import { Download, Edit, EllipsisVertical, Play, Share, Star, Trash2 } from "lucide-react";
+import {EllipsisVertical, Play,  Star, Trash2 } from "lucide-react";
 import { Dropdown, MenuProps, message, Modal } from "antd";
 import { useEffect, useState } from "react";
 import "./table.css"
 import StarRating from "./starrating";
 import { CheckReview, CreateReview, UpdateReview } from "../../../../services/https/review";
 import { IReview } from "../../../../interfaces/IReview";
-import { useDarkMode } from "../../../../components/Darkmode/toggleDarkmode";
+
 
 interface TableSoundPlaylistProps {
   data: CustomSoundPlaylist[];
@@ -406,7 +406,7 @@ useEffect(() => {
               </button>
               <button
                 onClick={handleRatingSubmit}
-                disabled={currentRating === 0}
+                disabled={currentRating === 0 || exitRating === currentRating}
                 className="px-6 py-2 bg-button-blue text-white rounded-lg  disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 ส่งคะแนน

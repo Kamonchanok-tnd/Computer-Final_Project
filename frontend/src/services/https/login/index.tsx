@@ -105,6 +105,8 @@ async function ResetPassword(token: string, newPassword: string) {
     .then((res) => res)
     .catch((e) => e.response);
 }
+
+
 export {
   SignIn,
   GetGender,
