@@ -185,6 +185,15 @@ func main() {
 		
 		router.GET("/sounds/daily-usage", dashboardcontents.GetSoundMeditation)
 		router.GET("/sounds/chanting", dashboardcontents.GetSoundChanting)
+		router.GET("/word-healing", dashboardcontents.GetDailyViewsByTitle)
+		router.GET("/mirror", dashboardcontents.GetDailyMirrorUsage)
+		router.GET("/asmr", dashboardcontents.GetDailyASMRUsage)
+		router.GET("/breathing", dashboardcontents.GetDailyBreathingUsage)
+
+
+		router.GET("/summarycontents", dashboardcontents.GetTopContentComparison)
+	
+
 	
 
 

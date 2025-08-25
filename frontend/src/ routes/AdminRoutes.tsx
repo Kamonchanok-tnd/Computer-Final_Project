@@ -13,8 +13,12 @@ const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/ed
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
 import DashboardMeditation from "../pages/admin/dashboard_contents/meditation/dashmed";
 import DashboardChanting from "../pages/admin/dashboard_contents/chanting/dashchanting";
+import DashboardWordHealing from "../pages/admin/dashboard_contents/word-healing/dashword";
+import DashboardMirror from "../pages/admin/dashboard_contents/mirror/dashmirror";
+import DashboardAsmr from "../pages/admin/dashboard_contents/asmr/dashasmr";
+import DashboardBreathing from "../pages/admin/dashboard_contents/breathing/dashbreathing";
 import VideoForm from "../pages/admin/meditation/meditation";
-import SoundListPage from "../pages/admin/sounds/soundslist";
+
 import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import ManageTestOrder from "../pages/assessment/ManageTestOrder";
@@ -60,6 +64,22 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                    path: "/admin/chanting-details",
                   element: <DashboardChanting />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/wordhealing-details",
+                  element: <DashboardWordHealing />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/mirror-details",
+                  element: <DashboardMirror />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/asmr-details",
+                  element: <DashboardAsmr />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/breathing-details",
+                  element: <DashboardBreathing />, // หน้า Settings ของ Admin DashboardChanting
                 },
                 {
                     path: "/admin/questionnairePage",        // หน้าจัดการเเบบทดสอบ
