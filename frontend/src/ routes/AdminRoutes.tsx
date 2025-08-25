@@ -11,6 +11,8 @@ const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsettin
 // const DashboardAdmin = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard")));
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
+import DashboardMeditation from "../pages/admin/dashboard_contents/meditation/dashmed";
+import DashboardChanting from "../pages/admin/dashboard_contents/chanting/dashchanting";
 import VideoForm from "../pages/admin/meditation/meditation";
 import SoundListPage from "../pages/admin/sounds/soundslist";
 import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
@@ -51,10 +53,14 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                   path: "/admin/dashboard/contents",
                   element: <DashboardContents />, // หน้า Settings ของ Admin
                 },
-                // {
-                //    path: "/admin/edit/:id",
-                //   element: <EditAdmin />, // หน้า Settings ของ Admin
-                // },
+                {
+                   path: "/admin/meditation-details",
+                  element: <DashboardMeditation />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/chanting-details",
+                  element: <DashboardChanting />, // หน้า Settings ของ Admin DashboardChanting
+                },
                 {
                     path: "/admin/questionnairePage",        // หน้าจัดการเเบบทดสอบ
                     element: <QuestionnairePage />,

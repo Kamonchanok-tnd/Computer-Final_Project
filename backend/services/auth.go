@@ -1,4 +1,3 @@
-// ในไฟล์ services/jwt_wrapper.go
 package services
 
 import (
@@ -24,20 +23,17 @@ type JwtClaim struct {
 
 // GenerateToken generates a jwt token
 func (j *JwtWrapper) GenerateToken(email, role string, id uint) (signedToken string, err error) {
-    // ตั้งค่า default ถ้าไม่ถูกเซ็ตจากภายนอก
-    if j.ExpirationHours == 0 {
-        j.ExpirationHours = 24 // default 24 ชั่วโมง
-    }
+    // ตั้งค่าอายุ token เป็น 2 ชั่วโมง
+    j.ExpirationHours = 2
 
-    // พิมพ์ SecretKey ในการเซ็น
     fmt.Println("Generating token with SecretKey:", j.SecretKey)
     
     claims := &JwtClaim{
         Email: email,
         Role:  role,
-        ID:    id, // เพิ่ม ID ใน claims
+        ID:    id,
         StandardClaims: jwt.StandardClaims{
-            ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(j.ExpirationHours)).Unix(),
+            ExpiresAt: time.Now().Add(time.Duration(j.ExpirationHours) * time.Hour).Unix(),
             Issuer:    j.Issuer,
         },
     }
@@ -84,4 +80,3 @@ func (j *JwtWrapper) ValidateToken(signedToken string) (claims *JwtClaim, err er
 
     return claims, nil
 }
-
