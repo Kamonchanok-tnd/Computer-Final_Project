@@ -16,15 +16,6 @@ import (
 	"log"
 )
 
-func GetAllAnswerOptions(c *gin.Context) {
-	var answerOptions []entity.AnswerOption
-	if err := config.DB().Preload("AssessmentAnswers").Find(&answerOptions).Error; err != nil {
-		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง AnswerOptions ได้", "FETCH_FAILED")
-		return
-	}
-	c.JSON(http.StatusOK, answerOptions)
-}
-
 func GetAllAssessmentAnswers(c *gin.Context) {
 	var answers []entity.AssessmentAnswer
 	if err := config.DB().Find(&answers).Error; err != nil {
@@ -57,28 +48,6 @@ func GetAllCalculations(c *gin.Context) {
 	c.JSON(http.StatusOK, calculations)
 }
 
-func GetAllCriteria(c *gin.Context) {
-	var criteria []entity.Criteria
-	if err := config.DB().
-		Preload("Calculations").
-		Find(&criteria).Error; err != nil {
-		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง Criteria ได้", "FETCH_FAILED")
-		return
-	}
-	c.JSON(http.StatusOK, criteria)
-}
-
-func GetAllQuestions(c *gin.Context) {
-	var questions []entity.Question
-	if err := config.DB().
-		Preload("Questionnaire").
-		Find(&questions).Error; err != nil {
-		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง Questions ได้", "FETCH_FAILED")
-		return
-	}
-	c.JSON(http.StatusOK, questions)
-}
-
 func GetAllQuestionnaires(c *gin.Context) {
 	var questionnaires []entity.Questionnaire
 	if err := config.DB().
@@ -89,15 +58,6 @@ func GetAllQuestionnaires(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, questionnaires)
-}
-
-func GetAllTransaction(c *gin.Context) {
-	var transaction []entity.Transaction
-	if err := config.DB().Find(&transaction).Error; err != nil {
-		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง Transaction ได้", "FETCH_FAILED")
-		return
-	}
-	c.JSON(http.StatusOK, transaction)
 }
 
 func GetAnswerOptionByID(c *gin.Context) {
@@ -174,6 +134,82 @@ func GetQuestionnaireByID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, questionnaire)
+}
+
+
+
+//////////////////////////////////////////////////////////////// USER //////////////////////////////////////////////////////////////////////
+
+func GetAllQuestions(c *gin.Context) {
+	var questions []entity.Question
+	if err := config.DB().
+		Preload("Questionnaire").
+		Find(&questions).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง Questions ได้", "FETCH_FAILED")
+		return
+	}
+	c.JSON(http.StatusOK, questions)
+}
+
+func GetAllAnswerOptions(c *gin.Context) {
+	var answerOptions []entity.AnswerOption
+	if err := config.DB().Preload("AssessmentAnswers").Find(&answerOptions).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง AnswerOptions ได้", "FETCH_FAILED")
+		return
+	}
+	c.JSON(http.StatusOK, answerOptions)
+}
+
+func GetAllCriteria(c *gin.Context) {
+	quIDStr := c.Query("qu_id")
+
+	// ถ้าไม่ส่ง qu_id -> พฤติกรรมเดิม
+	if quIDStr == "" {
+		var criteria []entity.Criteria
+		if err := config.DB().
+			Preload("Calculations").
+			Find(&criteria).Error; err != nil {
+			util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง Criteria ได้", "FETCH_FAILED")
+			return
+		}
+		c.JSON(http.StatusOK, criteria)
+		return
+	}
+
+	// มี qu_id -> ดึงเฉพาะ Criteria ที่มี Calculation ของ qu_id นี้
+	quID, err := strconv.ParseUint(quIDStr, 10, 64)
+	if err != nil {
+		util.HandleError(c, http.StatusBadRequest, "qu_id ไม่ถูกต้อง", "INVALID_QU_ID")
+		return
+	}
+
+	var criteria []entity.Criteria
+
+	// subquery: เลือก c_id จากตาราง calculations ตาม qu_id
+	sub := config.DB().
+		Model(&entity.Calculation{}).
+		Select("c_id").
+		Where("qu_id = ?", quID)
+
+	// ดึง Criteria เฉพาะที่อยู่ใน subquery และ preload Calculations เฉพาะของ qu_id นี้
+	if err := config.DB().
+		Where("id IN (?)", sub).
+		Preload("Calculations", "qu_id = ?", quID).
+		Find(&criteria).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง Criteria ตาม qu_id ได้", "CRITERIA_FETCH_FAILED")
+		return
+	}
+
+	c.JSON(http.StatusOK, criteria)
+}
+
+func GetAllTransaction(c *gin.Context) {
+	var transaction []entity.Transaction
+	if err := config.DB().Find(&transaction).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถดึง Transaction ได้", "FETCH_FAILED")
+		return
+	}
+	c.JSON(http.StatusOK, transaction)
 }
 
 func GetTransactionByID(c *gin.Context) {
@@ -378,120 +414,9 @@ func FinishAssessment(c *gin.Context) {
 	})
 }
 
-func GetAllQuestionnaireGroups(c *gin.Context) {
-	var groups []entity.QuestionnaireGroup
-
-	// preload แบบสอบถามในแต่ละกลุ่ม
-	if err := config.DB().Preload("Questionnaires").Find(&groups).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลกลุ่มแบบสอบถามได้"})
-		return
-	}
-
-	c.JSON(http.StatusOK, groups)
-}
-
-// ดึงกลุ่มแบบสอบถามแบบ “เรียงตาม OrderInGroup”
-// GET /questionnaire-groups/:id
-func GetQuestionnaireGroupByID(c *gin.Context) {
-	id := c.Param("id")
-
-	var group entity.QuestionnaireGroup
-	// ดึงกลุ่ม + join table + เรียงตาม order
-	if err := config.DB().
-		Preload("QuestionnaireGroupQuestionnaires", func(db *gorm.DB) *gorm.DB {
-			return db.Order("order_in_group ASC")
-		}).
-		Preload("QuestionnaireGroupQuestionnaires.Questionnaire").
-		First(&group, id).Error; err != nil {
-		util.HandleError(c, http.StatusNotFound, "ไม่พบ Group", "NOT_FOUND")
-		return
-	}
-
-	// แปลงเป็น payload ที่ frontend ใช้ง่าย
-	type Q struct {
-		ID             uint   `json:"id"`
-		Name           string `json:"name"`
-		OrderInGroup   uint   `json:"order_in_group"`
-		ConditionOnID  *uint  `json:"condition_on_id"`
-		ConditionScore *int   `json:"condition_score"`
-	}
-	payload := struct {
-		ID            uint   `json:"id"`
-		Name          string `json:"name"`
-		Description   string `json:"description"`
-		FrequencyDays *uint  `json:"frequency_days"`
-		Items         []Q    `json:"questionnaires"`
-	}{
-		ID:            group.ID,
-		Name:          group.Name,
-		Description:   group.Description,
-		FrequencyDays: group.FrequencyDays,
-	}
-
-	for _, link := range group.QuestionnaireGroupQuestionnaires {
-		payload.Items = append(payload.Items, Q{
-			ID:             link.Questionnaire.ID,
-			Name:           link.Questionnaire.NameQuestionnaire,
-			OrderInGroup:   link.OrderInGroup,
-			ConditionOnID:  link.Questionnaire.ConditionOnID,
-			ConditionScore: link.Questionnaire.ConditionScore,
-		})
-	}
-
-	c.JSON(http.StatusOK, payload)
-}
-
-// อัปเดตความถี่ของกลุ่ม (เปลี่ยน 14 เป็น 7/21 ฯลฯ)
-// PATCH /questionnaire-groups/:id/frequency
-type updateFreqReq struct {
-	FrequencyDays *uint `json:"frequency_days"` // null = ทำครั้งเดียว
-}
-
-func UpdateQuestionnaireGroupFrequency(c *gin.Context) {
-	id := c.Param("id")
-	var body updateFreqReq
-	if err := c.ShouldBindJSON(&body); err != nil {
-		util.HandleError(c, http.StatusBadRequest, "ข้อมูลไม่ถูกต้อง", "INVALID_INPUT")
-		return
-	}
-	if err := config.DB().Model(&entity.QuestionnaireGroup{}).
-		Where("id = ?", id).
-		Update("frequency_days", body.FrequencyDays).Error; err != nil {
-		util.HandleError(c, http.StatusInternalServerError, "อัปเดตความถี่ไม่สำเร็จ", "UPDATE_FAILED")
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "updated"})
-}
-
-// จัดลำดับแบบสอบถามในกลุ่ม (drag & drop แล้วส่งมาเป็น array)
-// PUT /questionnaire-groups/:id/order
-type reorderReq struct {
-	QuestionnaireIDs []uint `json:"questionnaire_ids"` // ลำดับใหม่จากซ้าย→ขวา
-}
-
-func ReorderQuestionnairesInGroup(c *gin.Context) {
-	gid := c.Param("id")
-
-	var body reorderReq
-	if err := c.ShouldBindJSON(&body); err != nil || len(body.QuestionnaireIDs) == 0 {
-		util.HandleError(c, http.StatusBadRequest, "payload ไม่ถูกต้อง", "INVALID_INPUT")
-		return
-	}
-
-	// loop อัปเดต order_in_group
-	for idx, qid := range body.QuestionnaireIDs {
-		if err := config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
-			Where("questionnaire_group_id = ? AND questionnaire_id = ?", gid, qid).
-			Update("order_in_group", idx+1).Error; err != nil {
-			util.HandleError(c, http.StatusInternalServerError, "อัปเดตลำดับไม่สำเร็จ", "UPDATE_FAILED")
-			return
-		}
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "reordered"})
-}
+////////////////////❌❌❌❌
 
 // บอก “กลุ่มไหนพร้อมให้ทำ” ตามความถี่ (FrequencyDays)
-// GET /questionnaire-groups/available?user_id=123
 func GetAvailableGroupsForUser(c *gin.Context) {
 	uid := c.Query("user_id")
 	if uid == "" {
@@ -629,7 +554,139 @@ func GetNextQuestionnaire(c *gin.Context) {
 	})
 }
 
-// POST /admin/questionnaire-groups/:id/add-questionnaire
+
+
+//////////////////////////////////////////////////////////////// ADMIN //////////////////////////////////////////////////////////////////////
+
+func GetAllQuestionnaireGroups(c *gin.Context) {
+	var groups []entity.QuestionnaireGroup
+
+	// preload แบบสอบถามในแต่ละกลุ่ม
+	if err := config.DB().Preload("Questionnaires").Find(&groups).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลกลุ่มแบบสอบถามได้"})
+		return
+	}
+
+	c.JSON(http.StatusOK, groups)
+}
+
+// ดึงกลุ่มแบบสอบถามแบบ “เรียงตาม OrderInGroup”
+func GetQuestionnaireGroupByID(c *gin.Context) {
+	id := c.Param("id")
+
+	var group entity.QuestionnaireGroup
+	// ดึงกลุ่ม + join table + เรียงตาม order
+	if err := config.DB().
+		Preload("QuestionnaireGroupQuestionnaires", func(db *gorm.DB) *gorm.DB {
+			return db.Order("order_in_group ASC")
+		}).
+		Preload("QuestionnaireGroupQuestionnaires.Questionnaire").
+		First(&group, id).Error; err != nil {
+		util.HandleError(c, http.StatusNotFound, "ไม่พบ Group", "NOT_FOUND")
+		return
+	}
+
+	// แปลงเป็น payload ที่ frontend ใช้ง่าย
+	type Q struct {
+		ID             uint   `json:"id"`
+		Name           string `json:"name"`
+		OrderInGroup   uint   `json:"order_in_group"`
+		ConditionOnID  *uint  `json:"condition_on_id"`
+		ConditionScore *int   `json:"condition_score"`
+	}
+	payload := struct {
+		ID            uint   `json:"id"`
+		Name          string `json:"name"`
+		Description   string `json:"description"`
+		FrequencyDays *uint  `json:"frequency_days"`
+		Items         []Q    `json:"questionnaires"`
+	}{
+		ID:            group.ID,
+		Name:          group.Name,
+		Description:   group.Description,
+		FrequencyDays: group.FrequencyDays,
+	}
+
+	for _, link := range group.QuestionnaireGroupQuestionnaires {
+		payload.Items = append(payload.Items, Q{
+			ID:             link.Questionnaire.ID,
+			Name:           link.Questionnaire.NameQuestionnaire,
+			OrderInGroup:   link.OrderInGroup,
+			ConditionOnID:  link.Questionnaire.ConditionOnID,
+			ConditionScore: link.Questionnaire.ConditionScore,
+		})
+	}
+
+	c.JSON(http.StatusOK, payload)
+}
+
+// อัปเดตความถี่ของกลุ่ม (เปลี่ยน 14 เป็น 7/21 ฯลฯ)
+type updateFreqReq struct {
+	FrequencyDays *uint `json:"frequency_days"` // null = ทำครั้งเดียว
+}
+
+func UpdateQuestionnaireGroupFrequency(c *gin.Context) {
+	id := c.Param("id")
+	var body updateFreqReq
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		util.HandleError(c, http.StatusBadRequest, "ข้อมูลไม่ถูกต้อง", "INVALID_INPUT")
+		return
+	}
+
+	// ✅ สร้าง description ตาม FrequencyDays
+	var description string
+	if body.FrequencyDays == nil {
+		description = "หลังใช้แอปพลิเคชัน 1 ครั้ง"
+	} else {
+		description = fmt.Sprintf("หลังใช้แอปพลิเคชันทุกๆ %d วัน", *body.FrequencyDays)
+	}
+
+	// ✅ อัปเดตทั้ง frequency_days และ description
+	if err := config.DB().Model(&entity.QuestionnaireGroup{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"frequency_days": body.FrequencyDays,
+			"description":    description,
+		}).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "อัปเดตความถี่ไม่สำเร็จ", "UPDATE_FAILED")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "updated",
+		"description": description,
+	})
+}
+
+
+// จัดลำดับแบบสอบถามในกลุ่ม (drag & drop แล้วส่งมาเป็น array)
+type reorderReq struct {
+	QuestionnaireIDs []uint `json:"questionnaire_ids"` // ลำดับใหม่จากซ้าย→ขวา
+}
+
+func ReorderQuestionnairesInGroup(c *gin.Context) {
+	gid := c.Param("id")
+
+	var body reorderReq
+	if err := c.ShouldBindJSON(&body); err != nil || len(body.QuestionnaireIDs) == 0 {
+		util.HandleError(c, http.StatusBadRequest, "payload ไม่ถูกต้อง", "INVALID_INPUT")
+		return
+	}
+
+	// loop อัปเดต order_in_group
+	for idx, qid := range body.QuestionnaireIDs {
+		if err := config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
+			Where("questionnaire_group_id = ? AND questionnaire_id = ?", gid, qid).
+			Update("order_in_group", idx+1).Error; err != nil {
+			util.HandleError(c, http.StatusInternalServerError, "อัปเดตลำดับไม่สำเร็จ", "UPDATE_FAILED")
+			return
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "reordered"})
+}
+
+//เพิ่มแบบสอบถามเข้าไปในกลุ่ม
 type addQuestionnaireToGroupReq struct {
 	QuestionnaireID uint `json:"questionnaire_id"`
 }
@@ -672,7 +729,7 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "เพิ่มแบบสอบถามสำเร็จ"})
 }
 
-// DELETE /admin/questionnaire-groups/:id/remove-questionnaire/:qid
+//ลบแบบสอบถามออกจากกลุ่ม
 func RemoveQuestionnaireFromGroup(c *gin.Context) {
 	groupID, _ := strconv.Atoi(c.Param("id"))
 	qid, _ := strconv.Atoi(c.Param("qid"))
@@ -686,7 +743,7 @@ func RemoveQuestionnaireFromGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ลบแบบสอบถามสำเร็จ"})
 }
 
-// GET /admin/questionnaire-groups/:id/available-questionnaires
+//ฟังก์ชัน: ดึงแบบสอบถามที่มีอยู่ในกลุ่ม
 func GetAvailableQuestionnairesForGroup(c *gin.Context) {
 	groupID := c.Param("id")
 
