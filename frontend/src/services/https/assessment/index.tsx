@@ -85,3 +85,62 @@ export const getTransactionByID = async (id: number): Promise<any> => {
   const res = await axiosInstance.get(`/assessment/Transaction/${id}`);
   return res.data;
 };
+
+
+
+
+//Admin
+export const getQuestionnaireGroupByID = async (id: number) => {
+  try {
+    const res = await axiosInstance.get(`/admin/questionnaire-groups/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch questionnaire group", error);
+    return null;
+  }
+};
+
+export const getAvailableQuestionnairesForGroup = async (groupID: number): Promise<{ id: number; name: string }[]> => {
+  const res = await axiosInstance.get(`/admin/questionnaire-groups/${groupID}/available-questionnaires`);
+  return res.data;
+};
+
+export const addQuestionnaireToGroup = async (groupID: number, questionnaireID: number): Promise<void> => {
+  await axiosInstance.post(`/admin/questionnaire-groups/${groupID}/add-questionnaire`, {
+    questionnaire_id: questionnaireID,
+  });
+};
+
+export const removeQuestionnaireFromGroup = async (groupID: number, questionnaireID: number): Promise<void> => {
+  await axiosInstance.delete(`/admin/questionnaire-groups/${groupID}/remove-questionnaire/${questionnaireID}`);
+};
+
+export const updateQuestionnaireGroupOrder = async (
+  groupId: number,
+  orderedIds: number[]
+): Promise<void> => {
+  try {
+    await axiosInstance.put(`/admin/questionnaire-groups/${groupId}/order`, {
+      questionnaire_ids: orderedIds, // ✅ แก้ตรงนี้ให้ตรงกับ backend
+    });
+  } catch (error) {
+    console.error("❌ Failed to update questionnaire order:", error);
+    throw error;
+  }
+};
+
+export const updateGroupFrequency = async (
+  groupId: number,
+  frequencyDays: number | null
+): Promise<any> => {
+  const body = {
+    frequency_days: frequencyDays === null ? null : frequencyDays,
+  };
+
+  const res = await axiosInstance.patch(
+    `/admin/questionnaire-groups/${groupId}/frequency`,
+    body
+  );
+
+  return res.data;
+};
