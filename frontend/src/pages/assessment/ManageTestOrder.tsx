@@ -86,8 +86,8 @@ const SortableItem = ({
 };
 
 const ManageTestOrder: React.FC = () => {
-  const [draggedDays, setDraggedDays] = useState<number>(7);
-  const [originalDays, setOriginalDays] = useState<number>(7);
+  const [draggedDays, setDraggedDays] = useState<number>(14);
+  const [originalDays, setOriginalDays] = useState<number>(14);
   const [showSaveButton, setShowSaveButton] = useState<boolean>(false);
   const [columns, setColumns] = useState<Column[]>([]);
   const [questionnaireMap, setQuestionnaireMap] = useState<
