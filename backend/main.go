@@ -24,6 +24,7 @@ import (
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/users"
 	"sukjai_project/controller/wordhealingmessage"
+	"sukjai_project/controller/dashboardcontents"
 	"sukjai_project/middlewares"
 
 	// "fmt"
@@ -180,6 +181,12 @@ func main() {
 
 		//history
 		router.POST("/History", history.CreateHistory)
+
+		
+		router.GET("/sounds/daily-usage", dashboardcontents.GetSoundMeditation)
+		router.GET("/sounds/chanting", dashboardcontents.GetSoundChanting)
+	
+
 
 		// Routes for superadmin only
 		router.Use(middlewares.Authorizes("superadmin"))
