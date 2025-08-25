@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, createContext } from 'react';
-import { Send, Bot, User, Trash2, Settings, Moon, Sun,Mic, Plus, ChevronLeft } from 'lucide-react';
-import { ChatGemini, CloseChat, GetChat, NewChat, RecentChat } from '../../services/https/Chat/index';
+import React, { useState, useRef, useEffect } from 'react';
+
+import { ChatGemini, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
 import type { IConversation } from '../../interfaces/IConversation';
 import HistoryChat from '../../components/Chat.tsx/HistoryChat';
 import NewChatWelcome from '../../components/Chat.tsx/NewChatWelcome';
@@ -24,7 +24,6 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [typingText, setTypingText] = useState<string>('');
   const { isDarkMode } = useDarkMode();
-  const [isApiMode, setIsApiMode] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -152,16 +151,16 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     }
   };
 
-  const clearChat = (): void => {
-    // ยกเลิก typing animation ที่กำลังทำงาน
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    setIsTyping(false);
-    setTypingText('');
+  // const clearChat = (): void => {
+  //   // ยกเลิก typing animation ที่กำลังทำงาน
+  //   if (typingTimeoutRef.current) {
+  //     clearTimeout(typingTimeoutRef.current);
+  //   }
+  //   setIsTyping(false);
+  //   setTypingText('');
     
     
-  };
+  // };
 
   async function Close() {
     console.log("chatroom: ", chatRoomID);
@@ -176,12 +175,12 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   
 
 
-  const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString('th-TH', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  // const formatTime = (date: Date): string => {
+  //   return date.toLocaleTimeString('th-TH', { 
+  //     hour: '2-digit', 
+  //     minute: '2-digit' 
+  //   });
+  // };
 
   
   const newChat = (): void => {
@@ -191,20 +190,12 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
           content: 'ห้องแชทปัจจุบันจะถูกปิด และเริ่มการสนทนาใหม่ คุณแน่ใจหรือไม่?',
           okText: 'ยืนยัน',
           cancelText: 'ยกเลิก',
+          className: 'custom-modal',
           onOk: async () => {
             await Close(); // ปิดห้องแชทปัจจุบัน
             console.log('Closed chatroom:', chatRoomID);
           },
-          okButtonProps: {
-            style: {
-              backgroundColor:'var(--color-regal-blue)', // Tailwind: green-500
-              borderColor: 'var(--color-regal-blue)',
-              color: '#fff'
-            }
-          },
-          cancelButtonProps: {
-            className: 'custom-cancel-button'
-          },
+         
         
         });
       }

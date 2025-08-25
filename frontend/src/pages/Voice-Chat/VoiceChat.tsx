@@ -10,7 +10,7 @@ const VoiceChat: React.FC = () => {
   const { isRecording, startRecording, stopRecording } = useRecorder();
   const wsRef = useRef<WebSocket | null>(null);
   const [wsStatus, setWsStatus] = useState("🔌 Not connected");
-  const [logs, setLogs] = useState<string[]>([]);
+  const [_logs, setLogs] = useState<string[]>([]);
   // const [isPlaying, setIsPlaying] = useState(false); 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const params = useParams();
