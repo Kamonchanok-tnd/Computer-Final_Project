@@ -65,7 +65,6 @@ function MoodCard({ row }: { row: IMonthlySummary }) {
         <EmojiScatter
           count={count}
           src={src}
-          maxPerRow={6}
           className="h-[clamp(120px,22vh,180px)] md:h-[clamp(120px,20vh,180px)]"
         />
       )}

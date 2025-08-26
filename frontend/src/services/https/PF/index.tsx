@@ -1,4 +1,14 @@
-import { apiUrl } from "../../../pages/mirror/components/report/utils";
+export const apiUrl = import.meta.env.VITE_API_URL as string;
+
+export const joinUrl = (base: string, path: string) =>
+  `${base.replace(/\/$/, "")}/${String(path).replace(/^\//, "")}`;
+
+export function buildImageSrc(picture: string): string {
+  if (!picture) return "";
+  if (/^https?:\/\//i.test(picture)) return picture;
+  if (/^\/?images\/emoji\//i.test(picture)) return joinUrl(apiUrl, picture);
+  return joinUrl(apiUrl, `images/emoji/${picture}`);
+}
 
 const Authorization = localStorage.getItem("token");
 export const IMG_URL = import.meta.env.VITE_IMG_URL;

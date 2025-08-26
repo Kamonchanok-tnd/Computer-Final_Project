@@ -40,7 +40,7 @@ const slides: Slide[] = [
     bg: "bg-gradient-to-br from-[#C8E6C9] to-[#A5D6A7]",
     icon: <Headphones className="w-10 h-10 text-[#AED581]" />,
     secondBg: "bg-gradient-to-br from-[#E1BEE7] to-[#CE93D8]",
-    secondIcon: <PenTool className="w-10 h-10 text-[#BA68C8]" />,
+    secondIcon: <PenTool className="w-10 h-10 text-[#BA68C8] " />,
   },
   {
     img: pray,
@@ -76,17 +76,19 @@ function Homeasmr() {
   const currentSlide = slides[index];
 
   return (
-    <div className="mt-4 bg-button-blue/20 font-ibmthai px-30 p-2">
-      <div className="flex justify-between items-center">
-        <h1 className="font-ibmthai text-2xl px-2 text-gray-900">กิจกรรมต่างๆ</h1>
-        <button
-          className="bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white font-bold py-2 px-8 rounded-lg  transition-all duration-300 
-            cursor-pointer  hover:scale-105"
-          onClick={() => navigate("/audiohome")}
-        >
-          ดูกิจกรรมทั้งหมด
-        </button>
-      </div>
+    <div className="xl:px-30 font-ibmthai">
+    <div className="flex justify-between items-center ">
+            <h1 className=" text-2xl px-2 text-basic-text dark:text-text-dark ">พื้นที่ผ่อนคลาย</h1>
+            <button
+              className="bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white py-2 px-8 rounded-lg  transition-all duration-300 
+                cursor-pointer  hover:scale-105 dark:text-background-dark mr-2 xl:mr-0"
+              onClick={() => navigate("/audiohome")}
+            >
+              ดูกิจกรรมทั้งหมด
+            </button>
+          </div>
+    <div className="mt-4 bg-button-blue/20 dark:bg-chat-dark font-ibmthai xl:px-30  p-2 rounded-2xl">
+     
 
       <div className="grid grid-cols-2 gap-4 transition-all duration-700 ease-in-out mt-4">
         {/* Left side */}
@@ -97,7 +99,10 @@ function Homeasmr() {
           className={`${currentSlide.bg} rounded-xl p-6 min-h-[300px] flex flex-col`}
         >
           <div className="flex items-center gap-3">
-            {currentSlide.icon}
+            <div className="p-2 bg-white rounded-full shadow-sm">
+               {currentSlide.icon}
+            </div>
+           
             <p className="text-2xl font-bold text-[#1F1F22]">{currentSlide.title}</p>
           </div>
           <p className="text-xl mt-6 whitespace-pre-line">{currentSlide.desc}</p>
@@ -108,7 +113,10 @@ function Homeasmr() {
           className={`${currentSlide.secondBg} rounded-xl p-6 min-h-[300px] flex flex-col`}
         >
           <div className="flex items-center gap-3">
-            {currentSlide.secondIcon}
+            <div className="p-2 bg-white rounded-full shadow-sm">
+               {currentSlide.secondIcon}
+            </div>
+           
             <p className="text-2xl font-bold text-[#1F1F22]">{currentSlide.secondTitle}</p>
           </div>
           <p className="text-xl mt-6 whitespace-pre-line">{currentSlide.secondDesc}</p>
@@ -134,6 +142,7 @@ function Homeasmr() {
           />
         ))}
       </div>
+    </div>
     </div>
   );
 }
