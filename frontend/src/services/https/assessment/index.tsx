@@ -115,7 +115,30 @@ export const getTransactionByID = async (id: number): Promise<any> => {
   return res.data;
 };
 
-//❌
+export const getAvailableGroupsAndNext = async (
+  uid: number,
+  trigger: "" | "onLogin" | "afterChat" | "interval",
+  lastQid?: number
+) => {
+  // สร้าง params อย่างเป็นระเบียบ
+  const params: Record<string, string> = {
+    user_id: String(uid),
+  };
+  if (trigger) params.trigger_context = trigger;
+  if (typeof lastQid === "number" && !Number.isNaN(lastQid)) {
+    params.last_quid = String(lastQid);
+  }
+
+  // ไม่ต้องแนบ header token เอง — interceptor ทำให้แล้ว
+  const { data } = await axiosInstance.get("/assessments/available-next", {
+    params,
+    // withCredentials: true, // ← ถ้าเซ็ต global ใน axiosInstance แล้ว ตัดบรรทัดนี้ทิ้งได้
+  });
+
+  return data;
+};
+
+////////////////////////////////////////////////////////❌
 export const getAvailableGroups = async (userID: number) => {
   try {
     const response = await axiosInstance.get(`/questionnaire-groups/available`, {
