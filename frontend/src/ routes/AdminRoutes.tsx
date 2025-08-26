@@ -19,6 +19,7 @@ import DashboardAsmr from "../pages/admin/dashboard_contents/asmr/dashasmr";
 import DashboardBreathing from "../pages/admin/dashboard_contents/breathing/dashbreathing";
 import VideoForm from "../pages/admin/meditation/meditation";
 
+import HomeContents from "../pages/admin/dashboard_contents/home_contents";
 import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import ManageTestOrder from "../pages/assessment/ManageTestOrder";
@@ -55,7 +56,11 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 // },
                 {
                   path: "/admin/dashboard/contents",
-                  element: <DashboardContents />, // หน้า Settings ของ Admin
+                  element: <HomeContents />, // หน้า Settings ของ Admin DashboardContents
+                },
+                {
+                  path: "/admin/dashboard/contents/sound",
+                  element: <DashboardContents />, // หน้า Settings ของ Admin DashboardContents
                 },
                 {
                    path: "/admin/meditation-details",

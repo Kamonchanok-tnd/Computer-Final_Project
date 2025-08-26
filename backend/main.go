@@ -192,6 +192,7 @@ func main() {
 
 
 		router.GET("/summarycontents", dashboardcontents.GetTopContentComparison)
+		router.GET("/sound/four-type", dashboardcontents.GetSoundFourType)  
 	
 
 	

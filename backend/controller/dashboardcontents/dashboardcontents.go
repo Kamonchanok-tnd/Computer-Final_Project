@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"sukjai_project/config"
 	"sukjai_project/entity"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"sort"
 )
 
 // Response struct
@@ -105,6 +106,61 @@ func GetDailyViewsByTitle(c *gin.Context) {
 }
 
 
+// func GetDailyViewsByTitle(c *gin.Context) {
+// 	db := config.DB()
+// 	var mirrors []entity.Mirror
+
+// 	// ดึงข้อมูลทั้งหมดเรียงตามวันที่
+// 	if err := db.Order("date asc").Find(&mirrors).Error; err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลได้"})
+// 		return
+// 	}
+
+// 	// สร้าง map เก็บข้อมูลรวมตามเดือน (format: "YYYY-MM")
+// 	type MonthlyMirrorUsage struct {
+// 		Year  int    `json:"year"`
+// 		Month int    `json:"month"`
+// 		Title string `json:"title"`
+// 		Count int    `json:"count"`
+// 	}
+
+// 	monthlyMap := make(map[string]MonthlyMirrorUsage)
+
+// 	for _, m := range mirrors {
+// 		year, month, _ := m.Date.Date()
+// 		key := fmt.Sprintf("%04d-%02d", year, month)
+
+// 		if existing, exists := monthlyMap[key]; exists {
+// 			existing.Count += 1
+// 			monthlyMap[key] = existing
+// 		} else {
+// 			monthlyMap[key] = MonthlyMirrorUsage{
+// 				Year:  year,
+// 				Month: int(month),
+// 				Title: m.Title, // ถ้าต้องการเก็บ title ของวันแรกของเดือน
+// 				Count: 1,
+// 			}
+// 		}
+// 	}
+
+// 	// แปลง map เป็น slice
+// 	var monthlyList []MonthlyMirrorUsage
+// 	for _, v := range monthlyMap {
+// 		monthlyList = append(monthlyList, v)
+// 	}
+
+// 	// เรียงตามปี-เดือน
+// 	sort.Slice(monthlyList, func(i, j int) bool {
+// 		if monthlyList[i].Year == monthlyList[j].Year {
+// 			return monthlyList[i].Month < monthlyList[j].Month
+// 		}
+// 		return monthlyList[i].Year < monthlyList[j].Year
+// 	})
+
+// 	c.JSON(http.StatusOK, gin.H{"results": monthlyList})
+// }
+
+
 // --------------------------- Mirror ---------------------------
 type DailyMirrorUsage struct {
 	Day   string `json:"day"`
@@ -116,29 +172,54 @@ func GetDailyMirrorUsage(c *gin.Context) {
 	db := config.DB()
 	var mirrors []entity.Mirror
 
+	// ดึงข้อมูลทั้งหมดเรียงตามวันที่
 	if err := db.Order("date asc").Find(&mirrors).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลได้"})
 		return
 	}
 
-	dailyMap := make(map[string]DailyMirrorUsage)
+	// สร้าง map เก็บข้อมูลรวมตามเดือน (format: "YYYY-MM")
+	type MonthlyMirrorUsage struct {
+		Year  int    `json:"year"`
+		Month int    `json:"month"`
+		Title string `json:"title"`
+		Count int    `json:"count"`
+	}
+
+	monthlyMap := make(map[string]MonthlyMirrorUsage)
+
 	for _, m := range mirrors {
-		day := m.Date.Format("2006-01-02")
-		if _, exists := dailyMap[day]; !exists {
-			dailyMap[day] = DailyMirrorUsage{
-				Day:   day,
-				Title: m.Title,
+		year, month, _ := m.Date.Date()
+		key := fmt.Sprintf("%04d-%02d", year, month)
+
+		if existing, exists := monthlyMap[key]; exists {
+			existing.Count += 1
+			monthlyMap[key] = existing
+		} else {
+			monthlyMap[key] = MonthlyMirrorUsage{
+				Year:  year,
+				Month: int(month),
+				Title: m.Title, // ถ้าต้องการเก็บ title ของวันแรกของเดือน
 				Count: 1,
 			}
 		}
 	}
 
-	var dailyList []DailyMirrorUsage
-	for _, v := range dailyMap {
-		dailyList = append(dailyList, v)
+	// แปลง map เป็น slice
+	var monthlyList []MonthlyMirrorUsage
+	for _, v := range monthlyMap {
+		monthlyList = append(monthlyList, v)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"results": dailyList})
+	// เรียงตามปี-เดือน
+	sort.Slice(monthlyList, func(i, j int) bool {
+		if monthlyList[i].Year == monthlyList[j].Year {
+			return monthlyList[i].Month < monthlyList[j].Month
+		}
+		return monthlyList[i].Year < monthlyList[j].Year
+	})
+
+	c.JSON(http.StatusOK, gin.H{"results": monthlyList})
 }
 
 
@@ -268,3 +349,38 @@ db.Table("sounds").
     c.JSON(200, gin.H{"results": results})
 }
 
+
+
+
+// Controller ดึงจำนวนการเล่นเสียงสมาธิและสวดมนต์ต่อวัน ต่อเพลง
+// Controller ดึงจำนวนการเล่นเสียงแต่ละประเภทต่อเดือน
+func GetSoundFourType(c *gin.Context) {
+    db := config.DB()
+    var results []struct {
+        Year      int    `json:"year"`
+        Month     int    `json:"month"`
+        Category  string `json:"category"`
+        PlayCount int    `json:"play_count"`
+    }
+
+    err := db.Model(&entity.History{}).
+        Select("EXTRACT(YEAR FROM histories.created_at) as year, EXTRACT(MONTH FROM histories.created_at) as month, sound_types.type as category, COUNT(*) as play_count").
+        Joins("JOIN sounds ON sounds.id = histories.s_id").
+        Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+        Where("sound_types.type IN ?", []string{"สมาธิ", "สวดมนต์", "ฝึกหายใจ", "asmr"}).
+        Group("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at), sound_types.type").
+        Order("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at)").
+        Scan(&results).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    if len(results) == 0 {
+        c.JSON(http.StatusOK, gin.H{"message": "No data found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"results": results})
+}

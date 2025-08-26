@@ -2,16 +2,16 @@
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-import { getDailyMirrorUsage, DailyMirrorUsage  } from "../../../../services/https/dashboardcontents";
+import { getMonthlyMirrorUsage, MonthlyMirrorUsage } from "../../../../services/https/dashboardcontents";
 const DashboardMirror: React.FC = () => {
-  const [mirrorData, setMirrorData] = useState<DailyMirrorUsage[]>([]);
+  const [mirrorData, setMirrorData] = useState<MonthlyMirrorUsage []>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getDailyMirrorUsage();
+        const res = await getMonthlyMirrorUsage();
         setMirrorData(res);
       } catch (err) {
         console.error(err);

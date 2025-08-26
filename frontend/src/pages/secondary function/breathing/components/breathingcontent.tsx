@@ -3,7 +3,7 @@ import { Sound } from "../../../../interfaces/ISound";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { likeSound, checkLikedSound, addSoundView } from "../../../../services/https/sounds"; // ✅ import addSoundView
-
+import { CreateHistory } from "../../../../services/https/history";
 interface BreathingCardProps {
   sound: Sound;
 }
@@ -93,23 +93,29 @@ function BreathingCard({ sound }: BreathingCardProps) {
   };
 
   // ✅ เรียกตอนกด Start
-  const handleStart = () => {
-    if (!realId) return;
+  const handleStart = async () => {
+  if (!realId) return;
 
-    // ✅ ตั้งเวลาให้ครบ 1 นาทีแล้วอัปเดต view อีกครั้ง
-    setTimeout(() => {
-      addSoundView(realId).catch((err) =>
-        console.error("เพิ่ม view หลัง 1 นาทีไม่สำเร็จ:", err)
-      );
-    }, 60 * 1000);
+  try {
+    // เพิ่ม view ของเสียง
+    await addSoundView(realId);
 
-    navigate("/audiohome/breath-in", {
-      state: {
-        customTime: `${hours}:${minutes}:${seconds}`,
-        videoUrl: sound.sound,
-      },
-    });
-  };
+    // สร้าง history ของการเล่น
+    await CreateHistory({ uid, sid: realId });
+    console.log("View and history created successfully");
+
+  } catch (err) {
+    console.error("ไม่สามารถบันทึก view/history:", err);
+  }
+
+  // ไปหน้าต่อไป
+  navigate("/audiohome/breath-in", {
+    state: {
+      customTime: `${hours}:${minutes}:${seconds}`,
+      videoUrl: sound.sound,
+    },
+  });
+};
 
   return (
     <div className="bg-gradient-to-t from-[#5de2ffcf] to-white  w-full rounded-xl shadow-xl flex flex-col mt-2 min-h-[260px] 
