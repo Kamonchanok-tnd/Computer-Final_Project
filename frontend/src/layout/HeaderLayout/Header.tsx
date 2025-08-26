@@ -5,6 +5,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 const { Header, Content } = Layout;
 import {
   Book,
+  ChartNoAxesCombined,
   House,
   LogOut,
   Menu,
@@ -60,15 +61,23 @@ function Headers() {
   const dropdownItems: MenuProps["items"] = [
     {
       key: "1",
-      label: <div className="text-sm text-[#666] font-medium ">Profile</div>,
-      icon: <User size={20} color="#666" />,
+      label: <div className="text-sm text-[#666] dark:text-text-dark font-medium hover:text-button-blue">โปรไฟล์</div>,
+      icon: <User size={20}  className=""/>,
       onClick: () => {
         navigate("/edit-profile"); // เพิ่มการนำทางไปยังหน้า UserEdit
       },
     },
     {
       key: "2",
-      label: <div className="text-sm text-rose-600 font-medium ">Logout</div>,
+      label: <div className="text-sm text-[#666] dark:text-text-dark font-medium hover:text-button-blue">ผลการทำแบบสอบถาม</div>,
+      icon: <ChartNoAxesCombined size={20}  />,
+      onClick: () => {
+        navigate("/assessment/dashboard"); // เพิ่มการนำทางไปยังหน้า UserEdit
+      },
+    },
+    {
+      key: "3",
+      label: <div className="text-sm text-rose-600 font-medium ">ออกจากระบบ</div>,
       icon: <LogOut size={20} color="red" />,
       onClick: handleLogout, // เพิ่มการเรียกฟังก์ชัน handleLogout
     },
@@ -173,7 +182,8 @@ function Headers() {
                 )}
               </div>
             </button>
-            <Dropdown menu={{ items: dropdownItems }}>
+            <Dropdown menu={{ items: dropdownItems }} overlayClassName="custom-dropdown"
+            >
               <a onClick={(e) => e.preventDefault()} className="">
                 <img
                   src={avatarUrl}

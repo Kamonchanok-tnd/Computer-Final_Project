@@ -16,14 +16,18 @@ import type {
 type Props = { rows: IMonthlySummary[]; loading: boolean };
 type ChartDatum = { name: string; value: number };
 
+/* ===== พาเลตใหม่: สด/ชัด เข้ากับพื้นหลังฟ้า ===== */
 const COLORS = [
-  "#A5BFF0", // ฟ้าอ่อนพาสเทล
-  "#A8E6CF", // เขียวมิ้นต์พาสเทล
-  "#FFD3B6", // ส้มอ่อนพาสเทล
-  "#FFAAA5", // ชมพูพาสเทล
-  "#DAB6FC", // ม่วงอ่อนพาสเทล
-  "#FFF5BA", // เหลืองอ่อนพาสเทล
-];
+  "#5BA6F6", // sky
+  "#22C7D6", // cyan
+  "#34D399", // emerald
+  "#FDBA74", // peach
+  "#F472B6", // rose
+  "#A78BFA", // violet
+] as const;
+
+/* เส้นคั่นชิ้นพาย (ช่วยให้ชิ้นดูชัดแม้โทนพาสเทล) */
+const SLICE_STROKE = "rgba(255,255,255,0.9)";
 
 /** hook เช็คมือถือ (type-safe) */
 function useIsMobile(): boolean {
@@ -32,7 +36,6 @@ function useIsMobile(): boolean {
     const mq = window.matchMedia("(max-width: 767px)");
     const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     setIsMobile(mq.matches);
-    // รองรับทั้ง API ใหม่/เก่า
     if (typeof mq.addEventListener === "function") {
       mq.addEventListener("change", onChange);
       return () => mq.removeEventListener("change", onChange);
@@ -67,11 +70,9 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
     );
   }
 
-  // ใช้บนเดสก์ท็อปเท่านั้น
   const renderLabel = ({ name, percent }: PieLabelRenderProps): string =>
     `${name ?? ""} (${Math.round(((percent ?? 0) as number) * 100)}%)`;
 
-  // ✅ แก้ชนิดให้ตรงกับ Recharts: value เป็น number, name เป็น string
   const tooltipFormatter: Formatter<number, string> = (
     value: number,
     _name: string,
@@ -98,21 +99,39 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
               data={data}
               cx="50%"
               cy="50%"
-              outerRadius={isMobile ? "68%" : "80%"}
+              /* donut บาง ๆ ให้ภาพดูโปรกว่า และช่วยคอนทราสต์ */
+              innerRadius={isMobile ? "44%" : "50%"}
+              outerRadius={isMobile ? "72%" : "82%"}
               label={!isMobile ? renderLabel : false}
               labelLine={!isMobile}
               isAnimationActive={false}
             >
               {data.map((_, i) => (
-                <Cell key={String(i)} fill={COLORS[i % COLORS.length]} />
+                <Cell
+                  key={String(i)}
+                  fill={COLORS[i % COLORS.length]}
+                  stroke={SLICE_STROKE}
+                  strokeWidth={2}
+                />
               ))}
             </Pie>
-            <Tooltip formatter={tooltipFormatter} />
+
+            <Tooltip
+              formatter={tooltipFormatter}
+              cursor={{ fill: "rgba(0,0,0,0.03)" }}
+              contentStyle={{
+                borderRadius: 12,
+                border: "1px solid rgba(0,0,0,0.06)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                padding: "8px 10px",
+              }}
+              wrapperStyle={{ outline: "none" }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
 
-      {/* มือถือ: legend ใต้กราฟเพื่อไม่ให้ label ตกขอบ */}
+      {/* มือถือ: legend ใต้กราฟ */}
       {isMobile && (
         <ul className="mt-3 grid grid-cols-1 gap-y-1 text-sm">
           {data.map((d, i) => {
@@ -134,7 +153,7 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
         </ul>
       )}
 
-      <div className="text-center text-sm text-slate-600 mt-2">
+      <div className="text-center text-sm text-slate-700 mt-2">
         รวมทั้งหมด {total} ครั้ง
       </div>
     </div>
