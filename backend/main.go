@@ -13,6 +13,7 @@ import (
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
 	"sukjai_project/controller/emotion"
+	"sukjai_project/controller/asmr"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
@@ -271,6 +272,11 @@ func main() {
 
 		//profile
 		userRouter.GET("/profile", profileavatar.GetAllProfile)
+
+		//asmr
+		userRouter.POST("/createasmr", asmr.CreateASMR)
+
+	
 	}
 
 	r.GET("/", func(c *gin.Context) {
