@@ -85,13 +85,11 @@ function HistoryChat({
 
           {isTyping && (
             <div className="flex items-start space-x-3 animate-in slide-in-from-bottom-2 duration-300">
-              <div
-                className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                  isDarkMode ? "bg-purple-600" : "bg-indigo-500"
-                }`}
-              >
-                <Bot className="w-4 h-4 text-white" />
-              </div>
+               <img
+                    src={headbot}
+                    alt="bot avatar"
+                    className="w-8 h-8 object-center "
+                  />
               <div className={`max-w-xs lg:max-w-md`}>
                 <div
                   className={`px-4 py-3 rounded-2xl rounded-bl-md  ${
