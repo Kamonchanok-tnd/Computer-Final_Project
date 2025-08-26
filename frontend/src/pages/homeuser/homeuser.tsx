@@ -78,6 +78,10 @@ function Home() {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [checkOnLoginGroup]);
+  useEffect(() => {
+    
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   return (
     <div className="bg-[#F4FFFF] relative dark:bg-background-dark ">
