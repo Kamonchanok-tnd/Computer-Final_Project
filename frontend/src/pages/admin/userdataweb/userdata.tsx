@@ -5,7 +5,7 @@ import {
   getRetentionRate,
   VisitFrequency,
   RetentionRate,
-} from "../../services/https/activity";
+} from "../../../services/https/activity";
 import {
   LineChart,
   Line,
@@ -16,6 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import admin from "../../../assets/analysis.png";
 
 export default function AdminDashboardContent() {
   const [visitData, setVisitData] = useState<VisitFrequency[]>([]);
@@ -69,7 +70,10 @@ export default function AdminDashboardContent() {
 
   return (
     <div className="p-6 space-y-8">
-      <h1 className="text-2xl font-bold text-gray-800">แดชบอร์ดเว็บไซต์</h1>
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-700 flex items-center gap-2">
+        <img src={admin} alt="Admin" className="w-13 h-13" />
+        แดชบอร์ดเว็บไซต์
+      </h2>
 
       {/* Visit Frequency */}
       <div className="bg-white rounded-xl shadow p-4">
