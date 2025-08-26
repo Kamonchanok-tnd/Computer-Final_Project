@@ -1,184 +1,160 @@
-// DashboardContents.tsx
 import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
   XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
-  RadialBarChart,
-  RadialBar,
-  Legend,
+  CartesianGrid,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { getSoundFourType } from "../../../services/https/dashboardcontents";
+import HomeContents from "./home_contents";
 
-import { getDailySoundUsage, DailySoundUsage } from "../../../services/https/dashboardcontents";
-import { getSoundChanting } from "../../../services/https/dashboardcontents";
-
-// Components
-import MusicCard from "./meditation/meditationgard";
-import ChantingCard from "./chanting/chantinggard";
-
-// DashboardCard component (inline)
-const DashboardCard: React.FC<{ title: string; className?: string; children: React.ReactNode }> = ({
-  title,
-  className,
-  children,
-}) => (
-  <div className={`bg-white rounded-2xl p-4 shadow-md ${className}`}>
-    <h2 className="font-semibold mb-2">{title}</h2>
-    {children}
-  </div>
-);
+interface MusicData {
+  month: string; // formatted as "Aug 2025"
+  category: string; // สมาธิ, สวดมนต์, ฝึกหายใจ, asmr
+  plays: number;
+}
 
 const DashboardContents: React.FC = () => {
+  const [musicData, setMusicData] = useState<MusicData[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // ตัวอย่าง Freud Score และ Meditation Donut
-  const lineData = [
-    { time: "1d", value: 90 },
-    { time: "1m", value: 70 },
-    { time: "1y", value: 95 },
-    { time: "5y", value: 65 },
-    { time: "All", value: 80 },
-  ];
+  // mapping category -> route
+  const categoryRoutes: Record<string, string> = {
+    "สมาธิ": "/admin/meditation-details",
+    "สวดมนต์": "/admin/chanting-details",
+    "ฝึกหายใจ": "/admin/breathing-details",
+    "asmr": "/admin/asmr-details",
+  };
 
-  const donutData = [
-    { name: "Core", value: 40, fill: "#8BC34A" },
-    { name: "REM", value: 30, fill: "#FF9800" },
-    { name: "Post-REM", value: 50, fill: "#5D4037" },
-  ];
-
-  // State Music
-  const [musicData, setMusicData] = useState<{ day: string; plays: number }[]>([]);
-  const [loadingMusic, setLoadingMusic] = useState(true);
-  const [musicError, setMusicError] = useState<string | null>(null);
-
-  // State Chanting
-  const [chantingData, setChantingData] = useState<{ day: string; chants: number }[]>([]);
-  const [loadingChanting, setLoadingChanting] = useState(true);
-  const [chantingError, setChantingError] = useState<string | null>(null);
-
-  // Fetch Music Data
   useEffect(() => {
     const fetchMusicData = async () => {
       try {
-        const data: DailySoundUsage[] = await getDailySoundUsage();
-        const formattedData = data.map((item) => ({
-          day: new Date(item.date).toLocaleDateString("th-TH", {
+        const res = await getSoundFourType();
+        console.log("Raw data from API (four-type):", res);
+
+        // รวมข้อมูลตามเดือนและประเภท
+        const formattedData: MusicData[] = res.reduce((acc: MusicData[], item: any) => {
+          const monthStr = new Date(item.year, item.month - 1).toLocaleDateString("th-TH", {
             year: "numeric",
             month: "short",
-            day: "numeric",
-          }),
-          plays: item.play_count,
-        }));
+          });
+
+          const existing = acc.find(d => d.month === monthStr && d.category === item.category);
+          if (existing) {
+            existing.plays += item.play_count;
+          } else {
+            acc.push({ month: monthStr, category: item.category, plays: item.play_count });
+          }
+          return acc;
+        }, []);
+
         setMusicData(formattedData);
       } catch (err) {
-        setMusicError("ไม่สามารถโหลดข้อมูลได้");
-        console.error(err);
-      } finally {
-        setLoadingMusic(false);
+        console.error("Error fetching music data:", err);
       }
     };
+
     fetchMusicData();
   }, []);
 
-  // Fetch Chanting Data
-  useEffect(() => {
-    const fetchChantingData = async () => {
-      try {
-        const data = await getSoundChanting();
-        const formatted = data.map((item) => ({
-          day: new Date(item.date).toLocaleDateString("th-TH", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          }),
-          chants: item.play_count,
-        }));
-        setChantingData(formatted);
-      } catch (err) {
-        setChantingError("ไม่สามารถโหลดข้อมูลสวดมนต์ได้");
-        console.error(err);
-      } finally {
-        setLoadingChanting(false);
-      }
-    };
-    fetchChantingData();
-  }, []);
+  // รวมจำนวนครั้งทั้งหมด
+  const totalPlays = musicData.reduce((sum, item) => sum + item.plays, 0);
+
+  // จำนวนประเภทไม่ซ้ำ
+  const uniqueCategories = new Set(musicData.map((item) => item.category)).size;
+
+  // ค่าเฉลี่ยต่อเดือน
+  const uniqueMonths = new Set(musicData.map((item) => item.month)).size;
+  const avgPerMonth = uniqueMonths > 0 ? (totalPlays / uniqueMonths).toFixed(1) : 0;
+
+  // Top Tracks by category
+  const trackCount: Record<string, number> = {};
+  musicData.forEach((item) => {
+    trackCount[item.category] = (trackCount[item.category] || 0) + item.plays;
+  });
+  const topTracks = Object.entries(trackCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  // handle click
+  const handleCategoryClick = (name: string) => {
+    setSelectedCategory(selectedCategory === name ? null : name);
+    const route = categoryRoutes[name];
+    if (route) {
+      navigate(route);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C]">
-      {/* Header */}
-      <header className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 gap-4 md:gap-0">
-        <h1 className="text-2xl font-semibold">ข้อมูลของคอนเทนต์ 👋</h1>
-        <input
-          type="text"
-          placeholder="Search..."
-          className="px-4 py-2 rounded-xl border border-gray-300 focus:outline-none w-full md:w-64"
-        />
-      </header>
+    <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">
+      {/* สรุปยอดรวม */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
+          <p className="text-gray-600">รวมการเล่น</p>
+          <p className="text-2xl font-bold">{totalPlays} ครั้ง</p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
+          <p className="text-gray-600">จำนวนประเภท</p>
+          <p className="text-2xl font-bold">{uniqueCategories} ประเภท</p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
+          <p className="text-gray-600">เฉลี่ยต่อเดือน</p>
+          <p className="text-2xl font-bold">{avgPerMonth} ครั้ง</p>
+        </div>
+      </div>
 
-      <main className="p-6 space-y-6">
-        {/* Top Section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Freud Score */}
-          <DashboardCard title="Freud Score" className="col-span-1 md:col-span-2">
-            <div className="flex justify-end mb-2">
-              <button className="text-sm bg-gray-100 px-3 py-1 rounded-lg">All Time</button>
-            </div>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineData}>
-                  <XAxis dataKey="time" hide />
-                  <YAxis hide domain={[50, 100]} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="value" stroke="#8BC34A" strokeWidth={3} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="text-lg font-bold mt-2">97.2%</p>
-          </DashboardCard>
+      {/* Top Categories */}
+      <div className="bg-blue-100 rounded-2xl shadow-md p-6">
+        <h2 className="font-semibold text-lg mb-2">Top Categories</h2>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {topTracks.map(([name], idx) => (
+            <button
+              key={idx}
+              onClick={() => handleCategoryClick(name)}
+              className={`px-3 py-1 rounded-lg transition ${
+                selectedCategory === name
+                  ? "bg-blue-500 text-white"
+                  : "bg-blue-200 hover:bg-blue-300"
+              }`}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+        <ol className="list-decimal ml-6 space-y-1">
+          {topTracks.map(([name, count], idx) => (
+            <li key={idx} className="flex justify-between">
+              <span>{name}</span>
+              <span className="font-bold">{count} ครั้ง</span>
+            </li>
+          ))}
+        </ol>
+      </div>
 
-          {/* สมาธิและฝึกหายใจ */}
-          <DashboardCard title="สมาธิและฝึกหายใจ">
-            <div className="w-full h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart innerRadius="30%" outerRadius="100%" barSize={15} data={donutData}>
-                  <RadialBar minAngle={15} background clockwise dataKey="value" />
-                  <Legend iconSize={10} layout="vertical" verticalAlign="middle" align="right" />
-                </RadialBarChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="text-lg font-bold mt-2">Level 2</p>
-          </DashboardCard>
-        </section>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-  {/* Music Card */}
-  <MusicCard
-    data={musicData}
-    loading={loadingMusic}
-    error={musicError}
-    onViewMore={() => navigate("/admin/meditation-details")}
-  />
-
-  {/* Chanting Card */}
-  <ChantingCard
-    data={chantingData}
-    loading={loadingChanting}
-    error={chantingError}
-    onViewMore={() => navigate("/admin/chanting-details")}
-  />
-
-  {/* Card ว่าง เพื่อให้ครบ 3 คอลัมน์ */}
-  <div className="bg-white rounded-2xl p-4 shadow-md flex items-center justify-center text-gray-400">
-    ยังไม่มีข้อมูล
-  </div>
-</div>
-
-      </main>
+      {/* Trend Line per month */}
+      <div className="bg-green-100 rounded-2xl shadow-md p-6">
+        <h2 className="font-semibold text-lg mb-4">Trend Line (การเล่นต่อเดือน)</h2>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={musicData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <Tooltip formatter={(value: any) => [`${value} ครั้ง`, "เล่น"]} />
+              <Line
+                type="monotone"
+                dataKey="plays"
+                stroke="#4CAF50"
+                strokeWidth={3}
+                dot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };

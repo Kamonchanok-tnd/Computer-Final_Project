@@ -136,9 +136,9 @@ func SetupDatabase() {
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
 	CreateDefaultEmotionChoices(db)
-	SeedQuestionnaires(db)
-	SeedQuestionnaireGroups(db)
-	SeedCriteriaAndCalculations(db)
+	// SeedQuestionnaires(db)
+	// SeedQuestionnaireGroups(db)
+	// SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	CreateArticleTypes(db)
 	SeedEmojis(db)
@@ -261,47 +261,47 @@ func SetupInitialData(db *gorm.DB) {
 
 	// เพิ่มข้อมูล Sound (เสียงประเภท สมาธิ)
 	sounds := []entity.Sound{
-		{Name: "สมาธิบำบัดแบบ SKT ท่าที่ 1-2", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 1-2 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ", Duration: 10, LikeSound: 80, View: 5000, Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
-		{Name: "สมาธิบำบัดแบบ SKT ท่าที่ 6-7", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 6-7 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ", Duration: 10, LikeSound: 80, View: 4000, Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
-		{Name: "สมาธิบำบัดแบบ SKT ท่าที่ 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 3 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ", Duration: 10, LikeSound: 80, View: 4500, Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
+		{Name: "สมาธิบำบัดแบบ SKT ท่าที่ 1-2", Sound: "https://m.youtube.com/watch?si=CyYCDNb2Y1wPRSCG&v=x0-NKbGzvm4&feature=youtu.be", Lyric: "", Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 1-2 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ", Duration: 10, LikeSound: 0, View: 1, Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
+		{Name: "สมาธิบำบัดแบบ SKT ท่าที่ 6-7", Sound: "https://m.youtube.com/watch?v=Xi1UnJIjyAs&feature=youtu.be", Lyric: "", Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 6-7 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ", Duration: 10, LikeSound: 0, View: 1, Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
+		{Name: "สมาธิบำบัดแบบ SKT ท่าที่ 3", Sound: "https://m.youtube.com/watch?v=_XNhyGxTdhQ&feature=youtu.be", Lyric: "", Description: "เสียงสมาธิบำบัดแบบ SKT ท่าที่ 3 สำหรับฝึกสมาธิและผ่อนคลายจิตใจ", Duration: 10, LikeSound: 0, View: 1, Owner: "SKT Meditation", STID: meditationType.ID, UID: user.ID},
 
 		// เสียงฝึกหายใจใหม่
-		{Name: "Seed of growth", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "", Description: "เพลงผ่อนคลายสำหรับฝึกหายใจ แนว Ambient เหมาะกับการทำสมาธิ, สร้างสมาธิและฝึกหายใจ", Duration: 60, LikeSound: 90, View: 12000, Owner: "Relaxing Music Channel", STID: breathingType.ID, UID: user.ID},
-		{Name: "Alpha waves", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "", Description: "คลื่นสมอง Alpha สำหรับการผ่อนคลาย ลดความเครียด และทำสมาธิ", Duration: 120, LikeSound: 95, View: 30000, Owner: "Brainwave Music", STID: breathingType.ID, UID: user.ID},
-		{Name: "Relaxing music", Sound: "https://youtu.be/-c7GHrC8HTY?si=7dqAHDMZoRhL5Uj9", Lyric: "", Description: "เพลงสปาแนวบรรเลงผสมเสียงธรรมชาติ เหมาะสำหรับนวด, ผ่อนคลาย, ทำสมาธิ และสร้างบรรยากาศสงบ", Duration: 300, LikeSound: 100, View: 2000000, Owner: "Spa Music, Relaxing music", STID: breathingType.ID, UID: user.ID},
-		{Name: "Sunny Mornings", Sound: "https://youtu.be/hlWiI4xVXKY?si=56vNV_ddESYwTnkH", Lyric: "", Description: "เป็น เพลงคลายเครียดแนวบรรเลง พาโน, กีตาร์ พร้อมเสียงนกร้อง สร้างบรรยากาศสงบ และเหมาะสำหรับผ่อนคลายหรือทำสมาธิ", Duration: 183, LikeSound: 100, View: 20, Owner: "Peder B. Helland", STID: breathingType.ID, UID: user.ID},
+		{Name: "Seed of growth", Sound: "https://m.youtube.com/watch?v=NSKxvLWqyOY", Lyric: "", Description: "เพลงผ่อนคลายสำหรับฝึกหายใจ แนว Ambient เหมาะกับการทำสมาธิ, สร้างสมาธิและฝึกหายใจ", Duration: 60, LikeSound: 0, View: 1, Owner: "Relaxing Music Channel", STID: breathingType.ID, UID: user.ID},
+		{Name: "Alpha waves", Sound: "https://youtu.be/t83vSN1yZzM?si=t_D19j9FeWXo_1Xa", Lyric: "", Description: "คลื่นสมอง Alpha สำหรับการผ่อนคลาย ลดความเครียด และทำสมาธิ", Duration: 120, LikeSound: 5, View: 1, Owner: "Brainwave Music", STID: breathingType.ID, UID: user.ID},
+		{Name: "Relaxing music", Sound: "https://youtu.be/-c7GHrC8HTY?si=7dqAHDMZoRhL5Uj9", Lyric: "", Description: "เพลงสปาแนวบรรเลงผสมเสียงธรรมชาติ เหมาะสำหรับนวด, ผ่อนคลาย, ทำสมาธิ และสร้างบรรยากาศสงบ", Duration: 300, LikeSound: 100, View: 1, Owner: "Spa Music, Relaxing music", STID: breathingType.ID, UID: user.ID},
+		{Name: "Sunny Mornings", Sound: "https://youtu.be/hlWiI4xVXKY?si=56vNV_ddESYwTnkH", Lyric: "", Description: "เป็น เพลงคลายเครียดแนวบรรเลง พาโน, กีตาร์ พร้อมเสียงนกร้อง สร้างบรรยากาศสงบ และเหมาะสำหรับผ่อนคลายหรือทำสมาธิ", Duration: 183, LikeSound: 0, View: 1, Owner: "Peder B. Helland", STID: breathingType.ID, UID: user.ID},
 
 		{
-			Name: "บทเมตตาหลวง ทำนองสรภัญญะ", Sound: "https://youtu.be/6i1YyT3fzPs?si=--nqYHK_wzKNtHtb", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 20, Owner: "ChadolChannel",
+			Name: "บทเมตตาหลวง ทำนองสรภัญญะ", Sound: "https://youtu.be/6i1YyT3fzPs?si=--nqYHK_wzKNtHtb", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 1, Owner: "ChadolChannel",
 		},
 		{
-			Name: "บทกราบพระ 5 ครั้ง", Sound: "https://youtu.be/1TzRW28rhZ4?si=VVMVrd8mKxRGbreb", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 20, Owner: "ChadolChannel",
+			Name: "บทกราบพระ 5 ครั้ง", Sound: "https://youtu.be/1TzRW28rhZ4?si=VVMVrd8mKxRGbreb", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 1, Owner: "ChadolChannel",
 		},
 		{
-			Name: "คาถามหาจักรพรรดิ มีคำแปล (ไม่มีโฆษณาคั่นกลาง)", Sound: "https://youtu.be/YgnFJiobS58?si=zEI6yZKEw-eTHr4v", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 20, Owner: "ChadolChannel",
+			Name: "คาถามหาจักรพรรดิ มีคำแปล (ไม่มีโฆษณาคั่นกลาง)", Sound: "https://youtu.be/YgnFJiobS58?si=zEI6yZKEw-eTHr4v", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 1, Owner: "ChadolChannel",
 		}, {
-			Name: "บทสวด อิติปิโส", Sound: "https://youtu.be/Jkz_iQ8rjz4?si=VSqQDQjE8ripYvMW", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 20, Owner: "ChadolChannel",
+			Name: "บทสวด อิติปิโส", Sound: "https://youtu.be/Jkz_iQ8rjz4?si=VSqQDQjE8ripYvMW", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 1, Owner: "ChadolChannel",
 		}, {
-			Name: "บทสรภัญญะ องค์ใดพระสัมพุทธ", Sound: "https://youtu.be/ftkK-Po2So4?si=eJsOhqRRIvZdIrcu", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 20, Owner: "ChadolChannel",
+			Name: "บทสรภัญญะ องค์ใดพระสัมพุทธ", Sound: "https://youtu.be/ftkK-Po2So4?si=eJsOhqRRIvZdIrcu", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 1, Owner: "ChadolChannel",
 		},
 		{
-			Name: "บทสวดสรภัญญะ ปางเมื่อพระองค์ ปะระมะพุธ", Sound: "https://youtu.be/uOtbIwDMz6w?si=8S_xKsVmoYHpD7U9", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 20, Owner: "ChadolChannel",
+			Name: "บทสวดสรภัญญะ ปางเมื่อพระองค์ ปะระมะพุธ", Sound: "https://youtu.be/uOtbIwDMz6w?si=8S_xKsVmoYHpD7U9", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 1, Owner: "ChadolChannel",
 		},
 		{
-			Name: "คาถาชินบัญชร พระคาถาชินบัญชร สมเด็จพระพุฒาจารย์ (โต พรหมรังสี) เสถียรพงษ์ วรรณปก", Sound: "https://youtu.be/sqOeFloH6tU?si=VEyGbfdeuytxawPC", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 20, Owner: "ChadolChannel",
+			Name: "คาถาชินบัญชร พระคาถาชินบัญชร สมเด็จพระพุฒาจารย์ (โต พรหมรังสี) เสถียรพงษ์ วรรณปก", Sound: "https://youtu.be/sqOeFloH6tU?si=VEyGbfdeuytxawPC", Lyric: "", STID: chantingType.ID, UID: user.ID, Description: "", Duration: 135, LikeSound: 100, View: 1, Owner: "ChadolChannel",
 		},
 
 		// ASMR
-		{Name: "Swans, Ducks & Other Water Birds by a Summer River in Ukraine", Sound: "https://www.youtube.com/watch?v=zB1tL1wwqak", Lyric: "", Description: "#Nature", Duration: 287, LikeSound: 90, View: 12000, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
-		{Name: "May Valley Trail Issaquah, Washington", Sound: "https://www.youtube.com/watch?v=HGOYvgb2SJY", Lyric: "", Description: "#Nature", Duration: 175, LikeSound: 95, View: 30000, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
-		{Name: "Central Park, NYC", Sound: "https://www.youtube.com/watch?v=YmCJKmbprnE", Lyric: "", Description: "#Nature #Winter", Duration: 55, LikeSound: 100, View: 2000000, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
-		{Name: "Skagit River in Late Fall, North Cascades Area, WA", Sound: "https://www.youtube.com/watch?v=JA1mxsfb4ak", Lyric: "", Description: "#Nature", Duration: 185, LikeSound: 100, View: 20, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
-		{Name: "Coffee Shop", Sound: "https://www.youtube.com/watch?v=uU_RxnJOdMQ&t=13753s", Lyric: "", Description: "#Cafe", Duration: 420, LikeSound: 100, View: 200, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
-		{Name: "Cockpit View Airplane", Sound: "https://www.youtube.com/watch?v=Q139Juah-NQ&t=40s", Lyric: "", Description: "#Window", Duration: 420, LikeSound: 99, View: 200, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
-		{Name: "Rain Thunder Night Window View", Sound: "https://www.youtube.com/watch?v=TuBxM-qBmp8&t=1612s", Lyric: "", Description: "#Window", Duration: 420, LikeSound: 98, View: 200, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
-		{Name: "Paris at Night", Sound: "https://www.youtube.com/watch?v=1B8fDmR72sY", Lyric: "", Description: "#City", Duration: 420, LikeSound: 97, View: 200, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
-		{Name: "Walt Disney World Magic Kingdom Street", Sound: "https://www.youtube.com/watch?v=oDCf5bjrWOU&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1", Lyric: "", Description: "#City", Duration: 420, LikeSound: 101, View: 200, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
-		{Name: "Coffee Shop at christmas", Sound: "https://www.youtube.com/watch?v=u88fH7HLszo&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1&index=5", Lyric: "", Description: "#Cafe", Duration: 420, LikeSound: 102, View: 200, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Swans, Ducks & Other Water Birds by a Summer River in Ukraine", Sound: "https://www.youtube.com/watch?v=zB1tL1wwqak", Lyric: "", Description: "#Nature", Duration: 287, LikeSound: 90, View: 1, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "May Valley Trail Issaquah, Washington", Sound: "https://www.youtube.com/watch?v=HGOYvgb2SJY", Lyric: "", Description: "#Nature", Duration: 175, LikeSound: 95, View: 1, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Central Park, NYC", Sound: "https://www.youtube.com/watch?v=YmCJKmbprnE", Lyric: "", Description: "#Nature #Winter", Duration: 55, LikeSound: 100, View: 1, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Skagit River in Late Fall, North Cascades Area, WA", Sound: "https://www.youtube.com/watch?v=JA1mxsfb4ak", Lyric: "", Description: "#Nature", Duration: 185, LikeSound: 100, View: 1, Owner: "4K Relaxation Channel", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop", Sound: "https://www.youtube.com/watch?v=uU_RxnJOdMQ&t=13753s", Lyric: "", Description: "#Cafe", Duration: 420, LikeSound: 100, View: 1, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Cockpit View Airplane", Sound: "https://www.youtube.com/watch?v=Q139Juah-NQ&t=40s", Lyric: "", Description: "#Window", Duration: 420, LikeSound: 99, View: 3, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Rain Thunder Night Window View", Sound: "https://www.youtube.com/watch?v=TuBxM-qBmp8&t=1612s", Lyric: "", Description: "#Window", Duration: 420, LikeSound: 98, View: 20, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Paris at Night", Sound: "https://www.youtube.com/watch?v=1B8fDmR72sY", Lyric: "", Description: "#City", Duration: 420, LikeSound: 97, View: 3, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Walt Disney World Magic Kingdom Street", Sound: "https://www.youtube.com/watch?v=oDCf5bjrWOU&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1", Lyric: "", Description: "#City", Duration: 420, LikeSound: 101, View: 0, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
+		{Name: "Coffee Shop at christmas", Sound: "https://www.youtube.com/watch?v=u88fH7HLszo&list=PLdpAPXvvaMVsOGFEfbgS9L4CavY9j7KN1&index=5", Lyric: "", Description: "#Cafe", Duration: 420, LikeSound: 102, View: 20, Owner: "Fox Mooder AMBIENCE WORLDS", STID: asmrType.ID, UID: user.ID},
 	}
 
 	// เพิ่มข้อมูลเสียงลงในฐานข้อมูล
