@@ -8,6 +8,8 @@ import HomeMeditation from "../../components/Home/Homemedation";
 import HomeChanting from "../../components/Home/Homechanting";
 import Homeasmr from "../../components/Home/Homeasmr";
 import Homemiror from "../../components/Home/Homemiror";
+import Homemessage from "../../components/Home/Homemessage";
+import Homedoctor from "../../components/Home/Homedoctor";
 
 function Home() {
   const [showPopup, setShowPopup] = useState(false);
@@ -34,8 +36,8 @@ function Home() {
      <HomeChanting/> */}
       <Homeasmr/>
       {/* <Homemiror/> */}
-      {/* message */}
-      {/* doctor */}
+      <Homemessage/>
+     <Homedoctor/>
       {/* <Activity /> */}
       <Footer />
     </div>

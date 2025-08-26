@@ -64,9 +64,9 @@ useEffect(() => {
   useEffect(() => {
     const updateItemsPerView = () => {
       if (window.innerWidth < 768) {
-        setItemsPerView(1);
+        setItemsPerView(3);
       } else if (window.innerWidth < 1024) {
-        setItemsPerView(2);
+        setItemsPerView(4);
       } else {
         setItemsPerView(5);
       }
@@ -94,7 +94,7 @@ useEffect(() => {
     <div className="flex flex-col xl:px-28 mt-4">
       {/* Header */}
       <div className="flex items-center justify-between xl:px-0 px-2">
-        <p className="font-ibmthai text-2xl">แบบสอบถามทั้งหมด</p>
+        <p className="font-ibmthai text-2xl text-basic-text dark:text-text-dark">แบบสอบถามทั้งหมด</p>
       </div>
 
       {/* Card List Carousel */}
