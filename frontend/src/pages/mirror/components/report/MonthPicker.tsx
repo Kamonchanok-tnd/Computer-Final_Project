@@ -36,7 +36,7 @@ export default function MonthPicker({ value, onChange, label }: Props) {
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="block w-full h-11 px-3 rounded-xl bg-white/95 ring-1 ring-slate-200 shadow-sm
+        className="w-full h-11 px-3 rounded-xl bg-white/95 ring-1 ring-slate-200 shadow-sm
                    flex items-center gap-2"
         aria-haspopup="dialog"
         aria-expanded={open}
