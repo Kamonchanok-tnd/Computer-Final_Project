@@ -16,6 +16,7 @@ import RelaxActivities from "../pages/secondary function/audio content home/Rela
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result.tsx";
 import MoodPopup from "../components/assessment/MoodPopup";
+import AssessmentDashboard from "../pages/assessment/dashboard";
 import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
@@ -151,6 +152,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/result", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <Result /> : <Navigate to="/" />, //
+        },
+        {
+          path: "/assessment/dashboard", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+          element: isLoggedIn ? <AssessmentDashboard /> : <Navigate to="/" />, //
         },
       ],
     },

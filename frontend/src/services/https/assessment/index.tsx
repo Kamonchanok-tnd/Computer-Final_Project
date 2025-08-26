@@ -3,6 +3,7 @@ import { Question } from '../../../interfaces/IQuestion';
 import { AnswerOption } from '../../../interfaces/IAnswerOption';
 import { QuestionnaireGroup } from '../../../interfaces/IQuestionnaireGroup';
 import { AssessmentAnswer } from '../../../interfaces/IAssessmentAnswer';
+import { ITransaction } from "../../../interfaces/ITransaction";
 
 // ✅ Inline axiosInstance พร้อมแนบ token
 const axiosInstance = axios.create({
@@ -17,16 +18,22 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+
+
+//User
+// ฟังก์ชัน: ดึงคำถามทั้งหมด
 export const fetchQuestions = async (): Promise<Question[]> => {
   const res = await axiosInstance.get("/assessment/Questions");
   return res.data;
 };
 
+// ฟังก์ชัน: ดึงคำตอบทั้งหมด
 export const fetchAnswerOptions = async (): Promise<AnswerOption[]> => {
   const res = await axiosInstance.get("/assessment/AnswerOptions");
   return res.data;
 };
 
+// ฟังก์ชัน: ส่งคำตอบ
 export const submitAnswer = async (
   answer: AssessmentAnswer
 ): Promise<void> => {
@@ -39,15 +46,13 @@ export const submitAnswer = async (
   });
 };
 
-
 // ✅ ฟังก์ชันใหม่: สรุปผล
-// services/https/assessment/index.ts
 export const finishAssessment = async (ARID: number): Promise<any> => {
   const res = await axiosInstance.post(`/assessment/finish/${ARID}`);
   return res.data.transaction; // ✅ ส่งกลับเฉพาะ transaction
 };
 
-
+// ฟังก์ชัน: สร้างผลการประเมิน
 export const createAssessmentResult = async (
   quID: number,
   uid: number,
@@ -70,7 +75,7 @@ export const createAssessmentResult = async (
   return Number(id);
 };
 
-
+// ฟังก์ชัน: ดึงกลุ่มแบบสอบถามทั้งหมด
 export const getAllQuestionnaireGroups = async (): Promise<QuestionnaireGroup[]> => {
   try {
     const res = await axiosInstance.get("/questionnaire-groups");
@@ -81,15 +86,72 @@ export const getAllQuestionnaireGroups = async (): Promise<QuestionnaireGroup[]>
   }
 };
 
+// ฟังก์ชัน: ดึงเกณฑ์ทั้งหมด
+export const getAllCriteria = async (): Promise<any[]> => {
+  try {
+    const res = await axiosInstance.get("/assessment/Criteria");
+    return res.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch criteria", err);
+    return [];
+  }
+};
+
+
+// ฟังก์ชัน: ดึงรายการธุรกรรมทั้งหมด
+export async function getAllTransactions(): Promise<ITransaction[]> {
+  try {
+    const res = await axiosInstance.get("/assessment/Transaction");
+    return res.data as ITransaction[];
+  } catch (err) {
+    console.error("❌ Error fetching transactions:", err);
+    throw err;
+  }
+}
+
+// ฟังก์ชัน: ดึงธุรกรรมตาม ID
 export const getTransactionByID = async (id: number): Promise<any> => {
   const res = await axiosInstance.get(`/assessment/Transaction/${id}`);
   return res.data;
 };
 
+//❌
+export const getAvailableGroups = async (userID: number) => {
+  try {
+    const response = await axiosInstance.get(`/questionnaire-groups/available`, {
+      params: { user_id: userID },
+    });
+    return response.data; // => Array<{ id, name, description, frequency_days, available, reason }>
+  } catch (error) {
+    console.error("❌ โหลดกลุ่มที่พร้อมทำไม่สำเร็จ:", error);
+    throw error;
+  }
+};
+
+//❌
+export const getNextQuestionnaire = async (user_id: number, group_id: number) => {
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await axiosInstance.get(`/assessments/next`, {
+      params: { user_id, group_id },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data; // axios คืน response ที่มี data อยู่ตรงนี้
+  } catch (error: any) {
+    // ดัก error และโยนข้อความให้ component จัดการ
+    const status = error?.response?.status || 500;
+    const message = error?.response?.data?.message || "เกิดข้อผิดพลาดในการดึงแบบสอบถามถัดไป";
+    throw new Error(`(${status}) ${message}`);
+  }
+};
 
 
 
-//Admin
+////////////////////////////////////////////Admin Finished//////////////////////////////////////////////////////////////////////////
 export const getQuestionnaireGroupByID = async (id: number) => {
   try {
     const res = await axiosInstance.get(`/admin/questionnaire-groups/${id}`);
@@ -144,3 +206,4 @@ export const updateGroupFrequency = async (
 
   return res.data;
 };
+
