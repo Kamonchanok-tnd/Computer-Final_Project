@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Header from "./components/Header";
 import SideOrnaments from "./components/SideOrnaments";
-import MonthPicker from "./components/MonthPicker";
+import MonthPicker from "./components/report/MonthPicker";
 import MonthlyReport from "./components/MonthlyReport";
 import { getMirrorSummary } from "../../services/https/mirror";
 import type { IMonthlySummary } from "../../interfaces/IMonthlySummary";
