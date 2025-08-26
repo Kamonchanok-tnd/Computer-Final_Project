@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { X, Volume2, VolumeX } from "lucide-react";
 import BackgroundPanel from "./components/BackgroundPanel";
 import SoundPanel from "./components/SoundPanel";
@@ -20,6 +20,7 @@ const ASMRApp: React.FC = () => {
   const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [selectedBgId, setSelectedBgId] = useState<number | null>(null);
   const [selectedBgUrl, setSelectedBgUrl] = useState<string | null>(null);
+  const [selectedSID, setSelectedSID] = useState<number | null>(null); // <-- เก็บ sound ID
   const [volume, setVolume] = useState<number>(50);
   const [muted, setMuted] = useState<boolean>(false);
   const playerRef = useRef<any>(null);
@@ -48,9 +49,7 @@ const ASMRApp: React.FC = () => {
   const createPlayer = () => {
     if (iframeContainerRef.current && selectedBgUrl) {
       const videoId = extractVideoId(selectedBgUrl);
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
+      if (playerRef.current) playerRef.current.destroy();
 
       playerRef.current = new window.YT.Player(iframeContainerRef.current, {
         videoId,
@@ -74,11 +73,7 @@ const ASMRApp: React.FC = () => {
 
   const toggleMute = () => {
     if (playerRef.current) {
-      if (muted) {
-        playerRef.current.unMute();
-      } else {
-        playerRef.current.mute();
-      }
+      muted ? playerRef.current.unMute() : playerRef.current.mute();
     }
     setMuted(!muted);
   };
@@ -88,13 +83,8 @@ const ASMRApp: React.FC = () => {
     setVolume(vol);
     if (playerRef.current) {
       playerRef.current.setVolume(vol);
-      if (vol === 0) {
-        playerRef.current.mute();
-        setMuted(true);
-      } else {
-        playerRef.current.unMute();
-        setMuted(false);
-      }
+      vol === 0 ? playerRef.current.mute() : playerRef.current.unMute();
+      setMuted(vol === 0);
     }
   };
 
@@ -124,9 +114,7 @@ const ASMRApp: React.FC = () => {
 
   const updateVolume = (key: string, value: number) => {
     setVolumes((prev) => ({ ...prev, [key]: value }));
-    if (audioRefs.current[key]) {
-      audioRefs.current[key].volume = value / 100;
-    }
+    if (audioRefs.current[key]) audioRefs.current[key].volume = value / 100;
   };
 
   const menuItems = [
@@ -141,9 +129,11 @@ const ASMRApp: React.FC = () => {
         return (
           <BackgroundPanel
             selectedId={selectedBgId}
-            onSelectBg={(id, url) => {
+            onSelectBg={(id, url, sid) => {
               setSelectedBgId(id);
               setSelectedBgUrl(url);
+              setSelectedSID(sid); // <-- เก็บ SID
+              setPlayingSounds(new Set([sid.toString()]));
             }}
           />
         );
@@ -157,7 +147,13 @@ const ASMRApp: React.FC = () => {
           />
         );
       case "timer":
-        return <TimerPanel />;
+        return (
+          <TimerPanel
+            playingSounds={playingSounds}
+            volumes={volumes}
+            selectedSID={selectedSID} // <-- ส่งต่อไป TimerPanel
+          />
+        );
       default:
         return null;
     }
@@ -193,7 +189,7 @@ const ASMRApp: React.FC = () => {
               top: "-25vh",
               zIndex: 0,
             }}
-          ></div>
+          />
           <div className="absolute inset-0 bg-black/0"></div>
         </div>
       </div>

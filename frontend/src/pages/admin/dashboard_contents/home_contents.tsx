@@ -378,6 +378,7 @@ const HomeContents: React.FC = () => {
       setLoadingTopContent(true);
       try {
         const data = await getTopContentComparison();
+        console.log("ข้อมูลผู้ใช้ทั้งหมด",data);
         const usersByCategory = data.reduce((acc: Record<string, number>, item) => {
           acc[item.category] = (acc[item.category] || 0) + item.unique_users;
           return acc;

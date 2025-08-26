@@ -284,71 +284,81 @@ func GetTopContentComparison(c *gin.Context) {
     db := config.DB()
     var results []TopContent
 
-    // 1. Word Healing / สวดมนต์
-    var wordHealing []TopContent
-db.Model(&entity.WordHealingContent{}).
-    Select("name, 'WordHealing' AS category, SUM(view_count) AS unique_users").
-    Group("id, name").
-    Scan(&wordHealing)
+    // 1. Word Healing
+    // var wordHealing []TopContent
+    // db.Model(&entity.WordHealingContent{}).
+    //     Select("name, 'WordHealing' AS category, SUM(view_count) AS unique_users").
+    //     Group("id, name").
+    //     Scan(&wordHealing)
 
-    // 4. Mirror / ระบายความรู้สึก
+    // 2. ASMR (ใช้ histories)
+    var asmr []TopContent
+    db.Table("histories").
+        Select("sounds.name, 'ASMR' AS category, COUNT(DISTINCT histories.uid) AS unique_users").
+        Joins("JOIN sounds ON sounds.id = histories.s_id").
+        Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+        Where("sound_types.type = ?", "asmr").
+        Group("sounds.id, sounds.name").
+        Scan(&asmr)
+
+    // 3. Breathing / ฝึกหายใจ (ใช้ histories)
+    var breathing []TopContent
+    db.Table("histories").
+        Select("sounds.name, 'Breathing' AS category, COUNT(DISTINCT histories.uid) AS unique_users").
+        Joins("JOIN sounds ON sounds.id = histories.s_id").
+        Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+        Where("sound_types.type = ?", "ฝึกหายใจ").
+        Group("sounds.id, sounds.name").
+        Scan(&breathing)
+
+    // 4. Mirror (ดูจาก uid role = user)
     var mirror []TopContent
-    db.Model(&entity.Mirror{}).
-        Select("title AS name, 'Mirror' AS category, COUNT(DISTINCT uid) AS unique_users").
-        Group("id, title").
+    db.Table("mirrors").
+        Select("mirrors.title AS name, 'Mirror' AS category, COUNT(DISTINCT mirrors.uid) AS unique_users").
+        Joins("JOIN users ON users.id = mirrors.uid").
+        Where("users.role = ?", "user").
+        Group("mirrors.id, mirrors.title").
         Scan(&mirror)
 
-   
-	// 2. ASMR
-var asmr []TopContent
-db.Table("sounds").
-    Select("name, 'ASMR' AS category, SUM(view) AS unique_users").
-    Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
-    Where("sound_types.type = ?", "asmr").
-    Group("sounds.id, sounds.name").
-    Scan(&asmr)
+    // 5. Meditation / สมาธิ (ใช้ histories)
+    var meditation []TopContent
+    db.Table("histories").
+        Select("sounds.name, 'Meditation' AS category, COUNT(DISTINCT histories.uid) AS unique_users").
+        Joins("JOIN sounds ON sounds.id = histories.s_id").
+        Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+        Where("sound_types.type = ?", "สมาธิ").
+        Group("sounds.id, sounds.name").
+        Scan(&meditation)
 
-// 3. Breathing / ฝึกหายใจ
-var breathing []TopContent
-db.Table("sounds").
-    Select("name, 'Breathing' AS category, SUM(view) AS unique_users").
-    Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
-    Where("sound_types.type = ?", "ฝึกหายใจ").
-    Group("sounds.id, sounds.name").
-    Scan(&breathing)
+    // 6. Chanting / สวดมนต์ (ใช้ histories)
+    var chanting []TopContent
+    db.Table("histories").
+        Select("sounds.name, 'Chanting' AS category, COUNT(DISTINCT histories.uid) AS unique_users").
+        Joins("JOIN sounds ON sounds.id = histories.s_id").
+        Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+        Where("sound_types.type = ?", "สวดมนต์").
+        Group("sounds.id, sounds.name").
+        Scan(&chanting)
 
-// 5. Meditation / สมาธิ
-var meditation []TopContent
-db.Table("sounds").
-    Select("name, 'Meditation' AS category, SUM(view) AS unique_users").
-    Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
-    Where("sound_types.type = ?", "สมาธิ").
-    Group("sounds.id, sounds.name").
-    Scan(&meditation)
-
-// 6. Chanting / สวดมนต์
-var chanting []TopContent
-db.Table("sounds").
-    Select("name, 'Chanting' AS category, SUM(view) AS unique_users").
-    Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
-    Where("sound_types.type = ?", "สวดมนต์").
-    Group("sounds.id, sounds.name").
-    Scan(&chanting)
+    // 7. Like (นับจาก wid)
+    var wordHealing []TopContent
+db.Table("likes").
+    Select("w_id AS name, 'WordHealing' AS category, COUNT(DISTINCT uid) AS unique_users").
+    Group("w_id").
+    Scan(&wordHealing)
 
 
-
-
-    // รวมทุกประเภท
+    // รวมผลลัพธ์
     results = append(results, wordHealing...)
     results = append(results, asmr...)
     results = append(results, breathing...)
     results = append(results, mirror...)
     results = append(results, meditation...)
-	results = append(results, chanting...)
+    results = append(results, chanting...)
+    //results = append(results, likes...)
 
     c.JSON(200, gin.H{"results": results})
 }
-
 
 
 
