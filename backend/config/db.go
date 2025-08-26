@@ -124,6 +124,7 @@ func SetupDatabase() {
 		&entity.ArticleType{}, 
 		&entity.QuestionnaireGroupQuestionnaire{},
 		&entity.ProfileAvatar{},
+		&entity.UserActivity{},
 	)
 	if err != nil {
 		log.Fatalf("Error migrating database: %v", err)

@@ -18,6 +18,7 @@ import DashboardMirror from "../pages/admin/dashboard_contents/mirror/dashmirror
 import DashboardAsmr from "../pages/admin/dashboard_contents/asmr/dashasmr";
 import DashboardBreathing from "../pages/admin/dashboard_contents/breathing/dashbreathing";
 import VideoForm from "../pages/admin/meditation/meditation";
+import WebData from "../pages/userdataweb/userdata";
 
 import HomeContents from "../pages/admin/dashboard_contents/home_contents";
 import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
@@ -85,6 +86,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                    path: "/admin/breathing-details",
                   element: <DashboardBreathing />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                 {
+                   path: "/admin/activity",
+                  element: <WebData />, // หน้า Settings ของ Admin DashboardChanting
                 },
                 {
                     path: "/admin/questionnairePage",        // หน้าจัดการเเบบทดสอบ
