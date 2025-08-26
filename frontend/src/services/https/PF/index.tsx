@@ -1,4 +1,4 @@
-import { apiUrl } from "../../../pages/mirror/components/report/utils";
+//import { apiUrl } from "../../../pages/mirror/components/report/utils";
 
 const Authorization = localStorage.getItem("token");
 export const IMG_URL = import.meta.env.VITE_IMG_URL;
@@ -12,7 +12,7 @@ export async function GetALllAvatar() {
   };
 
   try {
-    const response = await fetch(`${apiUrl}/profile`, requestOptions);
+    const response = await fetch(`${IMG_URL}/profile`, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {
