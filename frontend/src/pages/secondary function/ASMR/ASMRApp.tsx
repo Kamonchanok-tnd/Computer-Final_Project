@@ -164,10 +164,7 @@ const ASMRApp: React.FC = () => {
   };
 
   return (
-    <div
-      className="h-screen flex bg-gray-900 relative overflow-hidden"
-      style={{ overflow: "hidden", height: "100%" }}
-    >
+    <div className="min-h-dvh flex bg-gray-900 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <div
