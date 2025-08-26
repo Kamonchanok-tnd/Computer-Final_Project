@@ -1,7 +1,8 @@
 // src/pages/contents/DoctorContactsPage.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState,useRef } from "react";
 import ReactDOM from "react-dom";
 import Headers from "../../layout/HeaderLayout/Header";
+import { logActivity } from "../../services/https/activity";
 import {
   PhoneOutlined,
   EnvironmentOutlined,
@@ -91,6 +92,7 @@ const Chip = ({
     {children}
   </button>
 );
+
 
 /* ===== Avatar (fallback เป็นบับเบิลไล่สี + ตัวอักษรย่อ) ===== */
 function Avatar({ name, photo }: { name: string; photo?: string }) {
@@ -288,6 +290,22 @@ export default function DoctorContactsPage({
       el.style.padding = "0";
       setContentEl(el);
     }
+  }, []);
+
+  // ✅ ใส่ useRef & useEffect สำหรับ logActivity ภายใน component
+  const hasLoggedRef = useRef(false);
+  useEffect(() => {
+    if (hasLoggedRef.current) return;
+    hasLoggedRef.current = true;
+
+    const uid = Number(localStorage.getItem("id"));
+    if (!uid) return;
+
+    logActivity({
+      uid,
+      action: "visit_page",
+      page: "/doctor",
+    });
   }, []);
 
   return (
