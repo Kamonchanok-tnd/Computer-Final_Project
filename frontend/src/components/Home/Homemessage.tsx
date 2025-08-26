@@ -9,8 +9,9 @@ import {
 } from "../../services/https/message";
 import { BookOpen, Heart } from "lucide-react";
 import { Modal } from "antd";
-import { AiFillHeart, AiOutlineEye, AiOutlineHeart } from "react-icons/ai";
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import healmessage from "../../assets/healmessage.jpg"
+import { useNavigate } from "react-router-dom";
 
 function Homemessage() {
   const [messages, setMessages] = useState<WordHealingContent[]>([]);
@@ -20,6 +21,7 @@ function Homemessage() {
     useState<WordHealingContent | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const navigate = useNavigate();
 
   const fetchMessages = async () => {
     const fetchedMessages = await getAllWordHealingMessagesForUser();
@@ -222,7 +224,8 @@ function Homemessage() {
 
     {/* ปุ่มดูเพิ่มเติม */}
     <div className="flex justify-center">
-      <button className=" dark:text-background-dark bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white  py-2 px-8 rounded-lg transition-all duration-300 cursor-pointer hover:scale-105">
+      <button className=" dark:text-background-dark bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white  py-2 px-8 rounded-lg transition-all duration-300 cursor-pointer hover:scale-105"
+        onClick={() => navigate("/message")}>
         ดูเพิ่มเติม
       </button>
     </div>
