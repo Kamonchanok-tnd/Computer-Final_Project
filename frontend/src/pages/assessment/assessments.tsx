@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Q2Q from "../../assets/assessment/Q2Q.png";
-
 import { useNavigate } from "react-router-dom";
 import {
   fetchQuestions,
@@ -13,7 +12,6 @@ import { AnswerOption } from "../../interfaces/IAnswerOption";
 import { getAllEmotionChoices } from "../../services/https/questionnaire/index";
 import { EmotionChoice } from "../../interfaces/IEmotionChoices";
 
-// ✅ Utils
 const apiUrl = import.meta.env.VITE_API_URL as string;
 
 const joinUrl = (base: string, path: string): string => {
@@ -36,20 +34,15 @@ const Assessments: React.FC = () => {
   const [emotionChoices, setEmotionChoices] = useState<EmotionChoice[]>([]);
   const navigate = useNavigate();
 
-  // ✅ ดึงจาก localStorage
-  const [assessmentResultID, setAssessmentResultID] = useState<number | null>(
-    () => {
-      const storedID = localStorage.getItem("assessmentResultID");
-      return storedID ? parseInt(storedID) : null;
-    }
-  );
-  console.log("🆔 assessmentResultID:", setAssessmentResultID)  ;
+  const [assessmentResultID] = useState<number | null>(() => {
+    const storedID = localStorage.getItem("assessmentResultID");
+    return storedID ? parseInt(storedID) : null;
+  });
 
-  const [targetQuID, setTargetQuID] = useState<number | null>(() => {
+  const [targetQuID] = useState<number | null>(() => {
     const storedQuID = localStorage.getItem("questionnaireID");
     return storedQuID ? parseInt(storedQuID) : null;
   });
-  console.log("🆔 targetQuID:", setTargetQuID);
 
   useEffect(() => {
     const loadData = async () => {
@@ -57,7 +50,6 @@ const Assessments: React.FC = () => {
         const qRes = await fetchQuestions();
         const aRes = await fetchAnswerOptions();
 
-        // ✅ เช็กว่ามีข้อมูลครบไหม
         if (!assessmentResultID || !targetQuID) {
           alert("ไม่พบข้อมูลแบบสอบถาม กรุณาเริ่มใหม่อีกครั้ง");
           navigate("/");
@@ -111,45 +103,54 @@ const Assessments: React.FC = () => {
   };
 
   const handleNext = async () => {
-  const question = questions[current];
-  const aoid = answers[current];
+    const question = questions[current];
+    const aoid = answers[current];
 
-  if (assessmentResultID != null && aoid != null) {
-    const answer = answerOptions.find((opt) => opt.id === aoid);
-    if (answer) {
-      const payload = {
-        arid: assessmentResultID,
-        qid: question.id,
-        answerOptionID: answer.id!,
-        point: answer.point,
-        question_number: current + 1, // ✅ จุดที่ต้องถูกส่งไป
-      };
+    if (assessmentResultID != null && aoid != null) {
+      const answer = answerOptions.find((opt) => opt.id === aoid);
+      if (answer) {
+        const payload = {
+          arid: assessmentResultID,
+          qid: question.id,
+          answerOptionID: answer.id!,
+          point: answer.point,
+          question_number: current + 1,
+        };
 
-      console.log("📤 ส่งข้อมูล submitAnswer:", payload); // ✅ Log ตรงนี้
-
-      await submitAnswer(payload);
+        console.log("📤 ส่งข้อมูล submitAnswer:", payload);
+        await submitAnswer(payload);
+      }
     }
-  }
 
-  if (current < questions.length - 1) {
-    setCurrent(current + 1);
-  } else {
-    if (assessmentResultID != null) {
-      const transaction = await finishAssessment(assessmentResultID); // ✅ ได้ transaction
-      navigate("/result", {
-        state: {
-          answers,
-          questions,
-          transaction, // ✅ ส่ง transaction ไปด้วย
-        },
-      });
-      console.log("✅ ส่งคำตอบทั้งหมดและรับ:", answers, questions, transaction); // ✅ Log ตรงนี้
+    if (current < questions.length - 1) {
+      setCurrent(current + 1);
+    } else {
+      if (assessmentResultID != null) {
+        const transaction = await finishAssessment(assessmentResultID);
+        console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
+        navigate("/result", {
+          state: { answers, questions, transaction },
+        });
+      }
     }
-  }
-}
+  };
+
+  // ✅ ฟัง keydown (Enter / Space)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.key === "Enter" || e.code === "Space") &&
+        answers[current] !== null
+      ) {
+        e.preventDefault(); // กัน scroll หรือ submit ฟอร์ม
+        handleNext();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [answers, current, questions]);
 
   const currentQuestion = questions[current];
-
   if (!currentQuestion) {
     return (
       <div className="min-h-screen flex items-center justify-center text-lg">
@@ -163,7 +164,7 @@ const Assessments: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-100 to-white flex flex-col items-center pt-10 px-4">
+    <div className="fixed inset-0 z-[2147483647] min-h-screen bg-gradient-to-b from-sky-100 to-white flex flex-col items-center pt-10 px-4">
       {questions.length > 1 && (
         <div className="grid grid-cols-[repeat(auto-fit,_minmax(1.5rem,_1fr))] gap-2 max-w-md w-full mb-6 px-2">
           {questions.map((_, index) => {
@@ -173,8 +174,7 @@ const Assessments: React.FC = () => {
             return (
               <div
                 key={index}
-                className={`
-                  w-6 h-6 flex items-center justify-center rounded-full border-2 text-xs font-bold
+                className={`w-6 h-6 flex items-center justify-center rounded-full border-2 text-xs font-bold
                   ${
                     isCompleted
                       ? "bg-green-500 border-green-500 text-white"
@@ -185,8 +185,7 @@ const Assessments: React.FC = () => {
                     !isCompleted && !isCurrent
                       ? "bg-white border-blue-300 text-blue-300"
                       : ""
-                  }
-                `}
+                  }`}
               >
                 {isCompleted ? "✓" : index + 1}
               </div>
@@ -206,7 +205,6 @@ const Assessments: React.FC = () => {
           const emotionChoice = emotionChoices.find(
             (e) => e.id === opt.EmotionChoiceID
           );
-
           const imageSrc = emotionChoice?.picture
             ? buildImageSrc(emotionChoice.picture)
             : "";

@@ -260,8 +260,8 @@ func main() {
 		userRouter.POST("/assessment/finish/:id", assessment.FinishAssessment)
 		userRouter.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
 		userRouter.GET("/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)
-		userRouter.GET("/questionnaire-groups/available", assessment.GetAvailableGroupsForUser)
-		userRouter.GET("/assessments/next", assessment.GetNextQuestionnaire)
+		userRouter.GET("/assessments/available-next", assessment.GetAvailableGroupsAndNextQuestionnaire)
+
 
 		//chat space
 		userRouter.POST("/gemini", controller.GeminiHistory)

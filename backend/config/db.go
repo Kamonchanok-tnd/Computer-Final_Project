@@ -637,7 +637,7 @@ func SeedCriteriaAndCalculations(db *gorm.DB) {
 		{Description: "มีอาการของโรคซึมเศร้า ระดับปานกลาง", MinCriteriaScore: 13 ,MaxCriteriaScore: 18},
 		{Description: "มีอาการของโรคซึมเศร้า ระดับรุนแรง", MinCriteriaScore: 19 ,MaxCriteriaScore: 27},
 
-		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 1 ,MaxCriteriaScore: 15},
+		{Description: "ขาดสติ ในขณะนั้น", MinCriteriaScore: 0 ,MaxCriteriaScore: 15},
 		{Description: "มีสติ อยู่กับปัจจุบัน", MinCriteriaScore: 16 ,MaxCriteriaScore: 30},
 		
 		{Description: "ไม่มีความสุขเลย", MinCriteriaScore: 0 ,MaxCriteriaScore: 0},
@@ -802,7 +802,12 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 		Description        string
 		QuestionnaireNames []string
 		FrequencyDays      *uint
+		TriggerType   *string
 	}
+
+	TriggerTypeOnLogin := "onLogin"
+	TriggerTypeAfterChat := "afterChat"
+	TriggerTypeInterval := "interval"
 
 	groups := []GroupInput{
 		{
@@ -816,6 +821,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 				"แบบคัดกรองโรคซึมเศร้า 9Q",
 			},
 			FrequencyDays: nil,
+			TriggerType:   &TriggerTypeOnLogin,
 		},
 		{
 			Name:        "Post-test",
@@ -826,6 +832,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 				"แบบวัดระดับความเครียด (ST-5)",
 			},
 			FrequencyDays: nil,
+			TriggerType:   &TriggerTypeAfterChat,
 		},
 		{
 			Name:        "Post-test2weeks",
@@ -838,6 +845,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 				"แบบคัดกรองโรคซึมเศร้า 9Q",
 			},
 			FrequencyDays: func() *uint { v := uint(14); return &v }(),
+			TriggerType:   &TriggerTypeInterval,
 		},
 	}
 
@@ -847,6 +855,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 			Name:          group.Name,
 			Description:   group.Description,
 			FrequencyDays: group.FrequencyDays,
+			TriggerType:   group.TriggerType,
 		}
 		if err := db.Create(&qGroup).Error; err != nil {
 			log.Fatalf("ไม่สามารถสร้างกลุ่มแบบสอบถาม: %v", err)

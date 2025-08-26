@@ -13,7 +13,7 @@ type Questionnaire struct {
 
 	ConditionOnID     *uint   // ถ้ามีแบบสอบถามก่อนหน้า เช่น 2Q
 	ConditionScore    *int    // คะแนนจากแบบสอบถามก่อนหน้า ≥ เท่าไหร่ถึงแสดง
-	ConditionType     *string // เงื่อนไขที่เลือก: มากกว่า, น้อยกว่า, เท่ากับ
+	ConditionType     *string // เงื่อนไขที่เลือก: เท่ากับหรือมากกว่า, น้อยกว่า
 	
 
 	Users      	Users      `gorm:"foreignKey:UID"`
