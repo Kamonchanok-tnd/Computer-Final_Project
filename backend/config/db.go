@@ -136,9 +136,9 @@ func SetupDatabase() {
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
 	CreateDefaultEmotionChoices(db)
-	// SeedQuestionnaires(db)
-	// SeedQuestionnaireGroups(db)
-	// SeedCriteriaAndCalculations(db)
+	SeedQuestionnaires(db)
+	SeedQuestionnaireGroups(db)
+	SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	CreateArticleTypes(db)
 	SeedEmojis(db)
@@ -835,7 +835,7 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 			TriggerType:   &TriggerTypeAfterChat,
 		},
 		{
-			Name:        "Post-test2weeks",
+			Name:        "Post-test Interval",
 			Description: "หลังใช้แอปพลิเคชัน 2 สัปดาห์",
 			QuestionnaireNames: []string{
 				"แบบวัดระดับความสุข คะแนน 0-10",
@@ -846,6 +846,13 @@ func SeedQuestionnaireGroups(db *gorm.DB) {
 			},
 			FrequencyDays: func() *uint { v := uint(14); return &v }(),
 			TriggerType:   &TriggerTypeInterval,
+		},
+		{
+			Name:        "Personal",
+			Description: "ผู้ใช้ต้องการทำด้วยตัวเอง",
+			QuestionnaireNames: nil,
+			FrequencyDays: nil,
+			TriggerType:   nil,
 		},
 	}
 
