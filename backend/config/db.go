@@ -124,6 +124,7 @@ func SetupDatabase() {
 		&entity.ArticleType{}, 
 		&entity.QuestionnaireGroupQuestionnaire{},
 		&entity.ProfileAvatar{},
+		&entity.UserActivity{},
 	)
 	if err != nil {
 		log.Fatalf("Error migrating database: %v", err)
@@ -136,9 +137,9 @@ func SetupDatabase() {
 	SeedConversations(db)
 	SeedHealjaiPrompt(db)
 	CreateDefaultEmotionChoices(db)
-	// SeedQuestionnaires(db)
-	// SeedQuestionnaireGroups(db)
-	// SeedCriteriaAndCalculations(db)
+	SeedQuestionnaires(db)
+	SeedQuestionnaireGroups(db)
+	SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	CreateArticleTypes(db)
 	SeedEmojis(db)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback,useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import ChatBan from "../../components/Home/ChatBan";
 import Question from "../../components/Home/Question";
@@ -11,7 +11,7 @@ import Homemiror from "../../components/Home/Homemiror";
 import Homemessage from "../../components/Home/Homemessage";
 import Homedoctor from "../../components/Home/Homedoctor";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment";
-
+import { logActivity } from "../../services/https/activity";
 function Home() {
   const navigate = useNavigate();
 
@@ -92,14 +92,24 @@ function Home() {
       navigate(`/assessment/${popupData.groupId}/${popupData.quid}`, { replace: false });
     }
   }, [showPopup, popupData, navigate]);
+  const hasLoggedRef = useRef(false); // ref เพื่อตรวจสอบว่า log แล้วหรือยัง
+
+  useEffect(() => {
+    if (hasLoggedRef.current) return; // ถ้าเรียกแล้ว → ข้าม
+    hasLoggedRef.current = true;       // บันทึกว่าเรียกแล้ว
+
+    const uid = Number(localStorage.getItem("id"));
+    if (!uid) return;
+
+    logActivity({
+      uid,
+      action: "visit_page",
+      page: "/home",
+    });
+  }, []);
 
   return (
     <div className="bg-[#F4FFFF] relative dark:bg-background-dark ">
-      {/* ⛔ ไม่ต้องเรนเดอร์ <MoodPopup /> ตรงนี้แล้ว — ไปที่ route แทน */}
-      {/* {showPopup && popupData && (
-        <MoodPopup groupId={popupData.groupId} quid={popupData.quid} />
-      )} */}
-
       <ChatBan />
       <Question />
       {/* <HomeMeditation /> */}

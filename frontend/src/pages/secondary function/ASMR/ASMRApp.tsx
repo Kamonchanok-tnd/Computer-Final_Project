@@ -238,7 +238,7 @@ const ASMRApp: React.FC = () => {
             className="absolute inset-0 z-30 bg-black/50"
             onClick={() => setActivePanel(null)}
           />
-          <div className="absolute left-20 top-1/2 transform -translate-y-1/2 z-40 w-80 max-h-[80vh] bg-black/30 backdrop-blur-xl border border-white/20 rounded-2xl p-6 overflow-y-auto">
+          <div className="absolute left-20 top-1/2 transform -translate-y-1/2 z-40 w-80 max-h-[80vh] bg-black/30 backdrop-blur-xl border border-white/20 rounded-2xl p-6 overflow-y-auto scrollbar-hide">
             <button
               onClick={() => setActivePanel(null)}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"

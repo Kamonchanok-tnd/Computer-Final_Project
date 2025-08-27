@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Headphones, PenTool, Book, Waves } from "lucide-react";
 
 import asmr from "../../assets/asmr.png";
-import miror from "../../assets/miror.jpg";
-import pray from "../../assets/pray.jpg";
-import meditate from "../../assets/pray.jpg";
+import miror from "../../assets/miror.png";
+import pray from "../../assets/prey.png";
+import meditate from "../../assets/maditation.png";
 
 interface Slide {
   img: string;

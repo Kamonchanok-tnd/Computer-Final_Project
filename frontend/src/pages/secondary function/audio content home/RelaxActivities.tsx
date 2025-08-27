@@ -8,10 +8,10 @@ import {
   PenTool,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import userImage from "../../../assets/user.png";
 import { GetUsersById } from "../../../services/https/login";
-
+import { logActivity } from "../../../services/https/activity";
 function RelaxActivities() {
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
@@ -32,6 +32,23 @@ function RelaxActivities() {
       getUserById(userId);
     }
   }, [userId]);
+
+  const hasLoggedRef = useRef(false); // ref เพื่อตรวจสอบว่า log แล้วหรือยัง
+  
+    useEffect(() => {
+      if (hasLoggedRef.current) return; // ถ้าเรียกแล้ว → ข้าม
+      hasLoggedRef.current = true;       // บันทึกว่าเรียกแล้ว
+  
+      const uid = Number(localStorage.getItem("id"));
+      if (!uid) return;
+  
+      logActivity({
+        uid,
+        action: "visit_page",
+        page: "/audiohome",
+      });
+    }, []);
+  
 
   const activities = [
     {
@@ -72,12 +89,12 @@ function RelaxActivities() {
   ];
 
   return (
-    <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white to-[#C2F4FF] font-ibmthai">
+    <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white dark:from-transparent to-[#C2F4FF] dark:to-[#C2F4FF]/30 font-ibmthai">
       {/* Greeting bubble */}
       <div className="w-full max-w-4xl relative mb-20">
-        <div className="bg-[#E6F9FF] rounded-xl p-4 w-[75%] shadow-sm">
-          <p className="font-bold text-gray-900 mb-1">สวัสดี {username || "..."}</p>
-          <p className="text-gray-800 text-base leading-relaxed">
+        <div className="bg-[#E6F9FF] rounded-xl p-4 w-[75%] shadow-sm dark:bg-chat-dark">
+          <p className="font-bold text-gray-900 mb-1 dark:text-text-dark">สวัสดี {username || "..."}</p>
+          <p className="text-gray-800 text-base leading-relaxed dark:text-text-dark">
             Heal Jai ให้ใจได้พัก เมื่อทุกอย่างมันเยอะไป ลองแวะมาพักที่ SUT HealJai
             เรามีกิจกรรมสบาย ๆ และข้อความดี ๆ ที่พร้อมอยู่ข้างคุณเสมอ
           </p>
@@ -102,7 +119,7 @@ function RelaxActivities() {
       </div>
 
       <div className="w-full max-w-4xl mb-4">
-        <h2 className="text-xl font-bold text-gray-800">กิจกรรมผ่อนคลาย</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-text-dark">กิจกรรมผ่อนคลาย</h2>
       </div>
 
       {/* Activities grid */}

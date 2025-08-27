@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { TotalUseChat } from '../../services/https/Chat';
 
 type Doctor = {
   id: string;
@@ -43,6 +44,9 @@ interface DoctorCardProps {
 }
 
 const DoctorCard: React.FC<DoctorCardProps> = ({ doctor }) => {
+
+
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border-t-8 border-button-blue  p-6 text-center hover:shadow-md transition-shadow">
       {/* Doctor Photo */}

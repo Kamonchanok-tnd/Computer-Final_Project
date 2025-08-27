@@ -157,6 +157,19 @@ func SignIn(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Error signing token"})
         return
     }
+    
+    // ✅ บันทึก login activity เฉพาะ role = "user"
+    if user.Role == "user" {
+        activity := entity.UserActivity{
+            UID:    user.ID,
+            Action: "login",
+            Page:   "/login",
+        }
+
+        if err := config.DB().Create(&activity).Error; err != nil {
+            fmt.Println("Failed to log activity:", err)
+        }
+    }
 
     c.JSON(http.StatusOK, gin.H{"token_type": "Bearer", "token": signedToken, "id": user.ID, "role": user.Role})
 }

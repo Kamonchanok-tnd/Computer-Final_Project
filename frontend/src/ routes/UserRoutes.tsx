@@ -15,7 +15,7 @@ import RelaxActivities from "../pages/secondary function/audio content home/Rela
 
 import Assessments from "../pages/assessment/assessments";
 import Result from "../pages/assessment/result.tsx";
-import MoodPopup from "../components/assessment/MoodPopup";
+
 import AssessmentDashboard from "../pages/assessment/dashboard";
 import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
@@ -32,6 +32,7 @@ import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
 
 import UserMessagePage from "../pages/secondary function/message/userMessagePage";
 import PlayerPlaylistMeditation from "../pages/secondary function/meditation/playermeditation/playerplaylistmeditation.tsx";
+import MoodPopup from "../components/assessment/MoodPopup.tsx";
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
   lazy(() => import("../pages/users/edit_user/edituser"))
