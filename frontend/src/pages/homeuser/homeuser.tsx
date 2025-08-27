@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import ChatBan from "../../components/Home/ChatBan";
 import Question from "../../components/Home/Question";
 import Activity from "../../components/Home/Activity";
 import Footer from "../../components/Home/Footer";
-import MoodPopup from "../../components/assessment/MoodPopup";
 import HomeMeditation from "../../components/Home/Homemedation";
 import HomeChanting from "../../components/Home/Homechanting";
 import Homeasmr from "../../components/Home/Homeasmr";
@@ -13,6 +13,8 @@ import Homedoctor from "../../components/Home/Homedoctor";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment";
 
 function Home() {
+  const navigate = useNavigate();
+
   const [showPopup, setShowPopup] = useState(false);
   const [popupData, setPopupData] = useState<{ groupId: number; quid: number } | null>(null);
   const [checking, setChecking] = useState(false);
@@ -41,7 +43,7 @@ function Home() {
 
       if (found && found.next) {
         // ⏳ ยัง “available” แปลว่ายังไม่ได้ทำ → ต้องแสดง popup
-        console.log("🟢 onLogin ยังไม่ทำ → โชว์ popup", found);
+        console.log("🟢 onLogin ยังไม่ทำ → เตรียมนำทางไป popup", found);
         setPopupData({ groupId: found.id, quid: found.next.id });
         setShowPopup(true);
       } else {
@@ -78,17 +80,25 @@ function Home() {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [checkOnLoginGroup]);
+
+  // เลื่อนขึ้นบนสุดเมื่อเข้าหน้า
   useEffect(() => {
-    
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  // 🔁 ถ้าเงื่อนไขให้แสดง popup → นำทางไป route ใหม่ /assessment/:groupId/:quid
+  useEffect(() => {
+    if (showPopup && popupData) {
+      navigate(`/assessment/${popupData.groupId}/${popupData.quid}`, { replace: false });
+    }
+  }, [showPopup, popupData, navigate]);
+
   return (
     <div className="bg-[#F4FFFF] relative dark:bg-background-dark ">
-      {/* ✅ Popup จะถูกแสดง “ตราบใดที่” onLogin ยัง available */}
-      {showPopup && popupData && (
+      {/* ⛔ ไม่ต้องเรนเดอร์ <MoodPopup /> ตรงนี้แล้ว — ไปที่ route แทน */}
+      {/* {showPopup && popupData && (
         <MoodPopup groupId={popupData.groupId} quid={popupData.quid} />
-      )}
+      )} */}
 
       <ChatBan />
       <Question />

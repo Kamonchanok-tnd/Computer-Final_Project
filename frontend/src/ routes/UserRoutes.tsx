@@ -142,8 +142,8 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         },
         //assessment
         {
-          path: "/assessment", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <MoodPopup /> : <Navigate to="/" />, //
+          path: "/assessment/:groupId/:quid",
+          element: isLoggedIn ? <MoodPopup /> : <Navigate to="/" />,
         },
         {
           path: "/assessments", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
