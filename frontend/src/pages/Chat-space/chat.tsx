@@ -10,7 +10,7 @@ import ChatHeader from '../../components/Chat.tsx/ChatHeader';
 import ChatInput from '../../components/Chat.tsx/ChatInput';
 import { Modal } from 'antd';
 import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
-
+import { logActivity } from '../../services/https/activity';
 
 interface ChatbotProps {
   isNewChatDefault?: boolean;
@@ -57,6 +57,22 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     scrollToBottom();
     
   }, [typingText, messages,isNewChat]);
+
+  const hasLoggedRef = useRef(false); // ref เพื่อตรวจสอบว่า log แล้วหรือยัง
+
+  useEffect(() => {
+    if (hasLoggedRef.current) return; // ถ้าเรียกแล้ว → ข้าม
+    hasLoggedRef.current = true;       // บันทึกว่าเรียกแล้ว
+
+    const uid = Number(localStorage.getItem("id"));
+    if (!uid) return;
+
+    logActivity({
+      uid,
+      action: "visit_page",
+      page: "/chat",
+    });
+  }, []);
 
   // API Functions
 

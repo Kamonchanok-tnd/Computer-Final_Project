@@ -14,6 +14,7 @@ import (
 	controller "sukjai_project/controller/chat_space"
 	"sukjai_project/controller/emotion"
 	"sukjai_project/controller/asmr"
+	"sukjai_project/controller/useractivity"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
@@ -198,6 +199,9 @@ func main() {
 
 		//นับคนใช้ chatspace
 		router.GET("/chat_rooms/count_uid", controller.TotalUser)
+
+		router.GET("/visit-frequency", useractivity.GetVisitFrequency)
+		router.GET("/retention-rate", useractivity.GetRetentionRate)
 	
 
 	
@@ -272,15 +276,23 @@ func main() {
 		userRouter.GET("/conversation/:id", controller.GetConversationHistory)
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
+<<<<<<< HEAD
 		// userRouter.GET("/recent", controller.GetRecentChat)
 		
 
+=======
+		// userRouter.GET("/recent", controller.GetRecentChat). LogActivity
+>>>>>>> origin/main
 
 		//profile
 		userRouter.GET("/profile", profileavatar.GetAllProfile)
 
 		//asmr
 		userRouter.POST("/createasmr", asmr.CreateASMR)
+
+		//log ข้อมูล
+		userRouter.POST("/activity", useractivity.LogActivity)
+
 
 	
 	}

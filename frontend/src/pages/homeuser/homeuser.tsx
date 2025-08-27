@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback,useRef} from "react";
 import ChatBan from "../../components/Home/ChatBan";
 import Question from "../../components/Home/Question";
 import Activity from "../../components/Home/Activity";
@@ -11,7 +11,7 @@ import Homemiror from "../../components/Home/Homemiror";
 import Homemessage from "../../components/Home/Homemessage";
 import Homedoctor from "../../components/Home/Homedoctor";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment";
-
+import { logActivity } from "../../services/https/activity";
 function Home() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupData, setPopupData] = useState<{ groupId: number; quid: number } | null>(null);
@@ -81,6 +81,22 @@ function Home() {
   useEffect(() => {
     
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const hasLoggedRef = useRef(false); // ref เพื่อตรวจสอบว่า log แล้วหรือยัง
+
+  useEffect(() => {
+    if (hasLoggedRef.current) return; // ถ้าเรียกแล้ว → ข้าม
+    hasLoggedRef.current = true;       // บันทึกว่าเรียกแล้ว
+
+    const uid = Number(localStorage.getItem("id"));
+    if (!uid) return;
+
+    logActivity({
+      uid,
+      action: "visit_page",
+      page: "/home",
+    });
   }, []);
 
   return (

@@ -8,10 +8,10 @@ import {
   PenTool,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef } from "react";
 import userImage from "../../../assets/user.png";
 import { GetUsersById } from "../../../services/https/login";
-
+import { logActivity } from "../../../services/https/activity";
 function RelaxActivities() {
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
@@ -32,6 +32,23 @@ function RelaxActivities() {
       getUserById(userId);
     }
   }, [userId]);
+
+  const hasLoggedRef = useRef(false); // ref เพื่อตรวจสอบว่า log แล้วหรือยัง
+  
+    useEffect(() => {
+      if (hasLoggedRef.current) return; // ถ้าเรียกแล้ว → ข้าม
+      hasLoggedRef.current = true;       // บันทึกว่าเรียกแล้ว
+  
+      const uid = Number(localStorage.getItem("id"));
+      if (!uid) return;
+  
+      logActivity({
+        uid,
+        action: "visit_page",
+        page: "/audiohome",
+      });
+    }, []);
+  
 
   const activities = [
     {

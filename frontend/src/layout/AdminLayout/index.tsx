@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined} from '@ant-design/icons';
+import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined } from '@ant-design/icons';
 const { Header, Content, Sider } = Layout;
 import './index.css';
 import { useUser } from "../HeaderLayout/UserContext";
@@ -98,6 +98,9 @@ const AdminLayout = () => {
             </Menu.Item>
             <Menu.Item key="/admin/dashboard/contents" icon={<ScheduleOutlined/>}> 
               <Link to="/admin/dashboard/contents">Contents</Link> 
+            </Menu.Item>
+            <Menu.Item key="/admin/activity" icon={<FundOutlined/>}> 
+              <Link to="/admin/activity">Visitor Data</Link> 
             </Menu.Item>
           </Menu>
         </Sider>
