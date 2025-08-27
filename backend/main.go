@@ -276,13 +276,7 @@ func main() {
 		userRouter.GET("/conversation/:id", controller.GetConversationHistory)
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
-<<<<<<< HEAD
-		// userRouter.GET("/recent", controller.GetRecentChat)
-		
-
-=======
 		// userRouter.GET("/recent", controller.GetRecentChat). LogActivity
->>>>>>> origin/main
 
 		//profile
 		userRouter.GET("/profile", profileavatar.GetAllProfile)
