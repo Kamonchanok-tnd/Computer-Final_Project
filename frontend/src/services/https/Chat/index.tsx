@@ -6,6 +6,10 @@ const Authorization = localStorage.getItem("token");
 const Bearer = localStorage.getItem("token_type");
 export async function ChatGemini(data: IConversation) {
 
+  if (!Authorization || !Bearer) {
+    console.error("Missing token or token_type in localStorage");
+    return;
+  }
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   myHeaders.append("Authorization", `Bearer ${Authorization}`);
@@ -130,3 +134,28 @@ export async function RecentChat(id: number) { //เอาไว้ดู ห้
   }
 }
 
+export async function TotalUseChat() {
+  
+
+  if (!Authorization || !Bearer) {
+    console.error("Missing token or token_type in localStorage");
+    return;
+  }
+
+  const requestOptions = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `${Bearer} ${Authorization}`,
+    },
+  };
+
+  try {
+    const response = await fetch(`${apiUrl}/chat_rooms/count_uid`, requestOptions);
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

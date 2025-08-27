@@ -83,6 +83,7 @@ func main() {
 	r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
 	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
 	r.GET("/recent", controller.GetRecentChat)
+	
 
 	// Protect routes with role-based access
 	router := r.Group("/")
@@ -196,6 +197,8 @@ func main() {
 		router.GET("/summarycontents", dashboardcontents.GetTopContentComparison)
 		router.GET("/sound/four-type", dashboardcontents.GetSoundFourType)  
 
+		//นับคนใช้ chatspace
+		router.GET("/chat_rooms/count_uid", controller.TotalUser)
 
 		router.GET("/visit-frequency", useractivity.GetVisitFrequency)
 		router.GET("/retention-rate", useractivity.GetRetentionRate)
