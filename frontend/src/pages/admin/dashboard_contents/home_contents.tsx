@@ -516,9 +516,9 @@ summaryData.push({
           <MirrorCard onViewMore={() => navigate("/admin/mirror-details")} />
           {/* <ASMRCard onViewMore={() => navigate("/admin/asmr-details")} />
           <BreathingCard onViewMore={() => navigate("/admin/breathing-details")} /> */}
-          <div className="bg-white rounded-2xl p-4 shadow-md flex items-center justify-center text-gray-400">
+          {/* <div className="bg-white rounded-2xl p-4 shadow-md flex items-center justify-center text-gray-400">
             ยังไม่มีข้อมูล
-          </div>
+          </div> */}
         </div>
       </main>
     </div>
