@@ -61,7 +61,7 @@ const MirrorCard: React.FC<MirrorCardProps> = ({
     <div className={`rounded-2xl p-4 shadow-md ${className} relative`}>
       <h2 className="font-semibold mb-2 flex items-center justify-between">
         {title}
-        {onViewMore && (
+        {/* {onViewMore && (
           <button
             onClick={onViewMore}
             className="p-2 rounded-full bg-white/50 hover:bg-purple-300 transition flex justify-center items-center"
@@ -69,7 +69,7 @@ const MirrorCard: React.FC<MirrorCardProps> = ({
           >
             <EllipsisOutlined className="text-white text-lg" />
           </button>
-        )}
+        )} */}
       </h2>
 
       {/* Month Picker */}

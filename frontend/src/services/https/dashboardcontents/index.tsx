@@ -106,6 +106,8 @@ export const getMonthlyMirrorUsage = async (): Promise<MonthlyMirrorUsage[]> => 
 export interface DailyVideoUsage {
   date: string;
   view_count: number;
+  sound_name ?: string
+  play_count ?: number
 }
 
 // ASMR Usage

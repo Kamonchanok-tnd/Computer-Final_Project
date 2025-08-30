@@ -54,7 +54,7 @@ func GetSoundChanting(c *gin.Context) {
         Select("DATE(histories.created_at) as date, sound_types.type as category, sounds.name as sound_name, COUNT(*) as play_count").
         Joins("JOIN sounds ON sounds.id = histories.s_id").
         Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
-        Where("sound_types.type = ?", "สวดมนต์"). // ✅ ดึงเฉพาะ type = สมาธิ
+        Where("sound_types.type = ?", "สวดมนต์"). 
         Group("DATE(histories.created_at), sound_types.type, sounds.name").
         Order("DATE(histories.created_at) ASC").
         Scan(&results).Error
@@ -230,47 +230,102 @@ type DailyVideoUsage struct {
 }
 
 // GET /videos/daily-asmr
+// func GetDailyASMRUsage(c *gin.Context) {
+// 	db := config.DB()
+// 	var results []DailyVideoUsage
+
+// 	err := db.Model(&entity.Sound{}).
+// 		Select("DATE(sounds.created_at) as date, SUM(sounds.view) as view_count").
+// 		Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+// 		Where("sound_types.type = ?", "ASMR").
+// 		Group("DATE(sounds.created_at)").
+// 		Order("DATE(sounds.created_at) ASC").
+// 		Scan(&results).Error
+
+// 	if err != nil {
+// 		c.JSON(500, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(200, gin.H{"results": results})
+//}
 func GetDailyASMRUsage(c *gin.Context) {
-	db := config.DB()
-	var results []DailyVideoUsage
-
-	err := db.Model(&entity.Sound{}).
-		Select("DATE(sounds.created_at) as date, SUM(sounds.view) as view_count").
-		Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
-		Where("sound_types.type = ?", "ASMR").
-		Group("DATE(sounds.created_at)").
-		Order("DATE(sounds.created_at) ASC").
-		Scan(&results).Error
-
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(200, gin.H{"results": results})
-}
-
-
-// GET /videos/daily-breathing
-func GetDailyBreathingUsage(c *gin.Context) {
     db := config.DB()
-    var results []DailyVideoUsage
+    var results []DailySoundUsage
 
-    err := db.Model(&entity.Sound{}).
-        Select("DATE(sounds.created_at) as date, SUM(sounds.view) as view_count").
+    err := db.Model(&entity.History{}).
+        Select("DATE(histories.created_at) as date, sound_types.type as category, sounds.name as sound_name, COUNT(*) as play_count").
+        Joins("JOIN sounds ON sounds.id = histories.s_id").
         Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
-        Where("sound_types.type = ?", "ฝึกหายใจ").
-        Group("DATE(sounds.created_at)").
-        Order("DATE(sounds.created_at) ASC").
+        Where("sound_types.type = ?", "asmr"). 
+        Group("DATE(histories.created_at), sound_types.type, sounds.name").
+        Order("DATE(histories.created_at) ASC").
         Scan(&results).Error
 
     if err != nil {
-        c.JSON(500, gin.H{"error": err.Error()})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
-    c.JSON(200, gin.H{"results": results})
+    if len(results) == 0 {
+        c.JSON(http.StatusOK, gin.H{"message": "No data found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"debug": "ok", "results": results})
 }
+
+
+
+
+
+// GET /videos/daily-breathing
+// func GetDailyBreathingUsage(c *gin.Context) {
+//     db := config.DB()
+//     var results []DailyVideoUsage
+
+//     err := db.Model(&entity.Sound{}).
+//         Select("DATE(sounds.created_at) as date, SUM(sounds.view) as view_count").
+//         Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+//         Where("sound_types.type = ?", "ฝึกหายใจ").
+//         Group("DATE(sounds.created_at)").
+//         Order("DATE(sounds.created_at) ASC").
+//         Scan(&results).Error
+
+//     if err != nil {
+//         c.JSON(500, gin.H{"error": err.Error()})
+//         return
+//     }
+
+//     c.JSON(200, gin.H{"results": results})
+// }
+
+func GetDailyBreathingUsage(c *gin.Context) {
+    db := config.DB()
+    var results []DailySoundUsage
+
+    err := db.Model(&entity.History{}).
+        Select("DATE(histories.created_at) as date, sound_types.type as category, sounds.name as sound_name, COUNT(*) as play_count").
+        Joins("JOIN sounds ON sounds.id = histories.s_id").
+        Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
+        Where("sound_types.type = ?", "ฝึกหายใจ"). 
+        Group("DATE(histories.created_at), sound_types.type, sounds.name").
+        Order("DATE(histories.created_at) ASC").
+        Scan(&results).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    if len(results) == 0 {
+        c.JSON(http.StatusOK, gin.H{"message": "No data found"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"debug": "ok", "results": results})
+}
+
 
 
 

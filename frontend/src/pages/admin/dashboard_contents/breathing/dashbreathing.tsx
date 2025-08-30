@@ -7,86 +7,161 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import {
-  getDailyBreathingUsage,
-  DailyVideoUsage,
-} from "../../../../services/https/dashboardcontents";
+import { DatePicker, ConfigProvider } from "antd";
+import thTH from "antd/locale/th_TH";
+import dayjs, { Dayjs } from "dayjs";
+import "dayjs/locale/th";
+
+// import service
+import { getDailyBreathingUsage, DailyVideoUsage } from "../../../../services/https/dashboardcontents";
+
+dayjs.locale("th");
+
+interface BreathingData {
+  date: string;
+  day: string;
+  plays?: number;
+  sound_name: string;
+  play_count?: number;
+}
 
 const DashboardBreathing: React.FC = () => {
-  const [breathingData, setBreathingData] = useState<DailyVideoUsage[]>([]);
+  const [breathingData, setBreathingData] = useState<BreathingData[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const res = await getDailyBreathingUsage();
-        setBreathingData(res);
-      } catch (err) {
-        console.error("Error fetching Breathing data:", err);
+      const data: DailyVideoUsage[] = await getDailyBreathingUsage();
+      const formattedData: BreathingData[] = data.map((item) => ({
+        date: item.date,
+        day: new Date(item.date).toLocaleDateString("th-TH", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }),
+        plays: item.play_count,
+        sound_name: item.sound_name || "ไม่ทราบชื่อ Breathing",
+        play_count: item.play_count,
+      }));
+
+      setBreathingData(formattedData);
+      if (formattedData.length > 0) {
+        setSelectedMonth(dayjs(formattedData[formattedData.length - 1].date));
       }
     };
     fetchData();
   }, []);
 
-  const totalViews = breathingData.reduce(
-    (sum, item) => sum + item.view_count,
-    0
-  );
-  const uniqueDays = new Set(breathingData.map((item) => item.date)).size;
-  const avgPerDay =
-    uniqueDays > 0 ? (totalViews / uniqueDays).toFixed(1) : "0";
+  const filteredData = breathingData.filter((item) => {
+    if (!selectedMonth) return true;
+    const d = dayjs(item.date);
+    return d.year() === selectedMonth.year() && d.month() === selectedMonth.month();
+  });
+
+  const totalPlays = filteredData.reduce((sum, item) => sum + (item.plays ?? 0), 0);
+  const uniqueSounds = new Set(filteredData.map((item) => item.sound_name)).size;
+  const uniqueDays = new Set(filteredData.map((item) => item.day)).size;
+  const avgPerDay = uniqueDays > 0 ? (totalPlays / uniqueDays).toFixed(1) : 0;
+
+  const trackCount: Record<string, number> = {};
+  filteredData.forEach((item) => {
+    const plays = item.plays ?? 0;
+    trackCount[item.sound_name] = (trackCount[item.sound_name] || 0) + plays;
+  });
+  const topTracks = Object.entries(trackCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const dailyTotals = filteredData.reduce((acc: Record<string, number>, item) => {
+    const plays = item.plays ?? 0;
+    acc[item.date] = (acc[item.date] || 0) + plays;
+    return acc;
+  }, {});
+  const chartData = Object.entries(dailyTotals).map(([date, plays]) => ({ date, plays }));
 
   return (
-    <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
-          <p className="text-gray-600">รวมการดู</p>
-          <p className="text-2xl font-bold">{totalViews} ครั้ง</p>
+    <ConfigProvider locale={thTH}>
+      <div className="min-h-screen bg-orange-50 text-[#14532D] p-6 space-y-8">
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-8">
+          <div className="bg-[#FFE5B4] rounded-2xl shadow-md p-6 text-center border border-orange-200">
+            <p className="text-gray-600">รวมการเล่น Breathing</p>
+            <p className="text-2xl font-bold text-orange-700">{totalPlays} ครั้ง</p>
+          </div>
+          <div className="bg-[#FFE5B4] rounded-2xl shadow-md p-6 text-center border border-orange-200">
+            <p className="text-gray-600">จำนวนเสียง</p>
+            <p className="text-2xl font-bold text-orange-700">{uniqueSounds} เสียง</p>
+          </div>
+          <div className="bg-[#FFE5B4] rounded-2xl shadow-md p-6 text-center border border-orange-200">
+            <p className="text-gray-600">เฉลี่ยต่อวัน</p>
+            <p className="text-2xl font-bold text-orange-700">{avgPerDay} ครั้ง</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
-          <p className="text-gray-600">เฉลี่ยต่อวัน</p>
-          <p className="text-2xl font-bold">{avgPerDay} ครั้ง</p>
-        </div>
-      </div>
 
-      {/* Trend Line */}
-      <div className="bg-green-100 rounded-2xl shadow-md p-6">
-        <h2 className="font-semibold text-lg mb-4">Trend Line (Breathing ต่อวัน)</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={breathingData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                tickFormatter={(value) =>
-                  new Date(value).toLocaleDateString("th-TH", {
-                    day: "numeric",
-                    month: "short",
-                  })
-                }
-              />
-              <Tooltip
-                labelFormatter={(value) =>
-                  new Date(value).toLocaleDateString("th-TH", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })
-                }
-                formatter={(value: any) => [`${value} ครั้ง`, "views"]}
-              />
-              <Line
-                type="monotone"
-                dataKey="view_count"
-                stroke="#4CAF50"
-                strokeWidth={3}
-                dot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        {/* Top Tracks */}
+        <div className="bg-orange-100 rounded-2xl shadow-md p-6">
+          <h2 className="font-semibold text-lg mb-2 text-orange-800">Top Breathing</h2>
+          <ol className="list-decimal ml-6 space-y-1 text-orange-900">
+            {topTracks.map(([name, count], idx) => (
+              <li key={idx} className="flex justify-between">
+                <span>{name}</span>
+                <span className="font-bold">{count} ครั้ง</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Trend Line */}
+        <div className="bg-orange-50 rounded-2xl shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-lg text-orange-800">
+              Trend Line (Breathing ต่อวัน)
+            </h2>
+            <DatePicker
+              picker="month"
+              value={selectedMonth}
+              onChange={(val) => setSelectedMonth(val)}
+              format="MMMM YYYY"
+              allowClear={false}
+            />
+          </div>
+
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#FFDAB9" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleDateString("th-TH", {
+                      day: "numeric",
+                      month: "short",
+                    })
+                  }
+                />
+                <Tooltip
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString("th-TH", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  }
+                  formatter={(value: any) => [`${value} ครั้ง`, "plays"]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="plays"
+                  stroke="#F97316"
+                  strokeWidth={3}
+                  dot={{ r: 5, fill: "#F97316" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
-    </div>
+    </ConfigProvider>
   );
 };
 

@@ -94,7 +94,7 @@ function Home() {
 
     logActivity({
       uid,
-      action: "visit_page",
+      action: "visit_page_first",
       page: "/home",
     });
   }, []);

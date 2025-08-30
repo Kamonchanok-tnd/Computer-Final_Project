@@ -74,7 +74,6 @@ export default function AdminDashboardContent() {
         <img src={admin} alt="Admin" className="w-13 h-13" />
         แดชบอร์ดเว็บไซต์
       </h2>
-
       {/* Visit Frequency */}
       <div className="bg-white rounded-xl shadow p-4">
         <h2 className="text-xl font-semibold mb-4">ความถี่การเข้าชมเว็บไซต์</h2>

@@ -6,28 +6,38 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { getSoundFourType } from "../../../services/https/dashboardcontents";
-import HomeContents from "./home_contents";
+import { DatePicker } from "antd";
+import moment from "moment";
 
 interface MusicData {
-  month: string; // formatted as "Aug 2025"
+  month: string; // "ส.ค. 2568"
   category: string; // สมาธิ, สวดมนต์, ฝึกหายใจ, asmr
   plays: number;
+  year: number; // ปีสำหรับกรอง
 }
 
 const DashboardContents: React.FC = () => {
   const [musicData, setMusicData] = useState<MusicData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  // mapping category -> route
   const categoryRoutes: Record<string, string> = {
     "สมาธิ": "/admin/meditation-details",
     "สวดมนต์": "/admin/chanting-details",
     "ฝึกหายใจ": "/admin/breathing-details",
     "asmr": "/admin/asmr-details",
+  };
+
+  const categoryColors: Record<string, string> = {
+    "สมาธิ": "#4CAF50",
+    "สวดมนต์": "#2196F3",
+    "ฝึกหายใจ": "#FF9800",
+    "asmr": "#9C27B0",
   };
 
   useEffect(() => {
@@ -36,7 +46,6 @@ const DashboardContents: React.FC = () => {
         const res = await getSoundFourType();
         console.log("Raw data from API (four-type):", res);
 
-        // รวมข้อมูลตามเดือนและประเภท
         const formattedData: MusicData[] = res.reduce((acc: MusicData[], item: any) => {
           const monthStr = new Date(item.year, item.month - 1).toLocaleDateString("th-TH", {
             year: "numeric",
@@ -47,12 +56,18 @@ const DashboardContents: React.FC = () => {
           if (existing) {
             existing.plays += item.play_count;
           } else {
-            acc.push({ month: monthStr, category: item.category, plays: item.play_count });
+            acc.push({ month: monthStr, category: item.category, plays: item.play_count, year: item.year });
           }
           return acc;
         }, []);
 
         setMusicData(formattedData);
+
+        // ตั้งปีล่าสุดเป็น default
+        if (formattedData.length > 0) {
+          const latestYear = Math.max(...formattedData.map(d => d.year));
+          setSelectedYear(latestYear);
+        }
       } catch (err) {
         console.error("Error fetching music data:", err);
       }
@@ -61,26 +76,46 @@ const DashboardContents: React.FC = () => {
     fetchMusicData();
   }, []);
 
-  // รวมจำนวนครั้งทั้งหมด
-  const totalPlays = musicData.reduce((sum, item) => sum + item.plays, 0);
+  // Filter ตามปีที่เลือก
+  const filteredData = selectedYear
+    ? musicData.filter(d => d.year === selectedYear)
+    : musicData;
 
-  // จำนวนประเภทไม่ซ้ำ
-  const uniqueCategories = new Set(musicData.map((item) => item.category)).size;
+  // รวม plays ต่อเดือน (รวมทุก category)
+  const monthlyData = Object.values(
+    filteredData.reduce((acc: Record<string, { month: string; plays: number }>, item) => {
+      if (!acc[item.month]) {
+        acc[item.month] = { month: item.month, plays: 0 };
+      }
+      acc[item.month].plays += item.plays;
+      return acc;
+    }, {})
+  );
 
-  // ค่าเฉลี่ยต่อเดือน
-  const uniqueMonths = new Set(musicData.map((item) => item.month)).size;
+  // Pivot data สำหรับกราฟหลายเส้น
+  const pivotData = Object.values(
+    filteredData.reduce((acc: Record<string, any>, item) => {
+      if (!acc[item.month]) {
+        acc[item.month] = { month: item.month };
+      }
+      acc[item.month][item.category] = (acc[item.month][item.category] || 0) + item.plays;
+      return acc;
+    }, {})
+  );
+
+  const totalPlays = filteredData.reduce((sum, item) => sum + item.plays, 0);
+  const uniqueCategories = new Set(filteredData.map((item) => item.category)).size;
+  const uniqueMonths = new Set(filteredData.map((item) => item.month)).size;
   const avgPerMonth = uniqueMonths > 0 ? (totalPlays / uniqueMonths).toFixed(1) : 0;
 
-  // Top Tracks by category
   const trackCount: Record<string, number> = {};
-  musicData.forEach((item) => {
+  filteredData.forEach((item) => {
     trackCount[item.category] = (trackCount[item.category] || 0) + item.plays;
   });
   const topTracks = Object.entries(trackCount)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
-  // handle click
   const handleCategoryClick = (name: string) => {
     setSelectedCategory(selectedCategory === name ? null : name);
     const route = categoryRoutes[name];
@@ -88,6 +123,8 @@ const DashboardContents: React.FC = () => {
       navigate(route);
     }
   };
+
+  const availableYears = Array.from(new Set(musicData.map(d => d.year))).sort((a, b) => b - a);
 
   return (
     <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">
@@ -135,24 +172,61 @@ const DashboardContents: React.FC = () => {
         </ol>
       </div>
 
-      {/* Trend Line per month */}
-      <div className="bg-green-100 rounded-2xl shadow-md p-6">
-        <h2 className="font-semibold text-lg mb-4">Trend Line (การเล่นต่อเดือน)</h2>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={musicData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <Tooltip formatter={(value: any) => [`${value} ครั้ง`, "เล่น"]} />
-              <Line
-                type="monotone"
-                dataKey="plays"
-                stroke="#4CAF50"
-                strokeWidth={3}
-                dot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      {/* กลุ่มสองการ์ดล่างพร้อม DatePicker */}
+      <div className="space-y-4 bg-white rounded-2xl shadow-md p-6">
+        {/* ตัวเลือกปี */}
+        <div className="flex justify-end">
+          <DatePicker
+            picker="year"
+            value={selectedYear ? moment(String(selectedYear), "YYYY") : null}
+            onChange={(date, dateString) => setSelectedYear(date ? date.year() : null)}
+          />
+        </div>
+
+        {/* Trend Line รวมทุก category */}
+        <div className="bg-green-100 rounded-2xl shadow-md p-6">
+          <h2 className="font-semibold text-lg mb-4">Trend Line (รวมทุก Category ต่อเดือน)</h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <Tooltip formatter={(value: any) => [`${value} ครั้ง`, "เล่น"]} />
+                <Line
+                  type="monotone"
+                  dataKey="plays"
+                  stroke="#4CAF50"
+                  strokeWidth={3}
+                  dot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Trend Line แยกตาม category */}
+        <div className="bg-yellow-100 rounded-2xl shadow-md p-6">
+          <h2 className="font-semibold text-lg mb-4">Trend Line (แยกตาม Category)</h2>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={pivotData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <Tooltip />
+                <Legend />
+                {Object.keys(categoryRoutes).map((cat, idx) => (
+                  <Line
+                    key={idx}
+                    type="monotone"
+                    dataKey={cat}
+                    stroke={categoryColors[cat] || "#000000"}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>
