@@ -54,7 +54,7 @@ func GetAllWordhealingmessagesForUser(c *gin.Context) {
     c.JSON(http.StatusOK, messages)
 }
 
-// สร้างบทความ WordHealingMessages
+// ฟังก์ชันบริการเพื่อสร้าง WordHealingContent
 func CreateWordHealingMessages(c *gin.Context) {
 	var input entity.WordHealingContent
 
@@ -132,12 +132,13 @@ func CreateWordHealingMessages(c *gin.Context) {
 }
 
 
-// GET /article-types
+
 type ArticleTypeResponse struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
+// ฟังก์ชันบริการเพื่อดึงข้อมูลประเภทบทความ
 func GetArticleTypes(c *gin.Context) {
 	db := config.DB()
 

@@ -15,6 +15,9 @@ export interface Questionnaire {
   conditionScore?: number;         // คะแนนที่ต้องได้จากแบบทดสอบก่อนหน้า (optional)
   conditionType?: string;          // ประเภทของเงื่อนไขคะแนน (optional)
 
+  picture?: string;                // รูปภาพแบบ base64 (optional)
+  priority?: number;
+
   questions?: Question[];          // คำถาม (optional)
   groups: QuestionnaireGroup[];    // กลุ่มคำถาม
 }

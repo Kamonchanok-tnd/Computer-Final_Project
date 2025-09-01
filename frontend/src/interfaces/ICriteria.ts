@@ -1,9 +1,9 @@
 // ICriteria.ts
 import { Calculation } from "./ICalculation";
 export interface Criteria {
-  id: number;
+  id?: number;
   description: string;
-  minScore: number;
-  maxScore: number;
+  min_criteria_score: number;
+  max_criteria_score: number;
   calculations?: Calculation[];
 }

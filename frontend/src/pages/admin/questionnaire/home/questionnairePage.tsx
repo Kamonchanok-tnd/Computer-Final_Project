@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Row, Col, Spin, Alert, Table, message, Space, Input, Select } from "antd";
+import { Modal, Spin, Alert, Table, message, Space, Input, Select, Button as AntButton } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import { DeleteOutlined, SettingOutlined, SearchOutlined, PlusOutlined, TableOutlined } from "@ant-design/icons";
 import { getAllQuestionnaires, deleteQuestionnaire, getAllUsers } from "../../../../services/https/questionnaire";
-import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
+import type { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 import { useLocation, useNavigate } from "react-router-dom";
 import manageIcon from "../../../../assets/manage.png";
-import "./questionnairePage.css";
-
-const { Option } = Select;
 
 const QuestionnairePage: React.FC = () => {
   // antd toast
@@ -23,19 +21,15 @@ const QuestionnairePage: React.FC = () => {
 
   const [usersMap, setUsersMap] = useState<Record<number, string>>({});
   const [searchText, setSearchText] = useState<string>("");
-
   const [sortOption, setSortOption] = useState<string>("default");
 
   const navigate = useNavigate();
-  const location = useLocation() as unknown as {
-    state?: { flash?: { type: "success" | "error"; content: string } };
-  };
+  const location = useLocation() as any;
 
   // รับ flash จากหน้าสร้าง/แก้ไข แล้วแสดง toast ครั้งเดียว
   useEffect(() => {
-    const flash = location.state?.flash;
+    const flash = location.state?.flash as { type: "success" | "error"; content: string } | undefined;
     if (flash) {
-      // ใช้ window.history เพื่อล้างสถานะ flash หลังจากการแสดงผลเพื่อไม่ให้แสดงซ้ำ
       if (!window.history.state?.flash) {
         if (flash.type === "success") {
           msgApi.success(flash.content);
@@ -71,7 +65,7 @@ const QuestionnairePage: React.FC = () => {
     try {
       const users = await getAllUsers();
       const map: Record<number, string> = {};
-      users.forEach((user: any) => {
+      (users || []).forEach((user: any) => {
         map[user.ID] = user.username;
       });
       setUsersMap(map);
@@ -110,145 +104,161 @@ const QuestionnairePage: React.FC = () => {
     filterAndSort(value, sortOption);
   };
 
- const filterAndSort = (searchValue: string, sortKey: string) => {
-  let data = [...questionnaires];
+  const filterAndSort = (searchValue: string, sortKey: string) => {
+    let data = [...questionnaires];
 
-  // ฟิลเตอร์ตามคำค้น
-  if (searchValue.trim() !== "") {
-    data = data.filter((q) => {
-      const userName = usersMap[q.uid] || "";
-      return (
-        q.nameQuestionnaire.toLowerCase().includes(searchValue.toLowerCase()) ||
-        userName.toLowerCase().includes(searchValue.toLowerCase())
-      );
-    });
-  }
+    // ฟิลเตอร์ตามคำค้น
+    if (searchValue.trim() !== "") {
+      data = data.filter((q) => {
+        const userName = usersMap[q.uid] || "";
+        return (
+          q.nameQuestionnaire.toLowerCase().includes(searchValue.toLowerCase()) ||
+          userName.toLowerCase().includes(searchValue.toLowerCase())
+        );
+      });
+    }
 
-  // เรียงลำดับตามที่เลือก
-  if (sortKey === "nameAsc") {
-    data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire, 'th', { sensitivity: 'base' }));
-  } else if (sortKey === "nameDesc") {
-    data.sort((a, b) => b.nameQuestionnaire.localeCompare(a.nameQuestionnaire, 'th', { sensitivity: 'base' }));
-  } else if (sortKey === "descriptionAsc") {
-    data.sort((a, b) => a.description.localeCompare(b.description, 'th', { sensitivity: 'base' }));
-  } else if (sortKey === "descriptionDesc") {
-    data.sort((a, b) => b.description.localeCompare(a.description, 'th', { sensitivity: 'base' }));
-  } else if (sortKey === "authorAsc") {
-    data.sort((a, b) => {
-      const authorA = usersMap[a.uid] || "";
-      const authorB = usersMap[b.uid] || "";
-      return authorA.localeCompare(authorB, 'th', { sensitivity: 'base' });
-    });
-  } else if (sortKey === "authorDesc") {
-    data.sort((a, b) => {
-      const authorA = usersMap[a.uid] || "";
-      const authorB = usersMap[b.uid] || "";
-      return authorB.localeCompare(authorA, 'th', { sensitivity: 'base' });
-    });
-  } else if (sortKey === "quantityAsc") {
-    data.sort((a, b) => a.quantity - b.quantity);
-  } else if (sortKey === "quantityDesc") {
-    data.sort((a, b) => b.quantity - a.quantity);
-  } else if (sortKey === "idAsc") {
-    data.sort((a, b) => (a.id ?? 0) - (b.id ?? 0)); // ใช้ `??` เพื่อตรวจสอบ undefined และกำหนดค่าเป็น 0 ถ้าเป็น undefined
-  } else if (sortKey === "idDesc") {
-    data.sort((a, b) => (b.id ?? 0) - (a.id ?? 0)); // ใช้ `??` เพื่อตรวจสอบ undefined และกำหนดค่าเป็น 0 ถ้าเป็น undefined
-  }
+    // เรียงลำดับตามที่เลือก
+    switch (sortKey) {
+      case "nameAsc":
+        data.sort((a, b) => a.nameQuestionnaire.localeCompare(b.nameQuestionnaire, "th", { sensitivity: "base" }));
+        break;
+      case "nameDesc":
+        data.sort((a, b) => b.nameQuestionnaire.localeCompare(a.nameQuestionnaire, "th", { sensitivity: "base" }));
+        break;
+      case "descriptionAsc":
+        data.sort((a, b) => a.description.localeCompare(b.description, "th", { sensitivity: "base" }));
+        break;
+      case "descriptionDesc":
+        data.sort((a, b) => b.description.localeCompare(a.description, "th", { sensitivity: "base" }));
+        break;
+      case "authorAsc":
+        data.sort((a, b) => (usersMap[a.uid] || "").localeCompare(usersMap[b.uid] || "", "th", { sensitivity: "base" }));
+        break;
+      case "authorDesc":
+        data.sort((a, b) => (usersMap[b.uid] || "").localeCompare(usersMap[a.uid] || "", "th", { sensitivity: "base" }));
+        break;
+      case "quantityAsc":
+        data.sort((a, b) => a.quantity - b.quantity);
+        break;
+      case "quantityDesc":
+        data.sort((a, b) => b.quantity - a.quantity);
+        break;
+      case "idAsc":
+        data.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+        break;
+      case "idDesc":
+        data.sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+        break;
+      default:
+        break;
+    }
 
-  setFilteredQuestionnaires(data);
-};
+    setFilteredQuestionnaires(data);
+  };
 
   const handleSortChange = (value: string) => {
     setSortOption(value);
     filterAndSort(searchText, value);
   };
 
-  const questionnaireColumns = [
+  const headerCellStyle = { backgroundColor: '#5DE2FF', color: '#0f172a', fontWeight: 600 } as const;
+
+  const questionnaireColumns: ColumnsType<Questionnaire> = [
     {
       title: "ลำดับ",
       dataIndex: "id",
       key: "id",
-      align: "center" as const,
+      align: "center",
+      width: 80,
+      onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
       title: "ชื่อแบบทดสอบ",
       dataIndex: "nameQuestionnaire",
       key: "nameQuestionnaire",
-      align: "center" as const,
+      align: "center",
+      onHeaderCell: () => ({ style: headerCellStyle }),
+      render: (text: string) => <div className="whitespace-normal break-words">{text}</div>,
+      width: 320,
+      responsive: ['xs','sm','md','lg','xl'],
     },
     {
       title: "คำอธิบาย",
       dataIndex: "description",
       key: "description",
-      align: "center" as const,
+      align: "center",
+      onHeaderCell: () => ({ style: headerCellStyle }),
+      render: (text: string) => <div className="whitespace-normal break-words">{text}</div>,
+      width: 420,
+      responsive: ['xs','sm','md','lg','xl'],
     },
     {
       title: "จำนวนข้อ",
       dataIndex: "quantity",
       key: "quantity",
-      align: "center" as const,
+      align: "center",
+      width: 120,
+      onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
       title: "ผู้สร้าง",
       dataIndex: "uid",
       key: "uid",
-      align: "center" as const,
+      align: "center",
       render: (uid: number) => usersMap[uid] || "ไม่ทราบชื่อ",
+      width: 160,
+      onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
       title: "การจัดการ",
       key: "actions",
-      align: "center" as const,
+      align: "center",
       render: (_: any, record: Questionnaire) => (
         <Space>
-          <Button icon={<SettingOutlined />} onClick={() => handleEdit(record)} />
-          <Button danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)} />
+          <AntButton icon={<SettingOutlined />} onClick={() => handleEdit(record)} className="!bg-black !text-white hover:!bg-gray-700 active:!bg-indigo-800 !border-none !shadow-none focus:!shadow-none"/>
+          <AntButton danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)} className="!w-8 !h-8 !p-0 !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"/>
         </Space>
       ),
+      width: 140,
+      onHeaderCell: () => ({ style: headerCellStyle }),
     },
   ];
 
   return (
-    <div className="questionnaire-page-container">
-      {/* สำหรับแสดง antd message */}
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
       {contextHolder}
 
-      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-        <Col>
-          <h2
-            className="questionnaire-page-title"
-            style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "24px", fontWeight: 700 }}
-          >
-            <img src={manageIcon} alt="manage icon" style={{ width: 50, height: 50, objectFit: "contain" }} />
-            จัดการแบบทดสอบ
-          </h2>
-        </Col>
-        <Row gutter={8}>
-          <Col>
-          <button className="bg-button-blue text-white py-2 px-2 rounded "
-            onClick={() => navigate("/admin/manageTestOrder")}
-            >
-            <div className="flex gap-2">
-              <TableOutlined />
-              <span>จัดการลำดับ</span>
-            </div>
-          </button>
-          </Col>
-          <Col>
-          <button className="bg-button-blue text-white py-2 px-4 rounded mr-2"
-            onClick={() => navigate("/admin/createQuestionnaire")}
-            >
-            <div className="flex gap-2">
-              <PlusOutlined />
-              <span>สร้าง</span>
-            </div>
-          </button>
-          </Col>
-        </Row>
-      </Row>
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <img src={manageIcon} alt="manage icon" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">จัดการแบบทดสอบ</h2>
+        </div>
 
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={8}>
+        {/* Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm ring-1 ring-slate-300 bg-[#5DE2FF] hover:bg-cyan-500 transition"
+            onClick={() => navigate("/admin/manageTestOrder")}
+          >
+            <TableOutlined />
+            <span>จัดการลำดับ</span>
+          </button>
+
+          <button
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm text-black bg-[#5DE2FF] hover:bg-cyan-500 transition"
+            onClick={() => navigate("/admin/createQuestionnaire")}
+          >
+            <PlusOutlined />
+            <span>สร้าง</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
+        <div className="order-1 md:order-none md:col-span-9">
           <Input
             placeholder="ค้นหาแบบทดสอบหรือผู้สร้าง..."
             size="large"
@@ -257,42 +267,55 @@ const QuestionnairePage: React.FC = () => {
             addonBefore={<SearchOutlined />}
             allowClear
           />
-        </Col>
-        <Col span={6}>
-          <Select value={sortOption} onChange={handleSortChange} size="large" style={{ width: "100%" }}>
-            <Option value="default">เรียงลำดับ</Option>
-            <Option value="nameAsc">ชื่อแบบทดสอบ (ก → ฮ)</Option>
-            <Option value="nameDesc">ชื่อแบบทดสอบ (ฮ → ก)</Option>
-            <Option value="descriptionAsc">คำอธิบาย (ก → ฮ)</Option>
-            <Option value="descriptionDesc">คำอธิบาย (ฮ → ก)</Option>
-            <Option value="authorAsc">ผู้สร้าง (ก → ฮ)</Option>
-            <Option value="authorDesc">ผู้สร้าง (ฮ → ก)</Option>
-            <Option value="quantityAsc">จำนวนข้อ (น้อย → มาก)</Option>
-            <Option value="quantityDesc">จำนวนข้อ (มาก → น้อย)</Option>
-            <Option value="idAsc">ID (น้อย → มาก)</Option>
-            <Option value="idDesc">ID (มาก → น้อย)</Option>
-          </Select>
-        </Col>
-      </Row>
+        </div>
+        <div className="order-2 md:order-none md:col-span-3">
+          <Select
+            value={sortOption}
+            onChange={handleSortChange}
+            size="large"
+            className="w-full"
+            options={[
+              { value: "default", label: "เรียงลำดับ" },
+              { value: "nameAsc", label: "ชื่อแบบทดสอบ (ก → ฮ)" },
+              { value: "nameDesc", label: "ชื่อแบบทดสอบ (ฮ → ก)" },
+              { value: "descriptionAsc", label: "คำอธิบาย (ก → ฮ)" },
+              { value: "descriptionDesc", label: "คำอธิบาย (ฮ → ก)" },
+              { value: "authorAsc", label: "ผู้สร้าง (ก → ฮ)" },
+              { value: "authorDesc", label: "ผู้สร้าง (ฮ → ก)" },
+              { value: "quantityAsc", label: "จำนวนข้อ (น้อย → มาก)" },
+              { value: "quantityDesc", label: "จำนวนข้อ (มาก → น้อย)" },
+              { value: "idAsc", label: "ID (น้อย → มาก)" },
+              { value: "idDesc", label: "ID (มาก → น้อย)" },
+            ]}
+          />
+        </div>
+      </div>
 
-      <div>
+      {/* Table */}
+      <div className="mt-4">
         {loadingQuestionnaires ? (
-          <Spin tip="กำลังโหลดแบบทดสอบ..." />
+          <div className="flex items-center justify-center py-16">
+            <Spin tip="กำลังโหลดแบบทดสอบ..." />
+          </div>
         ) : filteredQuestionnaires.length === 0 ? (
           <Alert message="ไม่พบแบบทดสอบ" type="info" showIcon />
         ) : (
-          <div className="questionnaire-table-container">
-            <Table
+          <div className="w-full overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <Table<Questionnaire>
               columns={questionnaireColumns}
               dataSource={filteredQuestionnaires}
-              rowKey="id"
+              rowKey={(r) => String(r.id ?? Math.random())}
               bordered
-              pagination={{ pageSize: 10 }}
+              pagination={{ pageSize: 10, showSizeChanger: false }}
+              scroll={{ x: 1100 }}
+              sticky
+              size="middle"
             />
           </div>
         )}
       </div>
 
+      {/* Delete modal */}
       <Modal
         title="ยืนยันการลบแบบทดสอบ ❌ "
         open={deleteModalVisible}
@@ -301,13 +324,10 @@ const QuestionnairePage: React.FC = () => {
         okText="ยืนยัน"
         cancelText="ยกเลิก"
         centered
-        width={600}
-        className="questionnaire-modal"
+        width={560}
       >
         <p>คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบ?</p>
-        <p style={{ fontWeight: "bold", fontSize: "18px", textAlign: "center", color: "#cf1322" }}>
-          {selectedToDelete?.nameQuestionnaire}
-        </p>
+        <p className="text-center font-semibold text-lg text-red-600">{selectedToDelete?.nameQuestionnaire}</p>
       </Modal>
     </div>
   );
