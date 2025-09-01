@@ -116,11 +116,13 @@ func main() {
         router.POST("/createCriterias", questionnaire.CreateCriterias)                     // route สำหรับสร้างเกณฑ์การให้คะแนน (Criterias)
 
         router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire)       // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
-        router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)                 // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
-        router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)                     // route สำหรับลบคำตอบ
 
-		router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)         // route สำหรับดึงค่าเก่าเเบบทดสอบ
-		router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire) // route สำหรับเเก้ไขเเบบทดสอบ
+		router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)                                        // route สำหรับดึงค่าเก่าเเบบทดสอบ
+		router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)                                // route สำหรับเเก้ไขเเบบทดสอบ
+		router.GET("/getquestionandanswerbyquestionnaireid/:id", questionnaire.GetQuestionAnswerByQuetionnaireID)  // route ดึงคำถามเเละคำตอบตามไอดีแบบทดสอบ
+		router.PATCH("/updatequestionandanswer/:id", questionnaire.UpdateQuestionAndAnswer)                        // route เเก้ไขคำถามเเละคำตอบตามไอดีคำถาม
+		router.GET("/getallcriteria/by-questionnaire/:id", questionnaire.GetCriteriaByQuestionnaireID)             // route ดึงเกณฑ์การให้คะแนนตามไอดีแบบทดสอบ
+	    router.PATCH("/updatecriteria/by-questionnaire/:id", questionnaire.UpdateCriteriaByQuestionnaireID)        // route เเก้ไขเกณฑ์การให้คะแนนตามไอดีแบบทดสอบ
 
         // Assessment routes
         router.GET("/admin/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
@@ -138,14 +140,6 @@ func main() {
 		router.PATCH("/updateviewcountmessage/:id", wordhealingmessage.UpdateViewcountMessage)          // route สำหรับเพิ่มจำนวนการเข้าชมบทความ
         router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                               // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
 
-
-		// //Healing mesage route
-		// router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)       // route ดึงบทความทั้งหมด
-		// router.POST("/createwordhealingmessage", wordhealingmessage.CreateWordHealingMessages)      // route สำหรับสร้างบทความ (WordHealingMesasage)
-		// router.DELETE("/deletewordhealingmessage/:id", wordhealingmessage.DeleteWordHealingContent) // route สำหรับลบบทความ (WordHealingMesasage)
-		// router.GET("/getwordhealingmessage/:id", wordhealingmessage.GetWordHealingMessage)          // route สำหรับดึงค่าเก่าบทความ
-		// router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)  // route สำหรับเเก้ไขเเบบบทความ
-		// router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                           // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
 
         // Video routes
         router.POST("/videos", meditation.CreateVideo)

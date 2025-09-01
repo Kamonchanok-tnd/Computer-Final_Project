@@ -6,9 +6,10 @@ import (
 	"sukjai_project/entity"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"strings"
 )
 
-// ฟังก์ชันสำหรับดึงรายการแบบทดสอบทั้งหมด
+// ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด พร้อม preload คำถาม
 func GetAllQuestionnaires(c *gin.Context) {
 	var questionnaires []entity.Questionnaire
 	db := config.DB()
@@ -29,7 +30,7 @@ func GetAllQuestionnaires(c *gin.Context) {
 
 
 
-// ฟังก์ชันสำหรับดึงคำถามทั้งหมด
+// ฟังก์ชันสำหรับดึงคำถามทั้งหมด พร้อม preload แบบทดสอบที่เชื่อมโยง
 func GetAllQuestions(c *gin.Context) {
 	var questions []entity.Question
 	// ดึงคำถามทั้งหมดพร้อม preload แบบทดสอบที่เชื่อมโยง
@@ -51,7 +52,7 @@ func GetAllQuestions(c *gin.Context) {
 }
 
 
-// ฟังก์ชันสำหรับดึงผู้ใช้งานทั้งหมด พร้อม Preload แบบทดสอบที่ผู้ใช้สร้าง
+// ฟังก์ชันสำหรับดึงผู้ใช้ทั้งหมด พร้อม preload แบบทดสอบที่สร้าง
 func GetAllUsers(c *gin.Context) {
 	var users []entity.Users
 
@@ -73,8 +74,7 @@ func GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-
-// ฟังก์ชันสำหรับดึงข้อมูล EmotionChoice ทั้งหมดพร้อม AnswerOptions
+// ฟังก์ชันสำหรับดึงตัวเลือกอารมณ์ทั้งหมด พร้อม preload คำตอบที่เชื่อมโยง
 func GetAllEmotionChoices(c *gin.Context) {
 	var emotionChoices []entity.EmotionChoice
 	db := config.DB()
@@ -96,111 +96,91 @@ func GetAllEmotionChoices(c *gin.Context) {
 }
 
 
+type CreateQuestionnaireInput struct {
+	NameQuestionnaire string  `json:"nameQuestionnaire" binding:"required"`
+	Description       string  `json:"description"`
+	UID               uint    `json:"uid" binding:"required"`
+	Picture           *string `json:"picture"`        // base64 หรือ data URL
+	TestType          *string `json:"testType"`       // optional
+	ConditionOnID     *uint   `json:"conditionOnID"`  // optional
+	ConditionScore    *int    `json:"conditionScore"` // optional
+	ConditionType     *string `json:"conditionType"`  // optional
+	Quantity          *int    `json:"quantity"`       // optional (ถ้าไม่ส่ง จะตั้งเป็น 0)
+	Priority          *int    `json:"priority"`       // optional ถ้ามีใช้
+}
 
-// ฟังก์ชันสำหรับสร้างเเบบทดสอบ
+// ฟังก์ชันสำหรับสร้างแบบทดสอบ (Questionnaire) 
 func CreateQuestionnaire(c *gin.Context) {
-	type AnswerInput struct {
-		Description string `json:"description"`
-		Point       int    `json:"point"`
-		EmotionChoiceID *uint  `json:"EmotionChoiceID"`
-	}
-
-	type QuestionInput struct {
-		NameQuestion string        `json:"nameQuestion"`
-		Answers      []AnswerInput `json:"answers"`
-	}
-
-	type Input struct {
-		NameQuestionnaire string          `json:"nameQuestionnaire"`
-		Description       string          `json:"description"`
-		Quantity          int             `json:"quantity"`
-		UID               uint            `json:"uid"`
-		TestType          string          `json:"testType"`       // เพิ่มฟิลด์ TestType สำหรับประเภทแบบทดสอบ
-		ConditionOnID     *uint           `json:"conditionOnID"`  // เลือกแบบทดสอบก่อนหน้า
-		ConditionScore    *int            `json:"conditionScore"` // คะแนนที่ต้องได้
-		ConditionType     *string         `json:"conditionType"`  // เงื่อนไขคะแนน
-		Questions         []QuestionInput `json:"questions"`
-	}
-
-	var input Input
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var in CreateQuestionnaireInput
+	if err := c.ShouldBindJSON(&in); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลที่ส่งมาไม่ถูกต้อง"})
+		return
+	}
+	if strings.TrimSpace(in.NameQuestionnaire) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ต้องระบุชื่อแบบทดสอบ (nameQuestionnaire)"})
+		return
+	}
+	if in.UID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "UID ไม่ถูกต้อง"})
 		return
 	}
 
 	db := config.DB()
-	tx := db.Begin()
+	err := db.Transaction(func(tx *gorm.DB) error {
+		qn := entity.Questionnaire{
+			NameQuestionnaire: in.NameQuestionnaire,
+			Description:       in.Description,
+			UID:               in.UID,
+			Picture:           in.Picture,
+		}
 
-	// 🔹 สร้าง Questionnaire
-	questionnaire := entity.Questionnaire{
-		NameQuestionnaire: input.NameQuestionnaire,
-		Description:       input.Description,
-		Quantity:          input.Quantity,
-		UID:               input.UID,
-		TestType:          &input.TestType, //ใช้ &input.TestType เพื่อแปลง string เป็น *string
-	}
+		// ตั้งค่า optional
+		if in.TestType != nil && strings.TrimSpace(*in.TestType) != "" {
+			qn.TestType = in.TestType // entity เป็น *string อยู่แล้ว
+		}
+		qn.ConditionOnID = in.ConditionOnID
+		qn.ConditionScore = in.ConditionScore
+		qn.ConditionType  = in.ConditionType
 
-	// ถ้ามีเงื่อนไข (ConditionOnID, ConditionScore, ConditionType ไม่เป็น nil)
-	if input.ConditionOnID != nil || input.ConditionScore != nil || input.ConditionType != nil {
-		questionnaire.ConditionOnID = input.ConditionOnID
-		questionnaire.ConditionScore = input.ConditionScore
-		questionnaire.ConditionType = input.ConditionType
-	}
+		// Quantity: ถ้าไม่ส่งมา ให้เป็น 0
+		if in.Quantity != nil {
+			qn.Quantity = *in.Quantity
+		} else {
+			qn.Quantity = 0
+		}
 
-	// บันทึกข้อมูล Questionnaire ลงในฐานข้อมูล
-	if err := tx.Create(&questionnaire).Error; err != nil {
-		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถสร้างแบบทดสอบได้"})
+		// Priority: ถ้ามี field นี้ใน entity และอยากเก็บ
+		if in.Priority != nil {
+			qn.Priority = *in.Priority
+		}
+
+		if err := tx.Create(&qn).Error; err != nil {
+			return err
+		}
+
+		// ไม่สร้างคำถาม/คำตอบที่นี่!! (ตาม requirement ใหม่)
+		c.Set("createdQuestionnaireID", qn.ID)
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถสร้างแบบทดสอบได้"})
 		return
 	}
 
-	// 🔹 วนลูปสร้าง Questions และ AnswerOptions
-	for _, q := range input.Questions {
-		question := entity.Question{
-			NameQuestion:  q.NameQuestion,
-			QuID:          questionnaire.ID,
-		}
-
-		if err := tx.Create(&question).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถสร้างคำถามได้"})
-			return
-		}
-
-		for _, a := range q.Answers {
-			answer := entity.AnswerOption{
-				Description: a.Description,
-				Point:       a.Point,
-				QID:         question.ID,
-			}
-
-			if a.EmotionChoiceID != nil {
-            answer.EmotionChoiceID = answer.EmotionChoiceID
-        }
-
-			if err := tx.Create(&answer).Error; err != nil {
-				tx.Rollback()
-				c.JSON(http.StatusInternalServerError, gin.H{"error": " ❌ ไม่สามารถสร้างคำตอบได้"})
-				return
-			}
-		}
-	}
-
-	tx.Commit()
+	id := c.MustGet("createdQuestionnaireID").(uint)
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "สร้างแบบทดสอบสำเร็จ",
-		"id": questionnaire.ID,
+		"id":      id,
 	})
 }
 
-
-
-// ฟังก์ชันสำหรับสร้างคำถาม, คำตอบเเละลำดับ
 type QuestionWithAnswers struct {
 	Question entity.Question       `json:"question"`
 	Answers  []entity.AnswerOption `json:"answers"`
 }
 
+// ฟังก์ชันสำหรับสร้างคำถามพร้อมคำตอบ
 func CreateQuestions(c *gin.Context) {
 	var input []QuestionWithAnswers
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -261,7 +241,7 @@ type CriteriaDTO struct {
 	MaxScore    int    `json:"maxScore"`
 }
 
-// POST /createCriterias
+// ฟังก์ชันสำหรับสร้าง Criteria พร้อมสร้าง Calculation
 func CreateCriterias(c *gin.Context) {
 	var input struct {
 		QuestionnaireID uint         `json:"questionnaireId"`
