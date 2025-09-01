@@ -3,6 +3,7 @@ import { Question } from '../../../interfaces/IQuestion';
 import { AnswerOption } from '../../../interfaces/IAnswerOption';
 import { QuestionnaireGroup } from '../../../interfaces/IQuestionnaireGroup';
 import { AssessmentAnswer } from '../../../interfaces/IAssessmentAnswer';
+import { ITransaction } from "../../../interfaces/ITransaction";
 
 // ✅ Inline axiosInstance พร้อมแนบ token
 const axiosInstance = axios.create({
@@ -17,16 +18,22 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+
+
+//User
+// ฟังก์ชัน: ดึงคำถามทั้งหมด
 export const fetchQuestions = async (): Promise<Question[]> => {
   const res = await axiosInstance.get("/assessment/Questions");
   return res.data;
 };
 
+// ฟังก์ชัน: ดึงคำตอบทั้งหมด
 export const fetchAnswerOptions = async (): Promise<AnswerOption[]> => {
   const res = await axiosInstance.get("/assessment/AnswerOptions");
   return res.data;
 };
 
+// ฟังก์ชัน: ส่งคำตอบ
 export const submitAnswer = async (
   answer: AssessmentAnswer
 ): Promise<void> => {
@@ -39,24 +46,36 @@ export const submitAnswer = async (
   });
 };
 
-
-
 // ✅ ฟังก์ชันใหม่: สรุปผล
-export const finishAssessment = async (ARID: number): Promise<void> => {
-  await axiosInstance.post(`/assessment/finish/${ARID}`);
+export const finishAssessment = async (ARID: number): Promise<any> => {
+  const res = await axiosInstance.post(`/assessment/finish/${ARID}`);
+  return res.data.transaction; // ✅ ส่งกลับเฉพาะ transaction
 };
 
-export const createAssessmentResult = async (quID: number, uid: number): Promise<number> => {
+// ฟังก์ชัน: สร้างผลการประเมิน
+export const createAssessmentResult = async (
+  quID: number,
+  uid: number,
+  qgID?: number
+): Promise<number> => {
   const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-  const res = await axiosInstance.post("/assessment/result", {
-    QuID: quID,
-    UID: uid,
-    Date: today,
-  });
-  return res.data.ID;
+
+  const payload: any = { QuID: quID, UID: uid, Date: today };
+  if (typeof qgID === "number") payload.QGID = qgID;
+
+  const res = await axiosInstance.post("/assessment/result", payload);
+
+  // รองรับกรณี backend ส่ง { ID } หรือส่ง object เต็ม { ID, Date, ... }
+  const id =
+    res.data?.ID ?? res.data?.id ?? res.data?.Id ?? res.data?.data?.ID;
+  if (!id) {
+    // เผื่อ backend เปลี่ยนรูปแบบในอนาคต
+    throw new Error("Cannot read created AssessmentResult ID from response");
+  }
+  return Number(id);
 };
 
-
+// ฟังก์ชัน: ดึงกลุ่มแบบสอบถามทั้งหมด
 export const getAllQuestionnaireGroups = async (): Promise<QuestionnaireGroup[]> => {
   try {
     const res = await axiosInstance.get("/questionnaire-groups");
@@ -66,3 +85,148 @@ export const getAllQuestionnaireGroups = async (): Promise<QuestionnaireGroup[]>
     return [];
   }
 };
+
+// ฟังก์ชัน: ดึงเกณฑ์ทั้งหมด
+export const getAllCriteria = async (): Promise<any[]> => {
+  try {
+    const res = await axiosInstance.get("/assessment/Criteria");
+    return res.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch criteria", err);
+    return [];
+  }
+};
+
+
+// ฟังก์ชัน: ดึงรายการธุรกรรมทั้งหมด
+export async function getAllTransactions(): Promise<ITransaction[]> {
+  try {
+    const res = await axiosInstance.get("/assessment/Transaction");
+    return res.data as ITransaction[];
+  } catch (err) {
+    console.error("❌ Error fetching transactions:", err);
+    throw err;
+  }
+}
+
+// ฟังก์ชัน: ดึงธุรกรรมตาม ID
+export const getTransactionByID = async (id: number): Promise<any> => {
+  const res = await axiosInstance.get(`/assessment/Transaction/${id}`);
+  return res.data;
+};
+
+export const getAvailableGroupsAndNext = async (
+  uid: number,
+  trigger: "" | "onLogin" | "afterChat" | "interval",
+  lastQid?: number
+) => {
+  // สร้าง params อย่างเป็นระเบียบ
+  const params: Record<string, string> = {
+    user_id: String(uid),
+  };
+  if (trigger) params.trigger_context = trigger;
+  if (typeof lastQid === "number" && !Number.isNaN(lastQid)) {
+    params.last_quid = String(lastQid);
+  }
+
+  // ไม่ต้องแนบ header token เอง — interceptor ทำให้แล้ว
+  const { data } = await axiosInstance.get("/assessments/available-next", {
+    params,
+    // withCredentials: true, // ← ถ้าเซ็ต global ใน axiosInstance แล้ว ตัดบรรทัดนี้ทิ้งได้
+  });
+
+  return data;
+};
+
+////////////////////////////////////////////////////////❌
+export const getAvailableGroups = async (userID: number) => {
+  try {
+    const response = await axiosInstance.get(`/questionnaire-groups/available`, {
+      params: { user_id: userID },
+    });
+    return response.data; // => Array<{ id, name, description, frequency_days, available, reason }>
+  } catch (error) {
+    console.error("❌ โหลดกลุ่มที่พร้อมทำไม่สำเร็จ:", error);
+    throw error;
+  }
+};
+
+//❌
+export const getNextQuestionnaire = async (user_id: number, group_id: number) => {
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await axiosInstance.get(`/assessments/next`, {
+      params: { user_id, group_id },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data; // axios คืน response ที่มี data อยู่ตรงนี้
+  } catch (error: any) {
+    // ดัก error และโยนข้อความให้ component จัดการ
+    const status = error?.response?.status || 500;
+    const message = error?.response?.data?.message || "เกิดข้อผิดพลาดในการดึงแบบสอบถามถัดไป";
+    throw new Error(`(${status}) ${message}`);
+  }
+};
+
+
+
+////////////////////////////////////////////Admin Finished//////////////////////////////////////////////////////////////////////////
+export const getQuestionnaireGroupByID = async (id: number) => {
+  try {
+    const res = await axiosInstance.get(`/admin/questionnaire-groups/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch questionnaire group", error);
+    return null;
+  }
+};
+
+export const getAvailableQuestionnairesForGroup = async (groupID: number): Promise<{ id: number; name: string }[]> => {
+  const res = await axiosInstance.get(`/admin/questionnaire-groups/${groupID}/available-questionnaires`);
+  return res.data;
+};
+
+export const addQuestionnaireToGroup = async (groupID: number, questionnaireID: number): Promise<void> => {
+  await axiosInstance.post(`/admin/questionnaire-groups/${groupID}/add-questionnaire`, {
+    questionnaire_id: questionnaireID,
+  });
+};
+
+export const removeQuestionnaireFromGroup = async (groupID: number, questionnaireID: number): Promise<void> => {
+  await axiosInstance.delete(`/admin/questionnaire-groups/${groupID}/remove-questionnaire/${questionnaireID}`);
+};
+
+export const updateQuestionnaireGroupOrder = async (
+  groupId: number,
+  orderedIds: number[]
+): Promise<void> => {
+  try {
+    await axiosInstance.put(`/admin/questionnaire-groups/${groupId}/order`, {
+      questionnaire_ids: orderedIds, // ✅ แก้ตรงนี้ให้ตรงกับ backend
+    });
+  } catch (error) {
+    console.error("❌ Failed to update questionnaire order:", error);
+    throw error;
+  }
+};
+
+export const updateGroupFrequency = async (
+  groupId: number,
+  frequencyDays: number | null
+): Promise<any> => {
+  const body = {
+    frequency_days: frequencyDays === null ? null : frequencyDays,
+  };
+
+  const res = await axiosInstance.patch(
+    `/admin/questionnaire-groups/${groupId}/frequency`,
+    body
+  );
+
+  return res.data;
+};
+

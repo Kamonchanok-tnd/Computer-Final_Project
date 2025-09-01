@@ -14,8 +14,9 @@ import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
 
 import Assessments from "../pages/assessment/assessments";
-import Result from "../pages/assessment/result";
-import MoodPopup from "../components/assessment/MoodPopup";
+import Result from "../pages/assessment/result.tsx";
+
+import AssessmentDashboard from "../pages/assessment/dashboard";
 import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
@@ -31,6 +32,7 @@ import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
 
 import UserMessagePage from "../pages/secondary function/message/userMessagePage";
 import PlayerPlaylistMeditation from "../pages/secondary function/meditation/playermeditation/playerplaylistmeditation.tsx";
+import MoodPopup from "../components/assessment/MoodPopup.tsx";
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
   lazy(() => import("../pages/users/edit_user/edituser"))
@@ -142,7 +144,7 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         //assessment
         {
           path: "/assessment", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
-          element: isLoggedIn ? <MoodPopup /> : <Navigate to="/" />, //
+          element: isLoggedIn ? <MoodPopup groupId={0} quid={0} /> : <Navigate to="/" />, //
         },
         {
           path: "/assessments", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
@@ -151,6 +153,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/result", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
           element: isLoggedIn ? <Result /> : <Navigate to="/" />, //
+        },
+        {
+          path: "/assessment/dashboard", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
+          element: isLoggedIn ? <AssessmentDashboard /> : <Navigate to="/" />, //
         },
       ],
     },

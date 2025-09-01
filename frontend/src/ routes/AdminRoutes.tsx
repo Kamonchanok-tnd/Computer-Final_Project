@@ -11,8 +11,16 @@ const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsettin
 // const DashboardAdmin = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard")));
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
+import DashboardMeditation from "../pages/admin/dashboard_contents/meditation/dashmed";
+import DashboardChanting from "../pages/admin/dashboard_contents/chanting/dashchanting";
+import DashboardWordHealing from "../pages/admin/dashboard_contents/word-healing/dashword";
+import DashboardMirror from "../pages/admin/dashboard_contents/mirror/dashmirror";
+import DashboardAsmr from "../pages/admin/dashboard_contents/asmr/dashasmr";
+import DashboardBreathing from "../pages/admin/dashboard_contents/breathing/dashbreathing";
 import VideoForm from "../pages/admin/meditation/meditation";
-import SoundListPage from "../pages/admin/sounds/soundslist";
+import WebData from "../pages/admin/userdataweb/userdata";
+
+import HomeContents from "../pages/admin/dashboard_contents/home_contents";
 import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import ManageTestOrder from "../pages/assessment/ManageTestOrder";
@@ -51,12 +59,40 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 // },
                 {
                   path: "/admin/dashboard/contents",
-                  element: <DashboardContents />, // หน้า Settings ของ Admin
+                  element: <HomeContents />, // หน้า Settings ของ Admin DashboardContents
                 },
-                // {
-                //    path: "/admin/edit/:id",
-                //   element: <EditAdmin />, // หน้า Settings ของ Admin
-                // },
+                {
+                  path: "/admin/dashboard/contents/sound",
+                  element: <DashboardContents />, // หน้า Settings ของ Admin DashboardContents
+                },
+                {
+                   path: "/admin/meditation-details",
+                  element: <DashboardMeditation />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/chanting-details",
+                  element: <DashboardChanting />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/wordhealing-details",
+                  element: <DashboardWordHealing />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/mirror-details",
+                  element: <DashboardMirror />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/asmr-details",
+                  element: <DashboardAsmr />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                {
+                   path: "/admin/breathing-details",
+                  element: <DashboardBreathing />, // หน้า Settings ของ Admin DashboardChanting
+                },
+                 {
+                   path: "/admin/activity",
+                  element: <WebData />, // หน้า Settings ของ Admin DashboardChanting
+                },
                 {
                     path: "/admin/questionnairePage",        // หน้าจัดการเเบบทดสอบ
                     element: <QuestionnairePage />,

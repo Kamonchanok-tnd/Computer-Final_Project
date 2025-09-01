@@ -2,26 +2,33 @@ import { IChatRoom } from "../../../interfaces/IChatRoom";
 import { IConversation } from "../../../interfaces/IConversation";
 
 export const apiUrl = import.meta.env.VITE_API_URL;
-const Authorization = localStorage.getItem("token");
-const Bearer = localStorage.getItem("token_type");
+
+// ฟังก์ชันสำหรับดึง token สดใหม่
+function getAuthHeader() {
+  const token = localStorage.getItem("token");
+  const tokenType = localStorage.getItem("token_type") || "Bearer";
+  if (!token) {
+    console.error("Missing token in localStorage");
+    return null;
+  }
+  return `${tokenType} ${token}`;
+}
+
 export async function ChatGemini(data: IConversation) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
 
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `Bearer ${Authorization}`);
-  const raw = JSON.stringify(data);
-
-  const requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: raw,
-  };
+  myHeaders.append("Authorization", authHeader);
 
   try {
-    const response = await fetch(
-      `${apiUrl}/gemini`,
-      requestOptions
-    );
+    const response = await fetch(`${apiUrl}/gemini`, {
+      method: "POST",
+      headers: myHeaders,
+      body: JSON.stringify(data),
+    });
+
     const result = await response.json();
     console.log(result);
     return result;
@@ -31,97 +38,108 @@ export async function ChatGemini(data: IConversation) {
 }
 
 export async function GetChat(id: number) {
-  
-
-  if (!Authorization || !Bearer) {
-    console.error("Missing token or token_type in localStorage");
-    return;
-  }
-
-  const requestOptions = {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `${Bearer} ${Authorization}`,
-    },
-  };
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
 
   try {
-    const response = await fetch(`${apiUrl}/conversation/${id}`, requestOptions);
-    const result = await response.json();
-    return result;
+    const response = await fetch(`${apiUrl}/conversation/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    return await response.json();
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
-
 export async function NewChat(data: IChatRoom) {
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `Bearer ${Authorization}`);
-  const raw = JSON.stringify(data);
-
-  const requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: raw,
-  };
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
 
   try {
-    const response = await fetch(
-      `${apiUrl}/new-chat`,
-      requestOptions
-    );
+    const response = await fetch(`${apiUrl}/new-chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+      body: JSON.stringify(data),
+    });
+
     const result = await response.json();
     console.log(result);
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
 export async function CloseChat(id: number) {
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
-  const requestOptions = {
-    method: "PATCH",
-    headers: myHeaders,
-  };
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
 
   try {
-    const response = await fetch(
-      `${apiUrl}/end-chat/${id}`,
-      requestOptions
-    );
+    const response = await fetch(`${apiUrl}/end-chat/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
     const result = await response.json();
     console.log(result);
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
-export async function RecentChat(id: number) { //เอาไว้ดู ห้อง chat ที่ยัง ไม่จบบทสนทนา
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `${Bearer} ${Authorization}`);
-  const requestOptions = {
-    method: "GET",
-    headers: myHeaders,
-  };
+export async function RecentChat(id: number) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
 
   try {
-    const response = await fetch(
-      `${apiUrl}/recent?uid=${id}`,
-      requestOptions
-    );
+    const response = await fetch(`${apiUrl}/recent?uid=${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
     const result = await response.json();
     console.log(result);
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 
+export async function TotalUseChat() {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  try {
+    const response = await fetch(`${apiUrl}/chat_rooms/count_uid`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

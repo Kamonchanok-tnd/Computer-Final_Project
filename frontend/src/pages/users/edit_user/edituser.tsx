@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
-  Space,
+
   Button,
   Col,
   Row,
@@ -9,22 +9,34 @@ import {
   Input,
   Card,
   message,
-  DatePicker,
+
   InputNumber,
   Select,
+  Avatar,
+  Modal,
 } from "antd";
-import { SaveOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { SaveOutlined, ArrowLeftOutlined, PictureOutlined, UserOutlined } from "@ant-design/icons";
 import { UsersInterface } from "../../../interfaces/IUser";
 import { GetUsersById, UpdateUsersById } from "../../../services/https/login";
 import { useNavigate, Link } from "react-router-dom";
 import dayjs from "dayjs";
-import "./UserEdit.css"; // ✅ import CSS
+import "./UserEdit.css"; 
+import { GetALllAvatar } from "../../../services/https/PF";
+import { IPF } from "../../../interfaces/IPF";
+import { useUser } from "../../../layout/HeaderLayout/UserContext";
+
+// Base URL for profile images
+const PROFILE_BASE_URL = import.meta.env.VITE_PF_URL;
 
 function UserEdit() {
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
   const userId = localStorage.getItem("id");
+  const [allAvatar, setAllAvatar] = useState<IPF[]>([]);
+  const [selectedProfileImage, setSelectedProfileImage] = useState<string>("");
+  const [profileModalVisible, setProfileModalVisible] = useState<boolean>(false);
+  const { setAvatarUrl } = useUser();
 
   useEffect(() => {
     if (!userId) {
@@ -51,6 +63,10 @@ function UserEdit() {
         facebook: res.data.facebook,
         line: res.data.line,
       });
+      // Set existing profile image if available
+      if (res.data.ProfileAvatar && res.data.ProfileAvatar.avatar) {
+        setSelectedProfileImage(`${PROFILE_BASE_URL}${res.data.ProfileAvatar.avatar}`);
+      }
     } else {
       messageApi.open({
         type: "error",
@@ -59,18 +75,58 @@ function UserEdit() {
     }
   };
 
+  async function fetchALlAvatar() {
+    try {
+      const res = await GetALllAvatar();
+      setAllAvatar(res.data);
+    } catch (e) {
+      message.error("โหลดข้อมูลไม่สําเร็จ");
+    }
+  }
+
+  useEffect(() => {
+    fetchALlAvatar();
+  }, []);
+
+  const handleProfileImageSelect = (avatarId: number, imageUrl: string) => {
+    const fullImageUrl = `${PROFILE_BASE_URL}${imageUrl}`;
+    setSelectedProfileImage(fullImageUrl);  // เปลี่ยนในหน้า edit
+    setProfileModalVisible(false);
+    
+  
+    // เก็บ avatar ID ไว้ส่งตอน submit
+    form.setFieldValue('pfid', avatarId);
+  };
+  
+
+  const openProfileModal = () => {
+    setProfileModalVisible(true);
+  };
+
   const onFinish = async (values: UsersInterface) => {
     const payload = {
       ...values,
       gender: values.Gender,
+      pfid: form.getFieldValue('pfid') || (values as any).pfid,
     };
-
+  
     const res = await UpdateUsersById(userId as string, payload);
     if (res.status === 200) {
       messageApi.open({
         type: "success",
         content: res.data.message || "แก้ไขข้อมูลสำเร็จ",
       });
+  
+      // ถ้ามี pfid/รูป avatar ใหม่ ให้อัปเดต context + localStorage
+      if (payload.pfid) {
+        const selectedAvatar = allAvatar.find(a => a.ID === payload.pfid);
+        if (selectedAvatar?.avatar) {
+          const fullImageUrl = `${PROFILE_BASE_URL}${selectedAvatar.avatar}`;
+          setAvatarUrl(fullImageUrl);
+          localStorage.setItem("avatarUrl", fullImageUrl);
+        }
+      }
+  
     } else {
       messageApi.open({
         type: "error",
@@ -78,11 +134,140 @@ function UserEdit() {
       });
     }
   };
+  
 
   return (
     <div className="user-edit-container">
       {contextHolder}
       <Card className="user-edit-card" title={<h2 className="user-edit-title">แก้ไขข้อมูล</h2>}>
+        
+        {/* Profile Picture Section */}
+        <div className="profile-section" style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          marginBottom: '32px',
+          flexDirection: 'column'
+        }}>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+            <Avatar
+              size={120}
+              src={selectedProfileImage}
+              icon={!selectedProfileImage && <UserOutlined />}
+              style={{
+                border: '4px solid #f0f0f0',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                cursor: 'pointer',
+              }}
+              onClick={openProfileModal}
+            />
+            
+            {/* Change Profile Button */}
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<PictureOutlined />}
+              size="small"
+              onClick={openProfileModal}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                zIndex: 1,
+                width: '32px',
+                height: '32px',
+                border: '1px solid white',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+              }}
+              title="เลือกรูปโปรไฟล์"
+            />
+          </div>
+          <p style={{ 
+            marginTop: '12px', 
+            color: '#666', 
+            fontSize: '14px',
+            textAlign: 'center'
+          }}>
+            คลิกเพื่อเปลี่ยนรูปโปรไฟล์
+          </p>
+        </div>
+
+        {/* Profile Image Selection Modal */}
+        <Modal
+          title="เลือกรูปโปรไฟล์"
+          open={profileModalVisible}
+          onCancel={() => setProfileModalVisible(false)}
+          footer={null}
+          width={700}
+          centered
+        >
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', 
+            gap: '16px',
+            padding: '20px 0',
+            maxHeight: '500px',
+            overflowY: 'auto'
+          }}>
+            {allAvatar.map((avatar, index) => (
+              <div
+                key={avatar.ID || index}
+                style={{
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: selectedProfileImage === `${PROFILE_BASE_URL}${avatar.avatar}` ? '1px solid #5DE2FF' : '1px solid #f0f0f0',
+                  boxShadow: selectedProfileImage === `${PROFILE_BASE_URL}${avatar.avatar}` ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
+                }}
+                onClick={() => handleProfileImageSelect(avatar.ID ?? 0,avatar.avatar ?? '')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                 
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = selectedProfileImage === `${PROFILE_BASE_URL}${avatar.avatar}` ? '0 4px 12px rgba(24, 144, 255, 0.3)' : 'none';
+                }}
+              >
+                <Avatar
+                  size={120}
+                  src={`${PROFILE_BASE_URL}${avatar.avatar}`}
+                  icon={<UserOutlined />}
+                  style={{ 
+                    width: '100%', 
+                    height: '120px',
+                    borderRadius: '12px'
+                  }}
+                />
+                {avatar.name && (
+                  <div style={{
+                    padding: '8px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    color: '#666',
+                    backgroundColor: 'white'
+                  }}>
+                    {avatar.name}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {allAvatar.length === 0 && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '60px',
+              color: '#999'
+            }}>
+              <UserOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+              <p>ไม่พบรูปโปรไฟล์ในระบบ</p>
+            </div>
+          )}
+        </Modal>
+
+        <Divider />
         
         <Form
           form={form}
@@ -126,21 +311,21 @@ function UserEdit() {
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-  <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
-    <Input placeholder="ระบุ Facebook (ถ้ามี)" />
-  </Form.Item>
-</Col>
-<Col xs={24} md={12}>
-  <Form.Item label="Line (ไม่จำเป็น)" name="line">
-    <Input placeholder="ระบุ Line ID (ถ้ามี)" />
-  </Form.Item>
-</Col>
+              <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
+                <Input placeholder="ระบุ Facebook (ถ้ามี)" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item label="Line (ไม่จำเป็น)" name="line">
+                <Input placeholder="ระบุ Line ID (ถ้ามี)" />
+              </Form.Item>
+            </Col>
 
           </Row>
           <Divider />
           <div className="user-edit-btn-group">
             <Link to="/user">
-              <Button icon={<ArrowLeftOutlined />} className="btn-back" >ย้อนกลับ</Button>
+              <Button icon={<ArrowLeftOutlined />} className="btn-back">ย้อนกลับ</Button>
             </Link>
             <Button type="primary" htmlType="submit" icon={<SaveOutlined />} className="btn-save">
               บันทึกข้อมูล

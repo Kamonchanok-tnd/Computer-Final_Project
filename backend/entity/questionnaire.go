@@ -3,6 +3,7 @@ import (
 	"gorm.io/gorm"
 )
 type Questionnaire struct {
+
     gorm.Model
     NameQuestionnaire string   `json:"nameQuestionnaire"`
     Description       string   `json:"description"`

@@ -265,3 +265,17 @@ func GetRecentChat(c *gin.Context) {
 		"chat_room_id": chatRoom.ID,
 	})
 }
+
+
+func TotalUser(c*gin.Context) {
+		var total int64
+		db := config.DB()
+		if err := db.Model(&entity.ChatRoom{}).Distinct("uid").Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"total_uid": total,
+		})
+}

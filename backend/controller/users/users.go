@@ -73,7 +73,7 @@ func Get(c *gin.Context) {
     db := config.DB()
 
     // ค้นหาผู้ใช้ตาม ID
-    results := db.First(&user, ID)
+    results := db.Preload("ProfileAvatar").First(&user, ID)
     if results.Error != nil {
         log.Printf("User not found: %v", results.Error)  // พิมพ์ log หากไม่พบผู้ใช้
         c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})

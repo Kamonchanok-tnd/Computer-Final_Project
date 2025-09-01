@@ -1,29 +1,21 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  CreatePlaylist,
-  DeletePlaylistByID,
+ 
   GetPlaylistByID,
-  GetPlaylistByUID,
-  IMG_URL,
+
   UpdatePlaylist,
 } from "../../../services/https/playlist";
 import {
   Check,
   ChevronLeft,
-  CirclePlus,
-  Clock,
-  Eye,
-  Heart,
+
   Images,
-  MoveLeft,
+
   PenLine,
   Play,
   Search,
-  ShowerHead,
-  SquarePen,
-  Trash,
-  Trash2,
+
   X,
 } from "lucide-react";
 import { IPlaylist } from "../../../interfaces/IPlaylist";
@@ -44,7 +36,7 @@ import ClearPlaylistModal from "./Component/ClearPlaylistModal";
 import { GetBackground } from "../../../services/https/background";
 import BackgroundPlaylist from "./Component/background";
 import { IBackground } from "../../../interfaces/IBackground";
-import DeleteConfirmModal from "./Component/DeleteConfirmModal";
+
 
 export interface CustomPlaylist extends IPlaylist {
   picture: string;
@@ -66,7 +58,7 @@ function AddSoundPlaylist() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredSounds, setFilteredSounds] = useState<Sound[]>([]);
   const [soundPlaylist, setSoundPlaylist] = useState<CustomSoundPlaylist[]>([]);
-  const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
+ 
   const [deletedRowIds, setDeletedRowIds] = useState<number[]>([]);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>("");
@@ -144,22 +136,7 @@ function AddSoundPlaylist() {
     // console.log("playlists is: ", chantingSounds);
   }, [soundPlaylist]);
 
-  const getYouTubeEmbedUrl = (url?: string): string | null => {
-    if (!url) {
-      console.warn("YouTube URL is undefined or empty");
-      return null;
-    }
-    const regExp =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
-    const match = url.match(regExp);
 
-    if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}`;
-    } else {
-      console.warn("ไม่สามารถดึง YouTube video ID จาก URL:", url);
-      return null;
-    }
-  };
 
   const extractYouTubeID = (url: string): string | null => {
     const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;

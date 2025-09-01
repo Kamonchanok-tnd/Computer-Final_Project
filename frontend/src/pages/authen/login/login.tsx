@@ -282,7 +282,7 @@ import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
 
-import { SignIn } from "../../../services/https/login";
+import { GetUsersById, SignIn } from "../../../services/https/login";
 import { SignInInterface } from "../../../interfaces/SignIn";
 
 import smile1 from "../../../assets/transparent-Photoroom-Photoroom.png";
@@ -291,14 +291,17 @@ import smile3 from "../../../assets/5-Photoroom.png";
 import logo from "../../../assets/user.png";
 
 import "./login.css"; // ใส่ไฟล์ CSS แยก
-
+import { useUser } from "../../../layout/HeaderLayout/UserContext";
+import { useDarkMode } from "../../../components/Darkmode/toggleDarkmode";
+const PROFILE_BASE_URL = import.meta.env.VITE_PF_URL;
 export default function SignInPages() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [staySignedIn, setStaySignedIn] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
-
+  const { setAvatarUrl, setUsername } = useUser();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const navigate = useNavigate();
 
   const images = [smile1, smile2, smile3];
@@ -323,6 +326,28 @@ export default function SignInPages() {
       localStorage.setItem("token_type", res.data.token_type);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("id", res.data.id);
+      localStorage.setItem("theme", "light");
+      if (isDarkMode) {
+        toggleDarkMode(); // สลับกลับเป็น light ถ้าอยู่ dark
+      }
+      if (res.data.id) {
+        GetUsersById(res.data.id).then(res => {
+          if (res.status === 200) {
+            // avatar
+            if (res.data.ProfileAvatar) {
+              const url = `${PROFILE_BASE_URL}${res.data.ProfileAvatar.avatar}`;
+              setAvatarUrl(url);
+              localStorage.setItem("avatarUrl", url);
+            }
+            // username
+            if (res.data.username) {
+              setUsername(res.data.username);
+              localStorage.setItem("username", res.data.username);
+            }
+          }
+        });
+      }
+      
 
       let redirectPath = "/";
       switch (res.data.role) {

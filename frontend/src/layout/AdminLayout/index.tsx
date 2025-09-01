@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined} from '@ant-design/icons';
+import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined } from '@ant-design/icons';
 const { Header, Content, Sider } = Layout;
 import './index.css';
-
+import { useUser } from "../HeaderLayout/UserContext";
+import lightlogo from "../../assets/logo/lightlogo.png";
 const AdminLayout = () => {
   const location = useLocation();
   const selectedKey = location.pathname;
   const navigate = useNavigate();
+  const { avatarUrl } = useUser();
 
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -47,12 +49,20 @@ const AdminLayout = () => {
     onClick={showDrawer} 
     className="layout-hamburger-button"
   />
-  <div className="layout-logo">SUT SUKJAI</div>
+   <img
+                src={lightlogo}
+                alt="Logo"
+                className="w-18 "
+              />
 </div>
 
 
   <Dropdown overlay={userMenu} trigger={['click']}>
-    <Avatar size="large" icon={<UserOutlined />} style={{ cursor: 'pointer' }} />
+  <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
   </Dropdown>
 </Header>
 
@@ -86,8 +96,11 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/messagePage" icon={<MailOutlined />}> 
               <Link to="/admin/messagePage">Message</Link> 
             </Menu.Item>
-            <Menu.Item key="/admin/dashboard/contents" icon={<MailOutlined />}> 
-              <Link to="/admin/dashboard/contents">DashboardContents</Link> 
+            <Menu.Item key="/admin/dashboard/contents" icon={<ScheduleOutlined/>}> 
+              <Link to="/admin/dashboard/contents">Contents</Link> 
+            </Menu.Item>
+            <Menu.Item key="/admin/activity" icon={<FundOutlined/>}> 
+              <Link to="/admin/activity">Visitor Data</Link> 
             </Menu.Item>
           </Menu>
         </Sider>

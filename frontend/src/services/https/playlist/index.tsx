@@ -30,7 +30,7 @@ export async function CreatePlaylist(data: IPlaylist) {
 }
 
 
-export async function GetPlaylistByUID(id: number) {
+export async function GetPlaylistByUID(id: number ,stid: number) {
   const requestOptions = {
     method: "GET",
     headers: {
@@ -40,7 +40,7 @@ export async function GetPlaylistByUID(id: number) {
   };
 
   try {
-    const response = await fetch(`${apiUrl}/Playlist/${id}`, requestOptions);
+    const response = await fetch(`${apiUrl}/Playlist/${id}/${stid}`, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {
@@ -58,7 +58,7 @@ export async function GetPlaylistByID(id: number) {
   };
 
   try {
-    const response = await fetch(`${apiUrl}/PlaylistByID/${id}`, requestOptions);
+    const response = await fetch(`${apiUrl}/PlaylistByID/${id} `, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {

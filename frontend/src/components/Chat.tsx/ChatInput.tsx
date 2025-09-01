@@ -1,6 +1,6 @@
 import React, { RefObject } from 'react';
 import { Mic, Send } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
 
 interface ChatInputProps {
   inputText: string;
@@ -14,7 +14,6 @@ interface ChatInputProps {
 }
 
 function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDarkMode, inputRef, gotoVoice }: ChatInputProps) {
-  const navigate =  useNavigate();
   return (
     <div
       className={` sm:rounded-b-2xl sm:px-10 py-4  backdrop-blur-sm transition-colors duration-300 ${
