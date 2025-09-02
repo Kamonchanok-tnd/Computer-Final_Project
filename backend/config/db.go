@@ -139,7 +139,7 @@ func SetupDatabase() {
 	CreateDefaultEmotionChoices(db)
 	// SeedQuestionnaires(db)
 	// SeedQuestionnaireGroups(db)
-	SeedCriteriaAndCalculations(db)
+	// SeedCriteriaAndCalculations(db)
 	SeedBackground(db)
 	CreateArticleTypes(db)
 	SeedEmojis(db)
