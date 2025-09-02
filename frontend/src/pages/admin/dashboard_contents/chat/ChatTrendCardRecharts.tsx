@@ -79,7 +79,7 @@ const ChatTrendMessagesFilter: React.FC<ChatTrendMessagesFilterProps> = ({
         {onViewMore && (
           <button
             onClick={onViewMore}
-            className="p-2 rounded-full bg-white/50 hover:bg-purple-300 transition flex justify-center items-center"
+            className="p-2 rounded-full bg-white/50 hover:bg-regal-blue transition flex justify-center items-center"
             title="ดูข้อมูลเพิ่มเติม"
           >
             <EllipsisOutlined className="text-white text-lg" />

@@ -24,9 +24,9 @@ import HomeContents from "../pages/admin/dashboard_contents/home_contents";
 import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
 import ManageTestOrder from "../pages/assessment/ManageTestOrder";
-import FormStepInfo from "../pages/admin/questionnaire/create/FormStepInfo";
-import FormStepQuestion from "../pages/admin/questionnaire/create/FormStepQuestion";
-import EditQuestionnaire from "../pages/admin/questionnaire/edit/edit_questionnaire";
+import FormStepInfo from "../pages/admin/questionnaire/create/createQuestionnairePage";
+import FormStepQuestion from "../pages/admin/questionnaire/create/createQuestionAndAnswer";
+import EditQuestionnaire from "../pages/admin/questionnaire/edit/editQuestionnairePage";
 import ListSound from "../pages/admin/Listsound/Listsound";
 import MessagePage from "../pages/admin/message/home/messagePage";
 import EditMessagePage from "../pages/admin/message/edit/editMesagePage";
@@ -34,6 +34,9 @@ import CreateMessagePage from "../pages/admin/message/create/createMessagePage";
 import EditSound from "../pages/admin/meditation/editSound";
 import CreateCriteriaPage from "../pages/admin/questionnaire/create/CreateCriteriaPage";
 import ChatSpaceDetail from "../pages/admin/dashboard_contents/chat/ChatSpaceDetail";
+
+import EditCriteriaPage from "../pages/admin/questionnaire/edit/editCriteriaPage";
+import EditQuestionAndAnswerPage from "../pages/admin/questionnaire/edit/editQuestionAndAnswer";
 
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
@@ -156,8 +159,16 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     element: <EditSound/>,
                 },
                 {
-                    path: "/admin/createCriteriaPage", //จัดการเก
+                    path: "/admin/createCriteriaPage", // สร้างเกณฑ์
                     element: <CreateCriteriaPage/>,
+                },
+                {
+                    path: "/admin/editCriteriaPage", // เเก้้ไขเกณฑ์
+                    element: <EditCriteriaPage/>,
+                },
+                {
+                    path: "/admin/editQuestionAndAnswerPage", // เเก้ไขคำถามเเละคำตอบ
+                    element: <EditQuestionAndAnswerPage/>,
                 }
                
             ],
