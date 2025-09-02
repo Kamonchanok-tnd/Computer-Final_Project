@@ -33,6 +33,7 @@ import EditMessagePage from "../pages/admin/message/edit/editMesagePage";
 import CreateMessagePage from "../pages/admin/message/create/createMessagePage";
 import EditSound from "../pages/admin/meditation/editSound";
 import CreateCriteriaPage from "../pages/admin/questionnaire/create/CreateCriteriaPage";
+import ChatSpaceDetail from "../pages/admin/dashboard_contents/chat/ChatSpaceDetail";
 
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
@@ -87,6 +88,11 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                    path: "/admin/breathing-details",
                   element: <DashboardBreathing />, // หน้า Settings ของ Admin DashboardChanting
                 },
+                {
+                    path: "/admin/dashboard/contents/chat",
+                   element: <ChatSpaceDetail />, // หน้า Settings ของ Admin DashboardChanting
+                 },
+
                  {
                    path: "/admin/activity",
                   element: <WebData />, // หน้า Settings ของ Admin DashboardChanting
