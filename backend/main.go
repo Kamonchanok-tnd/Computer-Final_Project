@@ -200,8 +200,16 @@ func main() {
 		router.GET("/summarycontents", dashboardcontents.GetTopContentComparison)
 		router.GET("/sound/four-type", dashboardcontents.GetSoundFourType)  
 
-		//นับคนใช้ chatspace
+		//dashboard chatspace
 		router.GET("/chat_rooms/count_uid", controller.TotalUser)
+
+		router.GET("/dashboard/overview", controller.DashboardOverview)
+		router.GET("/dashboard/usage/daily", controller.DashboardUsage)
+		router.GET("/dashboard/users/top", controller.DashboardTopUsers)
+		router.GET("/dashboard/sessions/status", controller.DashboardSessionsStatus)
+		router.GET("/dashboard/sessions/duration", controller.DashboardSessionsDuration)
+		router.GET("/dashboard/visit-frequency", controller.DashboardActiveUsers)
+		router.GET("/dashboard/retention-rate", useractivity.GetRetentionRate)
 
 		router.GET("/visit-frequency", useractivity.GetVisitFrequency)
 		router.GET("/retention-rate", useractivity.GetRetentionRate)
