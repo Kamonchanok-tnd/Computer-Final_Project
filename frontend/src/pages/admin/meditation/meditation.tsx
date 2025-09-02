@@ -68,8 +68,15 @@ const VideoForm: React.FC = () => {
       values.uid = Number(userId);
     }
     values.stid = Number(values.stid);
-    values.duration = parseDurationHMS(values.duration); // แปลงเป็นวินาทีก่อนส่ง backend
-
+  
+    // ถ้า duration ว่าง ให้ดึงจาก player
+    if (!values.duration && playerRef.current) {
+      const durationSeconds = playerRef.current.getDuration();
+      values.duration = durationSeconds;
+    } else {
+      values.duration = parseDurationHMS(values.duration);
+    }
+  
     try {
       await createVideo(values);
       message.success('เพิ่มข้อมูลสำเร็จ!');
@@ -78,12 +85,13 @@ const VideoForm: React.FC = () => {
       form.setFieldsValue({ uid: Number(userId) });
     } catch (err) {
       message.error('เกิดข้อผิดพลาดในการเพิ่มวิดีโอ');
-    }finally {
+    } finally {
       setTimeout(() => {
         navigate('/admin/sounds');
       }, 2000);
     }
   };
+  
   useEffect(() => {
     if (!(window as any).YT) {
       const tag = document.createElement("script");
@@ -265,7 +273,7 @@ const VideoForm: React.FC = () => {
   name="duration"
   rules={[{ required: true, message: 'กรุณากรอกความยาว' }]}
 >
-<Input placeholder="h:mm:ss" />
+<Input placeholder="h:mm:ss" disabled  />
 </Form.Item>
 
                   <div></div>

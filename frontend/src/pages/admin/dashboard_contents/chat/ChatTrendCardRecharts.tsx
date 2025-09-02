@@ -73,7 +73,7 @@ const ChatTrendMessagesFilter: React.FC<ChatTrendMessagesFilterProps> = ({
   }, []);
 
   return (
-    <Card className={`rounded-2xl p-4 shadow-md ${className}`}>
+    <div className={`rounded-2xl p-4 shadow-md ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold">{title}</h2>
         {onViewMore && (
@@ -121,7 +121,7 @@ const ChatTrendMessagesFilter: React.FC<ChatTrendMessagesFilterProps> = ({
           </ResponsiveContainer>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 

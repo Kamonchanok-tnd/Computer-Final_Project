@@ -37,6 +37,7 @@ import ChatSpaceDetail from "../pages/admin/dashboard_contents/chat/ChatSpaceDet
 
 import EditCriteriaPage from "../pages/admin/questionnaire/edit/editCriteriaPage";
 import EditQuestionAndAnswerPage from "../pages/admin/questionnaire/edit/editQuestionAndAnswer";
+import Quetionairedetail from "../pages/admin/dashboard_contents/questionaire/quetionairedetail";
 
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
@@ -94,6 +95,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                     path: "/admin/dashboard/contents/chat",
                    element: <ChatSpaceDetail />, // หน้า Settings ของ Admin DashboardChanting
+                 },
+                 {
+                    path: "/admin/dashboard/contents/questionnaire",
+                   element: <Quetionairedetail />, // หน้า Settings ของ Admin DashboardChanting
                  },
 
                  {
