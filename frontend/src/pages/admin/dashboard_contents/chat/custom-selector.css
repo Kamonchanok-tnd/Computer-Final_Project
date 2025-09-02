@@ -1,0 +1,72 @@
+/* ถ้าใช้ไฟล์ CSS */
+.custom-range-picker .ant-picker-input > input {
+    color: #1F1F22; /* สีตัวอักษร */
+  }
+  
+  .custom-range-picker .ant-picker {
+    border-color: #5DE2FF !important; /* สีขอบ */
+    border-radius: 0.5rem; /* ปรับมุมโค้ง */
+  }
+  
+  .custom-range-picker .ant-picker-active-bar {
+    background-color: #5DE2FF !important;  /* สี highlight ของ range */
+  }
+  
+  .css-dev-only-do-not-override-ut69n1 .ant-picker-outlined:hover {
+    border-color: #5DE2FF !important;
+  }
+  
+/* เลือกวันที่ถูกเลือก (selected) */
+.custom-range-picker.ant-picker-outlined:hover {
+    border-color: #5DE2FF !important;    /* เปลี่ยนขอบเป็นฟ้าเดียวกับกราฟ */
+    background-color: #ffffff !important; /* ถ้าอยากให้พื้นหลังยังเป็นขาว */
+}
+
+/* CustomDatePicker.css */
+
+/* เปลี่ยนสีขอบและเงาเมื่อ RangePicker ถูกโฟกัส */
+.custom-range-picker:hover,
+.custom-range-picker.ant-picker-focused {
+  border-color: #5DE2FF;
+  box-shadow: 0 0 0 2px rgba(93, 226, 255, 0.2);
+}
+
+/* เปลี่ยนสีพื้นหลังของวันที่ที่อยู่ในช่วงที่เลือก */
+.custom-range-picker .ant-picker-cell-in-range {
+  background: #E5F8FF; /* สีอ่อนๆ ของ 5DE2FF */
+}
+
+/* เปลี่ยนสีพื้นหลังของวันที่เริ่มต้นและสิ้นสุด */
+.custom-range-picker .ant-picker-cell-in-range.ant-picker-cell-start,
+.custom-range-picker .ant-picker-cell-in-range.ant-picker-cell-end {
+  background: #5DE2FF;
+}
+
+/* เปลี่ยนสีตัวอักษรของวันที่เริ่มต้นและสิ้นสุด */
+.custom-range-picker .ant-picker-cell-in-range.ant-picker-cell-start .ant-picker-cell-inner,
+.custom-range-picker .ant-picker-cell-in-range.ant-picker-cell-end .ant-picker-cell-inner {
+  color: #fff;
+}
+
+/* CustomDatePicker.css */
+
+/* สีสำหรับวันที่ที่ถูกปิดใช้งาน */
+.custom-range-picker .ant-picker-cell-disabled .ant-picker-cell-inner {
+    color: #ccc; /* ตัวอย่าง: สีเทาอ่อนสำหรับวันที่ที่ปิดใช้งาน */
+  }
+  
+  /* สีของวันที่ในเดือนอื่นที่ไม่ใช่เดือนปัจจุบัน */
+  .custom-range-picker .ant-picker-cell-in-view.ant-picker-cell-disabled.ant-picker-cell-range-end .ant-picker-cell-inner,
+  .custom-range-picker .ant-picker-cell-in-view.ant-picker-cell-disabled.ant-picker-cell-range-start .ant-picker-cell-inner {
+    color: #5DE2FF; /* ตัวอย่าง: สีสำหรับวันที่ที่อยู่ขอบเขตช่วงแต่เป็นเดือนอื่น */
+  }
+  
+  /* สีของวันที่ที่อยู่ในช่วงที่เลือก */
+  .custom-range-picker .ant-picker-cell-in-range .ant-picker-cell-inner {
+    background-color: transparent; /* ล้างพื้นหลังเพื่อไม่ให้ทับกับสีที่กำหนดไว้แล้ว */
+    color: #5DE2FF ; /* ตัวอย่าง: สีของตัวเลขวันที่ที่อยู่ในช่วง */
+  }
+
+  .custom-range-picker .ant-picker-header-view:hover  {
+    color: #5DE2FF !important;
+  }

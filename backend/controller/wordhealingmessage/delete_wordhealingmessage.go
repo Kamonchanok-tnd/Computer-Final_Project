@@ -10,7 +10,7 @@ import (
 
 )
 
-// ฟังก์ชันลบบทความ + ลบ like ที่เกี่ยวข้อง (ภายใน transaction)
+// ฟังก์ชันบริการเพื่อลบ WordHealingContent และข้อมูลที่เกี่ยวข้อง (เช่น Like)
 func DeleteWordHealingContent(c *gin.Context) {
     // รับ id จาก URL
     contentId := c.Param("id")

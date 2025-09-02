@@ -4,7 +4,7 @@ import axios from "axios";
 const apiUrl = "http://localhost:8000";
 
 
-// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน Admin
+// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน admin
 export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]> => {
   try {
     const token = localStorage.getItem("token");
@@ -111,14 +111,12 @@ export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingCon
 };
 
 
-// ดึงประเภทบทความเป็น 
-// ===== types =====
 export interface ArticleTypeDTO {
   name: string;
   description: string;
 }
 
-// ===== ดึงแบบละเอียด: [{name, description}] =====
+// ฟังก์ชันสำหรับดึงประเภทบทความ (Article Types) พร้อมรายละเอียด
 export const getArticleTypesDetailed = async (): Promise<ArticleTypeDTO[]> => {
   try {
     const token = localStorage.getItem("token") || "";
@@ -152,7 +150,7 @@ export const getArticleTypesDetailed = async (): Promise<ArticleTypeDTO[]> => {
   }
 };
 
-// ===== แปลงเป็น options ของ AntD Select =====
+// ฟังก์ชันสำหรับดึงประเภทบทความ (Article Types) พร้อมรายละเอียด เพื่อใช้ใน dropdown
 export const getArticleTypeOptionsDetailed = async (): Promise<
   { value: string; label: React.ReactNode; raw: ArticleTypeDTO }[]
 > => {
@@ -174,8 +172,7 @@ export const getArticleTypeOptionsDetailed = async (): Promise<
 };
 
 
-
-// ฟังก์ชันสำหรับสร้างบทความ WordHealingMessages
+// ฟังก์ชันสำหรับสร้างบทความ WordHealingMessage
 export const createWordHealingMessage = async (formData: FormData): Promise<boolean> => {
     try {
         const token = localStorage.getItem("token");  // รับ token จาก localStorage
@@ -245,6 +242,7 @@ interface UpdateWordHealingRequest {
   article_type: string;      
 }
 
+// ฟังก์ชันสำหรับอัปเดตบทความ WordHealingMessage
 export const updateWordHealingMessage = async (id: string,data: UpdateWordHealingRequest): Promise<boolean> => {
   try {
     const token = localStorage.getItem("token");
@@ -266,7 +264,7 @@ export const updateWordHealingMessage = async (id: string,data: UpdateWordHealin
 };
 
 
-// ฟังก์ชันสำหรับดึงบทความ WordHealingMessage 
+// ฟังก์ชันสำหรับดึงบทความ WordHealingMessage ตาม ID 
 export const getWordHealingMessageById = async (id: string): Promise<WordHealingContent | null> => {
   try {
     const token = localStorage.getItem("token");
@@ -311,8 +309,7 @@ export const getWordHealingMessageById = async (id: string): Promise<WordHealing
 };
 
 
-
-// ฟังก์ชันสำหรับไลค์บทความ
+// ฟังก์ชันสำหรับกดไลค์บทความ
 export const likeMessage = async (id: number, uid: string) => {
   try {
     const response = await axios.post(
@@ -332,7 +329,7 @@ export const likeMessage = async (id: number, uid: string) => {
   }
 };
 
-// ฟังก์ชันสำหรับยกเลิกไลค์บทความ
+// ฟังก์ชันสำหรับยกเลิกการกดไลค์บทความ
 export const unlikeMessage = async (id: number, uid: string) => {
   try {
     const response = await axios.delete(
@@ -352,7 +349,7 @@ export const unlikeMessage = async (id: number, uid: string) => {
 };
 
 
-// ดึงข้อมูลการ like
+// ฟังก์ชันสำหรับดึงรายการ ID ของบทความที่ user กดไลค์
 export const getUserLikedMessages = async (): Promise<number[]> => {
   const token = localStorage.getItem("token") || "";
   const res = await fetch(`${apiUrl}/user/likedMessages`, {
@@ -368,7 +365,7 @@ export const getUserLikedMessages = async (): Promise<number[]> => {
   }
 };
 
-// ฟังก์ชันเช็คว่า user เคยกดหัวใจบทความนี้หรือไม่
+// ฟังก์ชันสำหรับตรวจสอบว่าผู้ใช้เคยกดไลค์บทความนี้หรือไม่
 export const checkIfLikedArticle = async (id: number, uid: string) => {
   try {
     const response = await axios.get(`${apiUrl}/article/${id}/liked`, {
@@ -385,7 +382,7 @@ export const checkIfLikedArticle = async (id: number, uid: string) => {
   }
 };
 
-// ฟังก์ชันสำหรับอัปเดตจำนวนการดูบทความ
+// ฟังก์ชันสำหรับอัปเดตจำนวนการเข้าชมบทความ
 export const updateViewCount = async (id: string): Promise<boolean> => {
   try {
     const token = localStorage.getItem("token");

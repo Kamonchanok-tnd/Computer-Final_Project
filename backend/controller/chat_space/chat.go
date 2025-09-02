@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"sukjai_project/config"
 	"sukjai_project/entity"
@@ -266,6 +267,7 @@ func GetRecentChat(c *gin.Context) {
 	})
 }
 
+// dashboard chat
 
 func TotalUser(c*gin.Context) {
 		var total int64
@@ -278,4 +280,360 @@ func TotalUser(c*gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"total_uid": total,
 		})
+}
+
+
+func DashboardOverview(c *gin.Context) {
+    type Overview struct {
+        TotalChatRooms       int64   `json:"total_chat_rooms"`
+        TotalMessages        int64   `json:"total_messages"`
+        ActiveUsers          int64   `json:"active_users"`
+        AvgAIResponseSeconds float64 `json:"avg_ai_response_seconds"`
+    }
+
+    db := config.DB()
+    var overview Overview
+
+    // รวมยอดทั้งหมด
+    db.Model(&entity.ChatRoom{}).Count(&overview.TotalChatRooms)
+
+    // ข้อความ user เท่านั้น
+    db.Model(&entity.Conversation{}).
+        Where("st_id = ?", 1).
+        Count(&overview.TotalMessages)
+
+    // Active users
+    db.Model(&entity.ChatRoom{}).Distinct("uid").Count(&overview.ActiveUsers)
+
+    // avg AI response time (เฉพาะ AI หลัง user ล่าสุด, 7 วันล่าสุด)
+    type AIResp struct {
+        AvgResponseSec float64
+    }
+    var aiResp AIResp
+
+    query := `
+    WITH user_messages AS (
+        SELECT id, created_at
+        FROM conversations
+        WHERE st_id = 1
+          AND created_at >= NOW() - INTERVAL '7 days'
+    ),
+    ai_messages AS (
+        SELECT id, created_at
+        FROM conversations
+        WHERE st_id = 2
+          AND created_at >= NOW() - INTERVAL '7 days'
+    ),
+    response_times AS (
+        SELECT
+            ai.id AS ai_id,
+            EXTRACT(EPOCH FROM (ai.created_at - um.created_at)) AS response_seconds
+        FROM ai_messages ai
+        JOIN LATERAL (
+            SELECT created_at
+            FROM user_messages
+            WHERE created_at < ai.created_at
+            ORDER BY created_at DESC
+            LIMIT 1
+        ) um ON TRUE
+    )
+    SELECT AVG(response_seconds) AS avg_response_sec
+    FROM response_times;
+    `
+
+    if err := db.Raw(query).Scan(&aiResp).Error; err != nil {
+        c.JSON(500, gin.H{"error": err.Error()})
+        return
+    }
+
+    overview.AvgAIResponseSeconds = aiResp.AvgResponseSec
+
+    c.JSON(200, overview)
+}
+
+
+
+// 2. Daily usage
+func DashboardUsage(c *gin.Context) {
+	type DailyUsage struct {
+		Date         time.Time `json:"date"`
+		MessageCount int64     `json:"message_count"`
+		DisplayLabel string    `json:"display_label"` // สำหรับ frontend
+		Hour         int       `json:"hour,omitempty"` // สำหรับ today
+	}
+
+	db := config.DB()
+	filter := c.DefaultQuery("filter", "user")             // all / user
+	granularity := c.DefaultQuery("granularity", "today") // today / day / week / month / year / custom
+	startDate := c.Query("start_date")
+	endDate := c.Query("end_date")
+
+	// timezone Bangkok
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	now := time.Now().In(loc)
+
+	convQuery := db.Model(&entity.Conversation{})
+
+	// เลือกเฉพาะข้อความจาก user
+	if filter == "user" {
+		convQuery = convQuery.Where("st_id = ?", 1)
+	}
+
+	// Prepare query result
+	var convResults []struct {
+		Date  time.Time
+		Count int64
+	}
+
+	// Build query ตาม granularity
+	switch granularity {
+	case "today":
+		start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).UTC()
+		end := start.AddDate(0, 0, 1)
+		convQuery = convQuery.
+			Select("DATE_TRUNC('hour', created_at) AS date, COUNT(*) AS count").
+			Where("created_at >= ? AND created_at < ?", start, end).
+			Group("DATE_TRUNC('hour', created_at)").
+			Order("DATE_TRUNC('hour', created_at) ASC")
+
+	case "day":
+		start := now.AddDate(0, 0, -7).UTC()
+		convQuery = convQuery.
+			Select("DATE(created_at) AS date, COUNT(*) AS count").
+			Where("created_at >= ?", start).
+			Group("DATE(created_at)").
+			Order("DATE(created_at) ASC")
+
+	
+	case "month":
+		start := now.AddDate(0, -6, 0).UTC() // 6 เดือนย้อนหลัง
+		convQuery = convQuery.
+			Select("DATE_TRUNC('month', created_at) AS date, COUNT(*) AS count").
+			Where("created_at >= ?", start).
+			Group("DATE_TRUNC('month', created_at)").
+			Order("DATE_TRUNC('month', created_at) ASC")
+
+		case "year":
+			start := now.AddDate(-1, 0, 0).UTC() // 12 เดือนย้อนหลัง
+			convQuery = convQuery.
+				Select("DATE_TRUNC('year', created_at) AS date, COUNT(*) AS count"). // <-- ใช้ 'year'
+				Where("created_at >= ?", start).
+				Group("DATE_TRUNC('year', created_at)").                             // <-- group by year
+				Order("DATE_TRUNC('year', created_at) ASC")
+
+	case "custom":
+		if startDate != "" && endDate != "" {
+			convQuery = convQuery.
+				Select("DATE(created_at) AS date, COUNT(*) AS count").
+				Where("DATE(created_at) BETWEEN ? AND ?", startDate, endDate).
+				Group("DATE(created_at)").
+				Order("DATE(created_at) ASC")
+		}
+	}
+
+	convQuery.Scan(&convResults)
+
+	// เตรียม results
+	var results []DailyUsage
+
+	if granularity == "today" {
+		// สร้าง 24 ชั่วโมงเต็ม
+		results = make([]DailyUsage, 24)
+		for h := 0; h < 24; h++ {
+			results[h] = DailyUsage{
+				Date:         time.Date(now.Year(), now.Month(), now.Day(), h, 0, 0, 0, loc),
+				MessageCount: 0,
+				DisplayLabel: fmt.Sprintf("%02d:00", h),
+				Hour:         h,
+			}
+		}
+		// Map ข้อมูลจาก DB
+		for _, r := range convResults {
+			hour := r.Date.In(loc).Hour()
+			results[hour].MessageCount = r.Count
+		}
+	} else {
+		// granularity อื่น ๆ
+		results = make([]DailyUsage, len(convResults))
+		for i, r := range convResults {
+			dateInBangkok := r.Date.In(loc)
+			var displayLabel string
+			switch granularity {
+			case "day", "custom":
+				displayLabel = dateInBangkok.Format("02/01") // วัน/เดือน
+			case "week":
+				_, week := dateInBangkok.ISOWeek()
+				displayLabel = fmt.Sprintf("W%02d", week) // สัปดาห์
+			case "month":
+				displayLabel = dateInBangkok.Format("Jan") // เดือน
+			case "year":
+				displayLabel = dateInBangkok.Format("2006") // ปี
+			default:
+				displayLabel = dateInBangkok.Format("02/01")
+			}
+
+			results[i] = DailyUsage{
+				Date:         dateInBangkok,
+				MessageCount: r.Count,
+				DisplayLabel: displayLabel,
+			}
+		}
+	}
+
+	// sort
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Date.Before(results[j].Date)
+	})
+
+	c.JSON(200, results)
+}
+
+
+
+// 3. Top users
+func DashboardTopUsers(c *gin.Context) {
+	///api/dashboard/users/top → Top Users (ตามจำนวนข้อความ)
+	type TopUser struct {
+		UID         uint  `json:"uid"`
+		MessageCount int64 `json:"message_count"`
+	}
+	db := config.DB()
+	var results []TopUser
+	db.Model(&entity.Conversation{}).
+		Select("chat_rooms.uid as uid, COUNT(conversations.id) as message_count").
+		Joins("JOIN chat_rooms ON chat_rooms.id = conversations.chat_room_id").
+		Group("chat_rooms.uid").
+		Order("message_count DESC").
+		Limit(10).
+		Scan(&results)
+
+
+	c.JSON(http.StatusOK, results)
+}
+
+// 4. Sessions status
+func DashboardSessionsStatus(c *gin.Context) {
+	///api/dashboard/sessions/status → ห้องเปิด-ปิด
+	type SessionStatus struct {
+		IsClose bool  `json:"is_close"`
+		Count   int64 `json:"count"`
+	}
+	db := config.DB()
+	var results []SessionStatus
+	db.Model(&entity.ChatRoom{}).
+		Select("is_close, COUNT(*) as count").
+		Group("is_close").
+		Scan(&results)
+
+	c.JSON(http.StatusOK, results)
+}
+
+// 5. Sessions duration
+func DashboardSessionsDuration(c *gin.Context) {
+	///api/dashboard/sessions/duration → คำนวณเวลาการใช้งานเฉลี่ย
+	type SessionDuration struct {
+		ChatRoomID uint    `json:"chat_room_id"`
+		Duration   float64 `json:"duration_seconds"`
+	}
+	db := config.DB()
+	var results []SessionDuration
+	var chatrooms []entity.ChatRoom
+	db.Find(&chatrooms)
+
+	for _, cr := range chatrooms {
+		duration := cr.EndDate.Sub(cr.StartDate).Seconds()
+		results = append(results, SessionDuration{
+			ChatRoomID: cr.ID,
+			Duration:   duration,
+		})
+	}
+
+	c.JSON(http.StatusOK, results)
+}
+
+// GET /api/dashboard/active_users?granularity=day
+func DashboardActiveUsers(c *gin.Context) {
+    db := config.DB()
+    granularity := c.Query("granularity") // "day", "week", "month"
+
+    type ActiveUsers struct {
+        Period string `json:"period"`
+        Count  int64  `json:"count"`
+    }
+
+    var results []ActiveUsers
+
+    query := db.Model(&entity.ChatRoom{}).
+    Select("DATE(chat_rooms.created_at) as period, COUNT(DISTINCT chat_rooms.uid) as count").
+    Joins("JOIN conversations ON conversations.chat_room_id = chat_rooms.id").
+    Group("DATE(chat_rooms.created_at)").
+    Order("DATE(chat_rooms.created_at) ASC")
+
+
+    switch granularity {
+    case "week":
+		query = db.Model(&entity.ChatRoom{}).
+			Select("DATE_TRUNC('week', chat_rooms.created_at) as period, COUNT(DISTINCT chat_rooms.uid) as count").
+			Joins("JOIN conversations ON conversations.chat_room_id = chat_rooms.id").
+			Group("DATE_TRUNC('week', chat_rooms.created_at)").
+			Order("DATE_TRUNC('week', chat_rooms.created_at) ASC")
+	
+	case "month":
+		query = db.Model(&entity.ChatRoom{}).
+			Select("DATE_TRUNC('month', chat_rooms.created_at) as period, COUNT(DISTINCT chat_rooms.uid) as count").
+			Joins("JOIN conversations ON conversations.chat_room_id = chat_rooms.id").
+			Group("DATE_TRUNC('month', chat_rooms.created_at)").
+			Order("DATE_TRUNC('month', chat_rooms.created_at) ASC")
+	
+    }
+
+    if err := query.Scan(&results).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		println(err.Error())
+        return
+    }
+
+    c.JSON(http.StatusOK, results)
+}
+
+// GET /api/dashboard/cohort?days=30
+func DashboardCohort(c *gin.Context) {
+    db := config.DB()
+    days := 30 // default last 30 days
+
+    type Cohort struct {
+        SignupDate string `json:"signup_date"`
+        DayOffset  int    `json:"day_offset"`
+        Active     int64  `json:"active_users"`
+    }
+
+    var results []Cohort
+
+    query := `
+        WITH first_chat AS (
+            SELECT uid, MIN(created_at)::date AS signup_date
+            FROM chat_rooms
+            GROUP BY uid
+        ),
+        activity AS (
+            SELECT fc.signup_date,
+                   (c.created_at::date - fc.signup_date) AS day_offset,
+                   c.uid
+            FROM first_chat fc
+            JOIN chat_rooms cr ON cr.uid = fc.uid
+            JOIN conversations c ON c.chat_room_id = cr.id
+        )
+        SELECT signup_date, day_offset, COUNT(DISTINCT uid) as active_users
+        FROM activity
+        WHERE day_offset < ?
+        GROUP BY signup_date, day_offset
+        ORDER BY signup_date, day_offset
+    `
+
+    if err := db.Raw(query, days).Scan(&results).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, results)
 }

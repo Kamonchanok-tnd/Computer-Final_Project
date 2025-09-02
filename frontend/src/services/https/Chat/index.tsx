@@ -143,3 +143,170 @@ export async function TotalUseChat() {
     throw error;
   }
 }
+
+export async function GetQverview(
+
+) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+ 
+  const url = `${apiUrl}/dashboard/overview`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function GetChatUsage(
+  granularity: "today" | "day" | "week" | "month" | "year" | "custom" = "today",
+  filter: "all" | "user" = "all",
+  startDate?: string,
+  endDate?: string
+) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  const params: Record<string, string> = { granularity, filter };
+  if (startDate) params["start_date"] = startDate;
+  if (endDate) params["end_date"] = endDate;
+
+  try {
+    const url = new URL(`${apiUrl}/dashboard/usage/daily`);
+
+    Object.entries(params).forEach(([key, val]) => url.searchParams.append(key, val));
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json", "Authorization": authHeader },
+    });
+
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+
+export async function GettopUser() {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  try {
+    const response = await fetch(`${apiUrl}/dashboard/users/top`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function Getstatus() {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  try {
+    const response = await fetch(`${apiUrl}/dashboard/sessions/status`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function Getduration() {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  try {
+    const response = await fetch(`${apiUrl}/dashboard/sessions/duration`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function getActiveUsers(granularity: "day" | "week" | "month") {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  try {
+    const response = await fetch(`${apiUrl}/dashboard/visit-frequency?granularity=${granularity}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function GetCohort (days: number = 30) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  try {
+    const response = await fetch(`${apiUrl}/dashboard/retention-rate?days=${days}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+
+
+
+
+
+
+

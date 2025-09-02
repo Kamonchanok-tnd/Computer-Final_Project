@@ -350,6 +350,7 @@ import WordHealingCard from "./word-healing/wordgard";
 import MirrorCard from "./mirror/mirrorgard";
 import ASMRCard from "./asmr/asmrgard";
 import BreathingCard from "./breathing/breatinggard";
+import ChatTrendCardRecharts from "./chat/ChatTrendCardRecharts";
 
 // DashboardCard component
 const DashboardCard: React.FC<{ title: string; className?: string; children: React.ReactNode }> = ({
@@ -519,6 +520,7 @@ summaryData.push({
           {/* <div className="bg-white rounded-2xl p-4 shadow-md flex items-center justify-center text-gray-400">
             ยังไม่มีข้อมูล
           </div> */}
+          <ChatTrendCardRecharts onViewMore={() => navigate("/admin/dashboard/contents/chat")}/>
         </div>
       </main>
     </div>
