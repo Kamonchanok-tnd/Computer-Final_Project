@@ -40,6 +40,8 @@ const EditSound: React.FC = () => {
   const previewRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const { id } = useParams();
+  const [originalURL, setOriginalURL] = useState<string>("");
+
   const fetchVideo = async () => {
     try {
       const res = await getSoundByID(Number(id));
@@ -55,6 +57,7 @@ const EditSound: React.FC = () => {
         stid: videoData.stid,
         uid: videoData.uid,
       });
+      setOriginalURL(videoData.sound);
       setStid(videoData.STID); // set select
       console.log("Form values after set:", form.getFieldsValue());
     } catch (error) {
@@ -96,6 +99,7 @@ const EditSound: React.FC = () => {
   }, [form]);
 
   const handleSubmit = async (values: any) => {
+    
     if (userId) {
       values.uid = Number(userId);
     }
@@ -317,7 +321,7 @@ const EditSound: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                   <Form.Item label="ความยาว" required>
                   <Form.Item name="duration" noStyle rules={[{ required: true }]}>
-                    <Input placeholder="h:mm:ss" />
+                    <Input placeholder="h:mm:ss"disabled/>
                   </Form.Item>
                 </Form.Item>
 

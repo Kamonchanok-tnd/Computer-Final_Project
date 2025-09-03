@@ -172,3 +172,96 @@ export const getSoundFourType = async (): Promise<DailySoundUsage[]> => {
     return [];
   }
 };
+
+
+// dashboard questionaire
+export interface QuestionaireOverview {
+  total_questionnaires: number;
+  total_assessments: number;
+  total_users: number;
+  
+}
+export const GetQuestionaireOverview = async (): Promise<QuestionaireOverview | null> => {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionaire/overview`, getAuthHeader());
+   
+    return res.data.results || null;
+  } catch (err) {
+    console.error("Error fetching questionaire:", err);
+    return null; 
+  }
+};
+
+export interface Stats {
+  name_questionnaire: string;
+  total_taken: number;
+}
+
+export async function fetchQuestionnaireStats(): Promise<Stats[]> {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionaire/stats`, getAuthHeader());
+    return Array.isArray(res.data) ? res.data : res.data.data || [];
+  } catch (error) {
+    console.error("Failed to fetch questionnaire stats:", error);
+    return [];
+  }
+}
+
+export interface SurveyVisualizationData {
+  name_questionnaire: string;
+  result_level: string;
+  total_count: number;
+  total_taken: number;
+}
+
+export const getSurveyVisualization = async (
+  withResults: boolean = true
+): Promise<SurveyVisualizationData[]> => {
+  try {
+    const url = withResults
+      ? `${apiUrl}/dashboard/questionaire/resultsoverview`
+      : `${apiUrl}/dashboard/questionaire/stats`; // stats แค่ total_taken
+
+    const response = await axios.get(url, getAuthHeader());
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error("Failed to fetch survey visualization:", error);
+    return [];
+  }
+};
+
+
+export const getSurveyVisualizationById = async (
+  questionnaireId: number
+): Promise<SurveyVisualizationData[]> => {
+  try {
+    const response = await axios.get(
+      `${apiUrl}/dashboard/questionaire/resultsoverview/${questionnaireId}`,
+      getAuthHeader()
+    );
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error(`Failed to fetch survey visualization for ID ${questionnaireId}:`, error);
+    return [];
+  }
+};
+
+export interface AverageScoreData {
+  questionnaireId: number;
+  questionnaireName: string;
+  averageScore: number;
+  totalTaken: number;
+  maxScore: number;           // เพิ่ม
+  minScore: number;           // เพิ่ม
+  trend: { date: string; avgScore: number }[]; // เพิ่ม สำหรับ sparkline chart
+}
+
+export const getAverageScore = async (questionnaireId: number): Promise<AverageScoreData> => {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionnaire/${questionnaireId}/average-score`, getAuthHeader());
+    return res.data; // ตรงนี้ต้องตรงกับ AverageScoreData
+  } catch (err: any) {
+    console.error("โหลดคะแนนเฉลี่ยล้มเหลว:", err);
+    throw new Error(err.message || "ไม่สามารถโหลดคะแนนเฉลี่ยได้");
+  }
+};

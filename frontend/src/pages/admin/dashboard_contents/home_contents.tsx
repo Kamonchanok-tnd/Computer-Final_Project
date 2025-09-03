@@ -350,6 +350,8 @@ import WordHealingCard from "./word-healing/wordgard";
 import MirrorCard from "./mirror/mirrorgard";
 import ASMRCard from "./asmr/asmrgard";
 import BreathingCard from "./breathing/breatinggard";
+import ChatTrendCardRecharts from "./chat/ChatTrendCardRecharts";
+import QuestionnaireTrendChart from "./questionaire/QuestionnaireTrendChart";
 
 // DashboardCard component
 const DashboardCard: React.FC<{ title: string; className?: string; children: React.ReactNode }> = ({
@@ -512,13 +514,23 @@ summaryData.push({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <MusicCard onViewMore={() => navigate("/admin/dashboard/contents/sound")}/>
           {/* <ChantingCard onViewMore={() => navigate("/admin/chanting-details")}/> */}
-          <WordHealingCard onViewMore={() => navigate("/admin/wordhealing-details")}/>
+          {/* <WordHealingCard onViewMore={() => navigate("/admin/wordhealing-details")}/> */}
           <MirrorCard onViewMore={() => navigate("/admin/mirror-details")} />
           {/* <ASMRCard onViewMore={() => navigate("/admin/asmr-details")} />
           <BreathingCard onViewMore={() => navigate("/admin/breathing-details")} /> */}
           {/* <div className="bg-white rounded-2xl p-4 shadow-md flex items-center justify-center text-gray-400">
             ยังไม่มีข้อมูล
           </div> */}
+          
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="col-span-2">
+          <ChatTrendCardRecharts onViewMore={() => navigate("/admin/dashboard/contents/chat")}/>
+          </div>
+          <div className="col-span-2">
+          <QuestionnaireTrendChart onViewMore={() => navigate("/admin/dashboard/contents/questionnaire")}/>
+          </div>
+        
         </div>
       </main>
     </div>
