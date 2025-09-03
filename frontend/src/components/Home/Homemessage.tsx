@@ -188,10 +188,10 @@ function Homemessage() {
           รับข้อความให้กำลังใจ ที่อาจเป็นสิ่งเล็ก ๆ แต่ช่วยได้มากกว่าที่คิด
         </p>
       </div>
-      <img src={healmessage} alt="" className="lg:w-40 hidden lg:flex rounded-2xl" />
+      <img src={healmessage} alt="" className="lg:w-40 lg:h-40 hidden lg:flex rounded-2xl" />
     </div>
 
-    {messages.slice(1).map((message) => (
+    {messages.slice(1, 6).map((message) => (
       <div
         key={message.id}
         className="bg-white/50 backdrop-blur-md dark:bg-chat-dark rounded-2xl p-3 flex items-center justify-between shadow-sm
