@@ -251,7 +251,7 @@ export default function UserMessagePage() {
 
   return (
     <div
-      className="relative flex flex-col items-center p-6 min-h-screen
+      className="font-ibmthai relative flex flex-col items-center p-6 min-h-screen
            bg-gradient-to-b from-[#C2F4FF] to-[#5DE2FF]
            dark:bg-gradient-to-b dark:from-[#1B2538] dark:to-[#0E1626]
            transition-all duration-300"
@@ -315,7 +315,7 @@ export default function UserMessagePage() {
             </div>
           </div>
         ) : (
-          <div className={`grid gap-4 w-full items-stretch ${view === "liked" ? "md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
+          <div className={`grid gap-4 w-full items-stretch ${view === "liked" ? "grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3": "grid-cols-1"}`}>
             {currentMessages.map((m) => (
               <div
                 key={m.id}
@@ -410,7 +410,7 @@ export default function UserMessagePage() {
           closeIcon={<span style={{ color: "#e50c0cff", fontSize: 20, lineHeight: 1 }}>✕</span>}
         >
           {selectedMessage && (
-            <div className="relative h-[calc(100dvh-120px)] md:h-[calc(100dvh-160px)] overflow-hidden">
+            <div className=" font-ibmthai relative h-[calc(100dvh-120px)] md:h-[calc(100dvh-160px)] overflow-hidden">
 
               <div
                 ref={scrollBodyRef}
@@ -469,21 +469,25 @@ export default function UserMessagePage() {
                     </p>
                   </article>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[13px] sm:text-sm text-slate-600 dark:text-white">
-                    <div className="flex items-center gap-2">
-                      {selectedMessage.articleType && (
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">
-                          {selectedMessage.articleType}
-                        </span>
-                      )}
-                      <span>{fmtDate(selectedMessage.date)}</span>
-                    </div>
-                    <span className="opacity-80">ผู้เขียน: {selectedMessage.author}</span>
-                    <div className="flex items-center gap-4 opacity-90">
-                      <span>ถูกใจทั้งหมด: {selectedMessage.no_of_like}</span>
-                      <span>การเข้าชม: {selectedMessage.viewCount}</span>
-                    </div>
+                 <div className="mt-4 flex flex-col gap-2 text-[13px] sm:text-sm text-slate-600 dark:text-white">
+                  <div className="flex items-center gap-2">
+                    {selectedMessage.articleType && (
+                      <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">
+                        {selectedMessage.articleType}
+                      </span>
+                    )}
+                    <span>{fmtDate(selectedMessage.date)}</span>
                   </div>
+
+                  <div>
+                    <span className="opacity-80">ผู้เขียน: {selectedMessage.author}</span>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-6 opacity-90 text-center mt-4">
+                    <span>ถูกใจทั้งหมด: {selectedMessage.no_of_like}</span>
+                    <span>การเข้าชม: {selectedMessage.viewCount}</span>
+                  </div>
+                </div>
                 </div>
               </div>
 

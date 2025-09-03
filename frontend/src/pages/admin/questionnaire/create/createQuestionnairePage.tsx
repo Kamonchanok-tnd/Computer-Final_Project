@@ -337,7 +337,7 @@ const FormStepInfo: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-center gap-3 pt-2">
-                <button type="button" onClick={() => navigate(-1)} className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 shadow-sm transition-colors hover:border-black hover:bg-slate-50">ยกเลิก</button>
+                <button type="button" onClick={() => navigate(-1)} className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700">ยกเลิก</button>
                 <button type="submit" className="rounded-xl bg-[#5DE2FF] px-5 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-cyan-500">สร้างแบบทดสอบ</button>
               </div>
             </div>

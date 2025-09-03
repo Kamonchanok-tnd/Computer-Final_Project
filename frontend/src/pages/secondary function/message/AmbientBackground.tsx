@@ -125,7 +125,7 @@ function DayAmbient({
             top="28%"
             height="76%"
             opacity={0.75 * density}
-            drift="130s"
+            drift="50s"
             blurPx={0.6}
             maskTop="15%"
             maskBottom="8%"
@@ -135,7 +135,7 @@ function DayAmbient({
             top="36%"
             height="70%"
             opacity={0.9 * density}
-            drift="95s"
+            drift="10s"
             blurPx={0.3}
             maskTop="12%"
             maskBottom="10%"
@@ -145,8 +145,8 @@ function DayAmbient({
         </>
       ) : (
         <>
-          <SoftHeartStrip y="35%" width="220%" height="60%" opacity={0.75} drift="95s" />
-          <SoftHeartStrip y="50%" width="220%" height="58%" opacity={0.65} drift="130s" invert />
+          <SoftHeartStrip y="35%" width="220%" height="60%" opacity={0.75} drift="40s" />
+          <SoftHeartStrip y="50%" width="220%" height="58%" opacity={0.65} drift="60s" invert />
         </>
       )}
     </div>

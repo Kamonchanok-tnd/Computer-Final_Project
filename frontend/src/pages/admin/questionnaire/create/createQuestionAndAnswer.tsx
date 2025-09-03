@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {Button,Form,Input,InputNumber,Modal,    Tag,Collapse,Upload,Select,message,} from "antd";
-import {DeleteOutlined,MenuOutlined,MinusSquareOutlined,PlusSquareOutlined,UploadOutlined,EyeOutlined,PlusOutlined,SaveOutlined,RollbackOutlined,} from "@ant-design/icons";
+import {DeleteOutlined,MenuOutlined,MinusSquareOutlined,PlusSquareOutlined,UploadOutlined,EyeOutlined,PlusOutlined,SaveOutlined} from "@ant-design/icons";
 import {DragDropContext,Droppable,Draggable,DropResult,} from "@hello-pangea/dnd";
 import { Question } from "../../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../../interfaces/IAnswerOption";
@@ -27,7 +27,7 @@ const bgClasses = [
 
 // ตัดกรอบ/เงาให้ปุ่มลบเหมือนหน้า edit
 const noRingCls =
-  "!border-none !shadow-none focus:!shadow-none focus:!outline-none active:!shadow-none hover:!shadow-none";
+  "!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none";
 const noRingStyle: React.CSSProperties = { boxShadow: "none", outline: "none" };
 
 const FormStepQuestion: React.FC = () => {
@@ -134,7 +134,7 @@ const FormStepQuestion: React.FC = () => {
     });
   };
 
-  // ✅ helper แบบเดียวกับหน้า edit
+  //  helper แบบเดียวกับหน้า edit
   const setAnswerEmotion = (qIndex: number, aIndex: number, emoId: number) => {
     setQuestions((prev) => {
       const updated = [...prev];
@@ -353,10 +353,11 @@ const FormStepQuestion: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={expandAll}>ขยายทั้งหมด</Button>
-          <Button onClick={collapseAll}>ย่อทั้งหมด</Button>
+          <Button className="!bg-pink-200 border !border-pink-400 !text-pink-800 hover:!bg-pink-300 hover:border-pink-500" onClick={expandAll}>ขยายทั้งหมด</Button>
+          <Button className="!bg-green-200 border !border-green-400 !text-green-800 hover:!bg-green-300 hover:border-gray-400" onClick={collapseAll}>ย่อทั้งหมด</Button>
           <Button
             icon={<PlusOutlined />}
+            className="!bg-yellow-200 border !border-yellow-400 !text-yellow-800 hover:!bg-yellow-300 hover:border-gray-400"
             onClick={addQuestion}
             disabled={typeof quantity === "number" && questions.length >= quantity}
           >
@@ -531,7 +532,7 @@ const FormStepQuestion: React.FC = () => {
                                               danger
                                               icon={<DeleteOutlined />}
                                               onClick={() => removeAnswer(qIndex, aIndex)}
-                                              className={`h-8 w-8 !p-0 flex items-center justify-center ${noRingCls}`}
+                                              className={`h-8 w-8 !p-0 flex items-center justify-center !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none${noRingCls}`}
                                               style={noRingStyle}
                                               size="middle"
                                             />
@@ -611,12 +612,10 @@ const FormStepQuestion: React.FC = () => {
       {/* Sticky action bar (มือถือ) */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2">
-          <Button block icon={<RollbackOutlined />} onClick={() => navigate(-1)}>
-            กลับ
-          </Button>
           <Button
             block
             type="primary"
+            className="!bg-[#5DE2FF] hover:!bg-cyan-500"
             icon={<SaveOutlined />}
             onClick={handleSubmit}
             loading={submitting}

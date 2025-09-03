@@ -287,7 +287,7 @@ const CreateCriteriaPage: React.FC = () => {
 
                   <div className="md:col-span-1 flex items-center justify-end">
                     <Popconfirm title="ลบรายการนี้?" okText="ลบ" cancelText="ยกเลิก" onConfirm={() => removeRow(idx)}>
-                      <Button danger icon={<DeleteOutlined />} />
+                      <Button danger icon={<DeleteOutlined />} className="!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"/>
                     </Popconfirm>
                   </div>
                 </div>
