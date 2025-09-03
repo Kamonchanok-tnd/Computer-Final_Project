@@ -385,7 +385,7 @@ const CreateMessagePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate("/admin/messagePage")}
-                className="inline-flex items-center justify-center rounded-xl  border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
               >
                 ย้อนกลับ
               </button>

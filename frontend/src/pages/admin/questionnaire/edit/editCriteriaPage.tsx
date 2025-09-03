@@ -257,7 +257,7 @@ const EditCriteriaPage: React.FC = () => {
 
           {/* ปุ่มขวาบน (desktop) */}
           <div className="hidden items-center gap-2 md:flex">
-            <Button icon={<RollbackOutlined />} onClick={goBackToQnA}>
+            <Button icon={<RollbackOutlined />} onClick={goBackToQnA}  className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700">
               กลับ
             </Button>
             <Button
@@ -429,7 +429,7 @@ const EditCriteriaPage: React.FC = () => {
                         cancelText="ยกเลิก"
                         onConfirm={() => removeRow(idx)}
                       >
-                        <Button danger icon={<DeleteOutlined />} />
+                        <Button danger icon={<DeleteOutlined />} className="!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"/>
                       </Popconfirm>
                     </div>
                   </div>
@@ -443,7 +443,7 @@ const EditCriteriaPage: React.FC = () => {
       {/* Mobile action bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2">
-          <Button block icon={<RollbackOutlined />} onClick={goBackToQnA}>
+          <Button block icon={<RollbackOutlined />} onClick={goBackToQnA} className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700">
             กลับ
           </Button>
           <Button

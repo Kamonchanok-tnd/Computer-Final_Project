@@ -113,11 +113,11 @@ const VoiceChat: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center h-full p-4 text-center
+    <div className={`flex flex-col items-center justify-center min-h-[calc(100vh-64px)]  p-4 text-center 
     ${isDarkMode ? "bg-background-dark" : " bg-background-blue "} transition-colors duration-300
    `}>
       {/* box main */}
-      <div className={`border w-[100%] h-full flex justify-between  items-center flex-col p-2 transition-colors duration-300
+      <div className={`border w-[100%] h-[90vh] flex justify-between  items-center flex-col p-2 transition-colors duration-300
        ${isDarkMode ? "bg-background-dark border-stoke-dark" : " bg-white/70 border-gray-200  "} drop-shadow-2xl rounded-2xl gap-8 `}>
         <div className="">
           <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-text-dark' : 'text-black-word'}`}>AI Voice Chat</h1>
