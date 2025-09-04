@@ -129,14 +129,14 @@ func SignIn(c *gin.Context) {
 
     // ค้นหาผู้ใช้ในฐานข้อมูล
     if err := config.DB().Where("email = ?", payload.Email).First(&user).Error; err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid credentials"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลผู้ใช้ไม่ถูกต้อง"})
         return
     }
 
     // ตรวจสอบรหัสผ่านที่แฮชแล้ว
     err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect password"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "รหัสผ่านไม่ถูกต้อง"})
         return
     }
 
