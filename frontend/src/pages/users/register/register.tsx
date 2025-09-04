@@ -10,6 +10,7 @@ import {
   Select,
   Typography,
   Divider,
+  DatePicker,
 } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -25,9 +26,9 @@ function SignUpPages() {
   const [messageApi, contextHolder] = message.useMessage();
 
   const genderOptions = [
-    { value: "Male", label: "ชาย" },
-    { value: "Female", label: "หญิง" },
-    { value: "Other", label: "อื่นๆ" },
+    { value: "ชาย", label: "ชาย" },
+    { value: "หญิง", label: "หญิง" },
+    { value: "อื่นๆ", label: "อื่นๆ" },
   ];
 
   // state สำหรับ consent
@@ -35,16 +36,22 @@ function SignUpPages() {
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [consentAcceptedAt, setConsentAcceptedAt] = useState<Date | null>(null);
 
+
+
+
   // ฟังก์ชันกดยอมรับ
   const handleConsentOk = () => {
-    const now = new Date();
-    setConsentAccepted(true);
-    setConsentAcceptedAt(now);
-    setIsConsentVisible(false);
-  };
+  const now = new Date();
+  setConsentAccepted(true);
+  setConsentAcceptedAt(now);
+  setIsConsentVisible(false);
+  
+};
 
-  const handleConsentCancel = () =>
-    messageApi.warning("คุณต้องยินยอมก่อนสมัครสมาชิก");
+
+  const handleConsentCancel = () => {
+  message.error("คุณต้องยินยอมก่อนสมัครสมาชิก"); // ✅ แจ้งเตือนเป็น message
+};
 
   const onFinish = async (values: UsersInterface) => {
     if (!consentAccepted || !consentAcceptedAt) {
@@ -249,7 +256,7 @@ function SignUpPages() {
                   </Form.Item>
                 </Col>
 
-                <Col xs={24} md={12}>
+                {/* <Col xs={24} md={12}>
                   <Form.Item
                     label="อายุ"
                     name="age"
@@ -257,7 +264,20 @@ function SignUpPages() {
                   >
                     <InputNumber min={0} max={99} className="!w-full" />
                   </Form.Item>
-                </Col>
+                </Col> */}
+                <Col xs={24} md={12}>
+            <Form.Item
+              label="วันเกิด"
+              name="birth_date"
+              rules={[{ required: true, message: "กรุณาเลือกวันเกิด !" }]}
+            >
+              <DatePicker
+                format="YYYY-MM-DD"
+                className="!w-full"
+                placeholder="เลือกวันเกิด"
+              />
+            </Form.Item>
+          </Col>
                 <Col xs={24} md={12}>
                   <Form.Item
                     label="เพศ"
@@ -315,7 +335,7 @@ function SignUpPages() {
       </div>
 
       {isConsentVisible && (
-  <div className="fixed inset-0 bg-gray-200/90 flex items-center justify-center z-[9999] animate-fadeIn overflow-auto p-4">
+  <div className="fixed inset-0 bg-gray-200/90 flex items-center justify-center z-[999] animate-fadeIn overflow-auto p-4">
     <Card className="max-w-3xl w-full rounded-2xl p-6 shadow-2xl animate-scaleUp leading-relaxed">
       <Title level={3} className="text-center mb-6">
         แบบฟอร์มยินยอมการใช้งานแอปพลิเคชัน SUT Healjai

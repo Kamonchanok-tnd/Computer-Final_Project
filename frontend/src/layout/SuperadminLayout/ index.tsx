@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
+import { LogoutOutlined ,MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
 const { Header, Content, Footer, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 import './FullLayout.css'; // นำเข้าไฟล์ CSS
-
+import lightlogo from "../../assets/logo/lightlogo.png";
 const FullLayout = () => {
   const location = useLocation(); // ใช้ useLocation เพื่อให้เมนูถูกเลือกตามเส้นทางที่กำลังใช้งาน
   const selectedKey = location.pathname;
@@ -41,8 +41,18 @@ const FullLayout = () => {
           className="layout-hamburger-button"
           
         />
-        <div className="layout-logo">SUKJAI SUT</div>
-        <Button onClick={handleLogout} type="primary" className="layout-logout-button">
+        
+        <div className="layout-logo"><img
+                src={lightlogo}
+                alt="Logo"
+                className="w-18 "
+              /></div>
+        <Button
+          onClick={handleLogout}
+          type="primary"
+          icon={<LogoutOutlined />} // ✅ ใช้ icon ที่นี่
+          className="layout-logout-button1"
+        >
           ออกจากระบบ
         </Button>
       </Header>

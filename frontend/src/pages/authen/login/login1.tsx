@@ -49,7 +49,7 @@ export default function SignInPages() {
           </div>
 
           <h2 className="text-2xl font-bold mb-2 text-blue-300">
-            ยินดีต้อนรับสู่ SUT SUKJAI! 👋
+            ยินดีต้อนรับสู่ SUT HEALJAI! 👋
           </h2>
           <p className="text-gray-500 max-w-md mx-auto">
             เราให้บริการด้านสุขภาพจิตอย่างครบวงจร ทั้งการสนับสนุนด้านอารมณ์
@@ -63,8 +63,8 @@ export default function SignInPages() {
       <div className="flex-1 flex flex-col items-center justify-center p-10 relative">
         {/* โลโก้และชื่ออยู่นอกการ์ด */}
         <div className="absolute top-10 right-10 flex items-center gap-3">
-          <img src={logo} alt="SUT SUKJAI" className="w-12 h-12" />
-          <span className="text-2xl font-bold text-blue-300">SUT SUKJAI</span>
+          <img src={logo} alt="SUT HEALJAI" className="w-12 h-12" />
+          <span className="text-2xl font-bold text-blue-300">SUT HEALJAI</span>
         </div>
 
         {/* การ์ดเข้าสู่ระบบ */}
@@ -72,7 +72,7 @@ export default function SignInPages() {
           {/* ข้อความต้อนรับ */}
           <p className="text-center text-gray-700 mb-2 text-lg">
             <span className="text-4xl font-bold mb-4 text-center text-blue-300">
-              SUT SUKJAI
+              SUT HEALJAI
             </span>
           </p>
 
