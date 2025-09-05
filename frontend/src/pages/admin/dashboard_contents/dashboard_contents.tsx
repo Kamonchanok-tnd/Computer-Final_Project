@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { getSoundFourType } from "../../../services/https/dashboardcontents";
 import { DatePicker } from "antd";
 import moment from "moment";
+import { BookOpenCheck, ListMusic, Play } from "lucide-react";
 
 interface MusicData {
   month: string; // "ส.ค. 2568"
@@ -130,18 +131,36 @@ const DashboardContents: React.FC = () => {
     <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">
       {/* สรุปยอดรวม */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
-          <p className="text-gray-600">รวมการเล่น</p>
-          <p className="text-2xl font-bold">{totalPlays} ครั้ง</p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
-          <p className="text-gray-600">จำนวนประเภท</p>
-          <p className="text-2xl font-bold">{uniqueCategories} ประเภท</p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-md p-6 text-center">
-          <p className="text-gray-600">เฉลี่ยต่อเดือน</p>
-          <p className="text-2xl font-bold">{avgPerMonth} ครั้ง</p>
-        </div>
+      <div className="bg-gradient-to-br from-[#98e0f4] to-[#d3f0f8] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+           <div className="bg-white  text-[#39a6c3] p-4 rounded-full shadow-lg shadow-[#39a6c3]/20">
+             <ListMusic size={30} className=""/>
+           </div>
+           <div>
+            <p className="text-gray-600">รวมการเล่น</p>
+            <p className="text-2xl font-bold text-gray-600">{totalPlays} ครั้ง</p>
+           </div>
+      
+          </div>
+       <div className="bg-gradient-to-br from-[#c7eab7] to-[#d7f2ca] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+                  <div className="bg-white  text-[#a9cd99] p-4 rounded-full shadow-lg shadow-[#a9cd99]/20">
+                    <BookOpenCheck size={30} className=""/>
+                  </div>
+                  <div>
+                   <p className="text-gray-600">จำนวนประเภท</p>
+                   <p className="text-2xl font-bold text-gray-600">{uniqueCategories} ประเภท</p>
+                  </div>
+             
+                 </div>
+        <div className="bg-gradient-to-br from-[#98e0f4] to-[#d3f0f8] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+                   <div className="bg-white  text-[#39a6c3] p-4 rounded-full shadow-lg shadow-[#39a6c3]/20">
+                     <BookOpenCheck size={30} className=""/>
+                   </div>
+                   <div>
+                    <p className="text-gray-600">เฉลี่ยต่อเดือน</p>
+                    <p className="text-2xl font-bold text-gray-600">{avgPerMonth} ครั้ง</p>
+                   </div>
+              
+                  </div>
       </div>
 
       {/* Top Categories */}

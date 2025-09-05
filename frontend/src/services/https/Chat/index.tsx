@@ -37,9 +37,9 @@ export async function ChatGemini(data: IConversation) {
   }
 }
 
-export async function GetChat(id: number) {
+export async function GetChat(id: number, navigate?: (path: string) => void) {
   const authHeader = getAuthHeader();
-  if (!authHeader) return;
+  if (!authHeader) return null;
 
   try {
     const response = await fetch(`${apiUrl}/conversation/${id}`, {
@@ -50,9 +50,19 @@ export async function GetChat(id: number) {
       },
     });
 
+    if (response.status === 403) {
+      // ถ้า navigate ถูกส่งมา → redirect ไป /chat
+      if (navigate) navigate("/chat");
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
+
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error("Failed to fetch chat:", error);
     throw error;
   }
 }
@@ -123,6 +133,31 @@ export async function RecentChat(id: number) {
     throw error;
   }
 }
+
+export async function ClearChat(id: number) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
+
+  try {
+    const response = await fetch(`${apiUrl}/conversation/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    });
+
+    const result = await response.json();
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+
+
 
 export async function TotalUseChat() {
   const authHeader = getAuthHeader();
