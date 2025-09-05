@@ -29,7 +29,8 @@ type (
        Line       string    `json:"line"`
        PhoneNumber string   `json:"phone_number"`
        Role       string    `json:"role"`
-       Age        int       `json:"age"`      
+       Age        int       `json:"age"`  
+       BirthDate   string `json:"birth_date"`
        Gender     string    `json:"gender"`
        ConsentAccepted   bool      `json:"consent_accepted"`
        ConsentAcceptedAt time.Time `json:"consent_accepted_at"`
@@ -103,6 +104,7 @@ user := entity.Users{
     PhoneNumber:      payload.PhoneNumber,
     Role:             payload.Role, // บันทึก role เป็น admin หากเป็น superadmin
     Age:              payload.Age, 
+    BirthDate:        payload.BirthDate,
     Gender:           payload.Gender,
     ConsentAccepted:  payload.ConsentAccepted,       // เพิ่มตรงนี้
     ConsentAcceptedAt: payload.ConsentAcceptedAt,    // เพิ่มตรงนี้
@@ -127,14 +129,14 @@ func SignIn(c *gin.Context) {
 
     // ค้นหาผู้ใช้ในฐานข้อมูล
     if err := config.DB().Where("email = ?", payload.Email).First(&user).Error; err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid credentials"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลผู้ใช้ไม่ถูกต้อง"})
         return
     }
 
     // ตรวจสอบรหัสผ่านที่แฮชแล้ว
     err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password))
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect password"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "รหัสผ่านไม่ถูกต้อง"})
         return
     }
 

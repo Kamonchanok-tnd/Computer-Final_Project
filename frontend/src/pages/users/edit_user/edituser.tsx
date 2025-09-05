@@ -52,12 +52,13 @@ function UserEdit() {
 
   const getUserById = async (id: string) => {
     const res = await GetUsersById(id);
+    console.log("ข้อมูลผู้ใช้",res);
     if (res?.status === 200) {
       form.setFieldsValue({
         username: res.data.username,
         email: res.data.email,
         phone_number: res.data.phone_number,
-        birthday: dayjs(res.data.birthday),
+        birth_date: res.data.birth_date ? dayjs(res.data.birth_date).format("YYYY-MM-DD") : null,
         age: res.data.age,
         gender: res.data.gender,
         facebook: res.data.facebook,
@@ -298,6 +299,11 @@ function UserEdit() {
           
             <Col xs={24} md={12}>
               <Form.Item label="อายุ" name="age" rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}>
+                <InputNumber min={0} max={120} style={{ width: "100%" }} placeholder="ระบุอายุ" />
+              </Form.Item>
+            </Col>
+             <Col xs={24} md={12}>
+              <Form.Item label="วันเกิด" name="birth_date" rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}>
                 <InputNumber min={0} max={120} style={{ width: "100%" }} placeholder="ระบุอายุ" />
               </Form.Item>
             </Col>

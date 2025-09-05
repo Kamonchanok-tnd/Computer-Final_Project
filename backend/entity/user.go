@@ -16,6 +16,7 @@ type Users struct {
 
 	Role        string `json:"role"`
 	Age         int    `json:"age"`
+	BirthDate   string `json:"birth_date"`
 	Gender      string `json:"gender"`
 
 	PFID      uint    `json:"pfid" gorm:"default:1"`
