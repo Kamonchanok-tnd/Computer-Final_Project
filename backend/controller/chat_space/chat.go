@@ -228,11 +228,34 @@ Context:
 }
 
 func GetConversationHistory(c *gin.Context) {
-	var conversations []entity.Conversation
-	db := config.DB()
-	db.Where("chat_room_id = ?", c.Param("id")).Find(&conversations)
-	c.JSON(http.StatusOK, conversations)
+    db := config.DB()
+    chatroomID := c.Param("id")
+
+    // 1. ดึง uid จาก context (สมมติว่ามาจาก JWT middleware)
+    uid, exists := c.Get("uid")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+
+    // 2. ตรวจสอบว่า chatroom นี้เป็นของ uid จริงหรือไม่
+    var chatRoom entity.ChatRoom
+    if err := db.Where("id = ? AND uid = ?", chatroomID, uid).First(&chatRoom).Error; err != nil {
+        c.JSON(http.StatusForbidden, gin.H{"error": "You do not have access to this chatroom"})
+        return
+    }
+
+    // 3. ดึง conversation history
+    var conversations []entity.Conversation
+    if err := db.Where("chat_room_id = ?", chatroomID).Find(&conversations).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    // 4. ตอบกลับข้อมูล
+    c.JSON(http.StatusOK,conversations)
 }
+
 
 func GetRecentChat(c *gin.Context) {
 	uidStr := c.Query("uid") // รับจาก query param เช่น /recent-chat?uid=1
@@ -266,6 +289,39 @@ func GetRecentChat(c *gin.Context) {
 		"chat_room_id": chatRoom.ID,
 	})
 }
+
+func ClearConversation(c *gin.Context) {
+    db := config.DB()
+    chatroomID := c.Param("id")
+
+   
+    if chatroomID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "chat_room_id is required"})
+        return
+    }
+
+   
+    tx := db.Where("chat_room_id = ?", chatroomID).Delete(&entity.Conversation{})
+
+    if tx.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": tx.Error.Error()})
+        return
+    }
+
+    
+    if tx.RowsAffected == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"message": "No conversations found to delete"})
+        return
+    }
+
+  
+    c.JSON(http.StatusOK, gin.H{
+        "message":       "Conversations cleared successfully",
+        "deleted_count": tx.RowsAffected,
+    })
+}
+
+
 
 // dashboard chat
 

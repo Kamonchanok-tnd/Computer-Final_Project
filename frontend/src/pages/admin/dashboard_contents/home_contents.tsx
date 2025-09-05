@@ -514,7 +514,7 @@ summaryData.push({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <MusicCard onViewMore={() => navigate("/admin/dashboard/contents/sound")}/>
           {/* <ChantingCard onViewMore={() => navigate("/admin/chanting-details")}/> */}
-          {/* <WordHealingCard onViewMore={() => navigate("/admin/wordhealing-details")}/> */}
+          <WordHealingCard onViewMore={() => navigate("/admin/wordhealing-details")}/>
           <MirrorCard onViewMore={() => navigate("/admin/mirror-details")} />
           {/* <ASMRCard onViewMore={() => navigate("/admin/asmr-details")} />
           <BreathingCard onViewMore={() => navigate("/admin/breathing-details")} /> */}

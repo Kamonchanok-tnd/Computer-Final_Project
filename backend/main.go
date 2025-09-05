@@ -296,6 +296,7 @@ func main() {
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
 		// userRouter.GET("/recent", controller.GetRecentChat). LogActivity
+		userRouter.DELETE("/conversation/:id", controller.ClearConversation)
 
 		//profile
 		userRouter.GET("/profile", profileavatar.GetAllProfile)
