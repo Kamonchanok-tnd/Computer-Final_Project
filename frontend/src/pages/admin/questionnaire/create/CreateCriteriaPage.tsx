@@ -59,10 +59,10 @@ const CreateCriteriaPage: React.FC = () => {
       if (!Number.isFinite(min) || !Number.isFinite(max))
         return `รายการที่ ${i + 1}: คะแนนต้องเป็นตัวเลข`;
 
-      // อนุญาตเท่ากันเฉพาะ 0-0 เท่านั้น
-      const equalButNotZeroZero = min === max && !(min === 0 && max === 0);
-      if (min > max || equalButNotZeroZero)
-        return `รายการที่ ${i + 1}: ช่วงคะแนนไม่ถูกต้อง (อนุญาตเท่ากันได้เฉพาะ 0-0 เท่านั้น)`;
+      // // อนุญาตเท่ากันเฉพาะ 0-0 เท่านั้น
+      // const equalButNotZeroZero = min === max && !(min === 0 && max === 0);
+      // if (min > max || equalButNotZeroZero)
+      //   return `รายการที่ ${i + 1}: ช่วงคะแนนไม่ถูกต้อง (อนุญาตเท่ากันได้เฉพาะ 0-0 เท่านั้น)`;
     }
 
     const sorted = [...list].sort((a, b) => a.minScore - b.minScore);
