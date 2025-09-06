@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-import { ChatGemini, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
+import { ChatGemini, ClearChat, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
 import type { IConversation } from '../../interfaces/IConversation';
 import HistoryChat from '../../components/Chat.tsx/HistoryChat';
 import NewChatWelcome from '../../components/Chat.tsx/NewChatWelcome';
@@ -39,9 +39,14 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   };
  
   async function getmessage(id: number) {
-    const message = await GetChat(id);
-    setMessages(message);
-    console.log("old chat: ",message);
+    try {
+      const message = await GetChat(id,navigate);
+      setMessages(message);
+      console.log("new chat: ",message);
+    } catch (error) {
+      console.error(error);
+    }
+    
   }
 
 
@@ -180,7 +185,8 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
 
   async function Close() {
     console.log("chatroom: ", chatRoomID);
-    await CloseChat(Number(chatRoomID));
+    // await CloseChat(Number(chatRoomID));
+   await ClearChat(Number(chatRoomID));
     setIsNewChat(!isNewChat);
     setMessages([]);   
     setChatRoomID(null);  
@@ -248,7 +254,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
         <ChatHeader isDarkMode={isDarkMode} onNewChat={newChat} onClearChat={Close} />
         {/* Messages Area */}
           {
-            isNewChat ? (
+            isNewChat || messages.length === 0 ? (
               <NewChatWelcome isDarkMode={isDarkMode} />
             ) : (
               <HistoryChat
