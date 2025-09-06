@@ -14,6 +14,8 @@ import Headers from "../layout/HeaderLayout/Header";
 import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
 
 import Assessments from "../pages/assessment/assessments";
+import MoodPopup from "../components/assessment/MoodPopup.tsx";
+import AssessmentLists from "../components/assessment/AssessmentLists.tsx";
 import Result from "../pages/assessment/result.tsx";
 
 import AssessmentDashboard from "../pages/assessment/dashboard";
@@ -32,7 +34,6 @@ import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
 
 import UserMessagePage from "../pages/secondary function/message/userMessagePage";
 import PlayerPlaylistMeditation from "../pages/secondary function/meditation/playermeditation/playerplaylistmeditation.tsx";
-import MoodPopup from "../components/assessment/MoodPopup.tsx";
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
   lazy(() => import("../pages/users/edit_user/edituser"))
@@ -145,6 +146,10 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         {
           path: "/assessment/:groupId/:quid",
           element: isLoggedIn ? <MoodPopup /> : <Navigate to="/" />,
+        },
+        {
+          path: "/assessmentlists/:groupId/:quid",
+          element: isLoggedIn ? <AssessmentLists /> : <Navigate to="/" />,
         },
         {
           path: "/assessments", // เส้นทางสำหรับหน้าแก้ไขโปรไฟล์
