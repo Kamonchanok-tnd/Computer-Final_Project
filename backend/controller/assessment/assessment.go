@@ -124,6 +124,8 @@ func GetQuestionByID(c *gin.Context) {
 	c.JSON(http.StatusOK, question)
 }
 
+//////////////////////////////////////////////////////////////// USER //////////////////////////////////////////////////////////////////////
+
 func GetQuestionnaireByID(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	var questionnaire entity.Questionnaire
@@ -136,8 +138,6 @@ func GetQuestionnaireByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, questionnaire)
 }
-
-//////////////////////////////////////////////////////////////// USER //////////////////////////////////////////////////////////////////////
 
 func GetAllQuestions(c *gin.Context) {
 	var questions []entity.Question
@@ -537,19 +537,50 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 				continue
 			}
 
-			// 2) ข้ามถ้าเคยทำแบบนี้ไปแล้ว
-			// ข้ามถ้าเคยมี AssessmentResult แล้ว (ใช้คอลัมน์ qu_id ให้ตรง schema)
+			// 2) ข้ามถ้าเคยทำ "แล้ว" เฉพาะ onLogin เท่านั้น (คงของเดิมไว้)
 			var cnt int64
 			if err := config.DB().Model(&entity.AssessmentResult{}).
 				Where("uid = ? AND qu_id = ?", uid, qn.ID).
 				Count(&cnt).Error; err != nil {
 				log.Println("⚠️ count ar error:", err)
 			}
-			if cnt > 0 {
-				continue
+			if trigger == "onLogin" { // ← afterChat/interval ทำซ้ำได้ข้ามรอบ
+				if cnt > 0 {
+					continue
+				}
 			}
-			log.Printf("🔎 check done? uid=%s qu_id=%d -> count=%d", uid, qn.ID, cnt)
 
+			// ✅ NEW: afterChat กันไม่ให้ทำซ้ำ “ภายในหน้าต่างเวลาเดียวกัน” (เหมือน interval)
+			if trigger == "afterChat" && g.FrequencyDays != nil {
+				// DEV ใช้ Minute; PROD เปลี่ยนเป็น 24*time.Hour
+				windowStart := time.Now().Add(-time.Duration(*g.FrequencyDays) * time.Minute)
+
+				var doneInWindow int64
+				if err := config.DB().Model(&entity.Transaction{}).
+					Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
+					Where("ar.uid = ? AND ar.qg_id = ? AND ar.qu_id = ? AND transactions.created_at >= ?",
+						uid, g.ID, qn.ID, windowStart).
+					Count(&doneInWindow).Error; err == nil && doneInWindow > 0 {
+					// ทำแบบนี้ในหน้าต่างเวลานี้แล้ว → ข้าม ไปตัวถัดไป
+					continue
+				}
+			}
+
+			// ✅ สำหรับ interval: ถ้าถูกทำภายใน "หน้าต่างเวลา" แล้ว ให้ข้าม (กันวนแค่ 2 อัน)
+			if trigger == "interval" && g.FrequencyDays != nil {
+				// DEV ใช้ Minute; PROD เปลี่ยนเป็น 24*time.Hour
+				windowStart := time.Now().Add(-time.Duration(*g.FrequencyDays) * time.Minute)
+
+				var doneInWindow int64
+				if err := config.DB().Model(&entity.Transaction{}).
+					Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
+					Where("ar.uid = ? AND ar.qg_id = ? AND ar.qu_id = ? AND transactions.created_at >= ?",
+						uid, g.ID, qn.ID, windowStart).
+					Count(&doneInWindow).Error; err == nil && doneInWindow > 0 {
+					// เคยทำแบบนี้ในหน้าต่างเวลานี้แล้ว → ข้ามเพื่อไปตัวถัดไปในกลุ่ม
+					continue
+				}
+			}
 
 			// 3) ตรวจเงื่อนไขพึ่งพา (ถ้ามี)
 			if qn.ConditionOnID != nil && qn.ConditionScore != nil && qn.ConditionType != nil {
@@ -573,7 +604,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 					}
 				case "lessThan":
 					// อนุญาต "<= threshold"
-					if tx.TotalScore > *qn.ConditionScore {
+					if tx.TotalScore > *qn.ConditionScore || tx.TotalScore == *qn.ConditionScore {
 						continue
 					}
 				default:
@@ -596,15 +627,95 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 				}
 			}
 		}
-		
 
 		// 2) ตัดสินใจเรื่อง available/reason ตาม trigger
 		available := false
 		reason := "ทำครบกลุ่มนี้แล้ว"
-		if len(pendingQuids) > 0 {
-			switch trigger {
-			case "interval":
-				// เช็คความถี่ตามวันล่าสุดที่ทำในกลุ่ม
+
+		// ให้ interval ทำงานเสมอ แม้ pendingQuids จะว่าง
+		switch trigger {
+		case "interval":
+			var lastTx entity.Transaction
+			err := config.DB().
+				Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
+				Where("ar.uid = ? AND ar.qg_id = ?", uid, g.ID).
+				Order("transactions.created_at DESC").
+				First(&lastTx).Error
+
+			if g.FrequencyDays != nil {
+				wait := time.Duration(*g.FrequencyDays) * 24 * time.Hour // Dev ใช้ time.Minute; Prod เปลี่ยนเป็น 24*time.Hour
+
+				if err == nil {
+					inSameWindow := time.Since(lastTx.CreatedAt) < wait
+
+					if inSameWindow {
+						if len(pendingQuids) > 0 {
+							// ยังอยู่ในรอบเดียวกัน และยังเหลือ → ทำต่อได้
+							available = true
+							reason = fmt.Sprintf("ทำต่อได้ เหลืออีก %d ฉบับ", len(pendingQuids))
+						} else {
+							// รอบนี้ทำครบแล้ว → รอเวลาที่เหลือ
+							remain := (wait - time.Since(lastTx.CreatedAt)).Round(time.Minute)
+							available = false
+							reason = fmt.Sprintf("ทำครบกลุ่มนี้แล้ว รออีก %v", remain)
+						}
+					} else {
+						// พ้นรอบแล้ว → เริ่มรอบใหม่; ถ้ามี pending ให้ทำได้ทันที
+						if len(pendingQuids) > 0 {
+							available = true
+							reason = fmt.Sprintf("ครบเวลาแล้ว เริ่มรอบใหม่ได้ เหลืออีก %d ฉบับ", len(pendingQuids))
+						} else {
+							// (เคสหายาก) ไม่มี pending เพราะถูกเงื่อนไขอื่นตัดออกทั้งหมด
+							available = false
+							reason = "ครบเวลาแล้ว แต่ยังไม่มีแบบสอบถามที่ทำได้"
+						}
+					}
+				} else {
+					// ยังไม่เคยทำ interval → อิง onLogin
+					var baselineTx entity.Transaction
+					err2 := config.DB().
+						Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
+						Joins("JOIN questionnaire_groups qg ON qg.id = ar.qg_id").
+						Where("ar.uid = ? AND qg.trigger_type = ?", uid, "onLogin").
+						Order("transactions.created_at DESC").
+						First(&baselineTx).Error
+
+					if err2 != nil {
+						available = false
+						reason = "ต้องทำแบบประเมินกลุ่ม onLogin ก่อน"
+					} else {
+						inSameWindow := time.Since(baselineTx.CreatedAt) < wait
+						if inSameWindow {
+							remain := (wait - time.Since(baselineTx.CreatedAt)).Round(time.Minute)
+							available = false
+							reason = fmt.Sprintf("ยังไม่ถึงเวลา ต้องรออีก %v", remain)
+						} else {
+							if len(pendingQuids) > 0 {
+								available = true
+								reason = fmt.Sprintf("ครบเวลาแล้ว เริ่มรอบแรกของ interval ได้ เหลืออีก %d ฉบับ", len(pendingQuids))
+							} else {
+								available = false
+								reason = "ครบเวลาแล้ว แต่ยังไม่มีแบบสอบถามที่ทำได้"
+							}
+						}
+					}
+				}
+			} else {
+				// ไม่ตั้งความถี่ → ให้ทำจนหมด
+				if len(pendingQuids) > 0 {
+					available = true
+					reason = fmt.Sprintf("เริ่มทำได้เลย เหลืออีก %d ฉบับ", len(pendingQuids))
+				} else {
+					available = false
+					reason = "ทำครบกลุ่มนี้แล้ว"
+				}
+			}
+
+		case "afterChat":
+			// ✅ เหมือน interval แต่ไม่ต้องพึ่ง onLogin เป็น baseline
+			if g.FrequencyDays != nil {
+				wait := time.Duration(*g.FrequencyDays) * time.Minute // PROD: 24*time.Hour
+
 				var lastTx entity.Transaction
 				err := config.DB().
 					Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
@@ -612,27 +723,61 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 					Order("transactions.created_at DESC").
 					First(&lastTx).Error
 
-				if err == nil && g.FrequencyDays != nil {
-					wait := time.Duration(*g.FrequencyDays) * 24 * time.Hour
-					if time.Since(lastTx.CreatedAt) < wait {
-						available = false
-						reason = fmt.Sprintf("ต้องรอครบ %d วัน", *g.FrequencyDays)
+				if err == nil { // เคยทำกลุ่มนี้มาแล้ว
+					inSameWindow := time.Since(lastTx.CreatedAt) < wait
+					if inSameWindow {
+						if len(pendingQuids) > 0 {
+							available = true
+							reason = fmt.Sprintf("ทำต่อได้ เหลืออีก %d ฉบับ", len(pendingQuids))
+						} else {
+							remain := (wait - time.Since(lastTx.CreatedAt)).Round(time.Minute)
+							available = false
+							reason = fmt.Sprintf("เพิ่งทำไป รออีก %v", remain)
+						}
 					} else {
-						available = true
-						reason = fmt.Sprintf("เหลืออีก %d ฉบับ", len(pendingQuids))
+						if len(pendingQuids) > 0 {
+							available = true
+							reason = fmt.Sprintf("ครบเวลาแล้ว เริ่มรอบใหม่ได้ เหลืออีก %d ฉบับ", len(pendingQuids))
+						} else {
+							available = false
+							reason = "ครบเวลาแล้ว แต่ยังไม่มีแบบสอบถามที่ทำได้"
+						}
 					}
 				} else {
-					// ไม่เคยทำในกลุ่มนี้หรือไม่กำหนดความถี่
-					available = true
-					reason = fmt.Sprintf("เหลืออีก %d ฉบับ", len(pendingQuids))
+					// ยังไม่เคยทำ afterChat ในกลุ่มนี้ → เริ่มรอบแรกได้เลย
+					if len(pendingQuids) > 0 {
+						available = true
+						reason = fmt.Sprintf("เริ่มทำได้เลย เหลืออีก %d ฉบับ", len(pendingQuids))
+					} else {
+						available = false
+						reason = "ยังไม่มีแบบสอบถามที่ทำได้"
+					}
 				}
-			default: // "onLogin", "afterChat" หรือค่าอื่น
-				// 🔁 ไม่ปิดกลุ่ม onLogin หลังทำข้อแรก — ให้ทำต่อจนหมดกลุ่ม
+			} else {
+				// ไม่ตั้งความถี่ → ทำให้หมดในคราวเดียว
+				if len(pendingQuids) > 0 {
+					available = true
+					reason = fmt.Sprintf("เริ่มทำได้เลย เหลืออีก %d ฉบับ", len(pendingQuids))
+				} else {
+					available = false
+					reason = "ทำครบกลุ่มนี้แล้ว"
+				}
+			}
+
+		default: // onLogin
+			if len(pendingQuids) > 0 {
 				available = true
 				reason = fmt.Sprintf("เหลืออีก %d ฉบับ", len(pendingQuids))
+			} else {
+				available = false
+				reason = "ทำครบกลุ่มนี้แล้ว"
 			}
 		}
 
+		// ส่ง array ว่างแทน null (อ่านง่ายใน frontend)
+		if pendingQuids == nil {
+			pendingQuids = []uint{}
+		}
 		out = append(out, GroupOut{
 			ID:            g.ID,
 			Name:          g.Name,
@@ -645,11 +790,9 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 			PendingQuids:  pendingQuids,
 		})
 	}
-	
 
 	c.JSON(http.StatusOK, out)
 }
-
 
 //////////////////////////////////////////////////////////////// ADMIN //////////////////////////////////////////////////////////////////////
 
