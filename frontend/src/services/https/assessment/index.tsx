@@ -4,6 +4,8 @@ import { AnswerOption } from '../../../interfaces/IAnswerOption';
 import { QuestionnaireGroup } from '../../../interfaces/IQuestionnaireGroup';
 import { AssessmentAnswer } from '../../../interfaces/IAssessmentAnswer';
 import { ITransaction } from "../../../interfaces/ITransaction";
+import type { Questionnaire } from "../../../interfaces/IQuestionnaire";
+
 
 // ✅ Inline axiosInstance พร้อมแนบ token
 const axiosInstance = axios.create({
@@ -21,6 +23,12 @@ axiosInstance.interceptors.request.use((config) => {
 
 
 //User
+// ดึงแบบสอบถามตาม ID
+export const getQuestionnaireByID = async (id: number): Promise<Questionnaire> => {
+  const res = await axiosInstance.get(`/assessment/Questionnaires/${id}`);
+  return res.data as Questionnaire;
+};
+
 // ฟังก์ชัน: ดึงคำถามทั้งหมด
 export const fetchQuestions = async (): Promise<Question[]> => {
   const res = await axiosInstance.get("/assessment/Questions");
@@ -137,6 +145,7 @@ export const getAvailableGroupsAndNext = async (
 
   return data;
 };
+
 
 ////////////////////////////////////////////////////////❌
 export const getAvailableGroups = async (userID: number) => {

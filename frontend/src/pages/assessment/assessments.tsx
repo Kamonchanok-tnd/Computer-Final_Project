@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Q2Q from "../../assets/assessment/Q2Q.png";
+import AssessmentNameIcon from "../../assets/assessment/Assessment_Name.png";
 import { useNavigate } from "react-router-dom";
 import {
   fetchQuestions,
   fetchAnswerOptions,
   submitAnswer,
   finishAssessment,
+  getQuestionnaireByID,
 } from "../../services/https/assessment/index";
 import { Question } from "../../interfaces/IQuestion";
 import { AnswerOption } from "../../interfaces/IAnswerOption";
@@ -44,16 +46,39 @@ const Assessments: React.FC = () => {
     return storedQuID ? parseInt(storedQuID) : null;
   });
 
+  const [questionnaireName, setQuestionnaireName] = useState<string>(() => {
+    return localStorage.getItem("questionnaireName") || "";
+  });
+
   useEffect(() => {
     const loadData = async () => {
       try {
         const qRes = await fetchQuestions();
         const aRes = await fetchAnswerOptions();
 
+        try {
+          if (targetQuID) {
+            const qn = await getQuestionnaireByID(targetQuID);
+            if (qn?.nameQuestionnaire) {
+              setQuestionnaireName(qn.nameQuestionnaire);
+              localStorage.setItem("questionnaireName", qn.nameQuestionnaire);
+            }
+          }
+        } catch (e) {
+          console.warn("โหลดชื่อแบบสอบถามไม่สำเร็จ ใช้ fallback:", e);
+          if (!questionnaireName && targetQuID) {
+            setQuestionnaireName(`แบบสอบถาม #${targetQuID}`);
+          }
+        }
+
         if (!assessmentResultID || !targetQuID) {
           alert("ไม่พบข้อมูลแบบสอบถาม กรุณาเริ่มใหม่อีกครั้ง");
           navigate("/");
           return;
+        }
+
+        if (!questionnaireName) {
+          setQuestionnaireName(`แบบสอบถาม #${targetQuID}`);
         }
 
         const filteredQuestions: Question[] = qRes
@@ -82,6 +107,7 @@ const Assessments: React.FC = () => {
     };
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assessmentResultID, targetQuID, navigate]);
 
   useEffect(() => {
@@ -165,6 +191,25 @@ const Assessments: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[2147483647] min-h-screen bg-gradient-to-b from-sky-100 to-white flex flex-col items-center pt-10 px-4">
+      {/* ✅ หัวข้อชื่อแบบสอบถาม + ไอคอน */}
+      <div className="flex items-center gap-3 mb-3 max-w-md w-full px-2">
+        <img
+          src={AssessmentNameIcon}
+          alt="Assessment Name"
+          className="w-8 h-8 object-contain"
+        />
+        <h2 className="text-xl font-semibold truncate">
+          {questionnaireName ||
+            (targetQuID ? `แบบสอบถาม #${targetQuID}` : "แบบสอบถาม")}
+        </h2>
+        <img
+          src={AssessmentNameIcon}
+          alt="Assessment Name"
+          className="w-8 h-8 object-contain"
+        />
+      </div>
+
+      {/* Steps */}
       {questions.length > 1 && (
         <div className="grid grid-cols-[repeat(auto-fit,_minmax(1.5rem,_1fr))] gap-2 max-w-md w-full mb-6 px-2">
           {questions.map((_, index) => {
