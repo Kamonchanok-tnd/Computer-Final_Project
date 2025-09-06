@@ -10,7 +10,7 @@ import (
 	"sukjai_project/entity"
 )
 
-// เพิ่มจำนวน like ของบทความ
+// ฟังก์ชันบริการเพื่อกดถูกใจ (Like) หรือยกเลิกถูกใจ (Unlike) บทความ
 func LikeArticle(c *gin.Context) {
     db := config.DB()
 
@@ -74,9 +74,7 @@ func parseUint(str string) uint {
 }
 
 
-
-
-// เช็คว่า user เคยกดหัวใจบทความนี้หรือไม่
+// ฟังก์ชันบริการเพื่อตรวจสอบว่าผู้ใช้กดถูกใจบทความนี้หรือไม่
 func CheckLikedArticle(c *gin.Context) {
     db := config.DB()
 
@@ -110,7 +108,7 @@ func CheckLikedArticle(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"isLiked": true})
 }
 
-// เพิ่มจำนวนการเข้าชมบทความ
+// ฟังก์ชันบริการเพื่ออัปเดตจำนวนการเข้าชมบทความ
 func UpdateViewcountMessage(c *gin.Context) {
     db := config.DB()
 	// ดึง id ของบทความจาก URL parameter

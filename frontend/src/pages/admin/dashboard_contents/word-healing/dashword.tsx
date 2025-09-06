@@ -1,78 +1,161 @@
-// DashboardWordHealing.tsx (รายเดือน)
 import React, { useEffect, useState } from "react";
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { Info } from "lucide-react";
-import { getMonthlyWordHealingViews,MonthlyViewsByTitle} from "../../../../services/https/dashboardcontents";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { DatePicker, ConfigProvider } from "antd";
+import thTH from "antd/locale/th_TH";
+import dayjs, { Dayjs } from "dayjs";
+import "dayjs/locale/th";
+import { getMonthlyWordHealingViews, MonthlyViewsByTitle } from "../../../../services/https/dashboardcontents";
+import { BookOpenCheck, BookOpenText, Calculator, Eye, LibraryBig, UsersRound } from "lucide-react";
 
-const COLORS = ["#FFC107", "#FFB300", "#FFCA28", "#FFD54F", "#FFE082", "#FFD740"];
+dayjs.locale("th");
 
-const DashboardWordHealing: React.FC = () => {
+const DashboardWordHealingMonthly: React.FC = () => {
   const [data, setData] = useState<MonthlyViewsByTitle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null);
 
   useEffect(() => {
-    const fetchMonthlyData = async () => {
+    const fetchData = async () => {
       try {
         const res = await getMonthlyWordHealingViews();
-        // สร้าง monthLabel เช่น "ส.ค. 2025"
+
+        // แปลง date เป็น dayLabel
         const formatted = res.map((item) => ({
           ...item,
-          monthLabel: new Date(item.year, item.month - 1).toLocaleString("th-TH", {
-            month: "short",
-            year: "numeric",
-          }),
+          dayLabel: item.date
+            ? dayjs(item.date).format("D MMM") // เช่น "30 ส.ค."
+            : "ไม่ระบุวัน",
         }));
+
         setData(formatted);
+
+        if (formatted.length > 0) {
+          // เลือกเดือนล่าสุดจาก date
+          setSelectedMonth(dayjs(formatted[formatted.length - 1].date));
+        }
       } catch (err) {
         console.error(err);
-        setError("ไม่สามารถโหลดข้อมูล Word Healing ได้");
-      } finally {
-        setLoading(false);
       }
     };
-    fetchMonthlyData();
+
+    fetchData();
   }, []);
 
-  const totalViews = data.reduce((sum, item) => sum + item.total_views, 0);
+  // Filter ตามเดือนที่เลือก
+  const filteredData = selectedMonth
+    ? data.filter((item) => dayjs(item.date).isSame(selectedMonth, "month"))
+    : data;
+
+  // รวม views ของเดือนที่เลือก
+  const totalViews = filteredData.reduce((sum, item) => sum + item.total_views, 0);
+
+  // Top Articles เดือนที่เลือก
+  const topArticles = [...filteredData]
+    .sort((a, b) => b.total_views - a.total_views)
+    .slice(0, 5);
+
+  // สร้าง chartData แสดง views ต่อวัน
+  const dailyTotals = filteredData.reduce((acc: Record<string, number>, item) => {
+    const day = dayjs(item.date).format("D MMM");
+    acc[day] = (acc[day] || 0) + item.total_views;
+    return acc;
+  }, {});
+  const chartData = Object.entries(dailyTotals).map(([day, total_views]) => ({ day, total_views }));
 
   return (
-    <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">
-      <div className="bg-yellow-200 rounded-2xl shadow-md p-6">
-        <h2 className="font-semibold text-lg mb-4">การอ่านต่อเดือน</h2>
-        {loading ? (
-          <p>กำลังโหลดข้อมูล...</p>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : (
-          <>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data}
-                    dataKey="total_views"
-                    nameKey="monthLabel"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={(entry) => `${entry.monthLabel} (${entry.total_views})`}
-                  >
-                    {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => [`${value} ครั้ง`, "Views"]} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="text-lg font-bold mt-2">รวม {totalViews} ครั้ง</p>
-          </>
-        )}
+    <ConfigProvider locale={thTH}>
+      <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">
+        {/* สรุปยอดรวม */}
+        <div className="grid grid-cols-3 gap-4">
+        <div className="bg-gradient-to-br from-[#f9acd8] to-[#FEEBF6] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+           <div className="bg-white  text-[#FFCEEA] p-4 rounded-full shadow-lg shadow-[#f9acd8]/20">
+             <LibraryBig size={30} className=""/>
+           </div>
+           <div>
+            <p className="text-gray-600">จำนวนบทความ</p>
+            <p className="text-2xl font-bold text-gray-600">{filteredData.length} บทความ</p>
+           </div>
+      
+          </div>
+         <div className="bg-gradient-to-br from-[#98e0f4] to-[#d3f0f8] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+           <div className="bg-white  text-[#39a6c3] p-4 rounded-full shadow-lg shadow-[#39a6c3]/20">
+             <BookOpenCheck size={30} className=""/>
+           </div>
+           <div>
+            <p className="text-gray-600">รวมการอ่าน</p>
+            <p className="text-2xl font-bold text-gray-600">{totalViews} ครั้ง</p>
+           </div>
+      
+          </div>
+          
+          <div className="bg-gradient-to-br from-[#fbdd6d] to-[#ffea9f] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+           <div className="bg-white  text-[#FFC900] p-4 rounded-full shadow-lg shadow-[#FFC900]/20">
+             <Calculator size={30} className=""/>
+           </div>
+           <div>
+            <p className="text-gray-600">เฉลี่ยต่อบทความ</p>
+            <p className="text-2xl font-bold text-gray-600">
+            {filteredData.length > 0 ? (totalViews / filteredData.length).toFixed(1) : 0} ครั้ง
+              </p>
+           </div>
+      
+          </div>
+        </div>
+
+        {/* Top Articles */}
+        <div className="bg-yellow-100 rounded-2xl shadow-md p-6">
+          <h2 className="font-semibold text-lg mb-2 text-yellow-800">Top Articles</h2>
+          <ol className="list-decimal ml-6 space-y-1 text-yellow-900">
+            {topArticles.map((item, idx) => (
+              <li key={idx} className="flex justify-between">
+                <span>{item.title}</span>
+                <span className="font-bold">{item.total_views} ครั้ง</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Trend Line (ต่อวัน) */}
+        <div className="bg-yellow-50 rounded-2xl shadow-md p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-lg text-yellow-800">
+              Trend Line (การอ่านต่อวัน)
+            </h2>
+            <DatePicker
+              picker="month"
+              value={selectedMonth}
+              onChange={(val) => setSelectedMonth(val)}
+              format="MMMM YYYY"
+              allowClear={false}
+            />
+          </div>
+
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#FFECB3" />
+                <XAxis dataKey="day" />
+                <Tooltip formatter={(value: any) => [`${value} ครั้ง`, "views"]} />
+                <Line
+                  type="monotone"
+                  dataKey="total_views"
+                  stroke="#F59E0B"
+                  strokeWidth={3}
+                  dot={{ r: 5, fill: "#F59E0B" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
-    </div>
+    </ConfigProvider>
   );
 };
 
-export default DashboardWordHealing;
+export default DashboardWordHealingMonthly;

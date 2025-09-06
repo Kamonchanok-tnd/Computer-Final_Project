@@ -16,12 +16,19 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { DatePicker, Space, ConfigProvider } from "antd";
+import thTH from "antd/lib/locale/th_TH";
 import admin from "../../../assets/analysis.png";
+import dayjs, { Dayjs } from "dayjs";
 
 export default function AdminDashboardContent() {
   const [visitData, setVisitData] = useState<VisitFrequency[]>([]);
   const [retentionData, setRetentionData] = useState<RetentionRate[]>([]);
+  const [filteredVisitData, setFilteredVisitData] = useState<VisitFrequency[]>([]);
+  const [filteredRetentionData, setFilteredRetentionData] = useState<RetentionRate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -30,13 +37,13 @@ export default function AdminDashboardContent() {
         const visits = await getVisitFrequency();
         const retention = await getRetentionRate();
 
-        // แปลงวันที่เป็นรูปแบบไทยและเก็บใน key ใหม่ 'day'
         const formattedVisits = visits.map((item) => ({
           ...item,
           day: new Date(item.date).toLocaleDateString("th-TH", {
             year: "numeric",
             month: "short",
             day: "numeric",
+            calendar: "gregory", // บังคับใช้ค.ศ.
           }),
         }));
 
@@ -46,11 +53,14 @@ export default function AdminDashboardContent() {
             year: "numeric",
             month: "short",
             day: "numeric",
+            calendar: "gregory", // บังคับใช้ค.ศ.
           }),
         }));
 
         setVisitData(formattedVisits);
         setRetentionData(formattedRetention);
+        setFilteredVisitData(formattedVisits);
+        setFilteredRetentionData(formattedRetention);
       } catch (error) {
         console.error("ไม่สามารถโหลดข้อมูลได้:", error);
       } finally {
@@ -59,6 +69,20 @@ export default function AdminDashboardContent() {
     }
     fetchData();
   }, []);
+
+  // ฟังก์ชันกรองข้อมูลตามเดือนและปี
+  useEffect(() => {
+    const filterData = (data: any[]) => {
+      return data.filter((item) => {
+        const date = new Date(item.date);
+        const matchMonth = selectedMonth !== null ? date.getMonth() === selectedMonth : true;
+        const matchYear = selectedYear !== null ? date.getFullYear() === selectedYear : true;
+        return matchMonth && matchYear;
+      });
+    };
+    setFilteredVisitData(filterData(visitData));
+    setFilteredRetentionData(filterData(retentionData));
+  }, [selectedMonth, selectedYear, visitData, retentionData]);
 
   if (loading) {
     return (
@@ -75,13 +99,35 @@ export default function AdminDashboardContent() {
         แดชบอร์ดเว็บไซต์
       </h2>
 
+      {/* ตัวเลือกเดือนและปี ทางขวามือ */}
+      <div className="flex justify-end mb-4">
+        <ConfigProvider locale={thTH}>
+          <Space>
+            <DatePicker
+              picker="month"
+              placeholder="เลือกเดือน"
+              onChange={(date: Dayjs | null) => {
+                setSelectedMonth(date ? date.month() : null);
+                setSelectedYear(date ? date.year() : null);
+              }}
+              value={
+                selectedMonth !== null && selectedYear !== null
+                  ? dayjs().year(selectedYear).month(selectedMonth)
+                  : null
+              }
+              format="MMMM YYYY"
+            />
+          </Space>
+        </ConfigProvider>
+      </div>
+
       {/* Visit Frequency */}
       <div className="bg-white rounded-xl shadow p-4">
         <h2 className="text-xl font-semibold mb-4">ความถี่การเข้าชมเว็บไซต์</h2>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={visitData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+          <LineChart data={filteredVisitData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" /> {/* ใช้ day แทน date */}
+            <XAxis dataKey="day" />
             <YAxis />
             <Tooltip formatter={(value: any) => `${value} ครั้ง`} />
             <Legend />
@@ -102,9 +148,9 @@ export default function AdminDashboardContent() {
       <div className="bg-white rounded-xl shadow p-4">
         <h2 className="text-xl font-semibold mb-4">อัตราการกลับมาใช้ซ้ำ (%)</h2>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={retentionData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+          <LineChart data={filteredRetentionData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" /> {/* ใช้ day แทน date */}
+            <XAxis dataKey="day" />
             <YAxis unit="%" />
             <Tooltip formatter={(value: any) => `${value}%`} />
             <Legend />

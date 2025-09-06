@@ -1,4 +1,11 @@
 import React from "react";
+import { DatePicker, ConfigProvider } from "antd";
+import type { DatePickerProps } from "antd";
+import dayjs from "dayjs";
+import "dayjs/locale/th"; // locale ภาษาไทย
+import thTH from "antd/locale/th_TH"; // locale ของ antd
+
+dayjs.locale("th"); // ใช้ locale ไทย
 
 interface MonthPickerProps {
   value: Date;
@@ -7,33 +14,28 @@ interface MonthPickerProps {
 }
 
 const MonthPickerMed: React.FC<MonthPickerProps> = ({ value, onChange, label = "เลือกเดือน" }) => {
-  // แปลง Date → "YYYY-MM"
-  const formatValue = (date?: Date) => {
-    if (!date) return ""; // ถ้า date เป็น undefined
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    return `${y}-${m}`;
-  };
+  const dayjsValue = value ? dayjs(value) : null;
 
-  // handle เมื่อ user เลือกเดือนใหม่
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (!val) return;
-    const [year, month] = val.split("-").map(Number);
-    onChange(new Date(year, month - 1, 1));
+  const handleChange: DatePickerProps["onChange"] = (date) => {
+    if (!date) return;
+    onChange(date.toDate());
   };
 
   return (
-    <div className="flex flex-col gap-1">
-      {label && <label className="text-sm font-medium">{label}</label>}
-      <input
-        type="month"
-        value={formatValue(value)}
-        onChange={handleChange}
-        className="px-3 py-2 rounded-lg border !bg-white border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-white-400"
-      />
-    </div>
+    <ConfigProvider locale={thTH}>
+      <div className="flex flex-col gap-1">
+        {label && <label className="text-sm font-medium">{label}</label>}
+        <DatePicker
+          picker="month"
+          value={dayjsValue}
+          onChange={handleChange}
+          className="w-full"
+          format="MMMM YYYY" // แสดงเดือนแบบไทย เช่น "สิงหาคม 2025"
+          placeholder="เลือกเดือน"
+        />
+      </div>
+    </ConfigProvider>
   );
 };
 
-export default MonthPickerMed;  
+export default MonthPickerMed;

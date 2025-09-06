@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-import { ChatGemini, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
+import { ChatGemini, ClearChat, CloseChat, GetChat, NewChat } from '../../services/https/Chat/index';
 import type { IConversation } from '../../interfaces/IConversation';
 import HistoryChat from '../../components/Chat.tsx/HistoryChat';
 import NewChatWelcome from '../../components/Chat.tsx/NewChatWelcome';
@@ -10,9 +10,6 @@ import ChatHeader from '../../components/Chat.tsx/ChatHeader';
 import ChatInput from '../../components/Chat.tsx/ChatInput';
 import { Modal } from 'antd';
 import { useDarkMode } from '../../components/Darkmode/toggleDarkmode';
-
-import { getAvailableGroupsAndNext } from "../../services/https/assessment"; //ของ assessment
-
 import { logActivity } from '../../services/https/activity';
 
 interface ChatbotProps {
@@ -42,9 +39,14 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   };
  
   async function getmessage(id: number) {
-    const message = await GetChat(id);
-    setMessages(message);
-    console.log("old chat: ",message);
+    try {
+      const message = await GetChat(id,navigate);
+      setMessages(message);
+      console.log("new chat: ",message);
+    } catch (error) {
+      console.error(error);
+    }
+    
   }
 
 
@@ -160,10 +162,6 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
       };
       setMessages((prev) => [...prev, botResponse]);
     });
-
-
-    //assessment
-    setDidChat(true);
   };
   
 
@@ -185,23 +183,16 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     
   // };
 
-async function Close() {
-  console.log("chatroom: ", chatRoomID);
-
-  // 🔎 เช็ค afterChat ก่อน
-  const redirected = await checkAfterChatAndMaybeNavigate();
-  if (redirected) {
-    return; // ถ้ามีแบบทดสอบ → ไป assessment เลย
+  async function Close() {
+    console.log("chatroom: ", chatRoomID);
+    // await CloseChat(Number(chatRoomID));
+   await ClearChat(Number(chatRoomID));
+    setIsNewChat(!isNewChat);
+    setMessages([]);   
+    setChatRoomID(null);  
+    navigate('/chat');
+    
   }
-
-  // ถ้าไม่มี → ปิดห้องตามปกติ
-  await CloseChat(Number(chatRoomID));
-  setIsNewChat(!isNewChat);
-  setMessages([]);
-  setChatRoomID(null);
-  navigate('/chat');
-}
-
 
   
 
@@ -247,58 +238,6 @@ async function Close() {
 
   }
 
-
-  //assessment
-  // ใช้ flag กันยิงซ้ำตอนออกหน้า
-const didRunAfterChatRef = useRef(false);
-
-// ✅ เรียกตอนปิดแชท หรือกำลังจะออกจากหน้าแชท
-const checkAfterChatAndMaybeNavigate = useCallback(async () => {
-  if (didRunAfterChatRef.current) return; // กันซ้ำ
-  didRunAfterChatRef.current = true;
-
-  try {
-    const uid = Number(localStorage.getItem("id") || JSON.parse(localStorage.getItem("user") || "{}")?.id);
-    if (!uid) return;
-
-    const groups = await getAvailableGroupsAndNext(uid, "afterChat");
-
-    // ต้องเป็น array และมี group ที่ available + next
-    if (Array.isArray(groups)) {
-      const found = groups.find((g: any) => g?.available && g?.next);
-      if (found?.next?.id && found?.id) {
-        // นำทางไปหน้า popup แบบ route param
-        navigate(`/assessment/${found.id}/${found.next.id}`);
-        return true;
-      }
-    }
-    return false;
-  } catch (e) {
-    console.error("❌ checkAfterChat ล้มเหลว:", e);
-    return false;
-  }
-}, [navigate]);
-
-useEffect(() => {
-  return () => {
-    // เรียกแบบ fire-and-forget ตอน component กำลัง unmount
-    // ห้าม await ใน cleanup — แต่เรามี guard didRunAfterChatRef อยู่แล้ว
-    void checkAfterChatAndMaybeNavigate();
-  };
-}, [checkAfterChatAndMaybeNavigate]);
-
-const [didChat, setDidChat] = useState(false);
-
-useEffect(() => {
-  return () => {
-    if (didChat) {
-      void checkAfterChatAndMaybeNavigate();
-    }
-  };
-}, [didChat, checkAfterChatAndMaybeNavigate]);
-
-
-
   return (
     <div className={`min-h-[calc(100vh-64px)] transition-colors duration-300 overflow-auto font-ibmthai
        flex justify-center items-center sm:px-4 
@@ -315,7 +254,7 @@ useEffect(() => {
         <ChatHeader isDarkMode={isDarkMode} onNewChat={newChat} onClearChat={Close} />
         {/* Messages Area */}
           {
-            isNewChat ? (
+            isNewChat || messages.length === 0 ? (
               <NewChatWelcome isDarkMode={isDarkMode} />
             ) : (
               <HistoryChat

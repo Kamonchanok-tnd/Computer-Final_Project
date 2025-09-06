@@ -10,6 +10,7 @@ import (
 )
 
 // CreateASMR บันทึกข้อมูล ASMR ของผู้ใช้ พร้อม recent settings
+// CreateASMR บันทึกข้อมูล ASMR ของผู้ใช้ พร้อม recent settings
 func CreateASMR(c *gin.Context) {
 	db := config.DB()
 
@@ -39,18 +40,29 @@ func CreateASMR(c *gin.Context) {
 		return
 	}
 
-	// บันทึก recent settings ถ้ามี
-	for _, rs := range input.RecentSettings {
-		recent := entity.RecentSetting{
-			ASMRID: asmr.ID,
-			SID:    rs.SID,
-			Volume: rs.Volume,
-		}
-		if err := db.Create(&recent).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create recent setting"})
-			return
-		}
+	
+	// บันทึก recent settings และ History พร้อมกัน
+for _, rs := range input.RecentSettings {
+	// บันทึก RecentSetting
+	if err := db.Create(&entity.RecentSetting{
+		ASMRID: asmr.ID,
+		SID:    rs.SID,
+		Volume: rs.Volume,
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create recent setting"})
+		return
 	}
+
+	// บันทึก History (uid + sid) หลังจากบันทึก RecentSetting
+	if err := db.Create(&entity.History{
+		UID: input.UID,
+		SID: rs.SID,
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create history"})
+		return
+	}
+}
+
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "ASMR record created successfully",

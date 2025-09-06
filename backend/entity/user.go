@@ -12,9 +12,11 @@ type Users struct {
 	Email       string `valid:"required~Email is required,email~Email format is invalid" json:"email"`
 	Facebook    string `json:"facebook"`
 	Line        string `json:"line"`
-	PhoneNumber string `json:"phone_number"`
+	PhoneNumber string `valid:"required~Phone number is required,matches(^0[0-9]{9}$)~Phone number format is invalid" json:"phone_number"`
+
 	Role        string `json:"role"`
 	Age         int    `json:"age"`
+	BirthDate   string `json:"birth_date"`
 	Gender      string `json:"gender"`
 
 	PFID      uint    `json:"pfid" gorm:"default:1"`

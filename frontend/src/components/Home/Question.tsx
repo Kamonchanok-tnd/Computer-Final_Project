@@ -122,6 +122,15 @@ function Question() {
     }
   };
 
+  // helper: รับ base64 ที่อาจไม่มี prefix -> คืน data URL พร้อม fallback
+const toImgSrc = (s?: string) => {
+  if (!s) return "/default.png";                 // ใส่รูป fallback ไว้ใน public/
+  const trimmed = s.trim();
+  return trimmed.startsWith("data:")
+    ? trimmed
+    : `data:image/png;base64,${trimmed}`;
+};
+
   return (
     <div className="flex flex-col xl:px-28 mt-4">
       {/* Header */}
@@ -170,11 +179,10 @@ function Question() {
                 <div
                   className=" max-w-full bg-cover bg-center rounded-xl p-2 w-60 h-68 flex items-end
                   hover:scale-105 transition-all duration-500 ease-in-out bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF]"
-                  style={
-                    {
-                      // backgroundImage: `url(${item.image})`,
-                    }
-                  }
+                  style={{
+                    // backgroundImage: `url(${item.image})`,
+                    backgroundImage: `url(${toImgSrc(item.picture)})`
+                  }}
                 >
                   <div className="flex-1 flex-col space-y-2 bg-white/50 backdrop-blur-sm h-auto p-4 rounded-lg">
                     <p className="font-ibmthai text-center">

@@ -110,6 +110,7 @@ func main() {
 		// router.POST("/admin/prompt/use/:id", prompt.NowPrompt)
 		// router.GET("/admin/prompt/:id", prompt.GetPromptByID)
 
+
 		//Questionnaire routes
 		router.GET("/questionnaires", questionnaire.GetAllQuestionnaires)       // route ดึงแบบทดสอบทั้งหมด
 		router.GET("/users", questionnaire.GetAllUsers)                         // route ดึงผู้ใช้ทั้งหมด
@@ -119,11 +120,16 @@ func main() {
 		router.POST("/createCriterias", questionnaire.CreateCriterias)          // route สำหรับสร้างเกณฑ์การให้คะแนน (Criterias)
 
 		router.DELETE("/deletequestionnaire/:id", questionnaire.DeleteQuestionnaire) // route สำหรับลบเเบบทดสอบ คำถามเเละคำตอบ
-		router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)           // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
-		router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)               // route สำหรับลบคำตอบ
+		// router.DELETE("/deletequestion/:id", questionnaire.DeleteQuestion)           // route สำหรับลบคำถามเเละคำตอบ พร้อมอัพเดตจำนวนข้อ
+		// router.DELETE("/deleteanswer/:id", questionnaire.DeleteAnswer)               // route สำหรับลบคำตอบ
 
-		router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)         // route สำหรับดึงค่าเก่าเเบบทดสอบ
-		router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire) // route สำหรับเเก้ไขเเบบทดสอบ
+
+		router.GET("/getquestionnaire/:id", questionnaire.GetQuestionnaire)                                        // route สำหรับดึงค่าเก่าเเบบทดสอบ
+		router.PATCH("/updatequestionnaire/:id", questionnaire.UpdateQuestionnaire)                                // route สำหรับเเก้ไขเเบบทดสอบ
+		router.GET("/getquestionandanswerbyquestionnaireid/:id", questionnaire.GetQuestionAnswerByQuetionnaireID)  // route ดึงคำถามเเละคำตอบตามไอดีแบบทดสอบ
+		router.PATCH("/updatequestionandanswer/:id", questionnaire.UpdateQuestionAndAnswer)                        // route เเก้ไขคำถามเเละคำตอบตามไอดีคำถาม
+		router.GET("/getallcriteria/by-questionnaire/:id", questionnaire.GetCriteriaByQuestionnaireID)             // route ดึงเกณฑ์การให้คะแนนตามไอดีแบบทดสอบ
+	    router.PATCH("/updatecriteria/by-questionnaire/:id", questionnaire.UpdateCriteriaByQuestionnaireID)        // route เเก้ไขเกณฑ์การให้คะแนนตามไอดีแบบทดสอบ
 
 		// Assessment routes
 		router.GET("/admin/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
@@ -143,16 +149,13 @@ func main() {
 		router.PATCH("/updateviewcountmessage/:id", wordhealingmessage.UpdateViewcountMessage)      // route สำหรับเพิ่มจำนวนการเข้าชมบทความ
 		router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                           // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
 
-		// //Healing mesage route
-		// router.GET("/getallwordhealingmessage", wordhealingmessage.GetAllWordhealingmessages)       // route ดึงบทความทั้งหมด
-		// router.POST("/createwordhealingmessage", wordhealingmessage.CreateWordHealingMessages)      // route สำหรับสร้างบทความ (WordHealingMesasage)
-		// router.DELETE("/deletewordhealingmessage/:id", wordhealingmessage.DeleteWordHealingContent) // route สำหรับลบบทความ (WordHealingMesasage)
-		// router.GET("/getwordhealingmessage/:id", wordhealingmessage.GetWordHealingMessage)          // route สำหรับดึงค่าเก่าบทความ
-		// router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)  // route สำหรับเเก้ไขเเบบบทความ
-		// router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                           // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
 
-		// Video routes
-		router.POST("/videos", meditation.CreateVideo)
+        // Video routes
+        router.POST("/videos", meditation.CreateVideo)
+		
+		// // Video routes
+		// router.POST("/videos", meditation.CreateVideo)
+
 		router.GET("/sound-types", meditation.GetSoundTypes)
 		router.GET("/AllSounds", sounds.GetAllSounds)
 		router.GET("/Sound/:id", sounds.GetSoundByID)
@@ -197,8 +200,24 @@ func main() {
 		router.GET("/summarycontents", dashboardcontents.GetTopContentComparison)
 		router.GET("/sound/four-type", dashboardcontents.GetSoundFourType)  
 
-		//นับคนใช้ chatspace
+		//dashboard chatspace
 		router.GET("/chat_rooms/count_uid", controller.TotalUser)
+
+		router.GET("/dashboard/overview", controller.DashboardOverview)
+		router.GET("/dashboard/usage/daily", controller.DashboardUsage)
+		router.GET("/dashboard/users/top", controller.DashboardTopUsers)
+		router.GET("/dashboard/sessions/status", controller.DashboardSessionsStatus)
+		router.GET("/dashboard/sessions/duration", controller.DashboardSessionsDuration)
+		router.GET("/dashboard/visit-frequency", controller.DashboardActiveUsers)
+		router.GET("/dashboard/retention-rate", useractivity.GetRetentionRate)
+
+		//dashboard questionaire
+		router.GET("/dashboard/questionaire/overview",dashboardcontents.GetDashboardSurveyOverview )
+		router.GET("/dashboard/questionaire/stats",dashboardcontents.GetQuestionnaireStats )
+		router.GET("/dashboard/questionaire/resultsoverview",dashboardcontents.GetSurveyVisualization )
+		router.GET("/dashboard/questionaire/resultsoverview/:id",dashboardcontents.GetSurveyVisualizationByID )
+		router.GET("/dashboard/questionnaire/:id/average-score", dashboardcontents.GetAverageScoreCard)
+
 
 		router.GET("/visit-frequency", useractivity.GetVisitFrequency)
 		router.GET("/retention-rate", useractivity.GetRetentionRate)
@@ -277,6 +296,7 @@ func main() {
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)
 		// userRouter.GET("/recent", controller.GetRecentChat). LogActivity
+		userRouter.DELETE("/conversation/:id", controller.ClearConversation)
 
 		//profile
 		userRouter.GET("/profile", profileavatar.GetAllProfile)

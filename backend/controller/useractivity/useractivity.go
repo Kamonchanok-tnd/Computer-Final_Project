@@ -51,7 +51,7 @@ func GetVisitFrequency(c *gin.Context) {
 	if err := config.DB().
 		Model(&entity.UserActivity{}).
 		Select("DATE(created_at) as date, COUNT(*) as visits").
-		Where("action = ?", "visit_page").
+		Where("action = ?", "visit_page_first").
 		Group("DATE(created_at)").
 		Order("DATE(created_at) ASC").
 		Scan(&results).Error; err != nil {

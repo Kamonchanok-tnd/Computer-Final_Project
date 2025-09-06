@@ -1,405 +1,509 @@
-import React, { useState, useEffect } from "react";
-import { Upload, message, Modal, Form, Select } from "antd";
-import type { DefaultOptionType } from "antd/es/select";
-import { UploadOutlined } from "@ant-design/icons";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createWordHealingMessage } from "../../../../services/https/message";
-import { getArticleTypeOptionsDetailed } from "../../../../services/https/message";
+import { message } from "antd"; // ใช้ระบบแจ้งเตือนของ Ant Design
+import {createWordHealingMessage,getArticleTypeOptionsDetailed,} from "../../../../services/https/message";
 import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
-import "./createMessagePage.css";
+import createMessageIcon from "../../../../assets/createMessageIcon.png";
 
-// แก้ไข interface ให้รองรับเนื้อหาบทความและประเภทบทความ
+// ประเภทตัวเลือกบทความ (ไม่ใช้ AntD) + เพิ่ม description สำหรับแสดงใน dropdown
+type ArticleTypeOption = { value: string; label: string; description?: string };
+
+// โครงข้อมูลฟอร์ม (เก็บรูปเป็น base64)
 interface FormDataType extends Omit<WordHealingContent, "photo"> {
-  photo: string | null;                 // เปลี่ยนจาก File เป็น string เพื่อเก็บ base64
-  error: (message: string) => unknown;  // กำหนดให้เป็นฟังก์ชัน
-  idts?: number;                        // เพิ่มฟิลด์ idts
-  content: string;                      // ฟิลด์ใหม่สำหรับเนื้อหาบทความ
-  articleType: string;                  // ฟิลด์ใหม่สำหรับประเภทบทความ (เก็บ key ที่ BE ต้องการ)
-  viewCount: number;                    // เพิ่ม viewCount ที่หายไป
+  photo: string | null;
+  error: (message: string) => unknown;
+  idts?: number;
+  content: string;
+  articleType: string;
+  viewCount: number;
 }
 
 const CreateMessagePage: React.FC = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [msgApi, msgCtx] = message.useMessage(); // context ของ antd message
+
+  // วันที่วันนี้ (YYYY-MM-DD) ใช้จำกัดไม่ให้เลือกอนาคต
+  const todayStr = (() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  })();
 
   const [formData, setFormData] = useState<FormDataType>({
-  id: 0,
-  name: "",
-  author: "",
-  no_of_like: 0,
-  date: "",
-  photo: null,
-  content: "",           // เนื้อหาบทความเริ่มต้นเป็นค่าว่าง
-  articleType: "OpinionPiece", // ค่าเริ่มต้น (key ที่ BE ต้องการ)
-  error: (message: string) => { console.error(message); },
-  idts: undefined,
-  viewCount: 0,           // เริ่มต้น viewCount เป็น 0
-});
+    id: 0,
+    name: "",
+    author: "",
+    no_of_like: 0,
+    date: "",
+    photo: null,
+    content: "",
+    articleType: "OpinionPiece",
+    error: (message: string) => console.error(message),
+    idts: undefined,
+    viewCount: 0,
+  });
 
   const [preview, setPreview] = useState<string>("");
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewFile, setPreviewFile] = useState<string>("");
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // ------------ state สำหรับ options และ loading ------------
-  const [articleTypeOptions, setArticleTypeOptions] = useState<DefaultOptionType[]>([]);
+  // โหลดประเภทบทความ (แปลง label/description ให้เป็น string กัน [object Object])
+  const [articleTypeOptions, setArticleTypeOptions] = useState<ArticleTypeOption[]>([]);
   const [articleTypeLoading, setArticleTypeLoading] = useState<boolean>(false);
 
-  // โหลดประเภทบทความจาก API ตอน mount
   useEffect(() => {
     (async () => {
-      setArticleTypeLoading(true);
-      // ได้ [{ value, label, raw }] → map ให้เหลือ { value, label } เพื่อให้ตรง DefaultOptionType
-      const detailed = await getArticleTypeOptionsDetailed();
-      const opts: DefaultOptionType[] = detailed.map((o) => ({
-        value: o.value,
-        label: o.label,
-      }));
-      setArticleTypeOptions(opts);
-      setArticleTypeLoading(false);
+      try {
+        setArticleTypeLoading(true);
+        const detailed = await getArticleTypeOptionsDetailed();
+        const opts: ArticleTypeOption[] = (detailed || []).map((o: any) => {
+          const labelText =
+            typeof o?.label === "string" ? o.label :
+            typeof o?.label?.th === "string" ? o.label.th :
+            typeof o?.name === "string" ? o.name :
+            typeof o?.title === "string" ? o.title :
+            typeof o?.raw?.label === "string" ? o.raw.label :
+            typeof o?.raw?.name === "string" ? o.raw.name :
+            String(o?.value ?? "");
+          const descText =
+            typeof o?.description === "string" ? o.description :
+            typeof o?.raw?.description === "string" ? o.raw.description :
+            typeof o?.detail === "string" ? o.detail :
+            typeof o?.raw?.detail === "string" ? o.raw.detail :
+            typeof o?.raw?.desc === "string" ? o.raw.desc :
+            "";
+          return { value: String(o?.value ?? labelText), label: labelText, description: descText };
+        });
+        setArticleTypeOptions(opts);
 
-      // ถ้าค่าปัจจุบันไม่อยู่ใน options ให้ตั้งเป็นตัวแรก (ถ้ามี)
-      const values = opts.map((o) => String(o.value));
-      if (opts.length > 0 && !values.includes(formData.articleType)) {
-        setFormData((prev) => ({ ...prev, articleType: String(opts[0].value) }));
+        // ถ้าค่าเดิมไม่อยู่ในรายการ → ตั้งเป็นตัวแรก
+        if (opts.length && !opts.some((x) => x.value === String(formData.articleType))) {
+          setFormData((prev) => ({ ...prev, articleType: opts[0].value }));
+        }
+      } catch (err) {
+        msgApi.error("โหลดประเภทบทความไม่สำเร็จ");
+      } finally {
+        setArticleTypeLoading(false);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // -----------------------------------------------------------
 
-  // รองรับทั้ง input และ textarea
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
+  // ----- Custom dropdown (ไม่ใช้ AntD) -----
+  const [typeOpen, setTypeOpen] = useState(false);
+  const [typeQuery, setTypeQuery] = useState("");
+  const typeRef = useRef<HTMLDivElement>(null);
 
-    if (name === "no_of_like") {
-      setFormData((prev) => ({
-        ...prev,
-        no_of_like: parseInt(value, 10) || 0,
-      }));
-      return;
-    }
+  // ปิดเมื่อคลิกนอกกรอบ
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!typeRef.current) return;
+      if (!typeRef.current.contains(e.target as Node)) setTypeOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // ปิดด้วย Esc
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTypeOpen(false);
+    };
+    if (typeOpen) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [typeOpen]);
 
+  const filteredTypeOptions = useMemo(() => {
+    const q = typeQuery.trim().toLowerCase();
+    if (!q) return articleTypeOptions;
+    return articleTypeOptions.filter(
+      (o) => o.label.toLowerCase().includes(q) || (o.description?.toLowerCase() || "").includes(q)
+    );
+  }, [typeQuery, articleTypeOptions]);
+
+  const selectedTypeLabel = useMemo(() => {
+    if (articleTypeLoading) return "กำลังโหลดประเภทบทความ...";
+    const f = articleTypeOptions.find((o) => o.value === String(formData.articleType));
+    return f?.label || "เลือกประเภทบทความ";
+  }, [articleTypeLoading, articleTypeOptions, formData.articleType]);
+
+  // ตัวที่เลือกไว้ (ไว้แสดงคำอธิบายใต้ dropdown)
+  const selectedType = useMemo(
+    () => articleTypeOptions.find((o) => o.value === String(formData.articleType)),
+    [articleTypeOptions, formData.articleType]
+  );
+
+  // บันทึกข้อมูล
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      formData.error("กรุณากรอกชื่อบทความ");
-      return;
-    }
-    if (!formData.author.trim()) {
-      formData.error("กรุณากรอกชื่อผู้เขียน");
-      return;
-    }
-    if (!formData.date) {
-      formData.error("กรุณาเลือกวันที่เผยแพร่");
-      return;
-    }
-    if (!formData.content.trim()) {
-      formData.error("กรุณากรอกเนื้อหาบทความ");
-      return;
-    }
-    const dateString = formData.date;
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      formData.error("วันที่ไม่ถูกต้อง");
-      return;
-    }
-    const formattedDate = date.toISOString().split("T")[0];
+
+    if (!formData.name.trim()) return msgApi.error("กรุณากรอกชื่อบทความ");
+    if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
+    if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
+    if (!formData.content.trim()) return msgApi.error("กรุณากรอกเนื้อหาบทความ");
+
+    // ตรวจวัน (ห้ามอนาคต)
+    const picked = new Date(`${formData.date}T00:00:00`);
+    const today = new Date(`${todayStr}T00:00:00`);
+    if (isNaN(picked.getTime())) return msgApi.error("วันที่ไม่ถูกต้อง");
+    if (picked > today) return msgApi.error("เลือกวันที่ในอนาคตไม่ได้");
 
     const form = new FormData();
     form.append("name", formData.name);
     form.append("author", formData.author);
-    form.append("no_of_like", formData.no_of_like.toString());
-    form.append("date", formattedDate);
+    form.append("no_of_like", String(formData.no_of_like));
+    form.append("date", formData.date);
     form.append("content", formData.content);
-    form.append("article_type", formData.articleType);  // คีย์ให้ตรงกับ BE
-    if (formData.photo) {
-      form.append("photo", formData.photo);
-    }
-
-    console.log("Form data before sending:", formData);
+    form.append("article_type", formData.articleType);
+    if (formData.photo) form.append("photo", formData.photo);
 
     try {
       const success = await createWordHealingMessage(form);
       if (success) {
-        message.success("บันทึกการสร้างข้อมมูลบทความลงฐานข้อมูลสำเร็จ!");
-        navigate("/admin/messagePage");
+        // แสดงข้อความสำเร็จด้วย AntD แล้วค่อย navigate กลับ
+        msgApi.success("บันทึกข้อมูลบทความสำเร็จ!");
+        setTimeout(() => navigate("/admin/messagePage"), 800);
       } else {
-        message.error("เกิดข้อผิดพลาดในการบันทึกบทความ");
+        msgApi.error("เกิดข้อผิดพลาดในการบันทึกบทความ");
       }
-    } catch (error) {
-      console.error("Error creating message:", error);
-      message.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+    } catch (err) {
+      console.error(err);
+      msgApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
     }
   };
 
-  const handleUploadChange = (info: any) => {
-    const { fileList } = info;
+  // เลือกไฟล์ (preview เฉพาะรูป)
+  const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (fileList.length > 0) {
-      const file = fileList[0].originFileObj || fileList[0];
-      const isImage = file.type?.startsWith("image/");
-      const isPDF = file.type === "application/pdf";
+    const isImage = file.type.startsWith("image/");
+    const isPDF = file.type === "application/pdf";
 
-      if (!isImage && !isPDF) {
-        message.error("กรุณาเลือกไฟล์รูปภาพหรือ PDF เท่านั้น");
-        return;
-      }
+    if (!isImage && !isPDF) return msgApi.error("กรุณาเลือกไฟล์รูปภาพหรือ PDF เท่านั้น");
+    if (file.size / 1024 / 1024 >= 5) return msgApi.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
 
-      const isLt5M = file.size / 1024 / 1024 < 5;
-      if (!isLt5M) {
-        message.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
-        return;
-      }
+    setPreview("");
+    setFormData((prev) => ({ ...prev, photo: null }));
 
-      setPreview("");
-      setFormData((prev) => ({ ...prev, photo: null }));
-
-      if (isImage) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64File = reader.result as string;
-          setFormData((prev) => ({ ...prev, photo: base64File }));
-          setPreview(base64File);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setPreview("");
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, photo: null }));
-      setPreview("");
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setFormData((prev) => ({ ...prev, photo: base64 }));
+      if (isImage) setPreview(base64);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handlePreview = () => {
-    if (preview) {
-      setPreviewFile(preview);
-      setPreviewVisible(true);
-    }
-  };
-
-  const handleRemoveFile = () => {
+  const removeFile = () => {
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
   };
 
   return (
-    <div className="createMessagePage createMessage-container">
-      <div className="createMessage-header">
-        <div className="createMessage-title">สร้างบทความให้กำลังใจ</div>
+    <div className="w-full min-h-screen bg-slate-100 p-6 lg:p-8">
+      {msgCtx}{/* context ของ antd message */}
+
+      {/* Header */}
+       <div className="mb-3 flex items-center gap-1 sm:gap-2">
+        <img
+          src={createMessageIcon}
+          alt="manage icon"
+          className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block"
+        />
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 leading-tight">
+          สร้างบทความให้กำลังใจ
+        </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="message-form split-form" noValidate>
-        <div className="form-left">
-          <div>
-            <label htmlFor="name">ชื่อบทความ: <span style={{ color: "red" }}>*</span></label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              style={{
-                backgroundColor: "#f5f5f5",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                padding: "10px",
-                fontSize: "14px",
-                width: "100%",
-                transition: "border-color 0.3s ease",
-              }}
-            />
-          </div>
 
-          <div>
-            <label htmlFor="author">ผู้เขียน/เเหล่งที่มา: <span style={{ color: "red" }}>*</span></label>
-            <input
-              id="author"
-              name="author"
-              type="text"
-              value={formData.author}
-              onChange={handleChange}
-              required
-              style={{
-                backgroundColor: "#f5f5f5",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                padding: "10px",
-                fontSize: "14px",
-                width: "100%",
-                transition: "border-color 0.3s ease",
-              }}
-            />
-          </div>
-
-          <div>
-                          <label htmlFor="articleType">
-                ประเภทบทความ: <span style={{ color: "red" }}>*</span>
+      {/* Form card */}
+      <div className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10">
+        <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+          {/* Left column */}
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+                ชื่อบทความ <span className="text-rose-500">*</span>
               </label>
-
-              <Select<string>
-                id="articleType"
-                // name="articleType"   <-- ลบออก
-                value={formData.articleType}
-                onChange={(v) => setFormData((prev) => ({ ...prev, articleType: v }))} // รับ string
-                options={articleTypeOptions}          // DefaultOptionType[]
-                loading={articleTypeLoading}
-                allowClear={false}
-                placeholder="เลือกประเภทบทความ"
-                notFoundContent={articleTypeLoading ? "กำลังโหลด..." : "ไม่พบประเภทบทความ"}
-                optionLabelProp="children"
-                style={{
-                  backgroundColor: "#f5f5f5",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  padding: "10px",
-                  fontSize: "14px",
-                  width: "100%",
-                  height: "60px",
-                  transition: "border-color 0.3s ease",
-                }}
-                dropdownStyle={{ maxHeight: 400, overflowY: "auto" }}
-                onFocus={(e) => ((e.target as any).style.borderColor = "black")}
-                onBlur={(e) => ((e.target as any).style.borderColor = "#ccc")}
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+                placeholder="เช่น กำลังใจในวันที่เหนื่อยล้า"
               />
-          </div>
+            </div>
 
-          <div>
-            <label htmlFor="content">เนื้อหาบทความ: <span style={{ color: "red" }}>*</span></label>
-            <textarea
-              id="content"
-              name="content"
-              value={formData.content}
-              onChange={handleChange}
-              required
-              style={{
-                color: "#000",
-                backgroundColor: "#f5f5f5",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                padding: "12px 14px",
-                fontSize: "14px",
-                width: "100%",
-                height: "150px",
-                transition: "border-color 0.3s ease",
-              }}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="date">วันที่เผยแพร่: <span style={{ color: "red" }}>*</span></label>
-            <input
-              id="date"
-              name="date"
-              type="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-              style={{
-                backgroundColor: "#f5f5f5",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                padding: "10px",
-                fontSize: "14px",
-                width: "100%",
-                transition: "border-color 0.3s ease",
-              }}
-            />
-          </div>
+            {/* ผู้เขียน & ไลก์ แยกบรรทัด */}
+            <div className="grid grid-cols-1 gap-5">
+              <div className="space-y-2">
+                <label htmlFor="author" className="block text-sm font-medium text-slate-700">
+                  ผู้เขียน/อ้างอิง/แหล่งที่มา <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="author"
+                  name="author"
+                  value={formData.author}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, author: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+                  placeholder="เช่น ทีมงานดูแลใจ"
+                />
+              </div>
 
-          <div className="form-buttons">
-            <button
-              type="button"
-              className="btn-back"
-              onClick={() => navigate("/admin/messagePage")}
-            >
-              ย้อนกลับ
-            </button>
-            <button type="submit" className="btn-submit">
-              บันทึกบทความ
-            </button>
-          </div>
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="no_of_like" className="block text-sm font-medium text-slate-700">
+                  จำนวนไลก์ (ตัวเลข)
+                </label>
+                <input
+                  id="no_of_like"
+                  name="no_of_like"
+                  type="number"
+                  value={formData.no_of_like}
+                  disabled
+                  className="w-full cursor-not-allowed select-none rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-500 outline-none"
+                />
+              </div>
+            </div>
 
-        <div className="form-right">
-          <div>
-            <label>อัพโหลดรูปภาพประกอบบทความ :</label>
-            <Form.Item style={{ width: "100%", height: "100%" }}>
-              <Upload
-                className="full-upload"
-                beforeUpload={() => false}
-                listType="picture-card"
-                style={{ width: "450px", height: "450px" }}
-                onChange={handleUploadChange}
-                fileList={
-                  formData.photo
-                    ? [
-                        {
-                          uid: "-1",
-                          name: "preview",
-                          status: "done" as const,
-                          url: preview || undefined,
-                        },
-                      ]
-                    : []
-                }
-                onPreview={handlePreview}
-                onRemove={handleRemoveFile}
-                accept="image/*,.pdf"
-                maxCount={1}
-              >
-                {!formData.photo && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "450px",
-                      height: "450px",
-                    }}
-                  >
-                    <UploadOutlined style={{ fontSize: 32 }} />
-                    <div style={{ marginTop: 8 }}>เพิ่มรูปภาพ</div>
+            {/* ประเภทบทความ - Custom Dropdown แสดงคำอธิบาย */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
+                ประเภทบทความ <span className="text-rose-500">*</span>
+              </label>
+              <div ref={typeRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setTypeOpen((o) => !o)}
+                  className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
+                >
+                  <span className={articleTypeLoading ? "text-slate-400" : ""}>{selectedTypeLabel}</span>
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="ml-2 h-4 w-4 opacity-60">
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+
+                {typeOpen && (
+                  <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                    <div className="p-2">
+                      <input
+                        value={typeQuery}
+                        onChange={(e) => setTypeQuery(e.target.value)}
+                        placeholder="ค้นหา..."
+                        className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+                      />
+                    </div>
+                    <ul role="listbox" className="max-h-60 overflow-y-auto py-1">
+                      {articleTypeLoading && (
+                        <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>
+                      )}
+                      {!articleTypeLoading && filteredTypeOptions.length === 0 && (
+                        <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>
+                      )}
+                      {filteredTypeOptions.map((o) => (
+                        <li key={o.value}>
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={o.value === String(formData.articleType)}
+                            className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-100 ${
+                              o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : ""
+                            }`}
+                            onClick={() => {
+                              setFormData((prev) => ({ ...prev, articleType: o.value }));
+                              setTypeOpen(false);
+                              setTypeQuery("");
+                            }}
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-sm">{o.label}</span>
+                              {o.description && (
+                                <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>
+                              )}
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
-              </Upload>
-            </Form.Item>
+              </div>
+              {selectedType?.description && (
+                <p className="mt-1.5 text-xs text-slate-500">{selectedType.description}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="content" className="block text-sm font-medium text-slate-700">
+                เนื้อหาบทความ <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                id="content"
+                name="content"
+                value={formData.content}
+                onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
+                className="min-h-40 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+                placeholder="พิมพ์ข้อความให้กำลังใจที่นี่..."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-5">
+              <div className="space-y-2">
+                <label htmlFor="date" className="block text-sm font-medium text-slate-700">
+                  วันที่เผยแพร่ <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  id="date"
+                  name="date"
+                  type="date"
+                  value={formData.date}
+                  max={todayStr} // จำกัดไม่ให้เลือกอนาคต
+                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-slate-700">ยอดเข้าชม</label>
+                <input
+                  value={formData.viewCount}
+                  readOnly
+                  className="w-full cursor-not-allowed rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => navigate("/admin/messagePage")}
+                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
+              >
+                ย้อนกลับ
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50"
+              >
+                บันทึกบทความ
+              </button>
+            </div>
+          </div>
+
+          {/* Right column (Upload) */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              อัปโหลดรูปภาพประกอบบทความ
+            </label>
+
+            {/* Dropzone + ปุ่มเลือกไฟล์ */}
+            <div
+              className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-white p-4"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = e.dataTransfer.files?.[0];
+                if (f) {
+                  const evt = { target: { files: [f] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+                  handleFilePick(evt);
+                }
+              }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleFilePick}
+                className="hidden"
+              />
+
+              <div
+                className="flex min-h-[280px] items-center justify-center"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {preview ? (
+                  <img src={preview} alt="preview" className="max-h-[420px] w-full rounded-xl object-contain" />
+                ) : formData.photo ? (
+                  <div className="text-center text-sm text-slate-500">เลือกไฟล์ PDF แล้ว (ไม่มีตัวอย่างภาพ)</div>
+                ) : (
+                  <div className="text-center">
+                    <div className="text-sm text-slate-600">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับรูปภาพ)</div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  เลือกไฟล์
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPreviewModal(true)}
+                  disabled={!preview}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  เปิดดูรูปตัวอย่าง
+                </button>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  disabled={!formData.photo}
+                  className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  ลบไฟล์
+                </button>
+              </div>
+            </div>
+
+            <p className="mt-3 text-xs text-slate-500">
+              * ระบบจะบันทึกไฟล์เป็น Base64 ในคีย์ <code>photo</code> เพื่อส่งไปยัง Back-end
+            </p>
+          </div>
+        </form>
+      </div>
+
+      {/* Preview Modal */}
+      {showPreviewModal && preview && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowPreviewModal(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={preview}
+              alt="Preview"
+              className="mx-auto max-h-[80vh] w-full rounded-xl object-contain"
+            />
+            <div className="p-2 text-right">
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                ปิด
+              </button>
+            </div>
           </div>
         </div>
-      </form>
-
-      <Modal
-        open={previewVisible}
-        footer={null}
-        centered
-        onCancel={() => setPreviewVisible(false)}
-        style={{ maxWidth: "90vw", padding: 0 }}
-        bodyStyle={{ padding: 0 }}
-        width="auto"
-      >
-        <img
-          alt="Preview"
-          style={{
-            maxWidth: "90vw",
-            maxHeight: "80vh",
-            display: "block",
-            margin: "0 auto",
-            objectFit: "contain",
-            borderRadius: "12px",
-          }}
-          src={previewFile}
-        />
-      </Modal>
+      )}
     </div>
   );
 };
 
 export default CreateMessagePage;
-
-

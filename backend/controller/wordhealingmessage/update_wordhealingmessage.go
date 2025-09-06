@@ -11,8 +11,7 @@ import (
 
 )
 
-// ดึงข้อมูลบทความ WordHealingContent ตาม ID
-// ดึงข้อมูลบทความ WordHealingContent ตาม ID
+// ฟังก์ชันบริการเพื่อดึงข้อมูลบทความตาม ID
 func GetWordHealingMessage(c *gin.Context) {
     idParam := c.Param("id")
     id, err := strconv.Atoi(idParam)
@@ -71,8 +70,7 @@ func isBase64(str string) bool {
 }
 
 
-// อัพเดตข้อมูลบทความ WordHealingContent ตาม ID
-// อัพเดตข้อมูลบทความ WordHealingContent ตาม ID
+// ฟังก์ชันบริการเพื่ออัปเดตข้อมูล WordHealingContent
 func UpdateWordHealingMessage(c *gin.Context) {
     // รับค่า ID จาก URL
     id, err := strconv.Atoi(c.Param("id"))
