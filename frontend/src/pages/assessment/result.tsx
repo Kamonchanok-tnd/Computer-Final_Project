@@ -186,6 +186,26 @@ const Result: React.FC = () => {
   const { image, description } = getResultDetails();
   const scoreColor = getScoreColor(percentage);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.code === "Space") {
+        e.preventDefault();
+        if (nextQid) {
+          handleNext();
+        } else if (transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q") {
+          navigate("/chat/new");
+        } else {
+          navigate("/");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [nextQid, transaction, navigate]);
+
   return (
     <div className="fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
       <div className="bg-sky-200 rounded-2xl p-6 md:p-10 w-11/12 max-w-sm md:max-w-xl text-center shadow-xl">

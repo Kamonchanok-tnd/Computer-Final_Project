@@ -7,7 +7,9 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Questionnaire } from "../../interfaces/IQuestionnaire";
 // import { fetchQuestions } from "../../services/https/assessment";
 import { getAllQuestionnaires } from "../../services/https/questionnaire";
+import { createAssessmentResult } from "../../services/https/assessment";
 
+import { useNavigate } from "react-router-dom";
 
 // import { ChevronRight } from "lucide-react";
 // import q1 from "../../assets/assessment/depression.png";
@@ -15,7 +17,6 @@ import { getAllQuestionnaires } from "../../services/https/questionnaire";
 // import q3 from "../../assets/assessment/Mindfulness.png";
 // import q4 from "../../assets/assessment/happy.png";
 // import q5 from "../../assets/assessment/ST5.png";
-
 
 // const card = [
 //   {
@@ -49,17 +50,17 @@ function Question() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
   const [questionNaire, setQuestionNaire] = useState<Questionnaire[]>([]);
+  const navigate = useNavigate();
 
-async function fetchQuestions() {
-  const res: Questionnaire[] = await getAllQuestionnaires();
-  setQuestionNaire(res);
-  console.log(res);
-}
+  async function fetchQuestions() {
+    const res: Questionnaire[] = await getAllQuestionnaires();
+    setQuestionNaire(res);
+    console.log(res);
+  }
 
-useEffect(() => {
-  fetchQuestions();
-}, []);
-
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
 
   useEffect(() => {
     const updateItemsPerView = () => {
@@ -73,8 +74,8 @@ useEffect(() => {
     };
 
     updateItemsPerView();
-    window.addEventListener('resize', updateItemsPerView);
-    return () => window.removeEventListener('resize', updateItemsPerView);
+    window.addEventListener("resize", updateItemsPerView);
+    return () => window.removeEventListener("resize", updateItemsPerView);
   }, []);
 
   const totalItems = questionNaire.length;
@@ -83,11 +84,42 @@ useEffect(() => {
   const showNextButton = currentIndex < maxIndex;
 
   const goToPrevious = () => {
-    setCurrentIndex(prev => Math.max(0, prev - 1));
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
   };
 
   const goToNext = () => {
-    setCurrentIndex(prev => Math.min(maxIndex, prev + 1));
+    setCurrentIndex((prev) => Math.min(maxIndex, prev + 1));
+  };
+
+  // แก้ฟังก์ชันให้รับได้ทั้ง number | undefined แล้วเช็คก่อน
+  const handleStartAssessment = async (quid?: number) => {
+    if (typeof quid !== "number") {
+      alert("ไม่พบรหัสแบบสอบถาม");
+      return;
+    }
+
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const uid = Number(user?.id || localStorage.getItem("id"));
+
+    if (!uid) {
+      alert("กรุณาเข้าสู่ระบบก่อนทำแบบสอบถาม");
+      return;
+    }
+
+    try {
+      const groupId = 4;
+      const resultID = await createAssessmentResult(quid, uid, groupId);
+      localStorage.setItem("assessmentResultID", String(resultID));
+
+      localStorage.setItem("id", String(uid));
+      localStorage.setItem("questionnaireGroupID", String(groupId));
+      localStorage.setItem("questionnaireID", String(quid));
+
+      navigate("/assessments");
+    } catch (err) {
+      console.error("เริ่มทำแบบทดสอบไม่สำเร็จ:", err);
+      alert("เริ่มทำแบบทดสอบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+    }
   };
 
   // helper: รับ base64 ที่อาจไม่มี prefix -> คืน data URL พร้อม fallback
@@ -103,7 +135,9 @@ const toImgSrc = (s?: string) => {
     <div className="flex flex-col xl:px-28 mt-4">
       {/* Header */}
       <div className="flex items-center justify-between xl:px-0 px-2">
-        <p className="font-ibmthai text-2xl text-basic-text dark:text-text-dark">แบบสอบถามทั้งหมด</p>
+        <p className="font-ibmthai text-2xl text-basic-text dark:text-text-dark">
+          แบบสอบถามทั้งหมด
+        </p>
       </div>
 
       {/* Card List Carousel */}
@@ -151,9 +185,16 @@ const toImgSrc = (s?: string) => {
                   }}
                 >
                   <div className="flex-1 flex-col space-y-2 bg-white/50 backdrop-blur-sm h-auto p-4 rounded-lg">
-                    <p className="font-ibmthai text-center">{item.nameQuestionnaire}</p>
+                    <p className="font-ibmthai text-center">
+                      {item.nameQuestionnaire}
+                    </p>
                     <div className="flex justify-center">
-                      <button className="font-ibmthai bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] text-white py-1 px-4 rounded-lg">
+                      <button
+                        onClick={() => handleStartAssessment(item.id)}
+                        disabled={typeof item.id !== "number"}
+                        className={`font-ibmthai bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] text-white py-1 px-4 rounded-lg
+    ${typeof item.id !== "number" ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
                         เริ่มทำแบบทดสอบ
                       </button>
                     </div>

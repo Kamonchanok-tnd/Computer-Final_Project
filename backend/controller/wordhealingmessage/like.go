@@ -2,10 +2,15 @@
 package wordhealingmessage
 
 import (
+	"errors"
 	"net/http"
+	
 	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
-    "gorm.io/gorm"
+	"gorm.io/gorm"
+
 	"sukjai_project/config"
 	"sukjai_project/entity"
 )
@@ -137,4 +142,181 @@ func UpdateViewcountMessage(c *gin.Context) {
 
 	// ส่งคำตอบกลับว่าอัปเดตสำเร็จ
 	c.JSON(http.StatusOK, gin.H{"message": "อัปเดตจำนวนการเข้าชมสำเร็จ"})
+}
+
+
+
+
+
+/* ==================== helpers ==================== */
+
+// แปลงค่าประเภทต่าง ๆ เป็น uint
+func toUint(v any) (uint, error) {
+	switch t := v.(type) {
+	case uint:
+		return t, nil
+	case int:
+		if t < 0 {
+			return 0, errors.New("negative id")
+		}
+		return uint(t), nil
+	case int64:
+		if t < 0 {
+			return 0, errors.New("negative id")
+		}
+		return uint(t), nil
+	case float64:
+		if t < 0 {
+			return 0, errors.New("negative id")
+		}
+		return uint(t), nil
+	case string:
+		if t == "" {
+			return 0, errors.New("empty")
+		}
+		n, err := strconv.ParseUint(t, 10, 64)
+		return uint(n), err
+	default:
+		return 0, errors.New("unsupported type")
+	}
+}
+
+// ดึง uid จาก context ที่ middleware ใส่ไว้
+// หมายเหตุ: โค้ดนี้ "ไม่" พาร์ส JWT เพื่อลด dependency
+// ให้ middleware auth ของคุณเซ็ตค่าไว้ เช่น c.Set("id", <uid>) หรือ c.Set("uid", <uid>)
+func getUIDFromCtx(c *gin.Context) (uint, error) {
+	for _, k := range []string{"uid", "user_id", "id", "UID", "Id"} {
+		if v, ok := c.Get(k); ok {
+			if u, err := toUint(v); err == nil && u > 0 {
+				return u, nil
+			}
+		}
+	}
+	return 0, errors.New("uid not found")
+}
+
+/* ==================== payload ==================== */
+
+type countViewReq struct {
+	WHID        uint  `json:"whid"         binding:"required"`
+	ReadMs      int64 `json:"read_ms"`
+	PctScrolled int   `json:"pct_scrolled"`
+}
+
+type countViewResp struct {
+	OK         bool  `json:"ok"`
+	Already    bool  `json:"already"`   // ที่นี่จะเป็น false เสมอ เพราะเรานับทุกครั้ง
+	ViewID     uint  `json:"view_id"`
+	ViewCount  int64 `json:"view_count"`
+	WordhealID uint  `json:"wordheal_id"`
+}
+
+/* ==================== POST /views/count ==================== */
+// ✅ นับทุกครั้งที่เรียก (ไม่มีการกันซ้ำ) — ใช้คู่กับเงื่อนไขฝั่ง Frontend
+func CountView(c *gin.Context) {
+	db := config.DB()
+
+	uid, err := getUIDFromCtx(c)
+	if err != nil || uid == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	var req countViewReq
+	if err := c.ShouldBindJSON(&req); err != nil || req.WHID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	// ต้องมีบทความอยู่จริง
+	var article entity.WordHealingContent
+	if err := db.Select("id, view_count").First(&article, req.WHID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "article not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error"})
+		}
+		return
+	}
+
+	// INSERT แถวใหม่ทุกครั้ง
+	row := entity.View{
+		UID:         &uid,                           // ถ้า struct ของคุณเป็น pointer ให้เปลี่ยนเป็น: UID: &uid,
+		WHID:        req.WHID,
+		ReadMS:      int(req.ReadMs),
+		PctScrolled: req.PctScrolled,
+		CreatedAt:   time.Now(),
+	}
+	if err := db.Create(&row).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "create view failed"})
+		return
+	}
+
+	// เพิ่ม view_count (+1) ทุกครั้ง
+	if err := db.Model(&entity.WordHealingContent{}).
+		Where("id = ?", req.WHID).
+		UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "update view_count failed"})
+		return
+	}
+
+	// ดึงค่า view_count ล่าสุด
+	var updated entity.WordHealingContent
+	_ = db.Select("id, view_count").First(&updated, req.WHID).Error
+
+	c.JSON(http.StatusOK, countViewResp{
+		OK:         true,
+		Already:    false,
+		ViewID:     row.ID,
+		ViewCount:  int64(updated.ViewCount),
+		WordhealID: updated.ID,
+	})
+}
+
+/* ==================== GET /views/by-message/:id ==================== */
+
+func ListViewsByMessage(c *gin.Context) {
+	db := config.DB()
+
+	// ต้องล็อกอิน (อย่างน้อยต้องผ่าน middleware)
+	if _, err := getUIDFromCtx(c); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	idStr := c.Param("id")
+	whid, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil || whid == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	// join users เพื่อชื่อผู้ใช้ได้ตามต้องการ
+	type row struct {
+		ID          uint      `json:"id"`
+		UID         uint      `json:"uid"` // ถ้า entity.View.UID เป็น *uint ให้ใช้ *uint ที่นี่
+		Username    *string   `json:"username"`
+		ReadMs      int       `json:"read_ms"`
+		PctScrolled int       `json:"pct_scrolled"`
+		CreatedAt   time.Time `json:"created_at"`
+	}
+
+	var out []row
+	err = db.Table("views v").
+		Select("v.id, v.uid, u.username, v.read_ms, v.pct_scrolled, v.created_at").
+		Joins("LEFT JOIN users u ON u.id = v.uid").
+		Where("v.whid = ?", whid).
+		Order("v.created_at DESC").
+		Scan(&out).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error"})
+		return
+	}
+	if len(out) == 0 {
+		c.Status(http.StatusNoContent)
+		return
+	}
+
+	c.JSON(http.StatusOK, out)
 }

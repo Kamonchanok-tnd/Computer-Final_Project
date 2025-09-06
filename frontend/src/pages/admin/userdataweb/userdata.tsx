@@ -15,11 +15,16 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import { DatePicker, Space, ConfigProvider } from "antd";
 import thTH from "antd/lib/locale/th_TH";
 import admin from "../../../assets/analysis.png";
 import dayjs, { Dayjs } from "dayjs";
+
+const COLORS = ["#3b82f6", "#10b981"]; // ฟ้า = new, เขียว = returning
 
 export default function AdminDashboardContent() {
   const [visitData, setVisitData] = useState<VisitFrequency[]>([]);
@@ -43,7 +48,7 @@ export default function AdminDashboardContent() {
             year: "numeric",
             month: "short",
             day: "numeric",
-            calendar: "gregory", // บังคับใช้ค.ศ.
+            calendar: "gregory",
           }),
         }));
 
@@ -53,7 +58,7 @@ export default function AdminDashboardContent() {
             year: "numeric",
             month: "short",
             day: "numeric",
-            calendar: "gregory", // บังคับใช้ค.ศ.
+            calendar: "gregory",
           }),
         }));
 
@@ -92,6 +97,16 @@ export default function AdminDashboardContent() {
     );
   }
 
+  // ---- เตรียมข้อมูล KPI + Donut ----
+  const newUsers = filteredVisitData.reduce((acc, d) => acc + (d.newUsers || 0), 0);
+  const returningUsers = filteredVisitData.reduce((acc, d) => acc + (d.returningUsers || 0), 0);
+  const activeUsers = newUsers + returningUsers;
+
+  const donutData = [
+    { name: "New Users", value: newUsers },
+    { name: "Returning Users", value: returningUsers },
+  ];
+
   return (
     <div className="p-6 space-y-8">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-700 flex items-center gap-2">
@@ -99,7 +114,7 @@ export default function AdminDashboardContent() {
         แดชบอร์ดเว็บไซต์
       </h2>
 
-      {/* ตัวเลือกเดือนและปี ทางขวามือ */}
+      {/* ตัวเลือกเดือนและปี */}
       <div className="flex justify-end mb-4">
         <ConfigProvider locale={thTH}>
           <Space>
@@ -119,6 +134,60 @@ export default function AdminDashboardContent() {
             />
           </Space>
         </ConfigProvider>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <p className="text-gray-500">New Users</p>
+          <h3 className="text-2xl font-bold text-blue-600">{newUsers}</h3>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <p className="text-gray-500">Returning Users</p>
+          <h3 className="text-2xl font-bold text-green-600">{returningUsers}</h3>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <p className="text-gray-500">Active Users</p>
+          <h3 className="text-2xl font-bold text-purple-600">{activeUsers}</h3>
+        </div>
+      </div>
+
+      {/* Donut + Line */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Donut */}
+        <div className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
+          <h2 className="text-lg font-semibold mb-4">New vs Returning</h2>
+          <PieChart width={250} height={250}>
+            <Pie
+              data={donutData}
+              innerRadius={70}
+              outerRadius={100}
+              paddingAngle={5}
+              dataKey="value"
+            >
+              {donutData.map((_, i) => (
+                <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+          </PieChart>
+          <p className="text-gray-600 mt-2 font-medium">รวม {activeUsers} Users</p>
+        </div>
+
+        {/* Line Chart: New vs Returning Trend */}
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-lg font-semibold mb-4">แนวโน้มผู้ใช้</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={filteredVisitData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="newUsers" stroke="#3b82f6" name="New Users" />
+              <Line type="monotone" dataKey="returningUsers" stroke="#10b981" name="Returning Users" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Visit Frequency */}

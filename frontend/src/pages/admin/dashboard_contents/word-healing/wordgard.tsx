@@ -165,7 +165,7 @@ interface WordHealingCardProps {
 }
 
 // สีพาสเทล (พื้นหลัง)
-const COLORS = ["#FFD6A5", "#FDFFB6", "#CAFFBF", "#9BF6FF", "#A0C4FF", "#BDB2FF", "#FFC6FF"];
+const COLORS = ["#ffedd8ff", "#f9fad7ff", "#e1f8dcff", "#dff9fbff", "#d8e7fdff", "#e5e1f8ff", "#fce3fcff"];
 
 // สีตัวอักษรที่เข้ากับพื้นหลัง (โทนเข้มกว่า)
 const TEXT_COLORS = ["#FF7043", "#FBC02D", "#388E3C", "#0288D1", "#1976D2", "#7B1FA2", "#C2185B"];
