@@ -16,7 +16,7 @@ const COLORS = ["#9C27B0", "#BA68C8", "#E1BEE7", "#F3E5F5", "#CE93D8"];
 
 const MirrorCard: React.FC<MirrorCardProps> = ({
   title = "ระบายความรู้สึก",
-  className = "bg-purple-200",
+  className = "bg-white",
   onViewMore,
 }) => {
   const [data, setData] = useState<MonthlyMirrorUsage[]>([]);

@@ -116,6 +116,18 @@ user := entity.Users{
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
+    // ✅ บันทึก activity สำหรับผู้ใช้ role = "user" ที่สร้างบัญชีใหม่
+if user.Role == "user" {
+    activity := entity.UserActivity{
+        UID:    user.ID,
+        Action: "create_account",
+        Page:   "/signup",
+    }
+
+    if err := db.Create(&activity).Error; err != nil {
+        fmt.Println("Failed to log new user activity:", err)
+    }
+}
     c.JSON(http.StatusCreated, gin.H{"message": "ลงทะเบียนสำเร็จ"})
 }
 
