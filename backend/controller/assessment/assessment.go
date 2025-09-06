@@ -374,23 +374,26 @@ func FinishAssessment(c *gin.Context) {
 		maxScore = 0
 	}
 
+	// --- ใช้ tagged switch แทน if/else เดิม (พฤติกรรมเท่าเดิม) ---
 	if len(criteriaList) == 2 {
-		if testType == "positive" {
+		switch testType { // positive/negative สองระดับ
+		case "positive":
 			if matchedCriteria.MaxCriteriaScore == maxScore {
 				resultLevel = "happy"
 			} else {
 				resultLevel = "sad"
 			}
-		} else if testType == "negative" {
+		case "negative":
 			if matchedCriteria.MinCriteriaScore == minScore {
 				resultLevel = "happy"
 			} else {
 				resultLevel = "sad"
 			}
-		} else {
+		default:
 			resultLevel = "bored"
 		}
 	} else {
+		// หาค่ากลาง: ถ้ามีเกณฑ์คำว่า "ปานกลาง" ใช้ midpoint ของเกณฑ์นั้น ไม่งั้นใช้ (min+max)/2
 		boredMid := (minScore + maxScore) / 2
 		for _, cr := range criteriaList {
 			if strings.Contains(cr.Description, "ปานกลาง") {
@@ -398,26 +401,31 @@ func FinishAssessment(c *gin.Context) {
 				break
 			}
 		}
-		if testType == "negative" {
-			if total < boredMid {
+
+		switch testType { // หลายระดับ
+		case "negative":
+			switch {
+			case total < boredMid:
 				resultLevel = "happy"
-			} else if total > boredMid {
+			case total > boredMid:
 				resultLevel = "sad"
-			} else {
+			default:
 				resultLevel = "bored"
 			}
-		} else if testType == "positive" {
-			if total < boredMid {
+		case "positive":
+			switch {
+			case total < boredMid:
 				resultLevel = "sad"
-			} else if total > boredMid {
+			case total > boredMid:
 				resultLevel = "happy"
-			} else {
+			default:
 				resultLevel = "bored"
 			}
-		} else {
+		default:
 			resultLevel = "bored"
 		}
 	}
+
 	log.Println("🎯 Result:", result, "Level:", resultLevel)
 
 	// 8) หาค่า MaxScore
@@ -713,7 +721,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 		case "afterChat":
 			// ✅ เหมือน interval แต่ไม่ต้องพึ่ง onLogin เป็น baseline
 			if g.FrequencyDays != nil {
-				wait := time.Duration(*g.FrequencyDays) * time.Minute 
+				wait := time.Duration(*g.FrequencyDays) * time.Minute
 
 				var lastTx entity.Transaction
 				err := config.DB().
@@ -752,7 +760,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 						reason = "ยังไม่มีแบบสอบถามที่ทำได้"
 					}
 				}
-				
+
 			} else {
 				// ไม่ตั้งความถี่ → ทำให้หมดในคราวเดียว
 				if len(pendingQuids) > 0 {
