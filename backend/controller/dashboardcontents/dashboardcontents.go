@@ -400,10 +400,22 @@ func GetTopContentComparison(c *gin.Context) {
 
     // 7. Like (นับจาก wid)
     var wordHealing []TopContent
-db.Table("likes").
+    db.Table("likes").
     Select("w_id AS name, 'WordHealing' AS category, COUNT(DISTINCT uid) AS unique_users").
     Group("w_id").
     Scan(&wordHealing)
+
+    // --- Chat ---
+var chat []TopContent
+db.Table("chat_rooms").
+    Select("'Chat' AS name, 'Chat' AS category, COUNT(DISTINCT uid) AS unique_users").
+    Scan(&chat)
+
+// --- Survey (Questionnaire) ---
+var survey []TopContent
+db.Table("assessment_results").
+    Select("'Questionnaire' AS name, 'Questionnaire' AS category, COUNT(DISTINCT uid) AS unique_users").
+    Scan(&survey)
 
 
     // รวมผลลัพธ์
@@ -413,9 +425,26 @@ db.Table("likes").
     results = append(results, mirror...)
     results = append(results, meditation...)
     results = append(results, chanting...)
-    //results = append(results, likes...)
+    results = append(results, chat...)     // ✅ เพิ่ม Chat
+results = append(results, survey...)   // ✅ เพิ่ม Survey
+    // // --- เพิ่ม TotalUsers ---
+	// var totalSurvey int64
+	// if err := db.Model(&entity.AssessmentResult{}).Distinct("uid").Count(&totalSurvey).Error; err != nil {
+	// 	c.JSON(500, gin.H{"error": "Failed to count survey users"})
+	// 	return
+	// }
 
-    c.JSON(200, gin.H{"results": results})
+	// var totalChat int64
+	// if err := db.Model(&entity.ChatRoom{}).Distinct("uid").Count(&totalChat).Error; err != nil {
+	// 	c.JSON(500, gin.H{"error": "Failed to count chat users"})
+	// 	return
+	// }
+
+	c.JSON(200, gin.H{
+		// "total_survey_users": totalSurvey,
+		// "total_chat_users":   totalChat,
+		"results":            results,
+	})
 }
 
 

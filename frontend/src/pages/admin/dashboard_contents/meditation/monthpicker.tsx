@@ -24,7 +24,7 @@ const MonthPickerMed: React.FC<MonthPickerProps> = ({ value, onChange, label = "
   return (
     <ConfigProvider locale={thTH}>
       <div className="flex flex-col gap-1">
-        {label && <label className="text-sm font-medium">{label}</label>}
+       
         <DatePicker
           picker="month"
           value={dayjsValue}
