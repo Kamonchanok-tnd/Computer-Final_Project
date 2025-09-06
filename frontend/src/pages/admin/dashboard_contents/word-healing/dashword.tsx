@@ -12,6 +12,7 @@ import thTH from "antd/locale/th_TH";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/th";
 import { getMonthlyWordHealingViews, MonthlyViewsByTitle } from "../../../../services/https/dashboardcontents";
+import { BookOpenCheck, BookOpenText, Calculator, Eye, LibraryBig, UsersRound } from "lucide-react";
 
 dayjs.locale("th");
 
@@ -72,19 +73,38 @@ const DashboardWordHealingMonthly: React.FC = () => {
       <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">
         {/* สรุปยอดรวม */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl shadow-md p-6 text-center border border-yellow-200">
-            <p className="text-gray-600">รวมการอ่าน</p>
-            <p className="text-2xl font-bold text-yellow-700">{totalViews} ครั้ง</p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-md p-6 text-center border border-yellow-200">
+        <div className="bg-gradient-to-br from-[#f9acd8] to-[#FEEBF6] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+           <div className="bg-white  text-[#FFCEEA] p-4 rounded-full shadow-lg shadow-[#f9acd8]/20">
+             <LibraryBig size={30} className=""/>
+           </div>
+           <div>
             <p className="text-gray-600">จำนวนบทความ</p>
-            <p className="text-2xl font-bold text-yellow-700">{filteredData.length} บทความ</p>
+            <p className="text-2xl font-bold text-gray-600">{filteredData.length} บทความ</p>
+           </div>
+      
           </div>
-          <div className="bg-white rounded-2xl shadow-md p-6 text-center border border-yellow-200">
+         <div className="bg-gradient-to-br from-[#98e0f4] to-[#d3f0f8] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+           <div className="bg-white  text-[#39a6c3] p-4 rounded-full shadow-lg shadow-[#39a6c3]/20">
+             <BookOpenCheck size={30} className=""/>
+           </div>
+           <div>
+            <p className="text-gray-600">รวมการอ่าน</p>
+            <p className="text-2xl font-bold text-gray-600">{totalViews} ครั้ง</p>
+           </div>
+      
+          </div>
+          
+          <div className="bg-gradient-to-br from-[#fbdd6d] to-[#ffea9f] rounded-2xl  p-6 text-center flex justify-around items-center gap-8 ">
+           <div className="bg-white  text-[#FFC900] p-4 rounded-full shadow-lg shadow-[#FFC900]/20">
+             <Calculator size={30} className=""/>
+           </div>
+           <div>
             <p className="text-gray-600">เฉลี่ยต่อบทความ</p>
-            <p className="text-2xl font-bold text-yellow-700">
-              {filteredData.length > 0 ? (totalViews / filteredData.length).toFixed(1) : 0} ครั้ง
-            </p>
+            <p className="text-2xl font-bold text-gray-600">
+            {filteredData.length > 0 ? (totalViews / filteredData.length).toFixed(1) : 0} ครั้ง
+              </p>
+           </div>
+      
           </div>
         </div>
 
