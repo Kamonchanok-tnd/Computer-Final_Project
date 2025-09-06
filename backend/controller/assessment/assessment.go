@@ -552,7 +552,6 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 
 			// ✅ NEW: afterChat กันไม่ให้ทำซ้ำ “ภายในหน้าต่างเวลาเดียวกัน” (เหมือน interval)
 			if trigger == "afterChat" && g.FrequencyDays != nil {
-				// DEV ใช้ Minute; PROD เปลี่ยนเป็น 24*time.Hour
 				windowStart := time.Now().Add(-time.Duration(*g.FrequencyDays) * time.Minute)
 
 				var doneInWindow int64
@@ -569,7 +568,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 			// ✅ สำหรับ interval: ถ้าถูกทำภายใน "หน้าต่างเวลา" แล้ว ให้ข้าม (กันวนแค่ 2 อัน)
 			if trigger == "interval" && g.FrequencyDays != nil {
 				// DEV ใช้ Minute; PROD เปลี่ยนเป็น 24*time.Hour
-				windowStart := time.Now().Add(-time.Duration(*g.FrequencyDays) * time.Minute)
+				windowStart := time.Now().Add(-time.Duration(*g.FrequencyDays) * 24 * time.Hour)
 
 				var doneInWindow int64
 				if err := config.DB().Model(&entity.Transaction{}).
@@ -714,7 +713,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 		case "afterChat":
 			// ✅ เหมือน interval แต่ไม่ต้องพึ่ง onLogin เป็น baseline
 			if g.FrequencyDays != nil {
-				wait := time.Duration(*g.FrequencyDays) * time.Minute // PROD: 24*time.Hour
+				wait := time.Duration(*g.FrequencyDays) * time.Minute 
 
 				var lastTx entity.Transaction
 				err := config.DB().
@@ -753,6 +752,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 						reason = "ยังไม่มีแบบสอบถามที่ทำได้"
 					}
 				}
+				
 			} else {
 				// ไม่ตั้งความถี่ → ทำให้หมดในคราวเดียว
 				if len(pendingQuids) > 0 {
