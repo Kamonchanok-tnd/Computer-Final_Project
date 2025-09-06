@@ -3,10 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import RSH from "../../assets/assessment/ResultHappy.png";
 import RSS from "../../assets/assessment/ResultSad.png";
 import RSB from "../../assets/assessment/ResultBored.png";
-import {
-  getAvailableGroupsAndNext,
-  createAssessmentResult,
-} from "../../services/https/assessment";
+import { getAvailableGroupsAndNext } from "../../services/https/assessment";
 import { GroupOut } from "../../interfaces/IQuestionnaireGroup";
 
 const Result: React.FC = () => {
@@ -32,63 +29,34 @@ const Result: React.FC = () => {
     const groupIdLS = Number(localStorage.getItem("questionnaireGroupID"));
     const lastQidLS = Number(localStorage.getItem("questionnaireID"));
 
-    console.log(
-      "🔑 uid:",
-      uid,
-      "groupId(LS):",
-      groupIdLS,
-      "lastQid(LS):",
-      lastQidLS
-    );
-
-    if (!uid) {
-      console.warn("⚠️ ไม่พบ uid ใน localStorage");
-      return;
-    }
+    if (!uid) return;
 
     const safeGroupId = isNaN(groupIdLS) ? 0 : groupIdLS;
     const safeLastQid = isNaN(lastQidLS) ? 0 : lastQidLS;
 
     getAvailableGroupsAndNext(uid, "", safeLastQid)
       .then((groups: GroupOut[]) => {
-        console.log("📦 groups from API:", groups);
-
-        // ถ้า groupId ใน LS หาย ให้ fallback เป็นกลุ่มแรกที่ available
         const found =
           groups.find((g) => g.id === safeGroupId) ||
           groups.find((g) => g.available);
 
-        console.log("🔎 found group:", found);
-
         if (!found) {
-          console.log("⛔ ไม่เจอกลุ่มที่กำลังทำอยู่");
           setNextQid(null);
           setNextGroupId(null);
           return;
         }
 
-        console.log("🧩 ชื่อกลุ่ม:", found.name);
-        console.log("🟢 available:", found.available);
-        console.log("📌 pending_quids:", found.pending_quids);
-
-        // กรองไม่ให้ชนกับข้อที่เพิ่งทำ (กันกรณี backend ส่ง lastQid ติดมา)
         const candidates = (found.pending_quids || []).filter(
           (id) => id !== safeLastQid
         );
-        console.log("🧼 candidates (ตัด lastQid ออก):", candidates);
 
         if (found.available && candidates.length > 0) {
-          const qid = candidates[0];
-          console.log("➡️ nextQid ที่จะให้ทำ:", qid);
-          setNextQid(qid);
+          setNextQid(candidates[0]);
           setNextGroupId(found.id);
-
-          // ❌ ห้ามเซ็ต questionnaireID/assessmentResultID ตรงนี้
-          //    รอให้กดปุ่มแล้วค่อย create AR ใหม่
         } else {
-          console.log("✅ ทำครบกลุ่มแล้ว (หรือไม่ available) → ล้างค่า");
           setNextQid(null);
           setNextGroupId(null);
+          // ทำครบแล้ว ล้างสถานะชุดเก่า
           localStorage.removeItem("questionnaireGroupID");
           localStorage.removeItem("questionnaireID");
           localStorage.removeItem("assessmentResultID");
@@ -101,40 +69,10 @@ const Result: React.FC = () => {
       });
   }, []);
 
-  // เริ่มแบบถัดไป: ต้องสร้าง AssessmentResult ใหม่ทุกครั้ง
-  const handleNext = async () => {
-    if (!nextQid || !nextGroupId) {
-      console.log("⛔ ไม่มี nextQid/nextGroupId ไม่สามารถเริ่มแบบถัดไปได้");
-      return;
-    }
-
-    try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const uid = Number(user?.id || localStorage.getItem("id"));
-      if (!uid) {
-        alert("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
-        return;
-      }
-
-      console.log("🆕 เริ่ม AR ใหม่สำหรับแบบถัดไป:", {
-        nextQid,
-        nextGroupId,
-        uid,
-      });
-
-      const newArId = await createAssessmentResult(nextQid, uid, nextGroupId);
-      console.log("✅ createAssessmentResult สำเร็จ newArId =", newArId);
-
-      // เซ็ตชุดใหม่ให้ assessments ไปอ่าน
-      localStorage.setItem("assessmentResultID", String(newArId));
-      localStorage.setItem("questionnaireID", String(nextQid));
-      localStorage.setItem("questionnaireGroupID", String(nextGroupId));
-
-      navigate("/assessments");
-    } catch (e) {
-      console.error("❌ เริ่มแบบถัดไปไม่สำเร็จ:", e);
-      alert("เริ่มแบบทดสอบถัดไปไม่สำเร็จ กรุณาลองใหม่");
-    }
+  // ไปทำแบบทดสอบ “ถัดไป” —> แวะหน้ารายการก่อน
+  const handleNext = () => {
+    if (!nextQid || !nextGroupId) return;
+    navigate(`/assessmentlists/${nextGroupId}/${nextQid}`);
   };
 
   // ===== UI เดิมของหน้าผลลัพธ์ =====
@@ -191,7 +129,10 @@ const Result: React.FC = () => {
         e.preventDefault();
         if (nextQid) {
           handleNext();
-        } else if (transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" || transaction?.questionnaire_group === "Post-test") {
+        } else if (
+          transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" ||
+          transaction?.questionnaire_group === "Post-test"
+        ) {
           navigate("/chat");
         } else {
           navigate("/");
@@ -211,18 +152,8 @@ const Result: React.FC = () => {
         <h1 className="text-2xl md:text-3xl font-bold mb-6">คะแนนที่ได้คือ</h1>
 
         <div className="relative w-48 h-48 mx-auto mb-12 mt-20">
-          <svg
-            className="w-48 h-48 transform -rotate-270"
-            viewBox="0 0 100 100"
-          >
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
-              stroke="#e5e7eb"
-              strokeWidth="8"
-              fill="none"
-            />
+          <svg className="w-48 h-48 transform -rotate-270" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" stroke="#e5e7eb" strokeWidth="8" fill="none" />
             <circle
               cx="50"
               cy="50"
@@ -239,11 +170,7 @@ const Result: React.FC = () => {
 
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="bg-white rounded-full w-35 h-35 flex items-center justify-center shadow-md">
-              <img
-                src={image}
-                alt="Result"
-                className="w-40 h-40 object-contain"
-              />
+              <img src={image} alt="Result" className="w-40 h-40 object-contain" />
             </div>
           </div>
 
@@ -256,9 +183,7 @@ const Result: React.FC = () => {
           </div>
         </div>
 
-        <p className="font-semibold text-lg mb-4 whitespace-pre-line">
-          {title}
-        </p>
+        <p className="font-semibold text-lg mb-4 whitespace-pre-line">{title}</p>
         <p className="text-sm text-gray-800 leading-relaxed mb-6 whitespace-pre-line">
           {description}
         </p>
@@ -270,7 +195,7 @@ const Result: React.FC = () => {
           >
             ทำแบบทดสอบถัดไป
           </button>
-        ) : transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" ?  (
+        ) : transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" ? (
           <button
             onClick={() => navigate("/chat")}
             className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition"

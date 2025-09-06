@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import QQ from "../../assets/assessment/QQ.png";
-import { createAssessmentResult } from "../../services/https/assessment";
 
 const MoodPopup: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +12,7 @@ const MoodPopup: React.FC = () => {
 
   // กันพารามิเตอร์หายหรือไม่ใช่ตัวเลข
   if (!gid || !qid || Number.isNaN(gid) || Number.isNaN(qid)) {
-    return null; // หรือจะแสดง error สั้น ๆ ก็ได้
+    return null;
   }
 
   // 🔒 ล็อกทั้งแอป: ปิด scroll + inert ทุกอย่างนอกจาก modal
@@ -39,26 +38,9 @@ const MoodPopup: React.FC = () => {
     };
   }, []);
 
-  const handleStartAssessment = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const uid = Number(user?.id || localStorage.getItem("id"));
-      if (!uid || isNaN(uid)) {
-        alert("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
-        return;
-      }
-
-      const resultID = await createAssessmentResult(qid, uid, gid);
-
-      localStorage.setItem("assessmentResultID", resultID.toString());
-      localStorage.setItem("questionnaireID", qid.toString());
-      localStorage.setItem("questionnaireGroupID", gid.toString());
-
-      navigate("/assessments");
-    } catch (error) {
-      console.error("เกิดข้อผิดพลาดในการเริ่มแบบสอบถาม:", error);
-      alert("ไม่สามารถเริ่มแบบสอบถามได้ กรุณาลองใหม่ภายหลัง");
-    }
+  const handleGotoList = () => {
+    // เดินไปหน้า list (ย้าย createAssessmentResult ไปไว้ที่นั่น)
+    navigate(`/assessmentlists/${gid}/${qid}`);
   };
 
   const isAfterChat = gid === 2;
@@ -91,7 +73,7 @@ const MoodPopup: React.FC = () => {
           {descText}
         </p>
         <button
-          onClick={handleStartAssessment}
+          onClick={handleGotoList}
           className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-white"
         >
           ลองทำดูเลย
