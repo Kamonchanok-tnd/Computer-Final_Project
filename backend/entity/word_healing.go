@@ -18,6 +18,7 @@ type WordHealingContent struct {
 	Content     string     `json:"content"      valid:"required~Content is required"`
 	ArticleType string     `json:"article_type" valid:"required~Article type is required"`
 	ViewCount   int        `json:"view_count"`
+    Views []View `gorm:"foreignKey:UID"`
 }
 
 // ชุดค่าที่อนุญาตของ ArticleType
