@@ -102,7 +102,6 @@ const Result: React.FC = () => {
   }, []);
 
   // เริ่มแบบถัดไป: ต้องสร้าง AssessmentResult ใหม่ทุกครั้ง
-  // เริ่มแบบถัดไป: ต้องสร้าง AssessmentResult ใหม่ทุกครั้ง
   const handleNext = async () => {
     if (!nextQid || !nextGroupId) {
       console.log("⛔ ไม่มี nextQid/nextGroupId ไม่สามารถเริ่มแบบถัดไปได้");
@@ -192,8 +191,8 @@ const Result: React.FC = () => {
         e.preventDefault();
         if (nextQid) {
           handleNext();
-        } else if (transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q") {
-          navigate("/chat/new");
+        } else if (transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" || transaction?.questionnaire_group === "Post-test") {
+          navigate("/chat");
         } else {
           navigate("/");
         }
@@ -271,9 +270,9 @@ const Result: React.FC = () => {
           >
             ทำแบบทดสอบถัดไป
           </button>
-        ) : transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" ? (
+        ) : transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" ?  (
           <button
-            onClick={() => navigate("/chat/new")}
+            onClick={() => navigate("/chat")}
             className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition"
           >
             เข้าสู่ห้องสนทนา

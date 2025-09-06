@@ -61,6 +61,14 @@ const MoodPopup: React.FC = () => {
     }
   };
 
+  const isAfterChat = gid === 2;
+  const titleText = isAfterChat
+    ? "พักจากแชทสักครู่ มาทำแบบทดสอบกัน!"
+    : "คุณเป็นยังไงบ้างช่วงนี้ ?";
+  const descText = isAfterChat
+    ? "แบบทดสอบสั้น ๆ เพื่อเช็คอินอารมณ์หลังแชท"
+    : "เรามีแบบประเมินสั้นๆ ที่ช่วยให้คุณรู้จักอารมณ์ และความรู้สึกของตัวเองมากขึ้น";
+
   return ReactDOM.createPortal(
     <div
       className="fixed inset-0 z-[2147483647] flex items-center justify-center"
@@ -77,10 +85,10 @@ const MoodPopup: React.FC = () => {
       >
         <img src={QQ} alt="QQ character" className="w-24 h-24 mx-auto mb-4 select-none" />
         <h2 id="mood-popup-title" className="text-lg font-bold mb-2">
-          คุณเป็นยังไงบ้างช่วงนี้ ?
+          {titleText}
         </h2>
         <p id="mood-popup-desc" className="text-sm font-medium text-gray-800 mb-6">
-          เรามีแบบประเมินสั้นๆ ที่ช่วยให้คุณรู้จักอารมณ์ และความรู้สึกของตัวเองมากขึ้น
+          {descText}
         </p>
         <button
           onClick={handleStartAssessment}
