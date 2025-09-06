@@ -7,13 +7,12 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { Info } from "lucide-react";
-import { EllipsisOutlined } from "@ant-design/icons"; // ใช้ Antd Ellipsis
+import { EllipsisOutlined } from "@ant-design/icons"; 
 import { getSoundFourType, DailySoundUsage } from "../../../../services/https/dashboardcontents";
 import MonthPickerMed from "./monthpicker";
 
 interface MusicData {
-  category: string; // สมาธิ, สวดมนต์, ฝึกหายใจ, asmr
+  category: string; // สมาธิ, สวดมนต์, ฝึกหายใจ, ASMR
   plays: number;
 }
 
@@ -23,11 +22,17 @@ interface MusicCardProps {
   onViewMore?: () => void;
 }
 
-const COLORS = ["#42A5F5", "#66BB6A", "#FFA726", "#AB47BC"];
+// 🎨 สีพาสเทลตามที่คุณกำหนด
+const CATEGORY_COLORS: Record<string, string> = {
+  "สมาธิ": "#7bed7f",    // เขียวมิ้นต์
+  "สวดมนต์": "#AFD5F0",  // ฟ้าอ่อน
+  "ฝึกหายใจ": "#ffbc59", // ส้มพาสเทล
+  "ASMR": "#ee8fff",      // ม่วงชมพู
+};
 
 const MusicCard: React.FC<MusicCardProps> = ({
   title = "คอนเทนต์เสียง",
-  className = "bg-blue-200",
+  className = "bg-white",
   onViewMore,
 }) => {
   const [data, setData] = useState<MusicData[]>([]);
@@ -42,21 +47,21 @@ const MusicCard: React.FC<MusicCardProps> = ({
         const response: DailySoundUsage[] = await getSoundFourType();
         console.log("Raw data from API (four-type):", response);
 
-        // กรองข้อมูลตามปีและเดือนที่เลือก
-        const filtered = response.filter((item) => {
-          return (
+        // กรองตามเดือน-ปีที่เลือก
+        const filtered = response.filter(
+          (item) =>
             item.year === selectedMonth.getFullYear() &&
-            item.month === selectedMonth.getMonth() + 1 // JS month 0-11, API 1-12
-          );
-        });
+            item.month === selectedMonth.getMonth() + 1
+        );
 
         // รวมจำนวนเล่นตามประเภท
         const formattedData = filtered.reduce((acc: MusicData[], item) => {
-          const existing = acc.find((d) => d.category === item.category);
+          const categoryName = item.category === "asmr" ? "ASMR" : item.category; // normalize
+          const existing = acc.find((d) => d.category === categoryName);
           if (existing) {
             existing.plays += item.play_count;
           } else {
-            acc.push({ category: item.category, plays: item.play_count });
+            acc.push({ category: categoryName, plays: item.play_count });
           }
           return acc;
         }, []);
@@ -80,13 +85,13 @@ const MusicCard: React.FC<MusicCardProps> = ({
       <h2 className="font-semibold mb-2 flex items-center justify-between">
         {title}
         {onViewMore && (
-            <button
-                onClick={onViewMore}
-                className="p-2 rounded-full bg-white/50 hover:bg-blue-300 transition flex justify-center items-center"
-                title="ดูข้อมูลเพิ่มเติม"
-            >
-                <EllipsisOutlined className="text-white text-lg" />
-            </button>
+          <button
+            onClick={onViewMore}
+            className="p-2 rounded-full bg-white/50 hover:bg-blue-300 transition flex justify-center items-center"
+            title="ดูข้อมูลเพิ่มเติม"
+          >
+            <EllipsisOutlined className="text-white text-lg" />
+          </button>
         )}
       </h2>
 
@@ -114,12 +119,12 @@ const MusicCard: React.FC<MusicCardProps> = ({
                   cy="50%"
                   outerRadius={100}
                   label={false}
-                  labelLine={false} // ปิดเส้น
+                  labelLine={false}
                 >
                   {data.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
+                      fill={CATEGORY_COLORS[entry.category] || "#cccccc"} // ใช้สีจาก category
                     />
                   ))}
                 </Pie>

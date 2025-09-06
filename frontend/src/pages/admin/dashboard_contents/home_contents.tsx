@@ -411,6 +411,8 @@ const HomeContents: React.FC = () => {
   Chanting: { label: "สวดมนต์", colorBg: "bg-purple-50", colorText: "text-purple-700" },  // ม่วงอ่อน
   Mirror: { label: "ระบายความรู้สึก", colorBg: "bg-pink-50", colorText: "text-pink-700" }, // ชมพูอ่อน
   WordHealing: { label: "Word Healing", colorBg: "bg-green-50", colorText: "text-green-700" }, // เขียวอ่อน
+  Chat: { label: "แชท", colorBg: "bg-teal-50", colorText: "text-teal-700" },              // ✅ เพิ่ม Chat
+  Questionnaire: { label: "แบบสอบถาม", colorBg: "bg-yellow-50", colorText: "text-yellow-700" }, // ✅ เพิ่ม Survey
 };
 
   // แปลง data ให้ตรงกับรูปแบบของ AntD Charts (long format)
@@ -511,6 +513,15 @@ summaryData.push({
         </section>
 
         {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="col-span-2">
+          <ChatTrendCardRecharts onViewMore={() => navigate("/admin/dashboard/contents/chat")}/>
+          </div>
+          <div className="col-span-2">
+          <QuestionnaireTrendChart onViewMore={() => navigate("/admin/dashboard/contents/questionnaire")}/>
+          </div>
+        
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <MusicCard onViewMore={() => navigate("/admin/dashboard/contents/sound")}/>
           {/* <ChantingCard onViewMore={() => navigate("/admin/chanting-details")}/> */}
@@ -522,15 +533,6 @@ summaryData.push({
             ยังไม่มีข้อมูล
           </div> */}
           
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="col-span-2">
-          <ChatTrendCardRecharts onViewMore={() => navigate("/admin/dashboard/contents/chat")}/>
-          </div>
-          <div className="col-span-2">
-          <QuestionnaireTrendChart onViewMore={() => navigate("/admin/dashboard/contents/questionnaire")}/>
-          </div>
-        
         </div>
       </main>
     </div>

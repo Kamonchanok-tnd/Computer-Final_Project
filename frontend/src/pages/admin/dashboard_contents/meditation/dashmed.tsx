@@ -8,7 +8,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import {
-  getDailySoundUsage,
+  getDailyMeditationUsage,
 } from "../../../../services/https/dashboardcontents";
 import { DatePicker, ConfigProvider } from "antd";
 import thTH from "antd/locale/th_TH";
@@ -31,7 +31,7 @@ const DashboardMeditation: React.FC = () => {
   useEffect(() => {
     const fetchMusicData = async () => {
       try {
-        const res = await getDailySoundUsage();
+        const res = await getDailyMeditationUsage();
 
         const formattedData: MusicData[] = Array.isArray(res)
           ? res.map((item) => ({

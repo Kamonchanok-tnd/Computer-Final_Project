@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { getSoundChanting } from "../../../../services/https/dashboardcontents";
+import { getDailyChantingUsage } from "../../../../services/https/dashboardcontents";
 import { DatePicker, ConfigProvider } from "antd";
 import thTH from "antd/locale/th_TH";
 import dayjs, { Dayjs } from "dayjs";
@@ -29,7 +29,7 @@ const DashboardChanting: React.FC = () => {
   useEffect(() => {
     const fetchChantingData = async () => {
       try {
-        const res = await getSoundChanting();
+        const res = await getDailyChantingUsage();
 
         const formattedData: ChantingData[] = Array.isArray(res)
           ? res.map((item) => ({

@@ -18,7 +18,7 @@ export interface DailySoundUsage {
 
 
 // ดึงข้อมูล daily usage พร้อม header
-export const getDailySoundUsage = async (): Promise<DailySoundUsage[]> => {
+export const getDailyMeditationUsage = async (): Promise<DailySoundUsage[]> => {
   try {
     const res = await axios.get(`${apiUrl}/sounds/daily-usage`, getAuthHeader());
     console.log("Raw data from API (service):", res.data);
@@ -31,7 +31,7 @@ export const getDailySoundUsage = async (): Promise<DailySoundUsage[]> => {
 };
 
 
-export const getSoundChanting = async (): Promise<DailySoundUsage[]> => {
+export const getDailyChantingUsage = async (): Promise<DailySoundUsage[]> => {
   try {
     const res = await axios.get(`${apiUrl}/sounds/chanting`, getAuthHeader());
     console.log("Raw data from API (service):", res.data);
