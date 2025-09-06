@@ -402,3 +402,86 @@ export const updateViewCount = async (id: string): Promise<boolean> => {
   }
 };
 
+
+
+
+// ===================== Views Service =====================
+
+export interface CountViewResponse {
+  ok: boolean;
+  already: boolean;        // true = เคยนับไปแล้ว
+  view_id: number | null;  // id แถวในตารางกลาง (บางกรณี backend อาจส่ง 0 -> คืนเป็น null)
+  view_count: number;      // จำนวนวิวล่าสุดของบทความ
+  wordheal_id: number;
+}
+
+export interface ViewLogRow {
+  id: number;
+  uid: number | null;
+  username?: string;
+  read_ms: number;
+  pct_scrolled: number;
+  created_at: string;      // "YYYY-MM-DD HH:mm:ss"
+}
+
+// services/https/message.ts
+export async function countViewMessage(
+  whid: number,
+  opts?: { readMs?: number; pctScrolled?: number }
+) {
+  const token = localStorage.getItem("token") || "";
+  const res = await fetch(`${apiUrl}/views/count`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+    body: JSON.stringify({
+      whid,
+      read_ms: Math.max(0, Math.round(opts?.readMs ?? 0)),
+      pct_scrolled: Math.min(100, Math.max(0, Math.round(opts?.pctScrolled ?? 0))),
+    }),
+  });
+  if (!res.ok) throw new Error("countView failed");
+  return res.json();
+}
+
+
+/* ฟังก์ชันดึงรายการผู้ที่ถูกนับวิวของบทความ (ต้อง login) */
+export const getViewsByMessage = async (whid: number): Promise<ViewLogRow[]> => {
+  try {
+    const token = localStorage.getItem("token") || "";
+
+    const res = await fetch(`${apiUrl}/views/by-message/${whid}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (res.status === 204) return [];
+    if (res.status === 401) throw new Error("Unauthorized");
+    if (!res.ok) throw new Error(`getViewsByMessage error: ${res.status}`);
+
+    const raw = await res.json();
+
+    if (!Array.isArray(raw)) return [];
+    return raw.map((r: any): ViewLogRow => ({
+      id: Number(r.id ?? r.ID ?? 0),
+      uid:
+        typeof r.uid === "number"
+          ? r.uid
+          : r.uid == null
+          ? null
+          : Number(r.uid),
+      username: r.username ?? "",
+      read_ms: Number(r.read_ms ?? 0),
+      pct_scrolled: Number(r.pct_scrolled ?? 0),
+      created_at: String(r.created_at ?? ""),
+    }));
+  } catch (err) {
+    console.error("getViewsByMessage failed:", err);
+    return [];
+  }
+};

@@ -44,4 +44,5 @@ type Users struct {
 	Questionnaires    []Questionnaire   `gorm:"foreignKey:UID"`
 	ASMR         []ASMR `gorm:"foreignKey:UID"`
 	ChatRooms         []ChatRoom           `gorm:"foreignKey:UID"`
+	Views []View `gorm:"foreignKey:UID"`
 }
