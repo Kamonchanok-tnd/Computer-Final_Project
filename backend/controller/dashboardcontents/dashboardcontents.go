@@ -213,48 +213,53 @@ func GetDailyMirrorUsage(c *gin.Context) {
 		return
 	}
 
-	// สร้าง map เก็บข้อมูลรวมตามเดือน (format: "YYYY-MM")
-	type MonthlyMirrorUsage struct {
+	// สร้าง struct สำหรับเก็บข้อมูลรายวัน
+	type DailyMirrorUsage struct {
 		Year  int    `json:"year"`
 		Month int    `json:"month"`
+		Day   int    `json:"day"`
 		Title string `json:"title"`
 		Count int    `json:"count"`
 	}
 
-	monthlyMap := make(map[string]MonthlyMirrorUsage)
+	dailyMap := make(map[string]DailyMirrorUsage)
 
 	for _, m := range mirrors {
-		year, month, _ := m.Date.Date()
-		key := fmt.Sprintf("%04d-%02d", year, month)
+		year, month, day := m.Date.Date()
+		key := fmt.Sprintf("%04d-%02d-%02d", year, month, day)
 
-		if existing, exists := monthlyMap[key]; exists {
+		if existing, exists := dailyMap[key]; exists {
 			existing.Count += 1
-			monthlyMap[key] = existing
+			dailyMap[key] = existing
 		} else {
-			monthlyMap[key] = MonthlyMirrorUsage{
+			dailyMap[key] = DailyMirrorUsage{
 				Year:  year,
 				Month: int(month),
-				Title: m.Title, // ถ้าต้องการเก็บ title ของวันแรกของเดือน
+				Day:   day,
+				Title: m.Title, // เก็บ title ของวันนั้น
 				Count: 1,
 			}
 		}
 	}
 
 	// แปลง map เป็น slice
-	var monthlyList []MonthlyMirrorUsage
-	for _, v := range monthlyMap {
-		monthlyList = append(monthlyList, v)
+	var dailyList []DailyMirrorUsage
+	for _, v := range dailyMap {
+		dailyList = append(dailyList, v)
 	}
 
-	// เรียงตามปี-เดือน
-	sort.Slice(monthlyList, func(i, j int) bool {
-		if monthlyList[i].Year == monthlyList[j].Year {
-			return monthlyList[i].Month < monthlyList[j].Month
+	// เรียงตามปี-เดือน-วัน
+	sort.Slice(dailyList, func(i, j int) bool {
+		if dailyList[i].Year != dailyList[j].Year {
+			return dailyList[i].Year < dailyList[j].Year
 		}
-		return monthlyList[i].Year < monthlyList[j].Year
+		if dailyList[i].Month != dailyList[j].Month {
+			return dailyList[i].Month < dailyList[j].Month
+		}
+		return dailyList[i].Day < dailyList[j].Day
 	})
 
-	c.JSON(http.StatusOK, gin.H{"results": monthlyList})
+	c.JSON(http.StatusOK, gin.H{"results": dailyList})
 }
 
 

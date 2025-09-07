@@ -83,6 +83,34 @@ func GetNewuser(c *gin.Context) {
 	c.JSON(http.StatusOK, results)
 }
 
+// Returning Users = login แต่ไม่ใช่ account ที่เพิ่งสมัคร
+func GetReturningUsers(c *gin.Context) {
+    var results []struct {
+        Date  string `json:"date"`
+        Users int    `json:"users"`
+    }
+
+    if err := config.DB().
+        Model(&entity.UserActivity{}).
+        Select("DATE(created_at) as date, COUNT(DISTINCT uid) as users").
+        Where("action = ?", "login").
+        Where("uid NOT IN (?)",
+            config.DB().Model(&entity.UserActivity{}).
+                Select("uid").
+                Where("action = ?", "create_account").
+                Where("DATE(created_at) = DATE(user_activities.created_at)"),
+        ).
+        Group("DATE(created_at)").
+        Order("DATE(created_at) ASC").
+        Scan(&results).Error; err != nil {
+
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get returning users"})
+        return
+    }
+
+    c.JSON(http.StatusOK, results)
+}
+
 
 
 
