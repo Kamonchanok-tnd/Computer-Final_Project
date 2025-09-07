@@ -579,7 +579,7 @@ const DashboardContents: React.FC = () => {
     "สมาธิ": "#7bed7f",   // เขียวมิ้นต์
     "สวดมนต์": "#AFD5F0", // ฟ้าอ่อน
     "ฝึกหายใจ": "#ffbc59", // ส้มพาสเทล
-    "ASMR": "#ee8fff",     // ม่วงชมพู
+    "asmr": "#ee8fff",     // ม่วงชมพู
   };
 
   const categoryService: Record<string, () => Promise<any[]>> = {
@@ -647,39 +647,54 @@ const DashboardContents: React.FC = () => {
 
   // กด category เพื่อโหลด Top 3 เพลง
   const handleCategoryClick = async (name: string) => {
-    setSelectedCategory(name === "All" ? null : name);
+  setSelectedCategory(name === "All" ? null : name);
 
-    if (name === "All") {
-      const allTracks: TrackData[] = [];
-      for (const cat of Object.keys(categoryService)) {
-        try {
-          const res = await categoryService[cat]();
-          const formattedTracks: TrackData[] = res.map((item: any) => ({
-            sound_name: item.sound_name,
-            plays: item.play_count ?? item.plays ?? 0,
-            category: cat,
-          }));
-          formattedTracks.sort((a, b) => b.plays - a.plays);
-          allTracks.push(...formattedTracks.slice(0, 3));
-        } catch (err) {
-          console.error(`Error fetching tracks for ${cat}:`, err);
-        }
+  const combineTracks = (tracks: TrackData[]) => {
+    const grouped: Record<string, TrackData> = {};
+    tracks.forEach(track => {
+      if (grouped[track.sound_name]) {
+        grouped[track.sound_name].plays += track.plays;
+      } else {
+        grouped[track.sound_name] = { ...track };
       }
-      setCategoryTracks(allTracks);
-    } else if (categoryService[name]) {
+    });
+    return Object.values(grouped);
+  };
+
+  if (name === "All") {
+    const allTracks: TrackData[] = [];
+    for (const cat of Object.keys(categoryService)) {
       try {
-        const res = await categoryService[name]();
+        const res = await categoryService[cat]();
         const formattedTracks: TrackData[] = res.map((item: any) => ({
           sound_name: item.sound_name,
           plays: item.play_count ?? item.plays ?? 0,
+          category: cat,
         }));
-        formattedTracks.sort((a, b) => b.plays - a.plays);
-        setCategoryTracks(formattedTracks.slice(0, 3));
+        allTracks.push(...formattedTracks);
       } catch (err) {
-        console.error("Error fetching category tracks:", err);
+        console.error(`Error fetching tracks for ${cat}:`, err);
       }
     }
-  };
+    const combined = combineTracks(allTracks);
+    combined.sort((a, b) => b.plays - a.plays);
+    setCategoryTracks(combined.slice(0, 3));
+  } else if (categoryService[name]) {
+    try {
+      const res = await categoryService[name]();
+      const formattedTracks: TrackData[] = res.map((item: any) => ({
+        sound_name: item.sound_name,
+        plays: item.play_count ?? item.plays ?? 0,
+      }));
+      const combined = combineTracks(formattedTracks);
+      combined.sort((a, b) => b.plays - a.plays);
+      setCategoryTracks(combined.slice(0, 3));
+    } catch (err) {
+      console.error("Error fetching category tracks:", err);
+    }
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] p-6 space-y-6">

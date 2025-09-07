@@ -223,6 +223,7 @@ func main() {
 
 		router.GET("/visit-frequency", useractivity.GetVisitFrequency)
 		router.GET("/retention-rate", useractivity.GetRetentionRate)
+		router.GET("/new-users", useractivity.GetNewuser)
 	
 
 	

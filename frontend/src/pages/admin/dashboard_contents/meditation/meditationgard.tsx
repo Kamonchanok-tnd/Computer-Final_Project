@@ -7,9 +7,10 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { EllipsisOutlined } from "@ant-design/icons"; 
+import { EllipsisOutlined } from "@ant-design/icons";
 import { getSoundFourType, DailySoundUsage } from "../../../../services/https/dashboardcontents";
-import MonthPickerMed from "./monthpicker";
+import dayjs from "dayjs";
+import "dayjs/locale/th";
 
 interface MusicData {
   category: string; // สมาธิ, สวดมนต์, ฝึกหายใจ, ASMR
@@ -22,7 +23,7 @@ interface MusicCardProps {
   onViewMore?: () => void;
 }
 
-// 🎨 สีพาสเทลตามที่คุณกำหนด
+// 🎨 สีพาสเทลตาม category
 const CATEGORY_COLORS: Record<string, string> = {
   "สมาธิ": "#7bed7f",    // เขียวมิ้นต์
   "สวดมนต์": "#AFD5F0",  // ฟ้าอ่อน
@@ -31,52 +32,53 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const MusicCard: React.FC<MusicCardProps> = ({
-  title = "คอนเทนต์เสียง",
+  title = "คอนเทนต์เสียง (วันนี้)",
   className = "bg-white",
   onViewMore,
 }) => {
   const [data, setData] = useState<MusicData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
   useEffect(() => {
-    const fetchMusicData = async () => {
-      setLoading(true);
-      try {
-        const response: DailySoundUsage[] = await getSoundFourType();
-        console.log("Raw data from API (four-type):", response);
+  const fetchMusicData = async () => {
+    setLoading(true);
+    try {
+      const response: DailySoundUsage[] = await getSoundFourType();
+      console.log("Raw data from API (four-type daily):", response);
 
-        // กรองตามเดือน-ปีที่เลือก
-        const filtered = response.filter(
-          (item) =>
-            item.year === selectedMonth.getFullYear() &&
-            item.month === selectedMonth.getMonth() + 1
-        );
+      const today = dayjs();
+      const todayData = response.filter(
+        (item) =>
+          item.year === today.year() &&
+          item.month === today.month() + 1 && // dayjs เดือนเริ่มจาก 0
+          item.day === today.date()
+      );
 
-        // รวมจำนวนเล่นตามประเภท
-        const formattedData = filtered.reduce((acc: MusicData[], item) => {
-          const categoryName = item.category === "asmr" ? "ASMR" : item.category; // normalize
-          const existing = acc.find((d) => d.category === categoryName);
-          if (existing) {
-            existing.plays += item.play_count;
-          } else {
-            acc.push({ category: categoryName, plays: item.play_count });
-          }
-          return acc;
-        }, []);
+      // รวมจำนวนเล่นตามประเภท
+      const formattedData = todayData.reduce((acc: MusicData[], item) => {
+        const categoryName = item.category.toLowerCase() === "asmr" ? "ASMR" : item.category;
+        const existing = acc.find((d) => d.category === categoryName);
+        if (existing) {
+          existing.plays += item.play_count;
+        } else {
+          acc.push({ category: categoryName, plays: item.play_count });
+        }
+        return acc;
+      }, []);
 
-        setData(formattedData);
-      } catch (err) {
-        setError("ไม่สามารถโหลดข้อมูลได้");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setData(formattedData);
+    } catch (err) {
+      setError("ไม่สามารถโหลดข้อมูลได้");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchMusicData();
-  }, [selectedMonth]);
+  fetchMusicData();
+}, []);
+
 
   const totalPlays = data.reduce((sum, item) => sum + item.plays, 0);
 
@@ -90,22 +92,17 @@ const MusicCard: React.FC<MusicCardProps> = ({
             className="p-2 rounded-full bg-white/50 hover:bg-blue-300 transition flex justify-center items-center"
             title="ดูข้อมูลเพิ่มเติม"
           >
-            <EllipsisOutlined className="text-white text-lg" />
+            <EllipsisOutlined className="text-gray-600 text-lg" />
           </button>
         )}
       </h2>
-
-      {/* Month Picker */}
-      <div className="mb-3">
-        <MonthPickerMed value={selectedMonth} onChange={setSelectedMonth} />
-      </div>
 
       {loading ? (
         <p>กำลังโหลดข้อมูล...</p>
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : data.length === 0 ? (
-        <p>ไม่มีข้อมูลสำหรับเดือนนี้</p>
+        <p>วันนี้ยังไม่มีข้อมูล</p>
       ) : (
         <>
           <div className="h-64">
@@ -124,7 +121,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
                   {data.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={CATEGORY_COLORS[entry.category] || "#cccccc"} // ใช้สีจาก category
+                      fill={CATEGORY_COLORS[entry.category] || "#cccccc"}
                     />
                   ))}
                 </Pie>
@@ -133,7 +130,9 @@ const MusicCard: React.FC<MusicCardProps> = ({
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-lg font-bold mt-2 font-ibmthai">{totalPlays} ครั้ง</p>
+          <p className="text-lg font-bold mt-2 text-center text-gray-700">
+            รวม {totalPlays} ครั้ง
+          </p>
         </>
       )}
     </div>
