@@ -25,16 +25,16 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
       if (!raw) {
         return {
           mode: "pomodoro" as Mode,
-          durations: { pomodoro: 20, short: 5, long: 15 },
+          durations: { pomodoro: 25, short: 5, long: 15 },
           isRunning: false,
-          timeLeft: 20 * 60,
+          timeLeft: 25 * 60,
           autoTransition: true,
           endAt: null as number | null,
           pomCount: 0, // จำนวนรอบ pomodoro ที่จบแล้วในหนึ่ง cycle
         };
       }
       const saved = JSON.parse(raw);
-      const durations = saved.durations ?? { pomodoro: 20, short: 5, long: 15 };
+      const durations = saved.durations ?? { pomodoro: 25, short: 5, long: 15 };
       const mode: Mode = saved.mode ?? "pomodoro";
       const autoTransition =
         typeof saved.autoTransition === "boolean" ? saved.autoTransition : true;
@@ -50,9 +50,9 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
     } catch {
       return {
         mode: "pomodoro" as Mode,
-        durations: { pomodoro: 20, short: 5, long: 15 },
+        durations: { pomodoro: 25, short: 5, long: 15 },
         isRunning: false,
-        timeLeft: 20 * 60,
+        timeLeft: 25 * 60,
         autoTransition: true,
         endAt: null as number | null,
         pomCount: 0,
