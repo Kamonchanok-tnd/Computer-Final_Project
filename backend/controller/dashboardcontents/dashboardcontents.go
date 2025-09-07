@@ -77,35 +77,67 @@ func GetSoundChanting(c *gin.Context) {
 
 
 // DailyViewByTitle แสดงจำนวนการอ่านต่อวัน ต่อเรื่อง
+// type DailyViewByTitle struct {
+// 	Date      string `json:"date"`
+// 	Title     string `json:"title"`
+// 	TotalViews int    `json:"total_views"`
+// }
+
+// // GetDailyViewsByTitle ดึงจำนวนการอ่านต่อวัน พร้อมชื่อเรื่อง
+// func GetDailyViewsByTitle(c *gin.Context) {
+// 	db := config.DB()
+
+// 	var results []DailyViewByTitle
+
+// 	err := db.Model(&entity.WordHealingContent{}).
+// 		Select("DATE(date) as date, name as title, SUM(view_count) as total_views").
+// 		Group("DATE(date), name").
+// 		Order("DATE(date) ASC").
+// 		Scan(&results).Error
+
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	if len(results) == 0 {
+// 		c.JSON(http.StatusOK, gin.H{"message": "No data found"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"results": results})
+// }
+
 type DailyViewByTitle struct {
-	Date      string `json:"date"`
-	Title     string `json:"title"`
-	TotalViews int    `json:"total_views"`
+    Date       string `json:"date"`
+    Title      string `json:"title"`
+    TotalViews int    `json:"total_views"`
 }
 
-// GetDailyViewsByTitle ดึงจำนวนการอ่านต่อวัน พร้อมชื่อเรื่อง
+// ดึงจำนวนการอ่านต่อวัน พร้อมชื่อเรื่อง
 func GetDailyViewsByTitle(c *gin.Context) {
-	db := config.DB()
+    db := config.DB()
 
-	var results []DailyViewByTitle
+    var results []DailyViewByTitle
 
-	err := db.Model(&entity.WordHealingContent{}).
-		Select("DATE(date) as date, name as title, SUM(view_count) as total_views").
-		Group("DATE(date), name").
-		Order("DATE(date) ASC").
-		Scan(&results).Error
+    err := db.Model(&entity.View{}).
+        Select("DATE(views.created_at) as date, word_healing_contents.name as title, COUNT(views.id) as total_views").
+        Joins("JOIN word_healing_contents ON views.whid = word_healing_contents.id").
+        Group("DATE(views.created_at), word_healing_contents.name").
+        Order("DATE(views.created_at) ASC").
+        Scan(&results).Error
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	if len(results) == 0 {
-		c.JSON(http.StatusOK, gin.H{"message": "No data found"})
-		return
-	}
+    if len(results) == 0 {
+        c.JSON(http.StatusOK, gin.H{"message": "No data found"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"results": results})
+    c.JSON(http.StatusOK, gin.H{"results": results})
 }
 
 
@@ -181,48 +213,53 @@ func GetDailyMirrorUsage(c *gin.Context) {
 		return
 	}
 
-	// สร้าง map เก็บข้อมูลรวมตามเดือน (format: "YYYY-MM")
-	type MonthlyMirrorUsage struct {
+	// สร้าง struct สำหรับเก็บข้อมูลรายวัน
+	type DailyMirrorUsage struct {
 		Year  int    `json:"year"`
 		Month int    `json:"month"`
+		Day   int    `json:"day"`
 		Title string `json:"title"`
 		Count int    `json:"count"`
 	}
 
-	monthlyMap := make(map[string]MonthlyMirrorUsage)
+	dailyMap := make(map[string]DailyMirrorUsage)
 
 	for _, m := range mirrors {
-		year, month, _ := m.Date.Date()
-		key := fmt.Sprintf("%04d-%02d", year, month)
+		year, month, day := m.Date.Date()
+		key := fmt.Sprintf("%04d-%02d-%02d", year, month, day)
 
-		if existing, exists := monthlyMap[key]; exists {
+		if existing, exists := dailyMap[key]; exists {
 			existing.Count += 1
-			monthlyMap[key] = existing
+			dailyMap[key] = existing
 		} else {
-			monthlyMap[key] = MonthlyMirrorUsage{
+			dailyMap[key] = DailyMirrorUsage{
 				Year:  year,
 				Month: int(month),
-				Title: m.Title, // ถ้าต้องการเก็บ title ของวันแรกของเดือน
+				Day:   day,
+				Title: m.Title, // เก็บ title ของวันนั้น
 				Count: 1,
 			}
 		}
 	}
 
 	// แปลง map เป็น slice
-	var monthlyList []MonthlyMirrorUsage
-	for _, v := range monthlyMap {
-		monthlyList = append(monthlyList, v)
+	var dailyList []DailyMirrorUsage
+	for _, v := range dailyMap {
+		dailyList = append(dailyList, v)
 	}
 
-	// เรียงตามปี-เดือน
-	sort.Slice(monthlyList, func(i, j int) bool {
-		if monthlyList[i].Year == monthlyList[j].Year {
-			return monthlyList[i].Month < monthlyList[j].Month
+	// เรียงตามปี-เดือน-วัน
+	sort.Slice(dailyList, func(i, j int) bool {
+		if dailyList[i].Year != dailyList[j].Year {
+			return dailyList[i].Year < dailyList[j].Year
 		}
-		return monthlyList[i].Year < monthlyList[j].Year
+		if dailyList[i].Month != dailyList[j].Month {
+			return dailyList[i].Month < dailyList[j].Month
+		}
+		return dailyList[i].Day < dailyList[j].Day
 	})
 
-	c.JSON(http.StatusOK, gin.H{"results": monthlyList})
+	c.JSON(http.StatusOK, gin.H{"results": dailyList})
 }
 
 
@@ -400,10 +437,22 @@ func GetTopContentComparison(c *gin.Context) {
 
     // 7. Like (นับจาก wid)
     var wordHealing []TopContent
-db.Table("likes").
+    db.Table("likes").
     Select("w_id AS name, 'WordHealing' AS category, COUNT(DISTINCT uid) AS unique_users").
     Group("w_id").
     Scan(&wordHealing)
+
+    // --- Chat ---
+var chat []TopContent
+db.Table("chat_rooms").
+    Select("'Chat' AS name, 'Chat' AS category, COUNT(DISTINCT uid) AS unique_users").
+    Scan(&chat)
+
+// --- Survey (Questionnaire) ---
+var survey []TopContent
+db.Table("assessment_results").
+    Select("'Questionnaire' AS name, 'Questionnaire' AS category, COUNT(DISTINCT uid) AS unique_users").
+    Scan(&survey)
 
 
     // รวมผลลัพธ์
@@ -413,9 +462,26 @@ db.Table("likes").
     results = append(results, mirror...)
     results = append(results, meditation...)
     results = append(results, chanting...)
-    //results = append(results, likes...)
+    results = append(results, chat...)     // ✅ เพิ่ม Chat
+results = append(results, survey...)   // ✅ เพิ่ม Survey
+    // // --- เพิ่ม TotalUsers ---
+	// var totalSurvey int64
+	// if err := db.Model(&entity.AssessmentResult{}).Distinct("uid").Count(&totalSurvey).Error; err != nil {
+	// 	c.JSON(500, gin.H{"error": "Failed to count survey users"})
+	// 	return
+	// }
 
-    c.JSON(200, gin.H{"results": results})
+	// var totalChat int64
+	// if err := db.Model(&entity.ChatRoom{}).Distinct("uid").Count(&totalChat).Error; err != nil {
+	// 	c.JSON(500, gin.H{"error": "Failed to count chat users"})
+	// 	return
+	// }
+
+	c.JSON(200, gin.H{
+		// "total_survey_users": totalSurvey,
+		// "total_chat_users":   totalChat,
+		"results":            results,
+	})
 }
 
 
@@ -427,17 +493,24 @@ func GetSoundFourType(c *gin.Context) {
     var results []struct {
         Year      int    `json:"year"`
         Month     int    `json:"month"`
+        Day       int    `json:"day"`
         Category  string `json:"category"`
         PlayCount int    `json:"play_count"`
     }
 
     err := db.Model(&entity.History{}).
-        Select("EXTRACT(YEAR FROM histories.created_at) as year, EXTRACT(MONTH FROM histories.created_at) as month, sound_types.type as category, COUNT(*) as play_count").
+        Select(`
+            EXTRACT(YEAR FROM histories.created_at) as year,
+            EXTRACT(MONTH FROM histories.created_at) as month,
+            EXTRACT(DAY FROM histories.created_at) as day,
+            sound_types.type as category,
+            COUNT(*) as play_count
+        `).
         Joins("JOIN sounds ON sounds.id = histories.s_id").
         Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
         Where("sound_types.type IN ?", []string{"สมาธิ", "สวดมนต์", "ฝึกหายใจ", "asmr"}).
-        Group("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at), sound_types.type").
-        Order("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at)").
+        Group("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at), EXTRACT(DAY FROM histories.created_at), sound_types.type").
+        Order("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at), EXTRACT(DAY FROM histories.created_at)").
         Scan(&results).Error
 
     if err != nil {

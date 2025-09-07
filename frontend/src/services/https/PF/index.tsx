@@ -11,7 +11,7 @@ export function buildImageSrc(picture: string): string {
 }
 
 const Authorization = localStorage.getItem("token");
-export const IMG_URL = import.meta.env.VITE_IMG_URL;
+export const IMG_URL = import.meta.env.VITE_PF_URL;
 export async function GetALllAvatar() {
   const requestOptions = {
     method: "GET",
@@ -22,7 +22,7 @@ export async function GetALllAvatar() {
   };
 
   try {
-    const response = await fetch(`${IMG_URL}/profile`, requestOptions);
+    const response = await fetch(`${IMG_URL}`, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {

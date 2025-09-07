@@ -18,7 +18,7 @@ export interface DailySoundUsage {
 
 
 // ดึงข้อมูล daily usage พร้อม header
-export const getDailySoundUsage = async (): Promise<DailySoundUsage[]> => {
+export const getDailyMeditationUsage = async (): Promise<DailySoundUsage[]> => {
   try {
     const res = await axios.get(`${apiUrl}/sounds/daily-usage`, getAuthHeader());
     console.log("Raw data from API (service):", res.data);
@@ -31,7 +31,7 @@ export const getDailySoundUsage = async (): Promise<DailySoundUsage[]> => {
 };
 
 
-export const getSoundChanting = async (): Promise<DailySoundUsage[]> => {
+export const getDailyChantingUsage = async (): Promise<DailySoundUsage[]> => {
   try {
     const res = await axios.get(`${apiUrl}/sounds/chanting`, getAuthHeader());
     console.log("Raw data from API (service):", res.data);
@@ -45,34 +45,23 @@ export const getSoundChanting = async (): Promise<DailySoundUsage[]> => {
 
 
 // Interface สำหรับ response ของ daily views
-export interface MonthlyViewsByTitle {
-  year: number;
-  month: number;         // 1-12
+export interface ViewsByTitle {
+  date: string;
   title: string;
   total_views: number;
-  monthLabel?: string;   // สำหรับแสดงบน chart เช่น "ส.ค. 2025"
-  date?: string;
+  month?: number;
+  year?: number;
+  label?: string;
 }
 
-// ดึงข้อมูลการอ่านต่อเดือน พร้อมชื่อเรื่อง
-export const getMonthlyWordHealingViews = async (): Promise<MonthlyViewsByTitle[]> => {
+export const getWordHealingViews = async (
+  type: "daily" | "weekly" | "monthly" | "yearly"
+): Promise<ViewsByTitle[]> => {
   try {
-    const res = await axios.get(`${apiUrl}/word-healing`, getAuthHeader());
-    console.log("Raw data from API (WordHealing monthly):", res.data);
-
-    const results: MonthlyViewsByTitle[] = Array.isArray(res.data.results) ? res.data.results : [];
-
-    // สร้าง monthLabel สำหรับแสดงบน chart
-    results.forEach((item) => {
-      item.monthLabel = new Date(item.year, item.month - 1).toLocaleString("th-TH", {
-        month: "short",
-        year: "numeric",
-      });
-    });
-
-    return results;
+    const res = await axios.get(`${apiUrl}/word-healing?type=${type}`, getAuthHeader());
+    return Array.isArray(res.data.results) ? res.data.results : [];
   } catch (error) {
-    console.error("Error fetching monthly word healing views:", error);
+    console.error("Error fetching word healing views:", error);
     return [];
   }
 };
@@ -84,6 +73,7 @@ export const getMonthlyWordHealingViews = async (): Promise<MonthlyViewsByTitle[
 export interface MonthlyMirrorUsage {
   year: number;
   month: number;
+  day: number;  
   title: string; // Title ของวันแรกของเดือน
   count: number; // จำนวนครั้งในเดือนนั้น
   
@@ -157,10 +147,11 @@ export const getTopContentComparison = async (): Promise<TopContent[]> => {
 
 
 export interface DailySoundUsage {
-  year: number;        // ปี
-  month: number;       // เดือน
-  category: string;    // สมาธิ, สวดมนต์, ฝึกหายใจ, asmr
-  play_count: number;  // จำนวนครั้งเล่น
+  year: number;
+  month: number;
+  day: number;      // เพิ่ม
+  category: string;
+  play_count: number;
 }
 
 export const getSoundFourType = async (): Promise<DailySoundUsage[]> => {
