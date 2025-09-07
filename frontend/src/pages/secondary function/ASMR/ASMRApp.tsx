@@ -160,9 +160,9 @@ const ASMRApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-dvh flex bg-gray-900 relative overflow-hidden">
+    <div className="fixed inset-0 h-[100svh] w-screen overflow-hidden flex bg-gray-900">
       {/* Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0 h-[100svh] w-screen overflow-hidden">
         <div
           className="w-full h-full bg-cover bg-center relative"
           style={{
@@ -179,17 +179,20 @@ const ASMRApp: React.FC = () => {
               style={{ zIndex: 1 }}
             />
           )}
-          <div
-            ref={iframeContainerRef}
-            className="absolute inset-0"
-            style={{
-              width: "150vw",
-              height: "150vh",
-              left: "-25vw",
-              top: "-25vh",
-              zIndex: 0,
-            }}
-          />
+          {/* YouTube Container แบบ cover */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div
+              ref={iframeContainerRef}
+              className="
+      absolute top-1/2 left-1/2 
+      -translate-x-1/2 -translate-y-1/2
+      h-screen w-[177.78vh]   /* ใช้ความสูง fix = 100vh */
+      min-w-full             /* บังคับเต็มความกว้าง */
+      scale-150
+    "
+            />
+          </div>
+
           <div className="absolute inset-0 bg-black/0"></div>
         </div>
       </div>
