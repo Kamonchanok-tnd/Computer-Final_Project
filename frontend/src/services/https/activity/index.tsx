@@ -85,3 +85,24 @@ export async function getNewUsers(): Promise<NewUser[]> {
     throw error;
   }
 }
+
+/* ===== Returning Users ===== */
+export interface ReturningUser {
+  date: string;
+  users: number; // จำนวนผู้ใช้ที่กลับมาใช้งานในวันนั้น
+}
+
+// ดึงข้อมูลผู้ใช้เดิม
+export async function getReturningUsers(): Promise<ReturningUser[]> {
+  try {
+    const { data } = await axios.get(`${apiUrl}/returning-users`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    return data;
+  } catch (error: any) {
+    console.error("❌ Failed to fetch returning users:", error.response?.data || error.message);
+    throw error;
+  }
+}

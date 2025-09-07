@@ -73,6 +73,7 @@ export const getWordHealingViews = async (
 export interface MonthlyMirrorUsage {
   year: number;
   month: number;
+  day: number;  
   title: string; // Title ของวันแรกของเดือน
   count: number; // จำนวนครั้งในเดือนนั้น
   
