@@ -30,7 +30,7 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
           timeLeft: 25 * 60,
           autoTransition: true,
           endAt: null as number | null,
-          pomCount: 0, // จำนวนรอบ pomodoro ที่จบแล้วในหนึ่ง cycle
+          pomCount: 0,
         };
       }
       const saved = JSON.parse(raw);
@@ -75,18 +75,21 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
   const [autoTransition, setAutoTransition] = useState<boolean>(init.autoTransition);
   const [pomCount, setPomCount] = useState<number>(init.pomCount);
 
+  // ✅ saveState แบบ merge กับค่าปัจจุบันใน localStorage (กันทับ field อื่น)
   const saveState = (override?: Partial<any>) => {
-    const payload = {
-      mode,
-      durations,
-      isRunning,
-      autoTransition,
-      endAt: endAtRef.current,
-      pomCount,
-      ...override,
-    };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      const cur = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      const payload = {
+        mode,
+        durations,
+        isRunning,
+        autoTransition,
+        endAt: endAtRef.current,
+        pomCount,
+        ...override,
+      };
+      const next = { ...cur, ...payload };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {}
   };
 
@@ -144,7 +147,23 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
       setTimeLeft(remain);
 
       if (remain <= 0) {
-        // จด mode ที่เพิ่งจบไว้ก่อน (เพราะเดี๋ยว mode จะเปลี่ยน)
+        // 🔒 Guard: จัดการ endAt นี้ครั้งเดียวเท่านั้น
+        let store;
+        try { store = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { store = {}; }
+        if (store?.lastHandledEndAt === endAtRef.current) {
+          // มีอีกที่จัดการไปแล้ว → แค่หยุด interval ตัวเอง แล้วให้ UI sync รอบถัดไป
+          window.clearInterval(tickRef.current!);
+          tickRef.current = null;
+          setIsRunning(false);
+          endAtRef.current = null;
+          saveState({ isRunning: false, endAt: null });
+          return;
+        }
+
+        // มาร์คว่า endAt นี้ถูกจัดการแล้ว
+        saveState({ lastHandledEndAt: endAtRef.current });
+
+        // จด mode ที่เพิ่งจบไว้ก่อน
         const finishedMode: Mode = mode;
 
         window.clearInterval(tickRef.current!);
@@ -235,14 +254,8 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
       const recentSettings = selectedSID
         ? [{ sid: selectedSID, volume: volumes[selectedSID] || 50 }]
         : [];
-      console.log("Sending recentSettings to API:", recentSettings);
-
       const selectedDuration = durations[mode];
       await createASMR(userId, selectedDuration, recentSettings);
-      console.log(
-        `ASMR record saved for user ${userId}, duration ${selectedDuration} min`,
-        recentSettings
-      );
     } catch (err) {
       console.error("Failed to save ASMR record", err);
     }
@@ -268,7 +281,7 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
 
     if (finishedMode === "pomodoro") {
       nextPomCount = pomCount + 1;
-      // ทุกครั้งที่จบ pomodoro: ถ้าเป็นครั้งที่ 4 → long, ไม่งั้น short
+      // จบ pomodoro: ถ้าเป็นครั้งที่ 4 → long, ไม่งั้น short
       next = nextPomCount % 4 === 0 ? "long" : "short";
     } else {
       // จาก break (short/long) กลับไป pomodoro
@@ -284,7 +297,7 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
 
     const secs = durations[next] * 60;
     setTimeLeft(secs);
-    // เริ่มนับทันทีด้วยเวลาของช่วงใหม่ (คำนวณตรง ๆ เลี่ยง race condition)
+    // เริ่มนับทันทีด้วยเวลาของช่วงใหม่
     setTimeout(() => startTimer(false, secs), 10);
     saveState({ mode: next, pomCount: nextPomCount });
   };
@@ -296,7 +309,7 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
       const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
       soundEnabled = s.soundEnabled !== false; // default = true
     } catch {}
-    if (!soundEnabled) return; // 🔇 ปิดเสียงอยู่
+    if (!soundEnabled) return;
 
     if (!audioRef.current) audioRef.current = new Audio("/assets/asmr/time.mp3");
     audioRef.current.currentTime = 0;
@@ -324,7 +337,7 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
                   setIsRunning(false);
                   endAtRef.current = null;
                   setMode(m);
-                  setPomCount(m === "pomodoro" ? pomCount : pomCount); // ไม่เปลี่ยนตัวนับเมื่อเปลี่ยนมือ
+                  setPomCount(m === "pomodoro" ? pomCount : pomCount);
                   setTimeLeft(durations[m] * 60);
                   saveState({ mode: m, isRunning: false, endAt: null });
                 }}
@@ -335,10 +348,10 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
                 }`}
               >
                 {m === "pomodoro"
-                  ? "Pomodoro"
+                  ? "เวลาโฟกัส"
                   : m === "short"
-                  ? "Short Break"
-                  : "Long Break"}
+                  ? "เวลาพักสั้น"
+                  : "เวลาพักยาว"}
               </button>
             ))}
             <button
@@ -356,21 +369,21 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
                 onClick={() => startTimer()}
                 className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
               >
-                Start
+                เริ่ม
               </button>
             ) : (
               <button
                 onClick={pauseTimer}
                 className="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
               >
-                Pause
+                หยุดชั่วคราว
               </button>
             )}
             <button
               onClick={resetTimer}
               className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
             >
-              Reset
+              รีเซ็ต
             </button>
           </div>
         </div>
@@ -386,7 +399,7 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
                   saveState({ autoTransition: e.target.checked });
                 }}
               />
-              <span>Auto-transition Timer</span>
+              <span>การเปลี่ยนโหมดอัตโนมัติ</span>
             </label>
 
             <div className="grid grid-cols-3 gap-2">
@@ -394,10 +407,10 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
                 <div key={key} className="flex flex-col items-center">
                   <label className="text-white/60 text-xs mb-1">
                     {key === "pomodoro"
-                      ? "Pomodoro"
+                      ? "เวลาโฟกัส"
                       : key === "short"
-                      ? "Short Break"
-                      : "Long Break"}
+                      ? "เวลาพักสั้น"
+                      : "เวลาพักยาว"}
                   </label>
                   <input
                     type="number"
@@ -416,9 +429,8 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
               ))}
             </div>
 
-            {/* แสดงสถานะรอบ Pomodoro ปัจจุบัน */}
             <div className="text-white/70 pt-2">
-              รอบ Pomodoro ใน cycle นี้: <b>{pomCount % 4}</b> / 4
+              รอบเวลาโฟกัส : <b>{pomCount % 4}</b> / 4
             </div>
           </div>
         )}
