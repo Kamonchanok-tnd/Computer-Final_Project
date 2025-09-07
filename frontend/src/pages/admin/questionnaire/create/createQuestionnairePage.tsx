@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { App } from "antd";
 import { useNavigate } from "react-router-dom";
-
 import createQuestionIcon from "../../../../assets/createQuestionnaire.png";
 import { createQuestionnaire, getAllQuestionnaires } from "../../../../services/https/questionnaire";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
