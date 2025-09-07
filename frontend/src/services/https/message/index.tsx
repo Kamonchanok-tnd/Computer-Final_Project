@@ -3,7 +3,6 @@ import { WordHealingContent } from "../../../interfaces/IWordHealingContent";
 import axios from "axios";
 const apiUrl = "http://localhost:8000";
 
-
 // ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน admin
 export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]> => {
   try {
@@ -401,7 +400,6 @@ export const updateViewCount = async (id: string): Promise<boolean> => {
     return false; // ถ้ามีข้อผิดพลาด จะ return false
   }
 };
-
 
 
 
