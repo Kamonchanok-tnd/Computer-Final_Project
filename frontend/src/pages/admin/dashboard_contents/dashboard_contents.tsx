@@ -621,6 +621,13 @@ const DashboardContents: React.FC = () => {
     fetchMusicData();
   }, []);
 
+  // หลังจาก useEffect สำหรับ fetchMusicData
+useEffect(() => {
+  // โหลด Top Tracks ของสวดมนต์ทันที
+  handleCategoryClick("สวดมนต์");
+}, []);
+
+
   // Filter data ตามปี
   const filteredData = musicData.filter(d => selectedYear ? d.year === selectedYear : true);
 

@@ -407,7 +407,7 @@ const HomeContents: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <MusicCard onViewMore={() => navigate("/admin/dashboard/contents/sound")} />
           <WordHealingCard onViewMore={() => navigate("/admin/wordhealing-details")} />
-          <MirrorCard  />
+          <MirrorCard/>
         </div>
       </main>
     </div>
