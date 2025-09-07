@@ -3,6 +3,7 @@ import { X, Volume2, VolumeX } from "lucide-react";
 import BackgroundPanel from "./components/BackgroundPanel";
 import SoundPanel from "./components/SoundPanel";
 import TimerPanel from "./components/TimerPanel";
+import FloatingClock from "./components/FloatingClock";
 import { PanelType } from "../../../interfaces/ISound";
 import asmrImg from "../../../assets/asmr.png";
 import iconBg from "../../../assets/asmr/asmr-bg.png";
@@ -17,7 +18,6 @@ declare global {
 }
 
 const ASMRApp: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [selectedBgId, setSelectedBgId] = useState<number | null>(null);
   const [selectedBgUrl, setSelectedBgUrl] = useState<string | null>(null);
   const [selectedSID, setSelectedSID] = useState<number | null>(null); // <-- เก็บ sound ID
@@ -29,6 +29,16 @@ const ASMRApp: React.FC = () => {
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
   const [playingSounds, setPlayingSounds] = useState<Set<string>>(new Set());
   const [volumes, setVolumes] = useState<Record<string, number>>({});
+
+  const [activePanel, setActivePanel] = useState<PanelType>(null);
+  const [showFloatingClock, setShowFloatingClock] = useState(false);
+
+  const handleClosePanel = () => {
+    if (activePanel === "timer") {
+      setShowFloatingClock(true); // ปิด panel → เปิด floating clock
+    }
+    setActivePanel(null);
+  };
 
   useEffect(() => {
     const tag = document.createElement("script");
@@ -123,6 +133,8 @@ const ASMRApp: React.FC = () => {
     { id: "timer" as const, label: "Timer", icon: iconTimer },
   ];
 
+  
+
   const renderPanelContent = () => {
     switch (activePanel) {
       case "background":
@@ -158,6 +170,8 @@ const ASMRApp: React.FC = () => {
         return null;
     }
   };
+
+  
 
   return (
     <div className="fixed inset-0 h-[100svh] w-screen overflow-hidden flex bg-gray-900">
@@ -239,11 +253,11 @@ const ASMRApp: React.FC = () => {
         <>
           <div
             className="absolute inset-0 z-30 bg-black/50"
-            onClick={() => setActivePanel(null)}
+            onClick={handleClosePanel}
           />
           <div className="absolute left-20 top-1/2 transform -translate-y-1/2 z-40 w-80 max-h-[80vh] bg-black/30 backdrop-blur-xl border border-white/20 rounded-2xl p-6 overflow-y-auto scrollbar-hide">
             <button
-              onClick={() => setActivePanel(null)}
+              onClick={handleClosePanel}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"
             >
               <X size={16} />
@@ -251,6 +265,11 @@ const ASMRApp: React.FC = () => {
             <div className="mt-2">{renderPanelContent()}</div>
           </div>
         </>
+      )}
+
+      {/* Floating Clock */}
+      {showFloatingClock && (
+        <FloatingClock onClose={() => setShowFloatingClock(false)} />
       )}
     </div>
   );
