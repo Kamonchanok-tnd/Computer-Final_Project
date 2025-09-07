@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import {
   getVisitFrequency,
   getRetentionRate,
+  getNewUsers,
   VisitFrequency,
   RetentionRate,
+  NewUser
 } from "../../../services/https/activity";
 import {
   LineChart,
@@ -24,13 +26,17 @@ import thTH from "antd/lib/locale/th_TH";
 import admin from "../../../assets/analysis.png";
 import dayjs, { Dayjs } from "dayjs";
 
-const COLORS = ["#3b82f6", "#10b981"]; // ฟ้า = new, เขียว = returning
+const COLORS = ["#3b82f6", "#10b981"]; // ฟ้า = ผู้ใช้ใหม่, เขียว = ผู้ใช้เดิม
 
 export default function AdminDashboardContent() {
   const [visitData, setVisitData] = useState<VisitFrequency[]>([]);
   const [retentionData, setRetentionData] = useState<RetentionRate[]>([]);
+  const [newUserData, setNewUserData] = useState<NewUser[]>([]);
+
   const [filteredVisitData, setFilteredVisitData] = useState<VisitFrequency[]>([]);
   const [filteredRetentionData, setFilteredRetentionData] = useState<RetentionRate[]>([]);
+  const [filteredNewUserData, setFilteredNewUserData] = useState<NewUser[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -39,8 +45,11 @@ export default function AdminDashboardContent() {
     async function fetchData() {
       setLoading(true);
       try {
-        const visits = await getVisitFrequency();
-        const retention = await getRetentionRate();
+        const [visits, retention, newUsers] = await Promise.all([
+          getVisitFrequency(),
+          getRetentionRate(),
+          getNewUsers(),
+        ]);
 
         const formattedVisits = visits.map((item) => ({
           ...item,
@@ -50,6 +59,8 @@ export default function AdminDashboardContent() {
             day: "numeric",
             calendar: "gregory",
           }),
+          newUsers: 0,
+          returningUsers: item.visits,
         }));
 
         const formattedRetention = retention.map((item) => ({
@@ -62,10 +73,23 @@ export default function AdminDashboardContent() {
           }),
         }));
 
+        const formattedNewUsers = newUsers.map((item) => ({
+          ...item,
+          day: new Date(item.date).toLocaleDateString("th-TH", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            calendar: "gregory",
+          }),
+        }));
+
         setVisitData(formattedVisits);
         setRetentionData(formattedRetention);
+        setNewUserData(formattedNewUsers);
+
         setFilteredVisitData(formattedVisits);
         setFilteredRetentionData(formattedRetention);
+        setFilteredNewUserData(formattedNewUsers);
       } catch (error) {
         console.error("ไม่สามารถโหลดข้อมูลได้:", error);
       } finally {
@@ -75,19 +99,20 @@ export default function AdminDashboardContent() {
     fetchData();
   }, []);
 
-  // ฟังก์ชันกรองข้อมูลตามเดือนและปี
+  // กรองข้อมูลตามเดือนและปี
   useEffect(() => {
-    const filterData = (data: any[]) => {
-      return data.filter((item) => {
+    const filterData = (data: any[]) =>
+      data.filter((item) => {
         const date = new Date(item.date);
         const matchMonth = selectedMonth !== null ? date.getMonth() === selectedMonth : true;
         const matchYear = selectedYear !== null ? date.getFullYear() === selectedYear : true;
         return matchMonth && matchYear;
       });
-    };
+
     setFilteredVisitData(filterData(visitData));
     setFilteredRetentionData(filterData(retentionData));
-  }, [selectedMonth, selectedYear, visitData, retentionData]);
+    setFilteredNewUserData(filterData(newUserData));
+  }, [selectedMonth, selectedYear, visitData, retentionData, newUserData]);
 
   if (loading) {
     return (
@@ -97,14 +122,14 @@ export default function AdminDashboardContent() {
     );
   }
 
-  // ---- เตรียมข้อมูล KPI + Donut ----
-  const newUsers = filteredVisitData.reduce((acc, d) => acc + (d.newUsers || 0), 0);
-  const returningUsers = filteredVisitData.reduce((acc, d) => acc + (d.returningUsers || 0), 0);
-  const activeUsers = newUsers + returningUsers;
+  // KPI
+  const newUsersCount = filteredNewUserData.reduce((acc, d) => acc + d.visits, 0);
+  const returningUsersCount = filteredVisitData.reduce((acc, d) => acc + d.visits, 0) - newUsersCount;
+  const activeUsers = newUsersCount + returningUsersCount;
 
   const donutData = [
-    { name: "New Users", value: newUsers },
-    { name: "Returning Users", value: returningUsers },
+    { name: "ผู้ใช้ใหม่", value: newUsersCount },
+    { name: "ผู้ใช้เดิม", value: returningUsersCount },
   ];
 
   return (
@@ -139,15 +164,15 @@ export default function AdminDashboardContent() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl shadow p-4 text-center">
-          <p className="text-gray-500">New Users</p>
-          <h3 className="text-2xl font-bold text-blue-600">{newUsers}</h3>
+          <p className="text-gray-500">ผู้ใช้ใหม่</p>
+          <h3 className="text-2xl font-bold text-blue-600">{newUsersCount}</h3>
         </div>
         <div className="bg-white rounded-xl shadow p-4 text-center">
-          <p className="text-gray-500">Returning Users</p>
-          <h3 className="text-2xl font-bold text-green-600">{returningUsers}</h3>
+          <p className="text-gray-500">ผู้ใช้เดิม</p>
+          <h3 className="text-2xl font-bold text-green-600">{returningUsersCount}</h3>
         </div>
         <div className="bg-white rounded-xl shadow p-4 text-center">
-          <p className="text-gray-500">Active Users</p>
+          <p className="text-gray-500">ผู้ใช้งานทั้งหมด</p>
           <h3 className="text-2xl font-bold text-purple-600">{activeUsers}</h3>
         </div>
       </div>
@@ -156,7 +181,7 @@ export default function AdminDashboardContent() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Donut */}
         <div className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-          <h2 className="text-lg font-semibold mb-4">New vs Returning</h2>
+          <h2 className="text-lg font-semibold mb-4">ผู้ใช้ใหม่ vs ผู้ใช้เดิม</h2>
           <PieChart width={250} height={250}>
             <Pie
               data={donutData}
@@ -170,21 +195,29 @@ export default function AdminDashboardContent() {
               ))}
             </Pie>
           </PieChart>
-          <p className="text-gray-600 mt-2 font-medium">รวม {activeUsers} Users</p>
+          <p className="text-gray-600 mt-2 font-medium">รวม {activeUsers} ผู้ใช้</p>
         </div>
 
         {/* Line Chart: New vs Returning Trend */}
         <div className="bg-white rounded-xl shadow p-4">
-          <h2 className="text-lg font-semibold mb-4">แนวโน้มผู้ใช้</h2>
+          <h2 className="text-lg font-semibold mb-4">แนวโน้มผู้ใช้ใหม่ vs ผู้ใช้เดิม</h2>
           <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={filteredVisitData}>
+            <LineChart data={filteredNewUserData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
-              <Tooltip />
+              <Tooltip formatter={(value: any) => `${value} คน`} />
               <Legend />
-              <Line type="monotone" dataKey="newUsers" stroke="#3b82f6" name="New Users" />
-              <Line type="monotone" dataKey="returningUsers" stroke="#10b981" name="Returning Users" />
+              <Line type="monotone" dataKey="visits" stroke="#3b82f6" name="ผู้ใช้ใหม่" />
+              <Line
+                type="monotone"
+                dataKey={(d: any) => {
+                  const matchingVisit = filteredVisitData.find(v => v.date === d.date);
+                  return matchingVisit ? matchingVisit.visits - d.visits : 0;
+                }}
+                stroke="#10b981"
+                name="ผู้ใช้เดิม"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

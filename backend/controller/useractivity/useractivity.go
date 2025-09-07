@@ -62,6 +62,31 @@ func GetVisitFrequency(c *gin.Context) {
 	c.JSON(http.StatusOK, results)
 }
 
+func GetNewuser(c *gin.Context) {
+	var results []struct {
+		Date   string `json:"date"`
+		Visits int    `json:"visits"`
+	}
+
+	// ตัวอย่าง query: group by วันที่
+	if err := config.DB().
+		Model(&entity.UserActivity{}).
+		Select("DATE(created_at) as date, COUNT(*) as visits").
+		Where("action = ?","create_account").
+		Group("DATE(created_at)").
+		Order("DATE(created_at) ASC").
+		Scan(&results).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get visit frequency"})
+		return
+	}
+
+	c.JSON(http.StatusOK, results)
+}
+
+
+
+
+
 // GetRetentionRate คืนค่า % ของผู้ใช้ที่กลับมาใช้งาน
 func GetRetentionRate(c *gin.Context) {
 	// สมมติว่าเราจะคำนวณ retention rate ต่อวัน

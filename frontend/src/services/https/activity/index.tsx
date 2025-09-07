@@ -64,3 +64,24 @@ export async function getRetentionRate(): Promise<RetentionRate[]> {
     throw error;
   }
 }
+
+/* ===== Admin Dashboard API ===== */
+export interface NewUser {
+  date: string;
+  visits: number; // จำนวนผู้ใช้ที่สร้างบัญชีในวันนั้น
+}
+
+// ดึงข้อมูลผู้ใช้ใหม่
+export async function getNewUsers(): Promise<NewUser[]> {
+  try {
+    const { data } = await axios.get(`${apiUrl}/new-users`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    return data;
+  } catch (error: any) {
+    console.error("❌ Failed to fetch new users:", error.response?.data || error.message);
+    throw error;
+  }
+}

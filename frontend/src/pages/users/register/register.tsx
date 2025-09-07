@@ -247,15 +247,20 @@ function SignUpPages() {
                 </Col>
 
                 <Col span={24}>
-                  <Form.Item
-                    label="รหัสผ่าน"
-                    name="password"
-                    rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน !" }]}
-                  >
-                    <Input.Password placeholder="Password" />
-                  </Form.Item>
-                </Col>
-
+  <Form.Item
+    label="รหัสผ่าน"
+    name="password"
+    rules={[
+      { required: true, message: "กรุณากรอกรหัสผ่าน !" },
+      { 
+        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        message: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร พร้อมตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ"
+      },
+    ]}
+  >
+    <Input.Password placeholder="Password" />
+  </Form.Item>
+</Col>
                 {/* <Col xs={24} md={12}>
                   <Form.Item
                     label="อายุ"
@@ -295,14 +300,17 @@ function SignUpPages() {
                 </Col>
 
                 <Col span={24}>
-                  <Form.Item
-                    label="เบอร์โทรศัพท์"
-                    name="phone_number"
-                    rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" }]}
-                  >
-                    <Input placeholder="Phone Number" />
-                  </Form.Item>
-                </Col>
+  <Form.Item
+    label="เบอร์โทรศัพท์"
+    name="phone_number"
+    rules={[
+      { required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" },
+      { pattern: /^[0-9]{9,10}$/, message: "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก" },
+    ]}
+  >
+    <Input placeholder="Phone Number" maxLength={10} />
+  </Form.Item>
+</Col>
 
                 <Col xs={24} md={12}>
                   <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">

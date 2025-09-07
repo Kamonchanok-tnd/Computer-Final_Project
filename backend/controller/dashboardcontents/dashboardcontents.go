@@ -77,35 +77,67 @@ func GetSoundChanting(c *gin.Context) {
 
 
 // DailyViewByTitle แสดงจำนวนการอ่านต่อวัน ต่อเรื่อง
+// type DailyViewByTitle struct {
+// 	Date      string `json:"date"`
+// 	Title     string `json:"title"`
+// 	TotalViews int    `json:"total_views"`
+// }
+
+// // GetDailyViewsByTitle ดึงจำนวนการอ่านต่อวัน พร้อมชื่อเรื่อง
+// func GetDailyViewsByTitle(c *gin.Context) {
+// 	db := config.DB()
+
+// 	var results []DailyViewByTitle
+
+// 	err := db.Model(&entity.WordHealingContent{}).
+// 		Select("DATE(date) as date, name as title, SUM(view_count) as total_views").
+// 		Group("DATE(date), name").
+// 		Order("DATE(date) ASC").
+// 		Scan(&results).Error
+
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	if len(results) == 0 {
+// 		c.JSON(http.StatusOK, gin.H{"message": "No data found"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"results": results})
+// }
+
 type DailyViewByTitle struct {
-	Date      string `json:"date"`
-	Title     string `json:"title"`
-	TotalViews int    `json:"total_views"`
+    Date       string `json:"date"`
+    Title      string `json:"title"`
+    TotalViews int    `json:"total_views"`
 }
 
-// GetDailyViewsByTitle ดึงจำนวนการอ่านต่อวัน พร้อมชื่อเรื่อง
+// ดึงจำนวนการอ่านต่อวัน พร้อมชื่อเรื่อง
 func GetDailyViewsByTitle(c *gin.Context) {
-	db := config.DB()
+    db := config.DB()
 
-	var results []DailyViewByTitle
+    var results []DailyViewByTitle
 
-	err := db.Model(&entity.WordHealingContent{}).
-		Select("DATE(date) as date, name as title, SUM(view_count) as total_views").
-		Group("DATE(date), name").
-		Order("DATE(date) ASC").
-		Scan(&results).Error
+    err := db.Model(&entity.View{}).
+        Select("DATE(views.created_at) as date, word_healing_contents.name as title, COUNT(views.id) as total_views").
+        Joins("JOIN word_healing_contents ON views.whid = word_healing_contents.id").
+        Group("DATE(views.created_at), word_healing_contents.name").
+        Order("DATE(views.created_at) ASC").
+        Scan(&results).Error
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
 
-	if len(results) == 0 {
-		c.JSON(http.StatusOK, gin.H{"message": "No data found"})
-		return
-	}
+    if len(results) == 0 {
+        c.JSON(http.StatusOK, gin.H{"message": "No data found"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"results": results})
+    c.JSON(http.StatusOK, gin.H{"results": results})
 }
 
 
@@ -456,17 +488,24 @@ func GetSoundFourType(c *gin.Context) {
     var results []struct {
         Year      int    `json:"year"`
         Month     int    `json:"month"`
+        Day       int    `json:"day"`
         Category  string `json:"category"`
         PlayCount int    `json:"play_count"`
     }
 
     err := db.Model(&entity.History{}).
-        Select("EXTRACT(YEAR FROM histories.created_at) as year, EXTRACT(MONTH FROM histories.created_at) as month, sound_types.type as category, COUNT(*) as play_count").
+        Select(`
+            EXTRACT(YEAR FROM histories.created_at) as year,
+            EXTRACT(MONTH FROM histories.created_at) as month,
+            EXTRACT(DAY FROM histories.created_at) as day,
+            sound_types.type as category,
+            COUNT(*) as play_count
+        `).
         Joins("JOIN sounds ON sounds.id = histories.s_id").
         Joins("JOIN sound_types ON sound_types.id = sounds.st_id").
         Where("sound_types.type IN ?", []string{"สมาธิ", "สวดมนต์", "ฝึกหายใจ", "asmr"}).
-        Group("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at), sound_types.type").
-        Order("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at)").
+        Group("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at), EXTRACT(DAY FROM histories.created_at), sound_types.type").
+        Order("EXTRACT(YEAR FROM histories.created_at), EXTRACT(MONTH FROM histories.created_at), EXTRACT(DAY FROM histories.created_at)").
         Scan(&results).Error
 
     if err != nil {
