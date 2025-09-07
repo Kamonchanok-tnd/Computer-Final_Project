@@ -175,6 +175,42 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
     saveState({ mode, durations, pomCount });
   }, [mode, durations]);
 
+  // ✅ รีเฟรชทันทีแม้เปิดอยู่
+  useEffect(() => {
+    // 1) จากแท็บ/หน้าอื่น
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY) loadState();
+    };
+    window.addEventListener("storage", onStorage);
+
+    // 2) จากภายในแท็บเดียว (เช่น FloatingClock เขียน localStorage)
+    const syncInterval = window.setInterval(() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        const changed =
+          (typeof saved.endAt === "number" ? saved.endAt : null) !== endAtRef.current ||
+          !!saved.isRunning !== isRunning ||
+          saved.mode !== mode ||
+          (Number.isInteger(saved.pomCount) ? saved.pomCount : pomCount) !== pomCount ||
+          JSON.stringify(saved.durations ?? durations) !== JSON.stringify(durations);
+        if (changed) {
+          loadState();
+        }
+      } catch {}
+    }, 1000);
+
+    // 3) hard reset จาก FloatingClock
+    const onHardReset = () => loadState();
+    window.addEventListener("asmrTimer:hardReset", onHardReset as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("asmrTimer:hardReset", onHardReset as EventListener);
+      window.clearInterval(syncInterval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning, mode, pomCount, durations]);
+
   const formatTime = (sec: number) =>
     `${Math.floor(sec / 60)
       .toString()
@@ -253,7 +289,15 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
     saveState({ mode: next, pomCount: nextPomCount });
   };
 
+  // ✅ เคารพปุ่มปิดเสียง (soundEnabled) ที่แชร์กับ FloatingClock
   const playSound = () => {
+    let soundEnabled = true;
+    try {
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      soundEnabled = s.soundEnabled !== false; // default = true
+    } catch {}
+    if (!soundEnabled) return; // 🔇 ปิดเสียงอยู่
+
     if (!audioRef.current) audioRef.current = new Audio("/assets/asmr/time.mp3");
     audioRef.current.currentTime = 0;
     audioRef.current.play();

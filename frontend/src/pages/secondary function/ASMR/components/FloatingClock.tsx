@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { X, Volume2, VolumeX } from "lucide-react";
 
 const STORAGE_KEY = "asmrTimerV1";
 
-// ----------------- utils: read/write state ที่เก็บใน localStorage -----------------
+// ----------------- utils: read/write state ใน localStorage -----------------
 type Mode = "pomodoro" | "short" | "long";
 type Store = {
   mode: Mode;
@@ -11,8 +11,9 @@ type Store = {
   isRunning: boolean;
   autoTransition: boolean;
   endAt: number | null;
-  pomCount: number;            // จำนวน pomodoro ที่จบแล้วใน cycle นี้ (0..4)
-  lastAlarmAt?: number | null; // ป้องกันเสียงซ้ำ
+  pomCount: number;            // pomodoro ที่จบใน cycle นี้ (0..4)
+  lastAlarmAt?: number | null; // กันเสียงซ้ำ
+  soundEnabled?: boolean;      // เปิด/ปิดเสียง
 };
 
 const readStore = (): Store => {
@@ -28,6 +29,7 @@ const readStore = (): Store => {
         endAt: typeof s.endAt === "number" ? s.endAt : null,
         pomCount: Number.isInteger(s.pomCount) ? s.pomCount : 0,
         lastAlarmAt: typeof s.lastAlarmAt === "number" ? s.lastAlarmAt : null,
+        soundEnabled: s.soundEnabled !== false, // default = true
       };
     }
   } catch {}
@@ -39,6 +41,7 @@ const readStore = (): Store => {
     endAt: null,
     pomCount: 0,
     lastAlarmAt: null,
+    soundEnabled: true,
   };
 };
 
@@ -94,15 +97,17 @@ const DotsIndicator: React.FC<{ filled: number }> = ({ filled }) => {
   );
 };
 
-// ----------------- FloatingClock (engine ตอน Panel ปิด) -----------------
+// ----------------- FloatingClock -----------------
 const FloatingClock: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [pomProgress, setPomProgress] = useState<number>(0); // 0..3 (แสดงด้วยจุด)
+  const [pomProgress, setPomProgress] = useState<number>(0); // 0..3
+  const [soundOn, setSoundOn] = useState<boolean>(true);
   const alarmRef = useRef<HTMLAudioElement | null>(null);
 
-  console.log("FloatingClock mounted", { timeLeft, isRunning, pomProgress });
   const beep = () => {
+    const s = readStore();
+    if (s.soundEnabled === false) return; // ปิดเสียงอยู่
     if (!alarmRef.current) alarmRef.current = new Audio("/assets/asmr/time.mp3");
     alarmRef.current.currentTime = 0;
     alarmRef.current.play().catch(() => {});
@@ -110,7 +115,6 @@ const FloatingClock: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   // ปุ่มปิด = hard reset ทั้งระบบ (TimerPanel + FloatingClock)
   const hardReset = () => {
-    // เคลียร์สถานะ timer แต่เก็บ durations ไว้
     const s = readStore();
     writeStore({
       mode: "pomodoro",
@@ -118,25 +122,27 @@ const FloatingClock: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       endAt: null,
       pomCount: 0,
       lastAlarmAt: null,
-      // durations/autoTransition คงค่าเดิมไว้
       durations: s.durations,
       autoTransition: s.autoTransition,
     });
+    try { window.dispatchEvent(new CustomEvent("asmrTimer:hardReset")); } catch {}
+    onClose();
+  };
 
-    // แจ้ง component อื่นในหน้านี้ (เช่น TimerPanel ถ้าเปิดอยู่) ให้รีเซ็ตตาม
-    try {
-      window.dispatchEvent(new CustomEvent("asmrTimer:hardReset"));
-    } catch {}
-
-    onClose(); // ปิด FloatingClock UI
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    writeStore({ soundEnabled: next });
+    // ยิง event ให้ component อื่นอัปเดตทันที (ถ้าอยากฟัง)
+    try { window.dispatchEvent(new CustomEvent("asmrTimer:soundToggled")); } catch {}
   };
 
   useEffect(() => {
     const tick = () => {
       const s = readStore();
 
-      // อัปเดต indicator: ในหนึ่ง cycle แสดง 0..3 จุดแดง
       setPomProgress(s.pomCount % 4);
+      setSoundOn(s.soundEnabled !== false);
 
       if (s.isRunning && s.endAt) {
         const remain = Math.max(0, Math.floor((s.endAt - Date.now()) / 1000));
@@ -197,21 +203,33 @@ const FloatingClock: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   return (
     <div
-      className="fixed right-4 top-20 z-50 px-4 py-3 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-3"
+      className="fixed right-4 top-20 z-50 px-4 py-3 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-2"
       style={{
         background: "rgba(243,244,246,0.95)",   // gray-100
         border: "1px solid rgba(209,213,219,0.8)" // gray-300
       }}
     >
-      {/* ซ้อนเป็นคอลัมน์: จุดบอกความคืบหน้า + นาฬิกา */}
       <div className="flex flex-col items-start gap-1">
         <DotsIndicator filled={pomProgress} />
         <FlipClock minutes={mm} seconds={ss} />
       </div>
 
+      {/* ปุ่มเสียง */}
+      <button
+        onClick={toggleSound}
+        className={`w-7 h-7 flex items-center justify-center rounded-full transition-colors ${
+          soundOn ? "bg-gray-300/70 hover:bg-gray-400/90" : "bg-gray-200/80 hover:bg-gray-300/90"
+        }`}
+        title={soundOn ? "ปิดเสียง" : "เปิดเสียง"}
+        aria-pressed={soundOn ? "true" : "false"}
+      >
+        {soundOn ? <Volume2 size={16} className="text-gray-700" /> : <VolumeX size={16} className="text-gray-700" />}
+      </button>
+
+      {/* ปุ่มรีเซ็ต+ปิด */}
       <button
         onClick={hardReset}
-        className="ml-2 w-7 h-7 flex items-center justify-center rounded-full bg-gray-300/70 hover:bg-gray-400/90"
+        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-300/70 hover:bg-gray-400/90"
         title="รีเซ็ตและปิด"
       >
         <X size={16} className="text-gray-700" />
