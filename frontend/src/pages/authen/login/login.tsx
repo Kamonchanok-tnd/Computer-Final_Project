@@ -288,7 +288,7 @@ import { SignInInterface } from "../../../interfaces/SignIn";
 import smile1 from "../../../assets/transparent-Photoroom-Photoroom.png";
 import smile2 from "../../../assets/4-Photoroom.png";
 import smile3 from "../../../assets/5-Photoroom.png";
-import logo from "../../../assets/user.png";
+import logo from "../../../assets/logo/header1.png";
 
 import "./login.css"; // ใส่ไฟล์ CSS แยก
 import { useUser } from "../../../layout/HeaderLayout/UserContext";
