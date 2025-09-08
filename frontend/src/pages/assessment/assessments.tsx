@@ -8,10 +8,10 @@ import {
   submitAnswer,
   finishAssessment,
   getQuestionnaireByID,
+  getAllEmotionChoices,
 } from "../../services/https/assessment/index";
 import { Question } from "../../interfaces/IQuestion";
 import { AnswerOption } from "../../interfaces/IAnswerOption";
-import { getAllEmotionChoices } from "../../services/https/questionnaire/index";
 import { EmotionChoice } from "../../interfaces/IEmotionChoices";
 
 const apiUrl = import.meta.env.VITE_API_URL as string;
@@ -90,12 +90,18 @@ const Assessments: React.FC = () => {
             priority: q.priority,
           }));
 
+        // 🔁 แทนที่บล็อกเดิมนี้ทั้งหมด
         const mappedAnswerOptions: AnswerOption[] = aRes.map((a: any) => ({
-          id: a.ID,
-          description: a.description,
-          point: a.point,
-          qid: a.qid,
-          EmotionChoiceID: a.EmotionChoiceID,
+          id: a.ID ?? a.id,
+          description: a.description ?? a.Description,
+          point: a.point ?? a.Point,
+          qid: a.qid ?? a.QID ?? a.q_id,
+          // ✅ สำคัญ: รองรับทุกกรณีชื่อคีย์ที่ backend อาจส่งมา
+          EmotionChoiceID:
+            a.emotionChoiceId ??
+            a.EmotionChoiceID ??
+            a.emotion_choice_id ??
+            null,
         }));
 
         setQuestions(filteredQuestions);
@@ -253,6 +259,14 @@ const Assessments: React.FC = () => {
           const imageSrc = emotionChoice?.picture
             ? buildImageSrc(emotionChoice.picture)
             : "";
+
+          // ✅ log ตรงนี้
+          console.log("🖼️ EmotionChoice:", {
+            optID: opt.id,
+            description: opt.description,
+            rawPicture: emotionChoice?.picture,
+            finalSrc: imageSrc,
+          });
 
           return (
             <div

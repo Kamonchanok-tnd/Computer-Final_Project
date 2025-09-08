@@ -271,6 +271,7 @@ func main() {
 
 		//assessment
 		userRouter.GET("/assessment/AnswerOptions", assessment.GetAllAnswerOptions)
+		userRouter.GET("/assessment/getallemotionchoices", questionnaire.GetAllEmotionChoices)
 		userRouter.GET("/assessment/AssessmentAnswers", assessment.GetAllAssessmentAnswers)
 		userRouter.GET("/assessment/AssessmentResults", assessment.GetAllAssessmentResults)
 		userRouter.GET("/assessment/Calculations", assessment.GetAllCalculations)
