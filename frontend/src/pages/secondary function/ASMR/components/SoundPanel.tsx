@@ -25,46 +25,47 @@ interface Props {
 const SoundPanel: React.FC<Props> = ({ playingSounds, volumes, toggleSound, updateVolume }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-white text-xl font-medium flex items-center gap-2">
-        <img src={iconSound} alt="Ambience" className="w-8 h-8" />
+      <h3 className="text-white text-lg md:text-xl font-medium flex items-center gap-2">
+        <img src={iconSound} alt="Ambience" className="w-7 h-7 md:w-8 md:h-8" />
         เสียงบรรยากาศ
       </h3>
-      <div className="space-y-3">
+
+      <div className="grid grid-cols-1 gap-3">
         {ambianceFiles.map((item) => {
           const isPlaying = playingSounds.has(item.file);
           const volume = volumes[item.file] ?? 50;
 
           return (
-            <div key={item.file} className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-2">
+            <div key={item.file} className="bg-white/10 rounded-xl p-3 md:p-4 backdrop-blur-sm">
+              {/* แถวบน: ไอคอน+ชื่อ + ปุ่มเล่น/หยุด → บนจอเล็กให้ wrap ได้ */}
+              <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 md:gap-3 mb-2 md:mb-3">
                 <div className="flex items-center gap-2 text-white font-medium">
-                  <span>{item.icon}</span>
-                  <span>{item.name}</span>
+                  <span className="text-lg md:text-xl leading-none">{item.icon}</span>
+                  <span className="text-sm md:text-base">{item.name}</span>
                 </div>
                 <button
                   onClick={() => toggleSound(item.file, item.file)}
-                  className={`p-2 rounded-full transition-colors ${
-                    isPlaying
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white/20 text-white/80 hover:bg-white/30'
-                  }`}
+                  className={`p-2 md:p-2.5 rounded-full transition-colors
+                    ${isPlaying ? 'bg-blue-500 text-white' : 'bg-white/20 text-white/80 hover:bg-white/30'}`}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
                 >
                   {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                 </button>
               </div>
 
+              {/* แถวล่าง: แถบปรับเสียง → มือถือเรียงซ้อน/ชิด, md+ กว้างขึ้น */}
               {isPlaying && (
-                <div className="flex items-center space-x-2">
-                  <Volume2 size={16} className="text-white/60" />
+                <div className="flex items-center gap-2 md:gap-3">
+                  <Volume2 size={16} className="text-white/60 shrink-0" />
                   <input
                     type="range"
                     min={0}
                     max={100}
                     value={volume}
                     onChange={(e) => updateVolume(item.file, parseInt(e.target.value))}
-                    className="flex-1 h-1 bg-white/20 rounded-lg appearance-none slider"
+                    className="flex-1 h-1.5 md:h-2 bg-white/20 rounded-lg appearance-none slider"
                   />
-                  <span className="text-white/60 text-sm w-8">{volume}</span>
+                  <span className="text-white/60 text-xs md:text-sm w-8 text-right">{volume}</span>
                 </div>
               )}
             </div>

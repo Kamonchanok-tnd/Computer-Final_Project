@@ -46,12 +46,12 @@ func Authorizes(requiredRole string) gin.HandlerFunc {
 		}
 
 		// ตั้งค่า userID และ userRole ใน context
-		c.Set("uid", claims.ID)       // ของดิว   
-        c.Set("role", claims.Role)    // ของดิว
+		// c.Set("uid", claims.ID)       // ของดิว   
+        // c.Set("role", claims.Role)    // ของดิว
 		c.Set("userID", claims.ID)
 		c.Set("userRole", claims.Role)
        fmt.Println("Claims ID in Middleware: ", claims.ID)
-fmt.Println("Claims Role in Middleware: ", claims.Role)
+		fmt.Println("Claims Role in Middleware: ", claims.Role)
 
 
 		// ให้สามารถเข้าถึงได้ถ้าเป็น admin หรือ superadmin

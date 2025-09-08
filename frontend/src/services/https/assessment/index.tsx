@@ -5,6 +5,7 @@ import { QuestionnaireGroup } from '../../../interfaces/IQuestionnaireGroup';
 import { AssessmentAnswer } from '../../../interfaces/IAssessmentAnswer';
 import { ITransaction } from "../../../interfaces/ITransaction";
 import type { Questionnaire } from "../../../interfaces/IQuestionnaire";
+import { EmotionChoice } from "../../../interfaces/IEmotionChoices";
 
 
 // ✅ Inline axiosInstance พร้อมแนบ token
@@ -144,6 +145,26 @@ export const getAvailableGroupsAndNext = async (
   });
 
   return data;
+};
+
+// ดึง EmotionChoice ทั้งหมด
+export const getAllEmotionChoices = async (): Promise<EmotionChoice[]> => {
+  try {
+    const res = await axiosInstance.get("/assessment/getallemotionchoices");
+
+    // เผื่อ backend ส่งมาเป็น ID/Picture ตัวใหญ่
+    const data: EmotionChoice[] = res.data.map((e: any) => ({
+      id: e.id ?? e.ID,
+      name: e.name ?? e.Name,
+      picture: e.picture ?? e.Picture,
+      answerOptions: e.answerOptions ?? e.AnswerOptions ?? [],
+    }));
+
+    return data;
+  } catch (err) {
+    console.error("❌ Failed to fetch emotion choices:", err);
+    return [];
+  }
 };
 
 
