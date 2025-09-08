@@ -148,8 +148,8 @@ func main() {
 		router.PATCH("/updatewordhealingmessage/:id", wordhealingmessage.UpdateWordHealingMessage)  // route สำหรับเเก้ไขเเบบบทความ
 		router.PATCH("/updateviewcountmessage/:id", wordhealingmessage.UpdateViewcountMessage)      // route สำหรับเพิ่มจำนวนการเข้าชมบทความ
 		router.GET("/getarticletype", wordhealingmessage.GetArticleTypes)                           // route สำหรับดึงประเภทของบทความไปใช้ใน dropdown
-		router.POST("/views/count", wordhealingmessage.CountView)                                   //
-        router.GET("/views/by-message/:id", wordhealingmessage.ListViewsByMessage)                  //
+		router.POST("/views/count", wordhealingmessage.CountView)                                   
+        router.GET("/views/by-message/:id", wordhealingmessage.ListViewsByMessage)                  
 
 
         // Video routes

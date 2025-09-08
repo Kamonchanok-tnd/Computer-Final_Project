@@ -147,7 +147,6 @@ func UpdateViewcountMessage(c *gin.Context) {
 
 
 
-
 /* ==================== helpers ==================== */
 
 // แปลงค่าประเภทต่าง ๆ เป็น uint

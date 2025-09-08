@@ -1,5 +1,3 @@
-// package entity
-
 package entity
 
 import (
@@ -8,18 +6,15 @@ import (
 
 
 type View struct {
-	ID        uint      `gorm:"primaryKey"`
+	ID uint `gorm:"primaryKey" json:"id" valid:"-"`
 
-	UID       *uint     `gorm:"index;column:uid"`  // null = ผู้ใช้ไม่ล็อกอินก็ได้
-	User      Users     `gorm:"foreignKey:UID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	UID  *uint `gorm:"index;column:uid" json:"uid" valid:"-"` // อนุญาตว่าง (guest)
+	User Users `gorm:"foreignKey:UID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"-" valid:"-"`
 
-	WHID      uint      `gorm:"index;column:whid"` // อ้างไปที่ WordHealingContent.ID
-	WordHealingContent   WordHealingContent `gorm:"foreignKey:WHID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	WHID               uint               `gorm:"index;column:whid" json:"whid" valid:"required~กรุณาระบุเนื้อหา (WHID)"`
+	WordHealingContent WordHealingContent `gorm:"foreignKey:WHID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-" valid:"-"`
 
-	// meta เผื่อใช้ภายหลัง (ไม่จำเป็นต้องส่งมาก็ได้)
-	ReadMS      int       `gorm:"default:0"`   // เวลาที่อ่าน (มิลลิวินาที)
-	PctScrolled int       `gorm:"default:0"`   // % ที่เลื่อนอ่านสูงสุด
-	CreatedAt   time.Time                      // เวลาเกิด record (ตอนถูกนับวิว)
-
+	ReadMS      int       `gorm:"default:0" json:"readMS"      valid:"int,range(0|864000000)~เวลาที่อ่านต้องอยู่ระหว่าง 0–864000000 มิลลิวินาที"` // 0..10 วัน
+	PctScrolled int       `gorm:"default:0" json:"pctScrolled" valid:"int,range(0|100)~เปอร์เซ็นต์การเลื่อนต้องอยู่ระหว่าง 0–100"`
+	CreatedAt   time.Time `json:"createdAt"` // ให้ GORM จัดการเวลา
 }
-
