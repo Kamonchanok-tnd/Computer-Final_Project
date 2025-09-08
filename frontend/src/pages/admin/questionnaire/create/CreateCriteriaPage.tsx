@@ -233,7 +233,7 @@ const CreateCriteriaPage: React.FC = () => {
             </div>
           </div>
 
-          {/* รายการเกณฑ์ (เหมือนหน้า edit) */}
+          {/* รายการเกณฑ์ */}
           {criteriaList.length === 0 ? (
             <div className="text-slate-500">ยังไม่มีเกณฑ์การประเมิน</div>
           ) : (
@@ -306,19 +306,33 @@ const CreateCriteriaPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Success Modal */}
+      {/* Success Modal: สร้างเกณฑ์การประเมินเรียบร้อย */}
       <Modal
+        className="!font-ibmthai"
         title="สร้างเกณฑ์การประเมินเรียบร้อย"
         open={isSuccessModalVisible}
         onOk={handleSuccessOk}
         onCancel={() => setIsSuccessModalVisible(false)}
         okText="ตกลง"
         centered
+        okButtonProps={{
+          // ปุ่มตกลง 
+          className:
+            "!rounded-xl !border-none !shadow-none " +
+            "!bg-[#5DE2FF] !text-white hover:!bg-cyan-500",
+        }}
+        cancelButtonProps={{
+          // ปุ่มยกเลิก
+          className:
+            "!rounded-xl !border-none !shadow-none " +
+            "!bg-black !text-white hover:!bg-gray-700 active:!bg-gray-800",
+        }}
       >
-        <p style={{ textAlign: "center", color: "#52c41a" }}>
-          ข้อมูลเกณฑ์การประเมินถูกบันทึกสำเร็จแล้ว!
+        <p style={{ textAlign: "center", color: "#52c41a", font: "!font-ibmthai" }}>
+          ข้อมูลแบบทดสอบและเกณฑ์การประเมินถูกบันทึกสำเร็จแล้ว!
         </p>
       </Modal>
+
     </div>
   );
 };
