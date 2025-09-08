@@ -86,8 +86,7 @@ const SortableItem = ({
 };
 
 const ManageTestOrder: React.FC = () => {
-  const [draggedDays, setDraggedDays] = useState<number>(14);
-  const [originalDays, setOriginalDays] = useState<number>(14);
+  const [draggedDays, setDraggedDays] = useState<number>(0);
   const [showSaveButton, setShowSaveButton] = useState<boolean>(false);
   const [columns, setColumns] = useState<Column[]>([]);
   const [questionnaireMap, setQuestionnaireMap] = useState<
@@ -99,7 +98,7 @@ const ManageTestOrder: React.FC = () => {
   >([]);
   const [isDragMode, setIsDragMode] = useState<boolean>(false);
 
-  console.log("🧪:", originalDays, setOriginalDays, showSaveButton);
+  console.log("🧪:", showSaveButton);
 
   const groupIDs = [1, 2, 3];
   const colors = [
@@ -120,15 +119,27 @@ const ManageTestOrder: React.FC = () => {
         const group = await getQuestionnaireGroupByID(id);
         if (!group) continue;
 
-        allCols.push({
-          id: group.id,
-          title: group.name,
-          subtitle:
-            group.id === 3 ? `📅 ทุกๆ ${draggedDays} วัน` : group.description,
-          color: colors[i],
-          editable: group.id === 3,
-          intervalDays: group.frequency_days ?? undefined,
-        });
+        if (group.id === 3) {
+          const daysFromDB = Number(group.frequency_days ?? 14);
+          setDraggedDays(daysFromDB); // ← ตั้งค่าจาก DB
+          allCols.push({
+            id: group.id,
+            title: group.name,
+            subtitle: `📅 ทุกๆ ${daysFromDB} วัน`,
+            color: colors[i],
+            editable: true,
+            intervalDays: daysFromDB,
+          });
+        } else {
+          allCols.push({
+            id: group.id,
+            title: group.name,
+            subtitle: group.description,
+            color: colors[i],
+            editable: false,
+            intervalDays: group.frequency_days ?? undefined,
+          });
+        }
 
         qMap[group.id] = Array.isArray(group.questionnaires)
           ? group.questionnaires.map((q: any) => ({

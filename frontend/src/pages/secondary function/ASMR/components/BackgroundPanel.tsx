@@ -8,7 +8,10 @@ interface BackgroundPanelProps {
   onSelectBg: (id: number, bgUrl: string, sid: number) => void;
 }
 
-const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ selectedId, onSelectBg }) => {
+const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
+  selectedId,
+  onSelectBg,
+}) => {
   const [backgrounds, setBackgrounds] = useState<Sound[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,8 +20,17 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ selectedId, onSelectB
       try {
         const response = await getSoundsByTypeID(1);
         setBackgrounds(response.sounds);
-        if (!selectedId && response.sounds.length > 0 && response.sounds[0].ID && response.sounds[0].sound) {
-          onSelectBg(response.sounds[0].ID, response.sounds[0].sound, response.sounds[0].ID);
+        if (
+          !selectedId &&
+          response.sounds.length > 0 &&
+          response.sounds[0].ID &&
+          response.sounds[0].sound
+        ) {
+          onSelectBg(
+            response.sounds[0].ID,
+            response.sounds[0].sound,
+            response.sounds[0].ID
+          );
         }
       } catch (error) {
         console.error("Error fetching backgrounds:", error);
@@ -45,22 +57,41 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({ selectedId, onSelectB
         ภาพพื้นหลัง
       </h3>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div
+        className="
+    grid
+    [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]
+    sm:[grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]
+    grid grid-cols-1 md:grid-cols-2 gap-3
+  "
+      >
         {backgrounds.map((bg) => (
           <div
             key={bg.ID}
-            className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-              selectedId === bg.ID ? "border-blue-400" : "border-transparent hover:border-gray-400"
-            }`}
+            className={`group relative cursor-pointer rounded-lg overflow-hidden
+        border border-white/20 transition
+        ${
+          selectedId === bg.ID
+            ? "ring-2 ring-blue-400/60"
+            : "hover:border-white/30"
+        }`}
             onClick={() => selectBackground(bg.ID!)}
           >
             <img
-              src={bg.sound ? `https://img.youtube.com/vi/${bg.sound.split("v=")[1]?.split("&")[0]}/mqdefault.jpg` : "/api/placeholder/200/120"}
+              src={
+                bg.sound
+                  ? `https://img.youtube.com/vi/${
+                      bg.sound.split("v=")[1]?.split("&")[0]
+                    }/mqdefault.jpg`
+                  : "/api/placeholder/200/120"
+              }
               alt={bg.name}
-              className="w-full h-20 object-cover"
+              className="w-full aspect-[16/9] object-cover"
             />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-              <p className="text-white text-xs font-medium">{bg.name}</p>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 sm:p-2">
+              <p className="text-white text-[11px] sm:text-xs font-medium truncate">
+                {bg.name}
+              </p>
             </div>
           </div>
         ))}
