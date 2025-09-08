@@ -393,36 +393,45 @@ func FinishAssessment(c *gin.Context) {
 			resultLevel = "bored"
 		}
 	} else {
-		// หาค่ากลาง: ถ้ามีเกณฑ์คำว่า "ปานกลาง" ใช้ midpoint ของเกณฑ์นั้น ไม่งั้นใช้ (min+max)/2
+		// หาค่ากลาง: ถ้ามี "ปานกลาง" ใช้ midpoint ของช่วงนั้น ไม่งั้นใช้ (min+max)/2
 		boredMid := (minScore + maxScore) / 2
+		var midMin, midMax int
+		var hasMedium bool
 		for _, cr := range criteriaList {
 			if strings.Contains(cr.Description, "ปานกลาง") {
 				boredMid = (cr.MinCriteriaScore + cr.MaxCriteriaScore) / 2
+				midMin, midMax = cr.MinCriteriaScore, cr.MaxCriteriaScore
+				hasMedium = true
 				break
 			}
 		}
 
-		switch testType { // หลายระดับ
-		case "negative":
-			switch {
-			case total < boredMid:
-				resultLevel = "happy"
-			case total > boredMid:
-				resultLevel = "sad"
-			default:
-				resultLevel = "bored"
-			}
-		case "positive":
-			switch {
-			case total < boredMid:
-				resultLevel = "sad"
-			case total > boredMid:
-				resultLevel = "happy"
-			default:
-				resultLevel = "bored"
-			}
-		default:
+		// ✅ ถ้า criteria ที่แมตช์คือ "ปานกลาง" ให้เป็น bored ทันที
+		if hasMedium && total >= midMin && total <= midMax {
 			resultLevel = "bored"
+		} else {
+			switch testType {
+			case "negative":
+				switch {
+				case total < boredMid:
+					resultLevel = "happy"
+				case total > boredMid:
+					resultLevel = "sad"
+				default:
+					resultLevel = "bored"
+				}
+			case "positive":
+				switch {
+				case total < boredMid:
+					resultLevel = "sad"
+				case total > boredMid:
+					resultLevel = "happy"
+				default:
+					resultLevel = "bored"
+				}
+			default:
+				resultLevel = "bored"
+			}
 		}
 	}
 
