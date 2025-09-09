@@ -6,13 +6,12 @@ import (
 
 type QuestionnaireGroup struct {
 	gorm.Model
-	Name        string         `gorm:"unique;not null"` // เช่น "pre-test", "post-test"
-	Description string
-    FrequencyDays *uint   // ความถี่สำหรับ post-test แบบซ้ำ เช่น 7, 14 วัน
-	TriggerType   *string
+	Name          string  `gorm:"unique;not null" valid:"required~กรุณาระบุชื่อกลุ่มแบบสอบถาม,length(1|128)~กรุณาระบุชื่อกลุ่มไม่เกิน 128 ตัวอักษร"` // เช่น "pre-test", "post-test"
+	Description   string  `valid:"required~กรุณาระบุคำอธิบาย"`
+	FrequencyDays *uint   `valid:"-"`     
+	TriggerType   *string `valid:"-"`  
 
-	Questionnaires []Questionnaire `gorm:"many2many:questionnaire_group_mappings;"`
-    QuestionnaireGroupQuestionnaires []QuestionnaireGroupQuestionnaire `gorm:"foreignKey:QuestionnaireGroupID"`
-	AssessmentResults []AssessmentResult `gorm:"foreignKey:QGID"`
+	Questionnaires                   []Questionnaire                  `gorm:"many2many:questionnaire_group_mappings;" valid:"-"`
+	QuestionnaireGroupQuestionnaires []QuestionnaireGroupQuestionnaire `gorm:"foreignKey:QuestionnaireGroupID" valid:"-"`
+	AssessmentResults                []AssessmentResult               `gorm:"foreignKey:QGID" valid:"-"`
 }
-
