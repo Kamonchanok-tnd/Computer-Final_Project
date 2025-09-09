@@ -167,6 +167,29 @@ export const getAllEmotionChoices = async (): Promise<EmotionChoice[]> => {
   }
 };
 
+// ✅ ดึงของ user ตาม id ที่ส่งมา
+export async function getUserTransactions(userId: number): Promise<ITransaction[]> {
+  if (!userId || Number.isNaN(userId)) {
+    throw new Error("getUserTransactions: invalid userId");
+  }
+  try {
+    const res = await axiosInstance.get("/assessments/transactions", {
+      params: { user_id: userId },
+    });
+    return res.data as ITransaction[];
+  } catch (err) {
+    console.error("❌ Error fetching user transactions:", err);
+    throw err;
+  }
+}
+
+// ✅ ดึงของ user ปัจจุบัน (อ่านจาก localStorage) — สะดวกเรียกในหน้า Dashboard
+export async function getMyTransactions(): Promise<ITransaction[]> {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const uid = Number(user?.id || localStorage.getItem("id"));
+  return getUserTransactions(uid);
+}
+
 
 ////////////////////////////////////////////Admin Finished//////////////////////////////////////////////////////////////////////////
 export const getQuestionnaireGroupByID = async (id: number) => {

@@ -659,7 +659,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 				First(&lastTx).Error
 
 			if g.FrequencyDays != nil {
-				wait := time.Duration(*g.FrequencyDays) * 24 * time.Hour // Dev ใช้ time.Minute; Prod เปลี่ยนเป็น 24*time.Hour
+				wait := time.Duration(*g.FrequencyDays) * time.Minute // Dev ใช้ time.Minute; Prod เปลี่ยนเป็น 24*time.Hour
 
 				if err == nil {
 					inSameWindow := time.Since(lastTx.CreatedAt) < wait
@@ -809,6 +809,26 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, out)
+}
+
+
+func GetTransactions(c *gin.Context) {
+    userID := c.Query("user_id")
+
+    var tx []entity.Transaction
+    db := config.DB()
+
+    if userID != "" {
+        // JOIN กับ assessment_results เพื่อกรองตาม user
+        db = db.Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
+            Where("ar.uid = ?", userID)
+    }
+
+    if err := db.Order("transactions.created_at ASC").Find(&tx).Error; err != nil {
+        util.HandleError(c, http.StatusInternalServerError, "โหลดธุรกรรมไม่สำเร็จ", "FETCH_FAILED")
+        return
+    }
+    c.JSON(http.StatusOK, tx)
 }
 
 //////////////////////////////////////////////////////////////// ADMIN //////////////////////////////////////////////////////////////////////

@@ -17,9 +17,10 @@ import Assessments from "../pages/assessment/assessments";
 import MoodPopup from "../components/assessment/MoodPopup.tsx";
 import AssessmentLists from "../components/assessment/AssessmentLists.tsx";
 import Result from "../pages/assessment/result.tsx";
-
-import AssessmentDashboard from "../pages/assessment/dashboard";
+import AssessmentDashboard from "../pages/assessment/AssessmentDashboard.tsx";
 import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
+
+
 import VoiceChat from "../pages/Voice-Chat/VoiceChat";
 import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
 import AddSoundPlaylist from "../pages/secondary function/Playlist/Playlist";
