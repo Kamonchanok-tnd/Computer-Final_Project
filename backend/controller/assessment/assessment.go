@@ -659,7 +659,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 				First(&lastTx).Error
 
 			if g.FrequencyDays != nil {
-				wait := time.Duration(*g.FrequencyDays) * time.Minute // Dev ใช้ time.Minute; Prod เปลี่ยนเป็น 24*time.Hour
+				wait := time.Duration(*g.FrequencyDays) * 24 * time.Hour // Dev ใช้ time.Minute; Prod เปลี่ยนเป็น 24*time.Hour
 
 				if err == nil {
 					inSameWindow := time.Since(lastTx.CreatedAt) < wait
