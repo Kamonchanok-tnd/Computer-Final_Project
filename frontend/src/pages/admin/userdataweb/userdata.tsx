@@ -302,19 +302,20 @@ import admin from "../../../assets/analysis.png";
 import dayjs, { Dayjs } from "dayjs";
 import { UserAddOutlined, UserSwitchOutlined, TeamOutlined } from "@ant-design/icons";
 
-
 const COLORS = ["#3b82f6", "#10b981"]; // ฟ้า = ผู้ใช้ใหม่, เขียว = ผู้ใช้เดิม
 
 export default function AdminDashboardContent() {
   const [visitData, setVisitData] = useState<VisitFrequency[]>([]);
   const [retentionData, setRetentionData] = useState<RetentionRate[]>([]);
-  const [newUserData, setNewUserData] = useState<NewUser[]>([]);
-  const [returningUserData, setReturningUserData] = useState<ReturningUser[]>([]);
+  const [newUserData, setNewUserData] = useState<(NewUser & { day: string })[]>([]);
+  const [returningUserData, setReturningUserData] = useState<(ReturningUser & { day: string })[]>([]);
 
   const [filteredVisitData, setFilteredVisitData] = useState<VisitFrequency[]>([]);
   const [filteredRetentionData, setFilteredRetentionData] = useState<RetentionRate[]>([]);
-  const [filteredNewUserData, setFilteredNewUserData] = useState<NewUser[]>([]);
-  const [filteredReturningUserData, setFilteredReturningUserData] = useState<ReturningUser[]>([]);
+  const [filteredNewUserData, setFilteredNewUserData] = useState<(NewUser & { day: string })[]>([]);
+  const [filteredReturningUserData, setFilteredReturningUserData] = useState<
+    (ReturningUser & { day: string })[]
+  >([]);
 
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -349,15 +350,18 @@ export default function AdminDashboardContent() {
           day: formatDate(item.date),
         }));
 
-        const formattedNewUsers = newUsers.map((item) => ({
+        // ✅ cast type เพื่อบอกว่ามี day
+        const formattedNewUsers: (NewUser & { day: string })[] = newUsers.map((item) => ({
           ...item,
           day: formatDate(item.date),
         }));
 
-        const formattedReturningUsers = returningUsers.map((item) => ({
-          ...item,
-          day: formatDate(item.date),
-        }));
+        const formattedReturningUsers: (ReturningUser & { day: string })[] = returningUsers.map(
+          (item) => ({
+            ...item,
+            day: formatDate(item.date),
+          })
+        );
 
         setVisitData(formattedVisits);
         setRetentionData(formattedRetention);
@@ -411,6 +415,16 @@ export default function AdminDashboardContent() {
     { name: "ผู้ใช้เดิม", value: returningUsersCount },
   ];
 
+  // ✅ รวมข้อมูลสำหรับ LineChart
+  const mergedData = filteredNewUserData.map((newUser) => {
+    const matchingReturning = filteredReturningUserData.find((r) => r.day === newUser.day);
+    return {
+      day: newUser.day,
+      visits: newUser.visits,
+      users: matchingReturning ? matchingReturning.users : 0,
+    };
+  });
+
   return (
     <div className="p-6 space-y-8">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-700 flex items-center gap-2">
@@ -442,39 +456,39 @@ export default function AdminDashboardContent() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-4">
-  {/* ผู้ใช้ใหม่ */}
-  <div className="bg-gradient-to-br from-[#cce8ff] to-[#e6f5ff] rounded-2xl p-6 flex justify-around items-center gap-4">
-    <div className="bg-white text-blue-600 p-4 rounded-full shadow-lg shadow-blue-300/30">
-      <UserAddOutlined className="text-2xl" />
-    </div>
-    <div className="text-left">
-      <p className="text-gray-600">ผู้ใช้ใหม่</p>
-      <p className="text-2xl font-bold text-blue-600">{newUsersCount}</p>
-    </div>
-  </div>
+        {/* ผู้ใช้ใหม่ */}
+        <div className="bg-gradient-to-br from-[#cce8ff] to-[#e6f5ff] rounded-2xl p-6 flex justify-around items-center gap-4">
+          <div className="bg-white text-blue-600 p-4 rounded-full shadow-lg shadow-blue-300/30">
+            <UserAddOutlined className="text-2xl" />
+          </div>
+          <div className="text-left">
+            <p className="text-gray-600">ผู้ใช้ใหม่</p>
+            <p className="text-2xl font-bold text-blue-600">{newUsersCount}</p>
+          </div>
+        </div>
 
-  {/* ผู้ใช้เดิม */}
-  <div className="bg-gradient-to-br from-[#d1f7e2] to-[#e6fcf0] rounded-2xl p-6 flex justify-around items-center gap-4">
-    <div className="bg-white text-green-600 p-4 rounded-full shadow-lg shadow-green-300/30">
-      <UserSwitchOutlined className="text-2xl" />
-    </div>
-    <div className="text-left">
-      <p className="text-gray-600">ผู้ใช้เดิม</p>
-      <p className="text-2xl font-bold text-green-600">{returningUsersCount}</p>
-    </div>
-  </div>
+        {/* ผู้ใช้เดิม */}
+        <div className="bg-gradient-to-br from-[#d1f7e2] to-[#e6fcf0] rounded-2xl p-6 flex justify-around items-center gap-4">
+          <div className="bg-white text-green-600 p-4 rounded-full shadow-lg shadow-green-300/30">
+            <UserSwitchOutlined className="text-2xl" />
+          </div>
+          <div className="text-left">
+            <p className="text-gray-600">ผู้ใช้เดิม</p>
+            <p className="text-2xl font-bold text-green-600">{returningUsersCount}</p>
+          </div>
+        </div>
 
-  {/* ผู้ใช้งานทั้งหมด */}
-  <div className="bg-gradient-to-br from-[#e2d1f7] to-[#f3e6fc] rounded-2xl p-6 flex justify-around items-center gap-4">
-    <div className="bg-white text-purple-600 p-4 rounded-full shadow-lg shadow-purple-300/30">
-      <TeamOutlined className="text-2xl" />
-    </div>
-    <div className="text-left">
-      <p className="text-gray-600">ผู้ใช้งานทั้งหมด</p>
-      <p className="text-2xl font-bold text-purple-600">{activeUsers}</p>
-    </div>
-  </div>
-</div>
+        {/* ผู้ใช้งานทั้งหมด */}
+        <div className="bg-gradient-to-br from-[#e2d1f7] to-[#f3e6fc] rounded-2xl p-6 flex justify-around items-center gap-4">
+          <div className="bg-white text-purple-600 p-4 rounded-full shadow-lg shadow-purple-300/30">
+            <TeamOutlined className="text-2xl" />
+          </div>
+          <div className="text-left">
+            <p className="text-gray-600">ผู้ใช้งานทั้งหมด</p>
+            <p className="text-2xl font-bold text-purple-600">{activeUsers}</p>
+          </div>
+        </div>
+      </div>
 
       {/* Donut + Line */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -501,26 +515,14 @@ export default function AdminDashboardContent() {
         <div className="bg-white rounded-xl shadow p-4">
           <h2 className="text-lg font-semibold mb-4">แนวโน้มผู้ใช้ใหม่ vs ผู้ใช้เดิม</h2>
           <ResponsiveContainer width="100%" height={250}>
-            <LineChart>
+            <LineChart data={mergedData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
               <Tooltip formatter={(value: any) => `${value} คน`} />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="visits"
-                data={filteredNewUserData}
-                stroke="#3b82f6"
-                name="ผู้ใช้ใหม่"
-              />
-              <Line
-                type="monotone"
-                dataKey="users"
-                data={filteredReturningUserData}
-                stroke="#10b981"
-                name="ผู้ใช้เดิม"
-              />
+              <Line type="monotone" dataKey="visits" stroke="#3b82f6" name="ผู้ใช้ใหม่" />
+              <Line type="monotone" dataKey="users" stroke="#10b981" name="ผู้ใช้เดิม" />
             </LineChart>
           </ResponsiveContainer>
         </div>
