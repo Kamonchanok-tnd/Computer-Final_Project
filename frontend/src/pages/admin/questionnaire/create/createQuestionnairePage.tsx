@@ -1,18 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { App } from "antd";
+import { message } from "antd";
+import type { MessageInstance } from "antd/es/message/interface";
 import { useNavigate } from "react-router-dom";
 import createQuestionIcon from "../../../../assets/createQuestionnaire.png";
 import { createQuestionnaire, getAllQuestionnaires } from "../../../../services/https/questionnaire";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 
+/* ---------- ชนิดข้อมูล/ตัวเลือก ---------- */
 type TestType = "positive" | "negative";
 type Option = { label: string; value: string | number; icon?: React.ReactNode | string };
 
+/* ---------- คลาสอินพุตมาตรฐานของหน้า ---------- */
 const fieldClass =
   "w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-800 placeholder-slate-400 transition-colors " +
   "focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black bg-white";
 
-/* ============ Dropdown แบบภาพตัวอย่าง (มีค้นหา/ไอคอน) — ไม่ใช้ไฟล์ CSS ============ */
+/* =========================================================
+ *  Dropdown แบบค้นหา
+ * ========================================================= */
 const DropdownSearchSelect: React.FC<{
   value?: string | number;
   onChange: (val: any) => void;
@@ -126,7 +131,9 @@ const DropdownSearchSelect: React.FC<{
   );
 };
 
-/* ================= Number Stepper (กันพิมพ์เอง) ================= */
+/* =========================================================
+ *  NumberStepper
+ * ========================================================= */
 const NumberStepper: React.FC<{
   value: number; onChange: (n: number) => void; min?: number; max?: number; className?: string;
 }> = ({ value, onChange, min = 1, max = 9999, className = "" }) => {
@@ -142,9 +149,14 @@ const NumberStepper: React.FC<{
   );
 };
 
-/* ================= Upload (Base64) ================= */
-const UploadBox: React.FC<{ pictureBase64?: string; setPictureBase64: (v?: string) => void; }> = ({ pictureBase64, setPictureBase64 }) => {
-  const { message } = App.useApp();
+/* =========================================================
+ *  UploadBox (ล็อกขนาดพอดี ไม่ยืดรูป)
+ * ========================================================= */
+const UploadBox: React.FC<{
+  pictureBase64?: string;
+  setPictureBase64: (v?: string) => void;
+  messageApi: MessageInstance;
+}> = ({ pictureBase64, setPictureBase64, messageApi }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
@@ -155,14 +167,15 @@ const UploadBox: React.FC<{ pictureBase64?: string; setPictureBase64: (v?: strin
   const handleFile = async (file?: File) => {
     if (!file) return;
     const accept = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!accept.includes(file.type)) return message.error("อนุญาตเฉพาะไฟล์รูปภาพ (JPG/PNG/WebP/GIF)");
-    if (file.size / 1024 / 1024 > 5) return message.error("ไฟล์ใหญ่เกิน 5MB");
+    if (!accept.includes(file.type)) return messageApi.error("อนุญาตเฉพาะไฟล์รูปภาพ (JPG/PNG/WebP/GIF)");
+    if (file.size / 1024 / 1024 > 5) return messageApi.error("ไฟล์ใหญ่เกิน 5MB");
     const b64 = await fileToBase64(file); setPictureBase64(b64); setFileName(file.name);
   };
 
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบบทความ</label>
+
       <div
         className={`group rounded-[22px] border-2 border-dashed p-4 sm:p-6 transition-colors ${isDragging ? "border-black" : "border-slate-300 hover:border-black"}`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -170,25 +183,35 @@ const UploadBox: React.FC<{ pictureBase64?: string; setPictureBase64: (v?: strin
         onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files?.[0]); }}
       >
         <div className="mx-auto w-full max-w-[780px] rounded-xl bg-slate-100/40 p-3">
-          {pictureBase64 ? (
-            <img src={pictureBase64} alt={fileName || "preview"} className="mx-auto h-auto w-full rounded-lg object-contain" />
-          ) : (
-            <div className="aspect-[16/9] w-full rounded-lg bg-white/60 grid place-items-center text-slate-400">วางไฟล์ที่นี่ หรือกด "เลือกไฟล์"</div>
-          )}
+          <div className="relative w-full rounded-lg bg-white/60 grid place-items-center overflow-hidden min-h-[220px] max-h-[60vh]">
+            {pictureBase64 ? (
+              <img src={pictureBase64} alt={fileName || "preview"} className="max-h-full max-w-full object-contain" />
+            ) : (
+              <div className="w-full h-full grid place-items-center text-slate-400 p-6">
+                วางไฟล์ที่นี่ หรือกด "เลือกไฟล์"
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition-colors hover:border-black hover:bg-slate-50">เลือกไฟล์</button>
           <button type="button" onClick={() => setPictureBase64(undefined)} disabled={!pictureBase64} className="rounded-full border border-rose-300 bg-rose-50 px-4 py-2 text-sm text-rose-700 shadow-sm transition-colors hover:border-rose-400 disabled:opacity-60">ลบไฟล์</button>
         </div>
+
         <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+
         <p className="mt-4 text-xs text-slate-500">* ระบบจะบันทึกไฟล์เป็น <span className="font-semibold">Base64</span> ในคีย์ <span className="font-semibold">picture</span></p>
       </div>
     </div>
   );
 };
 
+/* =========================================================
+ *  หน้า "สร้างแบบทดสอบ"
+ * ========================================================= */
 const FormStepInfo: React.FC = () => {
-  const { message } = App.useApp();
+  const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -205,29 +228,34 @@ const FormStepInfo: React.FC = () => {
   const [loadingQs, setLoadingQs] = useState(true);
 
   const [pictureBase64, setPictureBase64] = useState<string | undefined>(undefined);
+  const [submitting, setSubmitting] = useState(false);
 
+  // โหลดรายการแบบทดสอบเพื่อให้เลือกเป็นเงื่อนไข
   useEffect(() => {
     (async () => {
       try {
         const data = await getAllQuestionnaires();
         setQuestionnaires(Array.isArray(data) ? data : []);
       } catch {
-        message.error("โหลดรายการแบบทดสอบไม่สำเร็จ");
+        messageApi.error("โหลดรายการแบบทดสอบไม่สำเร็จ");
       } finally {
         setLoadingQs(false);
       }
     })();
-  }, [message]);
+  }, [messageApi]);
 
+  // บันทึก
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
 
     const idStr = localStorage.getItem("id");
     const uid = idStr ? parseInt(idStr) : undefined;
-    if (!uid) return message.error("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
-    if (!name || !description || !quantity || !testType) return message.error("กรุณากรอกข้อมูลให้ครบถ้วน");
-    if (!pictureBase64) return message.error("กรุณาอัปโหลดรูปภาพก่อนบันทึก");
-    if (hasCondition && (!conditionOnID || !conditionScore || !conditionType)) return message.error("กรุณากรอกเงื่อนไขให้ครบถ้วน");
+    if (!uid) { messageApi.error("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่"); setSubmitting(false); return; }
+    if (!name || !description || !quantity || !testType) { messageApi.error("กรุณากรอกข้อมูลให้ครบถ้วน"); setSubmitting(false); return; }
+    if (!pictureBase64) { messageApi.error("กรุณาอัปโหลดรูปภาพก่อนบันทึก"); setSubmitting(false); return; }
+    if (hasCondition && (!conditionOnID || !conditionScore || !conditionType)) { messageApi.error("กรุณากรอกเงื่อนไขให้ครบถ้วน"); setSubmitting(false); return; }
 
     const payload: Questionnaire = {
       nameQuestionnaire: name,
@@ -247,107 +275,183 @@ const FormStepInfo: React.FC = () => {
       const created = await createQuestionnaire(payload);
       const questionnaireId = (created as any)?.id;
       if (!questionnaireId) throw new Error("ไม่พบ ID ของแบบทดสอบที่สร้าง");
+
+      // Toast สำเร็จ แล้วค่อยนำทาง
+      await new Promise<void>((resolve) => {
+        messageApi.success({
+          content: "สร้างแบบทดสอบสำเร็จ!",
+          duration: 1.2,
+          onClose: resolve,
+        });
+      });
+
       navigate("/admin/createquestion", { state: { questionnaireId, quantity } });
     } catch (err) {
       console.error(err);
-      message.error("ไม่สามารถบันทึกแบบทดสอบได้ กรุณาลองใหม่");
+      messageApi.error("ไม่สามารถบันทึกแบบทดสอบได้ กรุณาลองใหม่");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-100 py-8">
-      <div className="w-full px-6">
-        <div className="mb-6 flex items-center gap-3">
-          <img src={createQuestionIcon} alt="icon" className="h-12 w-12 object-contain" />
-          <h1 className="text-2xl font-bold text-slate-800">สร้างแบบทดสอบ</h1>
-        </div>
+    <>
+      {contextHolder}
+      <div className="min-h-screen w-full bg-slate-100 py-8">
+        <div className="w-full px-6">
+          <div className="mb-6 flex items-center gap-3">
+            <img src={createQuestionIcon} alt="icon" className="h-12 w-12 object-contain" />
+            <h1 className="text-2xl font-bold text-slate-800">สร้างแบบทดสอบ</h1>
+          </div>
 
-        <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <form onSubmit={onSubmit} className="grid w-full grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* LEFT */}
-            <div className="space-y-5">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบทดสอบ *</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} required />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">คำอธิบาย *</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className={fieldClass} required />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <form onSubmit={onSubmit} className="grid w-full grid-cols-1 gap-8 lg:grid-cols-2">
+              {/* ซ้าย: ฟอร์มข้อความ */}
+              <div className="space-y-5">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">จำนวนคำถาม *</label>
-                  <NumberStepper value={quantity} onChange={setQuantity} min={1} max={999} />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">ประเภทแบบทดสอบ *</label>
-                  <DropdownSearchSelect
-                    value={testType}
-                    onChange={(v) => setTestType(v as TestType)}
-                    options={[
-                      { label: "เชิงบวก", value: "positive", icon: <span className="text-lg">😊</span> },
-                      { label: "เชิงลบ", value: "negative", icon: <span className="text-lg">😟</span> },
-                    ]}
-                    placeholder="เลือกประเภท"
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    ชื่อแบบทดสอบ *
+                  </label>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={fieldClass}
+                    required
                   />
                 </div>
-              </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300 hover:border-black" checked={hasCondition} onChange={(e) => setHasCondition(e.target.checked)} />
-                  แบบทดสอบนี้มีเงื่อนไขก่อนทำ
-                </label>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    คำอธิบาย *
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={5}
+                    className={fieldClass}
+                    required
+                  />
+                </div>
 
-                {hasCondition && (
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">แบบทดสอบที่ต้องทำก่อน *</label>
-                      <DropdownSearchSelect
-                        value={conditionOnID}
-                        onChange={(v) => setConditionOnID(typeof v === "number" ? v : Number(v))}
-                        options={questionnaires.map((q) => ({ label: q.nameQuestionnaire, value: q.id }))}
-                        placeholder="-- เลือกแบบทดสอบ --"
-                        className={loadingQs ? "opacity-60" : ""}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">คะแนนที่ต้องได้ *</label>
-                      <NumberStepper value={conditionScore ?? 1} onChange={(n) => setConditionScore(n)} min={1} max={100} />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="mb-2 block text-sm font-medium text-slate-700">เงื่อนไขคะแนน *</label>
-                      <DropdownSearchSelect
-                        value={conditionType}
-                        onChange={(v) => setConditionType(v as any)}
-                        options={[
-                          { label: "มากกว่าหรือเท่ากับ", value: "greaterThan", icon: <span className="text-base">≥</span> },
-                          { label: "น้อยกว่า", value: "lessThan", icon: <span className="text-base">＜</span> },
-                        ]}
-                        placeholder="เลือกเงื่อนไข"
-                      />
-                    </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                      จำนวนคำถาม *
+                    </label>
+                    <NumberStepper value={quantity} onChange={setQuantity} min={1} max={999} />
                   </div>
-                )}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                      ประเภทแบบทดสอบ *
+                    </label>
+                    <DropdownSearchSelect
+                      value={testType}
+                      onChange={(v) => setTestType(v as TestType)}
+                      options={[
+                        { label: "เชิงบวก", value: "positive", icon: <span className="text-lg">😊</span> },
+                        { label: "เชิงลบ", value: "negative", icon: <span className="text-lg">😟</span> },
+                      ]}
+                      placeholder="เลือกประเภท"
+                    />
+                  </div>
+                </div>
+
+                {/* เงื่อนไขก่อนทำ (ถ้ามี) */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 hover:border-black"
+                      checked={hasCondition}
+                      onChange={(e) => setHasCondition(e.target.checked)}
+                    />
+                    แบบทดสอบนี้มีเงื่อนไขก่อนทำ
+                  </label>
+
+                  {hasCondition && (
+                    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                          แบบทดสอบที่ต้องทำก่อน *
+                        </label>
+                        <DropdownSearchSelect
+                          value={conditionOnID}
+                          onChange={(v) => setConditionOnID(typeof v === "number" ? v : Number(v))}
+                          options={questionnaires.map((q) => ({
+                            label: q.nameQuestionnaire,
+                            value: q.id,
+                          }))}
+                          placeholder="-- เลือกแบบทดสอบ --"
+                          className={loadingQs ? "opacity-60" : ""}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                          คะแนนที่ต้องได้ *
+                        </label>
+                        <NumberStepper
+                          value={conditionScore ?? 1}
+                          onChange={(n) => setConditionScore(n)}
+                          min={1}
+                          max={100}
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                          เงื่อนไขคะแนน *
+                        </label>
+                        <DropdownSearchSelect
+                          value={conditionType}
+                          onChange={(v) => setConditionType(v as any)}
+                          options={[
+                            { label: "มากกว่าหรือเท่ากับ", value: "greaterThan", icon: <span className="text-base">≥</span> },
+                            { label: "น้อยกว่า", value: "lessThan", icon: <span className="text-base">＜</span> },
+                          ]}
+                          placeholder="เลือกเงื่อนไข"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
+                    disabled={submitting}
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className={
+                      "rounded-xl px-5 py-2.5 font-medium text-white shadow-sm transition-colors " +
+                      (submitting ? "bg-cyan-400 cursor-not-allowed" : "bg-[#5DE2FF] hover:bg-cyan-500")
+                    }
+                  >
+                    {submitting ? "กำลังสร้าง..." : "สร้างแบบทดสอบ"}
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center justify-center gap-3 pt-2">
-                <button type="button" onClick={() => navigate(-1)} className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700">ยกเลิก</button>
-                <button type="submit" className="rounded-xl bg-[#5DE2FF] px-5 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-cyan-500">สร้างแบบทดสอบ</button>
-              </div>
-            </div>
-
-            {/* RIGHT: Upload */}
-            <UploadBox pictureBase64={pictureBase64} setPictureBase64={setPictureBase64} />
-          </form>
+              {/* ขวา: อัปโหลดรูป (ล็อกขนาดพอดี ไม่ยืดรูป) */}
+              <UploadBox
+                pictureBase64={pictureBase64}
+                setPictureBase64={setPictureBase64}
+                messageApi={messageApi}
+              />
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
 export default FormStepInfo;
+

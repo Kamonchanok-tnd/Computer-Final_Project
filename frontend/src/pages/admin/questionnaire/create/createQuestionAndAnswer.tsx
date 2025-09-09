@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {Button,Form,Input,InputNumber,Modal,    Tag,Collapse,Upload,Select,message,} from "antd";
-import {DeleteOutlined,MenuOutlined,MinusSquareOutlined,PlusSquareOutlined,UploadOutlined,EyeOutlined,PlusOutlined,SaveOutlined} from "@ant-design/icons";
-import {DragDropContext,Droppable,Draggable,DropResult,} from "@hello-pangea/dnd";
+import {Button, Form, Input, InputNumber, Modal,Tag, Collapse, Upload, Select, message,} from "antd";
+import {DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined,UploadOutlined, EyeOutlined, PlusOutlined, SaveOutlined} from "@ant-design/icons";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Question } from "../../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../../interfaces/IAnswerOption";
 import { EmotionChoice } from "../../../../interfaces/IEmotionChoices";
-import {createQuestions,getAllEmotionChoices,} from "../../../../services/https/questionnaire";
+import { createQuestions, getAllEmotionChoices } from "../../../../services/https/questionnaire";
 import questionIcon from "../../../../assets/question-mark.png";
 import manageQuestionAndAnswerIcon from "../../../../assets/manageQuestionAndAnswer.png";
 
@@ -134,7 +134,7 @@ const FormStepQuestion: React.FC = () => {
     });
   };
 
-  //  helper แบบเดียวกับหน้า edit
+  // helper แบบเดียวกับหน้า edit
   const setAnswerEmotion = (qIndex: number, aIndex: number, emoId: number) => {
     setQuestions((prev) => {
       const updated = [...prev];
@@ -286,8 +286,17 @@ const FormStepQuestion: React.FC = () => {
         answers: q.answers.filter((a) => a.description.trim() !== ""),
       }));
       await createQuestions(cleaned);
-      msg.success("สร้างคำถามและคำตอบเรียบร้อย");
-      setTimeout(() => goCreateCriteria(questionnaireId!), 50);
+
+      // ✅ แสดงแจ้งเตือนตามที่ต้องการ และ "รอให้ปิด" ก่อนค่อยนำทาง
+      await new Promise<void>((resolve) => {
+        msg.success({
+          content: "สร้างคำถามเเละคำตอบสำเร็จ",
+          duration: 1.2,
+          onClose: resolve,
+        });
+      });
+
+      goCreateCriteria(questionnaireId!);
     } catch (error: any) {
       console.error(error);
       msg.error(error?.message || "บันทึกไม่สำเร็จ กรุณาลองใหม่");
@@ -295,7 +304,6 @@ const FormStepQuestion: React.FC = () => {
       setSubmitting(false);
     }
   };
-
 
   const apiUrl = import.meta.env.VITE_API_URL as string;
   const joinUrl = (base: string, path: string): string =>
@@ -365,7 +373,6 @@ const FormStepQuestion: React.FC = () => {
           </Button>
 
           <div className="hidden items-center gap-2 md:flex">
-          
             <Button
               type="primary"
               icon={<SaveOutlined />}
