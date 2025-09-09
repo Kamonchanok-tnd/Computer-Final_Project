@@ -811,6 +811,26 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+
+func GetTransactions(c *gin.Context) {
+    userID := c.Query("user_id")
+
+    var tx []entity.Transaction
+    db := config.DB()
+
+    if userID != "" {
+        // JOIN กับ assessment_results เพื่อกรองตาม user
+        db = db.Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
+            Where("ar.uid = ?", userID)
+    }
+
+    if err := db.Order("transactions.created_at ASC").Find(&tx).Error; err != nil {
+        util.HandleError(c, http.StatusInternalServerError, "โหลดธุรกรรมไม่สำเร็จ", "FETCH_FAILED")
+        return
+    }
+    c.JSON(http.StatusOK, tx)
+}
+
 //////////////////////////////////////////////////////////////// ADMIN //////////////////////////////////////////////////////////////////////
 
 func GetAllQuestionnaireGroups(c *gin.Context) {

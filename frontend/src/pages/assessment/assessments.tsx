@@ -196,7 +196,13 @@ const Assessments: React.FC = () => {
   );
 
   return (
-    <div className="fixed inset-0 z-[2147483647] min-h-screen bg-gradient-to-b from-sky-100 to-white flex flex-col items-center pt-10 px-4">
+    <div
+      className="fixed inset-0 z-[2147483647] h-dvh overflow-y-auto overscroll-y-contain bg-gradient-to-b from-sky-100 to-white flex flex-col items-center pt-10 px-4 pb-24"
+      style={{
+        WebkitOverflowScrolling: "touch",
+        paddingBottom: "calc(6rem + env(safe-area-inset-bottom))",
+      }}
+    >
       {/* ✅ หัวข้อชื่อแบบสอบถาม + ไอคอน */}
       <div className="flex items-center gap-3 mb-3 max-w-md w-full px-2">
         <img
