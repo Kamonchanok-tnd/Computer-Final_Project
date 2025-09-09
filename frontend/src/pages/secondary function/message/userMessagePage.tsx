@@ -336,10 +336,10 @@ export default function UserMessagePage() {
       setMessages(data);
 
       if (token) {
-        const uid = localStorage.getItem("id");
-        if (uid) {
+        const userID = localStorage.getItem("id");
+        if (userID) {
           for (const m of data) {
-            const { isLiked } = await checkIfLikedArticle(m.id, uid);
+            const { isLiked } = await checkIfLikedArticle(m.id, userID);
             setLiked((prev) => ({ ...prev, [m.id]: isLiked }));
           }
         }
@@ -416,15 +416,15 @@ export default function UserMessagePage() {
   const toggleLike = async (id: number) => {
     if (!isLoggedIn) { alert("กรุณาล็อกอินเพื่อทำการกดถูกใจ"); return; }
     const currentlyLiked = !!liked[id];
-    const uid = localStorage.getItem("id");
-    if (!uid) { alert("ไม่พบข้อมูลผู้ใช้ โปรดเข้าสู่ระบบ"); return; }
+    const userID = localStorage.getItem("id");
+    if (!userID) { alert("ไม่พบข้อมูลผู้ใช้ โปรดเข้าสู่ระบบ"); return; }
 
     setLiked((prev) => ({ ...prev, [id]: !currentlyLiked }));
     setMessages((prev) =>
       prev.map((m) => (m.id === id ? { ...m, no_of_like: Math.max(0, m.no_of_like + (currentlyLiked ? -1 : 1)) } : m))
     );
 
-    const ok = currentlyLiked ? await unlikeMessage(id, uid) : await likeMessage(id, uid);
+    const ok = currentlyLiked ? await unlikeMessage(id, userID) : await likeMessage(id, userID);
     if (!ok) {
       setLiked((prev) => ({ ...prev, [id]: currentlyLiked }));
       setMessages((prev) =>
@@ -503,8 +503,10 @@ export default function UserMessagePage() {
   const handleCancel = async () => {
     if (selectedMessage && !sentRef.current && passedRef.current && isLoggedIn) {
       sentRef.current = true;
+      
       const pctFinal = computeContentPct();
       const msFinal  = readMs;
+      
       try {
         const res = await countViewMessage(selectedMessage.id, { readMs: msFinal, pctScrolled: Math.max(pctFinal, scrollProgress) });
         const newCount = typeof res?.view_count === "number" ? res.view_count : (selectedMessage.viewCount || 0) + 1;
