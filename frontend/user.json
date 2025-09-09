@@ -1,0 +1,138 @@
+{
+  "cookies": [
+    {
+      "name": "YSC",
+      "value": "7oj_zW1KdTM",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None",
+      "partitionKey": "http://localhost",
+      "_crHasCrossSiteAncestor": true
+    },
+    {
+      "name": "VISITOR_INFO1_LIVE",
+      "value": "2LIDvUjZp4k",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1772960540.567737,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None",
+      "partitionKey": "http://localhost",
+      "_crHasCrossSiteAncestor": true
+    },
+    {
+      "name": "VISITOR_PRIVACY_METADATA",
+      "value": "CgJUSBIEGgAgPQ%3D%3D",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1772960540.567782,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None",
+      "partitionKey": "http://localhost",
+      "_crHasCrossSiteAncestor": true
+    },
+    {
+      "name": "__Secure-ROLLOUT_TOKEN",
+      "value": "COyyssKe9rOrQRDDo7SzqMuPAxjT1vGzqMuPAw%3D%3D",
+      "domain": ".youtube.com",
+      "path": "/",
+      "expires": 1772960384.854257,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None",
+      "partitionKey": "http://localhost",
+      "_crHasCrossSiteAncestor": true
+    },
+    {
+      "name": "NID",
+      "value": "525=gCGLd9qX4iGTw7J_yHOaorYMWnlqc-Ue4ceqEDC3VhHCX4vXAsqf0nInLtZZJR4rtyiheUfirv9-RmtHjOXYk0a4CNDDZnp_OAL0YBsexf2PAVPwn3VZwdNiyZHZyNgF4LM0AZuW34I-FrUXl36K3RqPil0v9nMi6egRqskUC4G4bA19mqpKcZThqQauw0RU",
+      "domain": ".google.com",
+      "path": "/",
+      "expires": 1773219587.30637,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "history_2_3",
+          "value": "1757408418680"
+        },
+        {
+          "name": "isLogin",
+          "value": "true"
+        },
+        {
+          "name": "theme",
+          "value": "light"
+        },
+        {
+          "name": "token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTc0MTU1NzMsImlzcyI6IkF1dGhTZXJ2aWNlIn0.ZZeueAfzbAiRBpQfWrWrNfQyBPufKQiCLxqpAKwvX9o"
+        },
+        {
+          "name": "view_2_3",
+          "value": "1757408418680"
+        },
+        {
+          "name": "avatarUrl",
+          "value": "http://localhost:8000/images/profile/a1.jpg"
+        },
+        {
+          "name": "token_type",
+          "value": "Bearer"
+        },
+        {
+          "name": "page",
+          "value": "dashboard"
+        },
+        {
+          "name": "role",
+          "value": "user"
+        },
+        {
+          "name": "username",
+          "value": "user"
+        },
+        {
+          "name": "id",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "origin": "https://www.youtube.com",
+      "localStorage": [
+        {
+          "name": "yt-player-user-settings",
+          "value": "{\"data\":\"{\\\"484\\\":{\\\"stringValue\\\":\\\"\\\"}}\",\"expiration\":1760000542047,\"creation\":1757408542047}"
+        },
+        {
+          "name": "yt-remote-connected-devices",
+          "value": "{\"data\":\"[]\",\"expiration\":1757494941608,\"creation\":1757408541608}"
+        },
+        {
+          "name": "ytidb::LAST_RESULT_ENTRY_KEY",
+          "value": "{\"data\":{\"hasSucceededOnce\":true},\"expiration\":1760000541741,\"creation\":1757408541741}"
+        },
+        {
+          "name": "yt-player-bandwidth",
+          "value": "{\"data\":\"{\\\"delay\\\":0.555800048828125,\\\"stall\\\":0,\\\"byterate\\\":3359592.0073350393,\\\"init\\\":1757408385946.2,\\\"interruptions\\\":[{\\\"stamp\\\":1757408400000,\\\"net\\\":14083,\\\"max\\\":6212}]}\",\"expiration\":1760000446514,\"creation\":1757408446514}"
+        },
+        {
+          "name": "yt-remote-device-id",
+          "value": "{\"data\":\"193f68d9-7c70-4624-a1b4-379ade640b9c\",\"expiration\":1788944386504,\"creation\":1757408386504}"
+        }
+      ]
+    }
+  ]
+}
