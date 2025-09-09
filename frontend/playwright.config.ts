@@ -1,13 +1,45 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',       // เก็บ test case ทั้งหมดในโฟลเดอร์ tests
-  timeout: 30 * 1000,
-  reporter: [['html', { open: 'never' }]], // เพิ่มตรงนี้
-  use: {
-    headless: false,        // false = เห็น browser จริง เหมาะกับ UAT
-    baseURL: 'http://localhost:5173/', // vite dev server ปกติรันที่ 5173
-    screenshot: 'on',
-    // video: 'retain-on-failure',
-  },
+  reporter: [['html', { open: 'never' }]],
+  globalSetup: './e2e/global-setup.ts',
+
+  projects: [
+    {
+      name: 'admin-tests',
+      testDir: './tests/admin',
+      use: {
+        baseURL: 'http://localhost:5173/',
+        storageState: './storage/admin.json',   // ✅ ใช้ session แอดมินจริง
+        headless: false,
+        screenshot: 'on',
+        trace: 'on-first-retry',
+        video: 'on-first-retry',
+      },
+    },
+    {
+      name: 'user-tests',
+      testDir: './tests/user',
+      use: {
+        baseURL: 'http://localhost:5173/',
+        storageState: './storage/user.json',    // ✅ เปลี่ยนกลับมาใช้ state ผู้ใช้จริง
+        headless: false,
+        screenshot: 'on',
+        trace: 'on-first-retry',
+        video: 'on-first-retry',
+      },
+    },
+    {
+      name: 'public-tests',
+      testDir: './tests/public',
+      use: {
+        baseURL: 'http://localhost:5173/',
+        storageState: undefined,                // public ไม่ต้อง login
+        headless: false,
+        screenshot: 'on',
+        trace: 'on-first-retry',
+        video: 'on-first-retry',
+      },
+    },
+  ],
 });
