@@ -961,6 +961,7 @@ func ReorderQuestionnairesInGroup(c *gin.Context) {
 }
 
 // เพิ่มแบบสอบถามเข้าไปในกลุ่ม
+// เพิ่มแบบสอบถามเข้าไปในกลุ่ม (อัปเดตใหม่: ถ้าเป็นลูก จะเพิ่มแม่ให้อัตโนมัติพร้อมแจ้งข้อความ)
 type addQuestionnaireToGroupReq struct {
 	QuestionnaireID uint `json:"questionnaire_id"`
 }
@@ -973,35 +974,127 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 		return
 	}
 
-	// นับว่ามีอยู่แล้วไหม
-	var count int64
-	config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
-		Where("questionnaire_group_id = ? AND questionnaire_id = ?", groupID, body.QuestionnaireID).
-		Count(&count)
-	if count > 0 {
-		util.HandleError(c, http.StatusConflict, "แบบสอบถามนี้อยู่ในกลุ่มแล้ว", "ALREADY_EXISTS")
+	db := config.DB()
+
+	// โหลดข้อมูลแบบสอบถามที่ถูกขอเพิ่ม (child candidate)
+	var child entity.Questionnaire
+	if err := db.First(&child, body.QuestionnaireID).Error; err != nil {
+		util.HandleError(c, http.StatusNotFound, "ไม่พบแบบสอบถาม", "QUESTIONNAIRE_NOT_FOUND")
 		return
 	}
 
-	// หา Order สูงสุดก่อนหน้า
-	var maxOrder uint
-	config.DB().Model(&entity.QuestionnaireGroupQuestionnaire{}).
-		Where("questionnaire_group_id = ?", groupID).
-		Select("COALESCE(MAX(order_in_group), 0)").Scan(&maxOrder)
-
-	link := entity.QuestionnaireGroupQuestionnaire{
-		QuestionnaireGroupID: uint(groupID),
-		QuestionnaireID:      body.QuestionnaireID,
-		OrderInGroup:         maxOrder + 1,
+	type addedInfo struct {
+		ID   uint   `json:"id"`
+		Role string `json:"role"` // "parent" หรือ "child"
 	}
+	var added []addedInfo
+	var note string
 
-	if err := config.DB().Create(&link).Error; err != nil {
+	err := db.Transaction(func(tx *gorm.DB) error {
+		// helper: เช็คว่ามี (qid) อยู่ในกลุ่มนี้แล้วหรือยัง
+		existsInGroup := func(qid uint) (bool, error) {
+			var cnt int64
+			if err := tx.Model(&entity.QuestionnaireGroupQuestionnaire{}).
+				Where("questionnaire_group_id = ? AND questionnaire_id = ?", groupID, qid).
+				Count(&cnt).Error; err != nil {
+				return false, err
+			}
+			return cnt > 0, nil
+		}
+
+		// helper: คืนค่า order สูงสุดในกลุ่ม
+		nextOrder := func() (uint, error) {
+			var maxOrder uint
+			if err := tx.Model(&entity.QuestionnaireGroupQuestionnaire{}).
+				Where("questionnaire_group_id = ?", groupID).
+				Select("COALESCE(MAX(order_in_group), 0)").Scan(&maxOrder).Error; err != nil {
+				return 0, err
+			}
+			return maxOrder + 1, nil
+		}
+
+		// ถ้า child มีแม่ → ตรวจว่ามีแม่ในกลุ่มหรือยัง
+		if child.ConditionOnID != nil {
+			parentID := *child.ConditionOnID
+
+			// โหลดข้อมูลแม่เพื่อยืนยันว่ามีจริง
+			var parent entity.Questionnaire
+			if err := tx.First(&parent, parentID).Error; err != nil {
+				return fmt.Errorf("parent questionnaire not found: %w", err)
+			}
+
+			hasParent, err := existsInGroup(parentID)
+			if err != nil {
+				return err
+			}
+			// ถ้ายังไม่มีแม่ → เพิ่มแม่ก่อน
+			if !hasParent {
+				order, err := nextOrder()
+				if err != nil {
+					return err
+				}
+				linkParent := entity.QuestionnaireGroupQuestionnaire{
+					QuestionnaireGroupID: uint(groupID),
+					QuestionnaireID:      parentID,
+					OrderInGroup:         order,
+				}
+				if err := tx.Create(&linkParent).Error; err != nil {
+					return err
+				}
+				added = append(added, addedInfo{ID: parentID, Role: "parent"})
+				note = "มีการเพิ่มแบบสอบถามแม่ให้อัตโนมัติ เนื่องจากรายการที่เพิ่มเป็นแบบสอบถามลูก"
+			}
+		}
+
+		// สุดท้าย เพิ่ม child (ถ้ายังไม่มี)
+		hasChild, err := existsInGroup(child.ID)
+		if err != nil {
+			return err
+		}
+		if hasChild {
+			// มีอยู่แล้ว → ตอบ conflict
+			return fmt.Errorf("แบบสอบถามนี้อยู่ในกลุ่มแล้ว")
+		}
+
+		order, err := nextOrder()
+		if err != nil {
+			return err
+		}
+		linkChild := entity.QuestionnaireGroupQuestionnaire{
+			QuestionnaireGroupID: uint(groupID),
+			QuestionnaireID:      child.ID,
+			OrderInGroup:         order,
+		}
+		if err := tx.Create(&linkChild).Error; err != nil {
+			return err
+		}
+		added = append(added, addedInfo{ID: child.ID, Role: "child"})
+
+		return nil
+	})
+
+	// ตรวจสอบ error ที่เกิดขึ้น
+	if err != nil {
 		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถเพิ่มแบบสอบถามได้", "CREATE_FAILED")
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "เพิ่มแบบสอบถามสำเร็จ"})
+	// ✅ ส่งข้อความแจ้งเตือนกลับไปให้ frontend ใช้แสดงทันที
+	// - message: สั้นๆ
+	// - message_th: ข้อความไทยอ่านง่าย
+	// - added_ids: รายการที่ถูกเพิ่มจริง (เรียงตามลำดับที่เพิ่ม)
+	c.JSON(http.StatusCreated, gin.H{
+		"message":    "เพิ่มแบบสอบถามสำเร็จ",
+		"message_th": strings.TrimSpace(fmt.Sprintf("เพิ่มแบบสอบถามสำเร็จ%s", func() string {
+			if note != "" {
+				return " (" + note + ")"
+			}
+			return ""
+		}())),
+		"added_ids": added,
+	})
 }
+
 
 // ลบแบบสอบถามออกจากกลุ่ม
 func RemoveQuestionnaireFromGroup(c *gin.Context) {

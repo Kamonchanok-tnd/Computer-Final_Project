@@ -25,7 +25,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Popover, InputNumber, Button } from "antd";
+import { Popover, InputNumber, Button, message } from "antd";
 import {
   EditOutlined,
   CaretUpOutlined,
@@ -98,7 +98,20 @@ const ManageTestOrder: React.FC = () => {
   >([]);
   const [isDragMode, setIsDragMode] = useState<boolean>(false);
 
-  console.log("🧪:", showSaveButton);
+  console.log("showSaveButton:", showSaveButton);
+  // ให้เริ่มลากได้เมื่อขยับจริง ๆ กันคลิกแล้วกลายเป็นลาก
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    })
+  );
+
+  // helper: กัน event ปุ่มไม่ให้ไปกระตุ้น drag
+  const stopDrag = {
+    onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+    onPointerDown: (e: React.PointerEvent) => e.stopPropagation(),
+    onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
+  };
 
   const groupIDs = [1, 2, 3];
   const colors = [
@@ -106,8 +119,6 @@ const ManageTestOrder: React.FC = () => {
     "bg-blue-100 border-blue-200",
     "bg-yellow-100 border-yellow-200",
   ];
-
-  const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
     const fetchAllGroups = async () => {
@@ -121,7 +132,7 @@ const ManageTestOrder: React.FC = () => {
 
         if (group.id === 3) {
           const daysFromDB = Number(group.frequency_days ?? 14);
-          setDraggedDays(daysFromDB); // ← ตั้งค่าจาก DB
+          setDraggedDays(daysFromDB);
           allCols.push({
             id: group.id,
             title: group.name,
@@ -186,7 +197,18 @@ const ManageTestOrder: React.FC = () => {
 
   const handleAddToGroup = async (qid: number) => {
     if (dropdownGroupId === null) return;
-    await addQuestionnaireToGroup(dropdownGroupId, qid);
+    const res = await addQuestionnaireToGroup(dropdownGroupId, qid);
+    try {
+      if (res?.message_th) {
+        message.success(res.message_th);
+      } else if (res?.message) {
+        message.success(res.message);
+      } else {
+        message.success("เพิ่มแบบสอบถามสำเร็จ");
+      }
+    } catch (e) {
+      message.success("เพิ่มแบบสอบถามสำเร็จ");
+    }
     const updatedGroup = await getQuestionnaireGroupByID(dropdownGroupId);
     setQuestionnaireMap((prev) => ({
       ...prev,
@@ -226,6 +248,27 @@ const ManageTestOrder: React.FC = () => {
   const getTasksForColumn = (columnId: number) =>
     questionnaireMap[columnId] ?? [];
 
+  /** รวมข้อมูลเป็น “บล็อกกลุ่ม” (แม่+ลูก) พร้อม index ช่วง */
+  const getGroups = (list: Questionnaire[]) => {
+    const ids = list.map((q) => q.id);
+    return list
+      .filter((q) => !q.condition_on_id) // เฉพาะแม่
+      .map((parent) => {
+        const groupIds = [
+          parent.id,
+          ...list.filter((x) => x.condition_on_id === parent.id).map((c) => c.id),
+        ];
+        const idxs = groupIds.map((id) => ids.indexOf(id)).sort((a, b) => a - b);
+        return {
+          parentId: parent.id,
+          ids: groupIds,
+          start: idxs[0],
+          end: idxs[idxs.length - 1],
+        };
+      })
+      .sort((a, b) => a.start - b.start);
+  };
+
   const onDragEnd = async (event: DragEndEvent, columnId: number) => {
     if (!isDragMode) return;
 
@@ -241,53 +284,39 @@ const ManageTestOrder: React.FC = () => {
     // ❌ ห้ามลากลูก
     if (dragged?.condition_on_id) return;
 
-    const oldOrder = tasks.map((q) => q.id);
-    const fromIndex = oldOrder.indexOf(activeId);
-    const toIndex = oldOrder.indexOf(overId);
+    const ids = tasks.map((q) => q.id);
+    const fromIndex = ids.indexOf(activeId);
+    let toIndex = ids.indexOf(overId); // ต้องแก้เป็น let เพื่อ snap ได้
 
-    // ⛔ ดึงกลุ่มแม่ลูกทั้งหมดในคอลัมน์นี้
-    const parentWithChildren = tasks.reduce((groups: number[][], q) => {
-      if (!q.condition_on_id) {
-        const group = [q.id];
-        const children = tasks.filter((x) => x.condition_on_id === q.id);
-        group.push(...children.map((c) => c.id));
-        groups.push(group);
-      }
-      return groups;
-    }, []);
+    // กลุ่มแม่-ลูกทั้งหมดในคอลัมน์นี้
+    const groups = getGroups(tasks);
+    const activeGroup = groups.find((g) => g.parentId === activeId);
+    const overGroup = groups.find((g) => g.ids.includes(overId));
 
-    // ⛔ กันไม่ให้สิ่งอื่นแทรกกลางกลุ่มแม่ลูก
-    for (const group of parentWithChildren) {
-      if (group.length <= 1) continue;
-
-      const indices = group
-        .map((id) => oldOrder.indexOf(id))
-        .sort((a, b) => a - b);
-      const min = indices[0];
-      const max = indices[indices.length - 1];
-
-      const isDraggingSelfGroup = group.includes(activeId);
-
-      // ❌ ถ้าไปตกอยู่ในกลุ่มที่ไม่ใช่ของตัวเอง → ห้าม
-      if (!isDraggingSelfGroup && toIndex >= min && toIndex <= max) {
-        return;
-      }
+    // ถ้าลากไปทับ "กลาง" กลุ่มอื่น → snap ให้วางเฉพาะขอบกลุ่ม (ก่อน/หลัง)
+    if (overGroup && (!activeGroup || overGroup.parentId !== activeGroup.parentId)) {
+      // ถ้าต้นทางอยู่เหนือกลุ่มที่ไปทับ → วางก่อน start, ถ้าต่ำกว่า → วางหลัง end
+      toIndex = fromIndex < overGroup.start ? overGroup.start : overGroup.end + 1;
     }
 
     // ✅ ดึงแม่+ลูกของตัวเอง
-    const moveGroup = (id: number) => {
-      const main = tasks.find((q) => q.id === id);
-      if (!main) return [id];
-      const group = tasks.filter(
-        (q) => q.id === id || q.condition_on_id === id
-      );
-      return group;
-    };
-    const activeGroup = moveGroup(activeId);
+    const groupToMove = tasks.filter(
+      (q) => q.id === activeId || q.condition_on_id === activeId
+    );
+    const chunkLen = groupToMove.length;
+
+    // ปรับ index ปลายทางหลังตัดก้อนออก
+    let insertIndex = toIndex;
+    if (fromIndex < insertIndex) insertIndex -= chunkLen;
+
+    // กัน index หลุดขอบ
+    insertIndex = Math.max(0, Math.min(insertIndex, tasks.length - chunkLen + 1));
 
     const reordered = [...tasks];
-    const toMove = reordered.splice(fromIndex, activeGroup.length);
-    reordered.splice(toIndex, 0, ...toMove);
+    // ตัดก้อนแม่+ลูกออกจากตำแหน่งเดิม
+    reordered.splice(fromIndex, chunkLen);
+    // แทรกกลับเข้าไปที่ตำแหน่งใหม่
+    reordered.splice(insertIndex, 0, ...groupToMove);
 
     setQuestionnaireMap((prev) => ({
       ...prev,
@@ -296,8 +325,14 @@ const ManageTestOrder: React.FC = () => {
 
     setShowSaveButton(true);
     const orderedIds = reordered.map((q) => q.id);
-    await updateQuestionnaireGroupOrder(columnId, orderedIds);
-    setShowSaveButton(false);
+    try {
+      await updateQuestionnaireGroupOrder(columnId, orderedIds);
+      message.success("อัปเดตลำดับเรียบร้อย");
+    } catch {
+      message.error("อัปเดตลำดับไม่สำเร็จ");
+    } finally {
+      setShowSaveButton(false);
+    }
   };
 
   const [editingFrequency, setEditingFrequency] = useState<{
@@ -329,44 +364,46 @@ const ManageTestOrder: React.FC = () => {
     const list = questionnaireMap[groupId];
     if (!list) return;
 
-    const index = list.findIndex((q) => q.id === qid);
-    if (index === -1) return;
+    const q = list.find((x) => x.id === qid);
+    if (!q) return;
 
     // ห้ามเลื่อนลูก
-    if (list[index].condition_on_id) return;
+    if (q.condition_on_id) return;
 
-    const moveGroup = (id: number) => {
-      const group = list.filter((q) => q.id === id || q.condition_on_id === id);
-      return group;
-    };
+    // ย้ายระดับ "กลุ่ม" แบบ swap block ทีละขั้น
+    const groups = getGroups(list);
+    const gIdx = groups.findIndex((g) => g.parentId === qid);
+    if (gIdx === -1) return;
 
-    const groupToMove = moveGroup(qid);
-    const fromIndex = index;
-    const toIndex = direction === "up" ? index - 1 : index + 1;
-
-    // เช็กขอบเขต
-    if (toIndex < 0 || toIndex >= list.length) return;
-
-    // ถ้าเลื่อนชนลูกของอันอื่น → ข้ามไม่ได้
-    if (
-      direction === "down" &&
-      list[toIndex].condition_on_id &&
-      !groupToMove.find((q) => q.id === list[toIndex].condition_on_id)
-    ) {
-      return;
+    let targetIdx = gIdx;
+    if (direction === "up") {
+      if (gIdx === 0) return;
+      targetIdx = gIdx - 1;
+    } else {
+      if (gIdx === groups.length - 1) return;
+      targetIdx = gIdx + 1;
     }
 
-    const newList = [...list];
-    newList.splice(fromIndex, groupToMove.length); // ตัดออก
-    newList.splice(toIndex, 0, ...groupToMove); // แทรกใหม่
+    const newGroups = [...groups];
+    const [moving] = newGroups.splice(gIdx, 1);
+    newGroups.splice(targetIdx, 0, moving);
+
+    // คลี่กลับเป็นลิสต์ โดยคงลูกใต้แม่ตามเดิม
+    const dict = new Map(list.map((it) => [it.id, it]));
+    const newOrderIds = newGroups.flatMap((g) => g.ids);
+    const newList = newOrderIds.map((id) => dict.get(id)!);
 
     setQuestionnaireMap((prev) => ({
       ...prev,
       [groupId]: newList,
     }));
 
-    const newOrder = newList.map((q) => q.id);
-    await updateQuestionnaireGroupOrder(groupId, newOrder);
+    try {
+      await updateQuestionnaireGroupOrder(groupId, newOrderIds);
+      message.success("อัปเดตลำดับเรียบร้อย");
+    } catch {
+      message.error("อัปเดตลำดับไม่สำเร็จ");
+    }
   };
 
   return (
@@ -517,38 +554,41 @@ const ManageTestOrder: React.FC = () => {
                     {tasks.map((q) => (
                       <SortableItem key={q.id} id={q.id} disabled={!isDragMode}>
                         <div
-                          className={`bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow flex justify-between items-start gap-3 ${
+                          className={`relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow ${
                             isDragMode ? "cursor-move" : ""
                           }`}
                         >
-                          <div className="flex flex-col gap-2 w-full">
-                            <div className="flex justify-between items-center">
-                              <h4 className="font-semibold text-gray-900">
-                                {q.name}
-                              </h4>
-                              {isDragMode && !q.condition_on_id && (
-                                <div className="flex flex-col gap-1">
-                                  <button
-                                    onClick={() =>
-                                      moveItemUpDown("up", column.id, q.id)
-                                    }
-                                    title="เลื่อนขึ้น"
-                                    className="text-gray-500 hover:text-black"
-                                  >
-                                    <CaretUpOutlined />
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      moveItemUpDown("down", column.id, q.id)
-                                    }
-                                    title="เลื่อนลง"
-                                    className="text-gray-500 hover:text-black"
-                                  >
-                                    <CaretDownOutlined />
-                                  </button>
-                                </div>
-                              )}
+                          {/* ปุ่มลอยมุมขวาบน (เฉพาะแม่ และเมื่อเปิด drag mode) - แนวตั้ง */}
+                          {isDragMode && !q.condition_on_id && (
+                            <div className="absolute right-2 top-2 z-10 flex flex-col items-center gap-1 w-8">
+                              <button
+                                {...stopDrag}
+                                onClick={() =>
+                                  moveItemUpDown("up", column.id, q.id)
+                                }
+                                title="เลื่อนขึ้น"
+                                className="h-7 w-7 rounded-md bg-white/80 hover:bg-white shadow border text-gray-600 hover:text-black flex items-center justify-center"
+                              >
+                                <CaretUpOutlined />
+                              </button>
+                              <button
+                                {...stopDrag}
+                                onClick={() =>
+                                  moveItemUpDown("down", column.id, q.id)
+                                }
+                                title="เลื่อนลง"
+                                className="h-7 w-7 rounded-md bg-white/80 hover:bg-white shadow border text-gray-600 hover:text-black flex items-center justify-center"
+                              >
+                                <CaretDownOutlined />
+                              </button>
                             </div>
+                          )}
+
+                          {/* เนื้อหาในการ์ด */}
+                          <div className="flex flex-col gap-2">
+                            <h4 className="font-semibold text-gray-900 pr-12">
+                              {q.name}
+                            </h4>
                             <p className="text-sm text-gray-500">
                               เงื่อนไข📝 :{" "}
                               {q.condition_score != null
@@ -557,18 +597,20 @@ const ManageTestOrder: React.FC = () => {
                             </p>
                           </div>
 
+                          {/* ปุ่มลบโชว์ตอนปิด drag mode */}
                           {!isDragMode && (
                             <button
+                              {...stopDrag}
                               onClick={() =>
                                 handleRemoveFromGroup(column.id, q.id)
                               }
-                              className="p-1 rounded hover:bg-red-50 transition-colors"
+                              className="absolute right-2 top-2 p-1 rounded hover:bg-red-50 transition-colors"
                               title="ลบแบบสอบถาม"
                             >
                               <img
                                 src={icondelete}
                                 alt="delete"
-                                className="w-7 h-7 text-red-500 hover:text-red-600"
+                                className="w-7 h-7"
                               />
                             </button>
                           )}
