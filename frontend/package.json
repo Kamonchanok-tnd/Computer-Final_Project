@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:uat": "playwright test --ui",
-    "test:report": "playwright test"
+    "test:report": "playwright test",
+    "setup:user": "playwright test ./e2e/global-setup.ts"
   },
   "dependencies": {
     "@ant-design/charts": "^2.6.2",
