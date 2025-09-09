@@ -297,25 +297,25 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   //   });
   // };
 
-  const newChat = (): void => {
-    if (chatRoomID) {
-      modal.confirm({
-        title: "เริ่มแชทใหม่?",
-        content:
-          "ห้องแชทปัจจุบันจะถูกปิด และเริ่มการสนทนาใหม่ คุณแน่ใจหรือไม่?",
-        okText: "ยืนยัน",
-        cancelText: "ยกเลิก",
-        className: "custom-modal",
-        onOk: async () => {
-          await Close(); // ปิดห้องแชทปัจจุบัน
-          console.log("Closed chatroom:", chatRoomID);
-        },
-      });
-    }
-    /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
-    startIdleTimer();
-    /* ===================== [/Trigger Assessment] ===================== */
-  };
+  // const newChat = (): void => {
+  //   if (chatRoomID) {
+  //     modal.confirm({
+  //       title: "เริ่มแชทใหม่?",
+  //       content:
+  //         "ห้องแชทปัจจุบันจะถูกปิด และเริ่มการสนทนาใหม่ คุณแน่ใจหรือไม่?",
+  //       okText: "ยืนยัน",
+  //       cancelText: "ยกเลิก",
+  //       className: "custom-modal",
+  //       onOk: async () => {
+  //         await Close(); // ปิดห้องแชทปัจจุบัน
+  //         console.log("Closed chatroom:", chatRoomID);
+  //       },
+  //     });
+  //   }
+  //   /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
+  //   startIdleTimer();
+  //   /* ===================== [/Trigger Assessment] ===================== */
+  // };
 
   async function gotoVoice() {
     if (isNewChat === false && chatRoomID !== null) {
@@ -349,7 +349,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
         {/* Header */}
         <ChatHeader
           isDarkMode={isDarkMode}
-          onNewChat={newChat}
+          // onNewChat={newChat}
           onClearChat={Close}
         />
         {/* Messages Area */}

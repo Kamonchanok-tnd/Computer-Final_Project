@@ -240,7 +240,7 @@ func CountView(c *gin.Context) {
 
 	// INSERT แถวใหม่ทุกครั้ง
 	row := entity.View{
-		UID:         &uid,                           // ถ้า struct ของคุณเป็น pointer ให้เปลี่ยนเป็น: UID: &uid,
+		UID:         &uid,                          // ถ้า struct ของคุณเป็น pointer ให้เปลี่ยนเป็น: UID: &uid,
 		WHID:        req.WHID,
 		ReadMS:      int(req.ReadMs),
 		PctScrolled: req.PctScrolled,

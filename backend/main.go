@@ -208,7 +208,7 @@ func main() {
 		router.GET("/dashboard/overview", controller.DashboardOverview)
 		router.GET("/dashboard/usage/daily", controller.DashboardUsage)
 		router.GET("/dashboard/users/top", controller.DashboardTopUsers)
-		router.GET("/dashboard/sessions/status", controller.DashboardSessionsStatus)
+		router.GET("/dashboard/sessions/gender", controller.DashboardSessionsGender)
 		router.GET("/dashboard/sessions/duration", controller.DashboardSessionsDuration)
 		router.GET("/dashboard/visit-frequency", controller.DashboardActiveUsers)
 		router.GET("/dashboard/retention-rate", useractivity.GetRetentionRate)
@@ -219,6 +219,12 @@ func main() {
 		router.GET("/dashboard/questionaire/resultsoverview",dashboardcontents.GetSurveyVisualization )
 		router.GET("/dashboard/questionaire/resultsoverview/:id",dashboardcontents.GetSurveyVisualizationByID )
 		router.GET("/dashboard/questionnaire/:id/average-score", dashboardcontents.GetAverageScoreCard)
+		router.GET("/dashboard/questionnaire/recent/use", dashboardcontents.GetLatestRespondents)
+		router.GET("/dashboard/questionnaire/prepost", dashboardcontents.GetPrePostTransactions)
+		router.GET("/dashboard/questionnaire/standalone", dashboardcontents.GetStandaloneTransactions)
+
+
+		// router.GET
 
 
 		router.GET("/visit-frequency", useractivity.GetVisitFrequency)

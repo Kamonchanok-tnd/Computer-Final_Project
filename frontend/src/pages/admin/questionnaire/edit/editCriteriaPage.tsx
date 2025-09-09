@@ -458,16 +458,29 @@ const EditCriteriaPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Success Modal */}
+      {/* Success Modal: บันทึกการแก้ไขเรียบร้อย */}
       <Modal
+        className="!font-ibmthai"
         title="บันทึกการแก้ไขเรียบร้อย"
         open={isSuccessModalVisible}
         onOk={handleSuccessOk}
         onCancel={() => setIsSuccessModalVisible(false)}
         okText="ตกลง"
         centered
+        okButtonProps={{
+          // ปุ่มตกลง 
+          className:
+            "!rounded-xl !border-none !shadow-none " +
+            "!bg-[#5DE2FF] !text-white hover:!bg-cyan-500",
+        }}
+        cancelButtonProps={{
+          // ปุ่มยกเลิก
+          className:
+            "!rounded-xl !border-none !shadow-none " +
+            "!bg-black !text-white hover:!bg-gray-700 active:!bg-gray-800",
+        }}
       >
-        <p style={{ textAlign: "center", color: "#52c41a" }}>
+        <p style={{ textAlign: "center", color: "#52c41a", font: "!font-ibmthai" }}>
           ข้อมูลแบบทดสอบและเกณฑ์การประเมินถูกอัปเดตสำเร็จแล้ว!
         </p>
       </Modal>
