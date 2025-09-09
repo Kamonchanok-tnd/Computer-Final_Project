@@ -84,7 +84,7 @@ function RecentUseQu() {
   return (
     <div className="bg-white p-6 rounded-2xl w-full shadow-sm">
       <h1 className="font-ibmthai text-xl text-gray-900 mb-4">
-        คําถามที่ใช้ล่าสุด
+        การทำแบบสอบถามล่าสุด
       </h1>
       <div className="relative">
         {loading && (
@@ -151,7 +151,7 @@ function RecentUseQu() {
         onClose={() => setModalOpen(false)}
         userId={selectedRespondent?.user_id || 0}
         description={selectedRespondent?.questionnaire_name || ""}
-        surveyType={selectedRespondent?.q_type || "Standalone"}
+        surveyType={selectedRespondent?.q_type || "Personal"}
         userName={selectedRespondent?.username || ""}
         result={selectedRespondent?.result || ""}
         assess_date={selectedRespondent?.taken_at || ""}

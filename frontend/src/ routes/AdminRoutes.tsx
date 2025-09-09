@@ -32,12 +32,13 @@ import MessagePage from "../pages/admin/message/home/messagePage";
 import EditMessagePage from "../pages/admin/message/edit/editMesagePage";
 import CreateMessagePage from "../pages/admin/message/create/createMessagePage";
 import EditSound from "../pages/admin/meditation/editSound";
-import CreateCriteriaPage from "../pages/admin/questionnaire/create/createCriteriaPage";
+
 import ChatSpaceDetail from "../pages/admin/dashboard_contents/chat/ChatSpaceDetail";
 
 import EditCriteriaPage from "../pages/admin/questionnaire/edit/editCriteriaPage";
 import EditQuestionAndAnswerPage from "../pages/admin/questionnaire/edit/editQuestionAndAnswer";
 import Quetionairedetail from "../pages/admin/dashboard_contents/questionaire/quetionairedetail";
+import CreateCriteriaPage from "../pages/admin/questionnaire/create/CreateCriteriaPage";
 
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้

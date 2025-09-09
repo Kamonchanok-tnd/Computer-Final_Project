@@ -907,7 +907,7 @@ func GetStandaloneTransactions(c *gin.Context) {
     err = db.Table("transactions t").
         Select("t.questionnaire_group, t.total_score, ar.created_at AS date").
         Joins("JOIN assessment_results ar ON ar.id = t.ar_id").
-        Where("ar.uid = ? AND t.description = ? AND t.questionnaire_group = ? AND t.id <= ?", uid, description, "Standalone",tid).
+        Where("ar.uid = ? AND t.description = ? AND t.questionnaire_group = ? AND t.id <= ?", uid, description, "Personal",tid).
         Order("ar.created_at DESC").
         Limit(3).
         Scan(&results).Error
