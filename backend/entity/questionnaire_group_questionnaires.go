@@ -7,11 +7,10 @@ import (
 type QuestionnaireGroupQuestionnaire struct {
 	gorm.Model
 
-	QuestionnaireGroupID uint
-	QuestionnaireID      uint
-	OrderInGroup         uint
+	QuestionnaireGroupID uint `valid:"required~กรุณาระบุกลุ่ม"`
+	QuestionnaireID      uint `valid:"required~กรุณาระบุแบบสอบถาม"`
+	OrderInGroup         uint `valid:"required~กรุณาระบุลำดับของคำถาม,range(1|100000)~ลำดับในกลุ่มต้องมากกว่าหรือเท่ากับ 1"`
 
-	// ความสัมพันธ์กับตารางหลัก
-	QuestionnaireGroup QuestionnaireGroup `gorm:"foreignKey:QuestionnaireGroupID"`
-	Questionnaire      Questionnaire      `gorm:"foreignKey:QuestionnaireID"`
+	QuestionnaireGroup QuestionnaireGroup `gorm:"foreignKey:QuestionnaireGroupID" valid:"-"`
+	Questionnaire      Questionnaire      `gorm:"foreignKey:QuestionnaireID" valid:"-"`
 }
