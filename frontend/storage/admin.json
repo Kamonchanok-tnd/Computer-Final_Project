@@ -1,0 +1,46 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "isLogin",
+          "value": "true"
+        },
+        {
+          "name": "theme",
+          "value": "light"
+        },
+        {
+          "name": "token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc1NzQwNjg4MiwiaXNzIjoiQXV0aFNlcnZpY2UifQ.7ok3vMJyTCdbQWw_FmDmW8Qe6d1b7BWNxjV9UQxUJyw"
+        },
+        {
+          "name": "avatarUrl",
+          "value": "http://localhost:8000/images/profile/a1.jpg"
+        },
+        {
+          "name": "token_type",
+          "value": "Bearer"
+        },
+        {
+          "name": "page",
+          "value": "dashboard"
+        },
+        {
+          "name": "role",
+          "value": "admin"
+        },
+        {
+          "name": "username",
+          "value": "admin"
+        },
+        {
+          "name": "id",
+          "value": "1"
+        }
+      ]
+    }
+  ]
+}
