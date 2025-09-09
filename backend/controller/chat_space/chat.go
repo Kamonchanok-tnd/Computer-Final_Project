@@ -568,21 +568,31 @@ func DashboardTopUsers(c *gin.Context) {
 }
 
 // 4. Sessions status
-func DashboardSessionsStatus(c *gin.Context) {
-	///api/dashboard/sessions/status → ห้องเปิด-ปิด
-	type SessionStatus struct {
-		IsClose bool  `json:"is_close"`
-		Count   int64 `json:"count"`
-	}
-	db := config.DB()
-	var results []SessionStatus
-	db.Model(&entity.ChatRoom{}).
-		Select("is_close, COUNT(*) as count").
-		Group("is_close").
-		Scan(&results)
+func DashboardSessionsGender(c *gin.Context) {
+    // /api/dashboard/sessions/status → ห้องเปิด-ปิด + เพศ
+    type SessionGender struct {
+        Gender  string `json:"gender"`
+        Count   int64  `json:"count"`
+    }
 
-	c.JSON(http.StatusOK, results)
+    db := config.DB()
+    var results []SessionGender
+
+    // JOIN users เพื่อนับจำนวนห้องแยกตามเพศและสถานะห้อง
+	err := db.Table("chat_rooms").
+	Select("users.gender, COUNT(chat_rooms.id) as count").
+	Joins("JOIN users ON users.id = chat_rooms.uid").
+	Group("users.gender").
+	Scan(&results).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, results)
 }
+
 
 // 5. Sessions duration
 func DashboardSessionsDuration(c *gin.Context) {

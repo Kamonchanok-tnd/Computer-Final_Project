@@ -5,11 +5,11 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recha
 import { Getstatus } from "../../../../services/https/Chat";
 
 interface SessionStatus {
-  is_close: boolean;
+  gender: string;
   count: number;
 }
 
-const COLORS = ["#5DE2FF", "#686868"]; // สีสำหรับ Open / Closed
+const COLORS = ["#5DE2FF", "#FFCFEB","#7CEDC6"]; // สีสำหรับ Open / Closed
 
 const DashboardSessionsStatus: React.FC = () => {
   const [data, setData] = useState<SessionStatus[]>([]);
@@ -33,7 +33,7 @@ const DashboardSessionsStatus: React.FC = () => {
   }, []);
 
   const pieData = data.map((item) => ({
-    name: item.is_close ? "ปิดใช้งาน" : "กำลังใช้งาน",
+    name: item.gender,
     value: item.count,
   }));
 
@@ -55,7 +55,7 @@ const DashboardSessionsStatus: React.FC = () => {
   return (
     <div  className="rounded-2xl bg-white h-full space-y-4">
         <div className="flex justify-center items-center h-12 font-bold">
-             <h1>สถานะห้องแชท</h1>
+             <h1>ประเภทของผู้ใช้งาน</h1>
         </div>
        
       {loading ? (
