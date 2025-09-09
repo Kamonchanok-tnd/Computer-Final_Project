@@ -263,7 +263,7 @@ export async function Getstatus() {
   if (!authHeader) return;
 
   try {
-    const response = await fetch(`${apiUrl}/dashboard/sessions/status`, {
+    const response = await fetch(`${apiUrl}/dashboard/sessions/gender`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

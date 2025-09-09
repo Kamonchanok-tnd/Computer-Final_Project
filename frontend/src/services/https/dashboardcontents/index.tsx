@@ -247,12 +247,75 @@ export interface AverageScoreData {
   trend: { date: string; avgScore: number }[]; // เพิ่ม สำหรับ sparkline chart
 }
 
-export const getAverageScore = async (questionnaireId: number): Promise<AverageScoreData> => {
+export const getAverageScore = async (
+  questionnaireId: number,
+  queryParams?: string // เช่น "gender=male&age_min=20&age_max=30"
+): Promise<AverageScoreData> => {
   try {
-    const res = await axios.get(`${apiUrl}/dashboard/questionnaire/${questionnaireId}/average-score`, getAuthHeader());
+    const url = queryParams
+      ? `${apiUrl}/dashboard/questionnaire/${questionnaireId}/average-score?${queryParams}`
+      : `${apiUrl}/dashboard/questionnaire/${questionnaireId}/average-score`;
+
+    const res = await axios.get(url, getAuthHeader());
     return res.data; // ตรงนี้ต้องตรงกับ AverageScoreData
   } catch (err: any) {
     console.error("โหลดคะแนนเฉลี่ยล้มเหลว:", err);
     throw new Error(err.message || "ไม่สามารถโหลดคะแนนเฉลี่ยได้");
+  }
+};
+
+export interface Respondent {
+  id:number
+  user_id: number;
+  username: string;
+  questionnaire_name: string;
+  score: number;
+  result: string;
+  taken_at: string;
+  q_type : string ;
+}
+
+export const getLatestRespondents = async (limit: number = 5): Promise<Respondent[]> => {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionnaire/recent/use?limit=${limit}`, getAuthHeader());
+    return res.data;
+  } catch (err: any) {
+    console.error("Cannot fetch latest respondents:", err);
+    throw new Error(err.message || "Cannot fetch latest respondents");
+  }
+};
+
+
+interface Transaction {
+  questionnaire_group: string;
+  total_score: number;
+  date: string;
+  session_number?: number; // Pre/Post มี session_number
+}
+
+// เรียก Pre/Post
+export const getPrePostTransactions = async (uid: number, description: string,tid: number): Promise<Transaction[]> => {
+  try {
+    const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/prepost`, {
+      params: { uid, description,tid },
+      ...getAuthHeader(), // spread object headers เข้า config ของ axios
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching pre/post transactions:", error);
+    return [];
+  }
+};
+
+// เรียก Standalone (3 ครั้งล่าสุด)
+export const getStandaloneTransactions = async (uid: number, description: string,tid:number): Promise<Transaction[]> => {
+  try {
+    const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/standalone`, {
+      params: { uid, description,tid }, ...getAuthHeader(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching standalone transactions:", error);
+    return [];
   }
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Spin, Select, DatePicker } from "antd";
+import { Spin, Select, DatePicker } from "antd";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { GetChatUsage } from "../../../../services/https/Chat";
 
@@ -20,12 +20,25 @@ const ChatTrendChart: React.FC<{ title?: string; className?: string }> = ({
   const [data, setData] = useState<DailyUsage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [windowWidth, setWindowWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
   const [granularity, setGranularity] = useState<"today" | "day" | "month" | "year" | "custom">("today");
   const [startDate, setStartDate] = useState<string>();
   const [endDate, setEndDate] = useState<string>();
 
   const filter: "user" = "user"; // เอาเฉพาะข้อความจาก user
+
+  // Hook สำหรับติดตามขนาดหน้าจอ
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -49,6 +62,29 @@ const ChatTrendChart: React.FC<{ title?: string; className?: string }> = ({
     }
     fetchData();
   }, [granularity, startDate, endDate]);
+
+  // ฟังก์ชันสำหรับคำนวณค่าต่างๆ ตามขนาดหน้าจอ
+  const getResponsiveValues = () => {
+    const isMobile = windowWidth < 640;
+    const isTablet = windowWidth < 1024;
+    
+    return {
+      fontSize: isMobile ? 10 : 12,
+      chartHeight: isMobile ? 250 : isTablet ? 300 : 320,
+      xAxisHeight: granularity === "today" ? (isMobile ? 50 : 60) : (isMobile ? 70 : 80),
+      margins: {
+        top: 10,
+        right: isMobile ? 10 : 20,
+        left: isMobile ? -10 : 0,
+        bottom: isMobile ? 5 : 10
+      },
+      dotRadius: isMobile ? 3 : 4,
+      activeDotRadius: isMobile ? 5 : 6,
+      strokeWidth: isMobile ? 1.5 : 2
+    };
+  };
+
+  const responsive = getResponsiveValues();
 
   // ----- Transform Data -----
   let chartData: DailyUsage[] = [];
@@ -108,7 +144,7 @@ const ChatTrendChart: React.FC<{ title?: string; className?: string }> = ({
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3  rounded shadow">
+        <div className="bg-white p-2 sm:p-3 rounded shadow border text-xs sm:text-sm">
           <p className="font-medium">{granularity === "today" ? `เวลา: ${label}` : `วันที่: ${label}`}</p>
           <p className="text-button-blue">จำนวนข้อความ: {payload[0].value} ข้อความ</p>
         </div>
@@ -118,13 +154,19 @@ const ChatTrendChart: React.FC<{ title?: string; className?: string }> = ({
   };
 
   return (
-    <div className={`rounded-2xl p-4  ${className}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold">{title}</h2>
-        <div className="flex gap-2 items-center">
-          <Select value={granularity} onChange={val => setGranularity(val)} style={{ width: 150 }}
+    <div className={`rounded-2xl p-3 sm:p-4 lg:p-6 ${className}`}>
+      {/* Header with Controls - Responsive Layout */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 sm:gap-0">
+        <h2 className="font-semibold text-sm sm:text-base lg:text-lg">{title}</h2>
+        
+        <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
+          <Select 
+            value={granularity} 
+            onChange={val => setGranularity(val)} 
+            style={{ width: windowWidth < 640 ? '100%' : 120 }}
             className="custom-select"
-            >
+            size={windowWidth < 640 ? 'small' : 'middle'}
+          >
             <Option value="today">วันนี้</Option>
             <Option value="day">รายวัน</Option>
             <Option value="month">รายเดือน</Option>
@@ -143,47 +185,74 @@ const ChatTrendChart: React.FC<{ title?: string; className?: string }> = ({
                   setEndDate(undefined);
                 }
               }}
-              className="custom-range-picker"
+              className="custom-range-picker w-full sm:w-auto"
               placeholder={["เริ่มวันที่", "สิ้นสุดวันที่"]}
               disabledDate={(current) => current && current.toDate() > new Date()}
+              size={windowWidth < 640 ? 'small' : 'middle'}
             />
           )}
         </div>
       </div>
 
+      {/* Chart Content */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Spin tip="กำลังโหลดข้อมูล..." />
+        <div className="flex justify-center items-center h-48 sm:h-64">
+          <Spin tip="กำลังโหลดข้อมูล..." size={windowWidth < 640 ? 'default' : 'large'} />
         </div>
       ) : error ? (
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500 text-sm sm:text-base text-center py-8">{error}</p>
       ) : chartData.length === 0 ? (
-        <p className="text-center text-gray-500 h-64 flex items-center justify-center">ไม่มีข้อมูลในช่วงเวลานี้</p>
+        <p className="text-center text-gray-500 h-48 sm:h-64 flex items-center justify-center text-sm sm:text-base">
+          ไม่มีข้อมูลในช่วงเวลานี้
+        </p>
       ) : (
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis
-                dataKey="display_label"
-                tick={{ fontSize: 12 }}
-                angle={granularity === "today" ? 0 : -45}
-                textAnchor={granularity === "today" ? "middle" : "end"}
-                height={granularity === "today" ? 60 : 80}
-              />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="message_count"
-                stroke="#5DE2FF"
-                strokeWidth={2}
-                dot={{ fill: "#5DE2FF", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, fill: "#5DE2FF" }}
-                name="จำนวนข้อความ"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="w-full overflow-x-auto">
+          <div style={{ height: responsive.chartHeight, minWidth: windowWidth < 640 ? '100%' : 'auto' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart 
+                data={chartData} 
+                margin={responsive.margins}
+              >
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke="#f0f0f0" 
+                  opacity={windowWidth < 640 ? 0.5 : 1}
+                />
+                <XAxis
+                  dataKey="display_label"
+                  tick={{ fontSize: responsive.fontSize }}
+                  angle={granularity === "today" ? 0 : (windowWidth < 640 ? -60 : -45)}
+                  textAnchor={granularity === "today" ? "middle" : "end"}
+                  height={responsive.xAxisHeight}
+                  interval={windowWidth < 640 && chartData.length > 10 ? 'preserveStartEnd' : 0}
+                />
+                <YAxis 
+                  tick={{ fontSize: responsive.fontSize }}
+                  width={windowWidth < 640 ? 35 : 50}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Line
+                  type="monotone"
+                  dataKey="message_count"
+                  stroke="#5DE2FF"
+                  strokeWidth={responsive.strokeWidth}
+                  dot={{ 
+                    fill: "#5DE2FF", 
+                    strokeWidth: responsive.strokeWidth, 
+                    r: responsive.dotRadius 
+                  }}
+                  activeDot={{ 
+                    r: responsive.activeDotRadius, 
+                    fill: "#5DE2FF",
+                    stroke: "#fff",
+                    strokeWidth: 2
+                  }}
+                  name="จำนวนข้อความ"
+                  connectNulls={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </div>

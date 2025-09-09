@@ -5,11 +5,11 @@ import headbot from '../../assets/logo/header1.png';
 
 interface ChatHeaderProps {
   isDarkMode: boolean;
-  onNewChat: () => void;
+  // onNewChat: () => void;
   onClearChat: () => void;
 }
 
-function ChatHeader({ isDarkMode, onNewChat, onClearChat }: ChatHeaderProps) {
+function ChatHeader({ isDarkMode, onClearChat }: ChatHeaderProps) {
   return (
     <div
       className={`sm:rounded-t-2xl md:p-2 px-4 py-2 backdrop-blur-sm duration-300 ${
@@ -41,13 +41,13 @@ function ChatHeader({ isDarkMode, onNewChat, onClearChat }: ChatHeaderProps) {
 
         {/* Right side buttons */}
         <div className="flex items-center space-x-2">
-          <button
+          {/* <button
             className="flex items-center md:space-x-2 bg-button-blue p-2 rounded-lg"
             onClick={onNewChat}
           >
             <Plus className="w-5 h-5 text-white" />
             <p className="hidden md:inline-block text-white text-md">สร้างแชท</p>
-          </button>
+          </button> */}
           <button
             onClick={onClearChat}
             className={`p-2 rounded-lg transition-colors ${
