@@ -11,11 +11,11 @@ export default defineConfig({
       testDir: './tests/admin',
       use: {
         baseURL: 'http://localhost:5173/',
-        storageState: './storage/admin.json',
+        storageState: './storage/admin.json',   // ✅ ใช้ session แอดมินจริง
         headless: false,
-        screenshot: 'on',              // 📸 ถ่ายทุกเทสต์
+        screenshot: 'on',
         trace: 'on-first-retry',
-        video: 'on-first-retry',       // 🎥 (เสริม) บันทึกวิดีโอเมื่อ retry
+        video: 'on-first-retry',
       },
     },
     {
@@ -23,7 +23,7 @@ export default defineConfig({
       testDir: './tests/user',
       use: {
         baseURL: 'http://localhost:5173/',
-        storageState: './storage/user.json',
+        storageState: './storage/user.json',    // ✅ เปลี่ยนกลับมาใช้ state ผู้ใช้จริง
         headless: false,
         screenshot: 'on',
         trace: 'on-first-retry',
@@ -35,7 +35,7 @@ export default defineConfig({
       testDir: './tests/public',
       use: {
         baseURL: 'http://localhost:5173/',
-        storageState: undefined,
+        storageState: undefined,                // public ไม่ต้อง login
         headless: false,
         screenshot: 'on',
         trace: 'on-first-retry',

@@ -1,4 +1,3 @@
-// frontend/e2e/global-setup.ts
 import { chromium, Page, BrowserContext } from '@playwright/test';
 
 const BASE = 'http://localhost:5173';
@@ -10,7 +9,7 @@ const ADMIN_PASSWORD = 'admin123';
 const USER_EMAIL = 'user@example.com';
 const USER_PASSWORD = 'user123';
 
-// ช่วยหา input + กด login (รองรับ TH/EN)
+// === Helper: กด login ===
 async function doLogin(page: Page, email: string, password: string) {
   await page.goto(BASE);
   await page.waitForLoadState('domcontentloaded');
@@ -31,7 +30,7 @@ async function doLogin(page: Page, email: string, password: string) {
   await page.getByRole('button', { name: /เข้าสู่ระบบ|login|sign ?in/i }).click();
 }
 
-// รอ “หลักฐาน” ว่าเข้า role นั้น ๆ ได้จริง (ไม่ผูกกับ URL อย่างเดียว)
+// === Helper: รอว่าเข้าสู่ admin แล้วจริง ๆ ===
 async function waitForAdmin(page: Page) {
   await Promise.race([
     page.waitForURL(/\/admin(\/|$)/, { timeout: 8000 }),
@@ -41,27 +40,28 @@ async function waitForAdmin(page: Page) {
   ]);
 }
 
+// === Helper: รอว่าเข้าสู่ user แล้วจริง ๆ ===
 async function waitForUser(page: Page) {
-  // ปรับ marker ให้ตรงกับหน้า user ของคุณ เช่น “สมัครสมาชิก”, “โปรไฟล์”, เมนูทั่วไปที่ user เท่านั้นเห็น
   await Promise.race([
-    page.waitForURL(/\/(home|user|profile)?$/i, { timeout: 8000 }),
-    page.getByRole('button', { name: /สมัครสมาชิก|ออกจากระบบ|โปรไฟล์/i }).waitFor({ timeout: 8000 }),
+    page.waitForURL(/\/(home|audiohome|user|profile)/i, { timeout: 8000 }),
+    page.getByRole('button', { name: /ออกจากระบบ|โปรไฟล์/i }).waitFor({ timeout: 8000 }),
   ]);
 }
 
+// === สร้าง state ===
 export default async () => {
   const browser = await chromium.launch();
 
-  // ===== ทำ state แอดมิน =====
+  // ===== Admin =====
   {
     const context: BrowserContext = await browser.newContext();
     const page = await context.newPage();
-    await doLogin(page, ADMIN_EMAIL, ADMIN_PASSWORD);
 
     try {
+      await doLogin(page, ADMIN_EMAIL, ADMIN_PASSWORD);
       await waitForAdmin(page);
     } catch {
-      // fallback dev: บังคับ role แอดมินผ่าน localStorage ถ้าแอปของคุณรับค่าเหล่านี้
+      // fallback: ถ้า login ไม่ผ่าน → บังคับ set localStorage
       await page.evaluate(() => {
         localStorage.setItem('isLogin', 'true');
         localStorage.setItem('role', 'admin');
@@ -74,21 +74,24 @@ export default async () => {
     await context.close();
   }
 
-  // ===== ทำ state ผู้ใช้ทั่วไป =====
+  // ===== User =====
   {
     const context: BrowserContext = await browser.newContext();
     const page = await context.newPage();
-    await doLogin(page, USER_EMAIL, USER_PASSWORD);
 
     try {
+      await doLogin(page, USER_EMAIL, USER_PASSWORD);
       await waitForUser(page);
     } catch {
-      // fallback dev: บังคับ role user ถ้าแอปรองรับ
+      // fallback: ถ้า login ไม่ผ่าน → บังคับ set localStorage
       await page.evaluate(() => {
         localStorage.setItem('isLogin', 'true');
         localStorage.setItem('role', 'user');
+        // ถ้าระบบของคุณใช้ token จริง ต้องแทนด้วย JWT แท้ ๆ
+        localStorage.setItem('token_type', 'Bearer');
+        localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxx.yyy');
       });
-      await page.goto(BASE);
+      await page.goto(`${BASE}/audiohome/mirror`);
       await waitForUser(page);
     }
 
