@@ -14,7 +14,11 @@
         },
         {
           "name": "token",
+<<<<<<< HEAD
           "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTc0MTgxODEsImlzcyI6IkF1dGhTZXJ2aWNlIn0.VVh8KVw1obEdsD4e6cVuDfqVWQlSlP-NYKA-OHMKcJ0"
+=======
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTc0MTU4MDEsImlzcyI6IkF1dGhTZXJ2aWNlIn0.Oj-MpGmZs8CrbqOTccPnXuYG8tQKrw1Gfp6foIFQlN8"
+>>>>>>> origin/main
         },
         {
           "name": "avatarUrl",

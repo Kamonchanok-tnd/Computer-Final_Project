@@ -167,41 +167,28 @@ export const getAllEmotionChoices = async (): Promise<EmotionChoice[]> => {
   }
 };
 
-
-////////////////////////////////////////////////////////❌
-export const getAvailableGroups = async (userID: number) => {
-  try {
-    const response = await axiosInstance.get(`/questionnaire-groups/available`, {
-      params: { user_id: userID },
-    });
-    return response.data; // => Array<{ id, name, description, frequency_days, available, reason }>
-  } catch (error) {
-    console.error("❌ โหลดกลุ่มที่พร้อมทำไม่สำเร็จ:", error);
-    throw error;
+// ✅ ดึงของ user ตาม id ที่ส่งมา
+export async function getUserTransactions(userId: number): Promise<ITransaction[]> {
+  if (!userId || Number.isNaN(userId)) {
+    throw new Error("getUserTransactions: invalid userId");
   }
-};
-
-//❌
-export const getNextQuestionnaire = async (user_id: number, group_id: number) => {
-  const token = localStorage.getItem("token");
-
   try {
-    const res = await axiosInstance.get(`/assessments/next`, {
-      params: { user_id, group_id },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await axiosInstance.get("/assessments/transactions", {
+      params: { user_id: userId },
     });
-
-    return res.data; // axios คืน response ที่มี data อยู่ตรงนี้
-  } catch (error: any) {
-    // ดัก error และโยนข้อความให้ component จัดการ
-    const status = error?.response?.status || 500;
-    const message = error?.response?.data?.message || "เกิดข้อผิดพลาดในการดึงแบบสอบถามถัดไป";
-    throw new Error(`(${status}) ${message}`);
+    return res.data as ITransaction[];
+  } catch (err) {
+    console.error("❌ Error fetching user transactions:", err);
+    throw err;
   }
-};
+}
 
+// ✅ ดึงของ user ปัจจุบัน (อ่านจาก localStorage) — สะดวกเรียกในหน้า Dashboard
+export async function getMyTransactions(): Promise<ITransaction[]> {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const uid = Number(user?.id || localStorage.getItem("id"));
+  return getUserTransactions(uid);
+}
 
 
 ////////////////////////////////////////////Admin Finished//////////////////////////////////////////////////////////////////////////

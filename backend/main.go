@@ -299,7 +299,7 @@ func main() {
 		userRouter.GET("/questionnaire-groups", assessment.GetAllQuestionnaireGroups)
 		userRouter.GET("/questionnaire-groups/:id", assessment.GetQuestionnaireGroupByID)
 		userRouter.GET("/assessments/available-next", assessment.GetAvailableGroupsAndNextQuestionnaire)
-
+		userRouter.GET("/assessments/transactions", assessment.GetTransactions)
 
 		//chat space
 		userRouter.POST("/gemini", controller.GeminiHistory)
