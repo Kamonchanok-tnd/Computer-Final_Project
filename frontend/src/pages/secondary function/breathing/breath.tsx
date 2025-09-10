@@ -3,6 +3,7 @@ import { Volume2, VolumeX, Music, Music2 } from "lucide-react"; // ✅ ใช้
 import { useLocation, useNavigate } from "react-router-dom";
 import owlImage from "../../../assets/maditaion.jpg";
 import BubbleBackground from "./BubbleBackground";
+import alertSoundFile from "../../../assets/new-notification.mp3"; // ✅ ใส่ไฟล์เสียงแจ้งเตือน
 
 function BreathingExercise() {
   const location = useLocation();
@@ -11,6 +12,8 @@ function BreathingExercise() {
   const customTime = location.state?.customTime; // HH:MM:SS
   const selectedTime = location.state?.time;     // นาที (เก่า)
   const videoUrl = location.state?.videoUrl || "";
+  const alertAudio = useRef<HTMLAudioElement | null>(null);
+
 
   // ✅ ฟังก์ชันแปลง HH:MM:SS -> วินาที
   const parseTimeToSeconds = (timeStr: string) => {
@@ -135,6 +138,25 @@ function BreathingExercise() {
     navigate("/audiohome/meditation");
   };
 
+  // สร้าง audio object เมื่อ component mount
+useEffect(() => {
+  alertAudio.current = new Audio(alertSoundFile);
+}, []);
+
+// เพิ่มการเล่นเสียงใน useEffect ที่เช็ค seconds
+useEffect(() => {
+  if (seconds === 0) {
+    postMessageToPlayer("pauseVideo");
+    setIsPlaying(false);
+    setIsVoiceOn(false);
+
+    // ✅ เล่นเสียงแจ้งเตือน
+    alertAudio.current?.play().catch((err) => console.log(err));
+
+    setShowPopup(true);
+  }
+}, [seconds]);
+
   return (
     <div
       className={`flex flex-col items-center justify-center min-h-screen transition-colors duration-700 font-ibmthai
@@ -201,35 +223,40 @@ function BreathingExercise() {
         />
       </div>
 
-      <div className="mt-10 w-full flex items-center justify-center gap-32">
-        {/* ✅ Voice Guide */}
-        <button
-          type="button"
-          aria-label="Toggle voice guide"
-          title="Toggle voice guide"
-          onClick={() => setIsVoiceOn((prev) => !prev)}
-          className={`${isVoiceOn ? "bg-green-500" : "bg-gray-500"} 
-            hover:bg-[#1e40af] text-white rounded-full p-3 shadow-lg transition`}
-        >
-          {isVoiceOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
-        </button>
+      {/* Container */}
+<div className="mt-10 w-full flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-center sm:gap-32">
+  {/* Voice Guide */}
+  <button
+    type="button"
+    aria-label="Toggle voice guide"
+    title="Toggle voice guide"
+    onClick={() => setIsVoiceOn((prev) => !prev)}
+    className={`${isVoiceOn ? "bg-green-500" : "bg-gray-500"} 
+      hover:bg-[#1e40af] text-white rounded-full p-4 shadow-lg transition
+      order-2 sm:order-1`}
+  >
+    {isVoiceOn ? <Volume2 className="w-7 h-7" /> : <VolumeX className="w-7 h-7" />}
+  </button>
 
-        <div className="text-white text-2xl font-semibold drop-shadow">
-          {formatTime(seconds)}
-        </div>
+  {/* Timer */}
+  <div className="text-white text-3xl sm:text-2xl font-semibold drop-shadow text-center order-1 sm:order-2">
+    {formatTime(seconds)}
+  </div>
 
-        {/* ✅ Music (YouTube) */}
-        <button
-          type="button"
-          aria-label="Toggle background sound"
-          title="Toggle background sound"
-          onClick={toggleAudio}
-          className={`${isPlaying ? "bg-red-500" : "bg-[#2563eb]"
-            } hover:bg-[#1e40af] text-white rounded-full p-3 shadow-lg transition`}
-        >
-          {isPlaying ? <Music2 className="w-6 h-6" /> : <Music className="w-6 h-6" />}
-        </button>
-      </div>
+  {/* Music */}
+  <button
+    type="button"
+    aria-label="Toggle background sound"
+    title="Toggle background sound"
+    onClick={toggleAudio}
+    className={`${isPlaying ? "bg-red-500" : "bg-[#2563eb]"}
+      hover:bg-[#1e40af] text-white rounded-full p-4 shadow-lg transition
+      order-3 sm:order-3`}
+  >
+    {isPlaying ? <Music2 className="w-7 h-7" /> : <Music className="w-7 h-7" />}
+  </button>
+</div>
+
 
       {showPopup && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
