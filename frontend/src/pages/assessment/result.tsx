@@ -147,7 +147,7 @@ const Result: React.FC = () => {
   }, [nextQid, transaction, navigate]);
 
   return (
-    <div className="fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
+    <div className="font-ibmthai fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
       <div className="bg-sky-200 rounded-2xl p-6 md:p-10 w-11/12 max-w-sm md:max-w-xl text-center shadow-xl">
         <h1 className="text-2xl md:text-3xl font-bold mb-6">คะแนนที่ได้คือ</h1>
 

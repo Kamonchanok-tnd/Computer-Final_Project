@@ -141,7 +141,7 @@ const AssessmentLists: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
+    <div className="font-ibmthai fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
       <div className="bg-sky-200/90 rounded-2xl p-8 w-11/12 max-w-md text-center shadow-xl">
         <div className="flex items-center justify-center gap-3 mb-5">
           <img

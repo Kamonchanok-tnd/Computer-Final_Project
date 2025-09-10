@@ -423,7 +423,7 @@ const ManageTestOrder: React.FC = () => {
               key={column.id}
               className={`${column.color} rounded-lg p-4 border-2 border-dashed`}
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="font-ibmthai flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">
