@@ -23,7 +23,7 @@ type Users struct {
 	ProfileAvatar ProfileAvatar `gorm:"foreignKey:PFID"`
 
 	// เพิ่ม attributes สำหรับการรีเซ็ตรหัสผ่าน
-	ResetToken          string    `json:"reset_token"`
+	ResetToken          string    `json:"reset_token" `
 	ResetTokenExpiry    time.Time `json:"reset_token_expiry"`
 
 	// ✅ ฟิลด์สำหรับการเก็บ Consent
@@ -33,17 +33,18 @@ type Users struct {
 	
 
 	// ความสัมพันธ์ One-to-Many กับ Feedback, Like, Mirror, AssessmentResult, Questionnaire, WordHealingContent, ChatRoom
-	Feedbacks        []Feedback        `gorm:"foreignKey:UID"` 
-	Likes            []Like            `gorm:"foreignKey:UID"`
-	Mirrors          []Mirror          `gorm:"foreignKey:UID"`
-	Sounds           []Sound           `gorm:"foreignKey:UID"`  // เพิ่ม foreign key สำหรับ Sounds
-	Backgrounds      []Background      `gorm:"foreignKey:UID"`
-	Reviews          []Review          `gorm:"foreignKey:UID"`
-	Playlists        []Playlist        `gorm:"foreignKey:UID"`
-	History          []History         `gorm:"foreignKey:UID"`
-	AssessmentResults []AssessmentResult `gorm:"foreignKey:UID"`
-	Questionnaires    []Questionnaire   `gorm:"foreignKey:UID"`
-	ASMR         []ASMR `gorm:"foreignKey:UID"`
-	ChatRooms         []ChatRoom           `gorm:"foreignKey:UID"`
-	Views []View `gorm:"foreignKey:UID"`
+	Feedbacks        []Feedback        `gorm:"foreignKey:UID" valid:"-"` 
+	Likes            []Like            `gorm:"foreignKey:UID" valid:"-"`
+	Mirrors          []Mirror          `gorm:"foreignKey:UID" valid:"-"`
+	Sounds           []Sound           `gorm:"foreignKey:UID" valid:"-"`  // เพิ่ม foreign key สำหรับ Sounds
+	Backgrounds      []Background      `gorm:"foreignKey:UID" valid:"-"`
+	Reviews          []Review          `gorm:"foreignKey:UID" valid:"-"`
+	Playlists        []Playlist        `gorm:"foreignKey:UID" valid:"-"`
+	History          []History         `gorm:"foreignKey:UID" valid:"-"`
+	AssessmentResults []AssessmentResult `gorm:"foreignKey:UID" valid:"-"`
+	Questionnaires    []Questionnaire   `gorm:"foreignKey:UID" valid:"-"`
+	ASMR         []ASMR `gorm:"foreignKey:UID" valid:"-"`
+	ChatRooms         []ChatRoom           `gorm:"foreignKey:UID" valid:"-"`
+	Views []View `gorm:"foreignKey:UID" `
+
 }
