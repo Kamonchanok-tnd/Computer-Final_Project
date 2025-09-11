@@ -5,10 +5,9 @@ import criteriaIcon from "../../../../assets/criteria.png";
 import { createCriteria } from "../../../../services/https/questionnaire";
 import { useNavigate, useLocation } from "react-router-dom";
 
-/* ---------- ชนิดข้อมูลของเกณฑ์แต่ละรายการ ---------- */
+/* ชนิดข้อมูลของเกณฑ์แต่ละรายการ */
 type Criterion = { id?: number; description: string; minScore: number; maxScore: number };
 
-/* ---------- คลาสรวมสำหรับ Input ให้สูงเท่ากัน (48px) ---------- */
 const inputCls =
   "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !h-12 !text-base";
 const numberCls =
@@ -21,18 +20,16 @@ const CreateCriteriaPage: React.FC = () => {
   const location = useLocation();
   const questionnaireId = (location.state as any)?.questionnaireId as number;
 
-  /* ---------- toast (antd message) ---------- */
+  /* toast (antd message) */
   const [msg, contextHolder] = message.useMessage();
 
-  /* ---------- ฟอร์มเพิ่มแถวใหม่ ---------- */
   const [description, setDescription] = useState("");
   const [minScore, setMinScore] = useState<number | string>("");
   const [maxScore, setMaxScore] = useState<number | string>("");
 
-  /* ---------- รายการเกณฑ์ทั้งหมด ---------- */
+  /* รายการเกณฑ์ทั้งหมด */
   const [criteriaList, setCriteriaList] = useState<Criterion[]>([]);
 
-  /* ---------- คอนเทนเนอร์ฟอร์ม (เต็มหน้าก่อนแล้วค่อยสกรอลล์) + ซ่อน scrollbar ---------- */
   const formScrollRef = useRef<HTMLDivElement | null>(null);
 
   const updateFormMaxHeight = () => {
@@ -56,7 +53,6 @@ const CreateCriteriaPage: React.FC = () => {
     updateFormMaxHeight();
   }, [criteriaList]);
 
-  /* ---------- ตรวจสอบ/แจ้งเตือนเมื่อไม่มี questionnaireId ---------- */
   useEffect(() => {
     if (!questionnaireId) {
       Modal.warning({
@@ -67,7 +63,7 @@ const CreateCriteriaPage: React.FC = () => {
     }
   }, [questionnaireId, navigate]);
 
-  /* ---------- ตรวจข้อมูลรวม ---------- */
+  /* ตรวจข้อมูลรวม */
   const validateAll = (list: Criterion[]): string | null => {
     if (!list.length) return "โปรดเพิ่มเกณฑ์อย่างน้อย 1 รายการ";
     const seen = new Set<string>();
@@ -93,7 +89,6 @@ const CreateCriteriaPage: React.FC = () => {
     return null;
   };
 
-  /* ---------- เพิ่มแถว ---------- */
   const addCriterion = () => {
     if (!description || minScore === "" || maxScore === "") {
       Modal.warning({ title: "กรุณากรอกข้อมูลให้ครบ", content: "คำอธิบายและช่วงคะแนน" });
@@ -113,7 +108,6 @@ const CreateCriteriaPage: React.FC = () => {
     setMinScore("");
     setMaxScore("");
 
-    // หลัง DOM อัปเดต: อัปเดตความสูง + เลื่อนลงล่างในฟอร์ม
     requestAnimationFrame(() => {
       updateFormMaxHeight();
       const el = formScrollRef.current;
@@ -121,13 +115,13 @@ const CreateCriteriaPage: React.FC = () => {
     });
   };
 
-  /* ---------- อัปเดต/ลบแถว ---------- */
+  /* อัปเดต/ลบแถว */
   const updateRow = (idx: number, patch: Partial<Criterion>) =>
     setCriteriaList(prev => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
   const removeRow = (idx: number) => setCriteriaList(prev => prev.filter((_, i) => i !== idx));
 
-  /* ---------- บันทึกทั้งหมด -> toast -> ไป questionnaire ---------- */
+  /* บันทึกทั้งหมด toast ไป questionnaire */
   const saveAll = async () => {
     const err = validateAll(criteriaList);
     if (err) {
@@ -136,8 +130,6 @@ const CreateCriteriaPage: React.FC = () => {
     }
     try {
       await createCriteria(criteriaList, questionnaireId);
-
-      // toast ตามภาพ และ “รอให้ปิด” ก่อนนำทาง
       await new Promise<void>((resolve) => {
         msg.success({ content: "สร้างเกณฑ์การประเมินสำเร็จ!", duration: 1.2, onClose: resolve });
       });
@@ -207,7 +199,6 @@ const CreateCriteriaPage: React.FC = () => {
             </div>
           </div>
 
-          {/* คอนเทนเนอร์ฟอร์ม: กางเต็มหน้าก่อน แล้วเริ่มสกรอลล์เมื่อเกิน + ซ่อน scrollbar */}
           <div ref={formScrollRef} className="space-y-6 pr-1 overflow-y-auto hide-scrollbar">
             {/* แถวเพิ่มเกณฑ์ */}
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
@@ -227,7 +218,7 @@ const CreateCriteriaPage: React.FC = () => {
                   <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
                   <InputNumber
                     size="large"
-                    min={-1}
+                    min={0}
                     max={10000}
                     value={minScore === "" ? undefined : minScore}
                     onChange={(v) => setMinScore(v === undefined || v === null ? "" : v)}
@@ -262,6 +253,7 @@ const CreateCriteriaPage: React.FC = () => {
               <div className="text-slate-500">ยังไม่มีเกณฑ์การประเมิน</div>
             ) : (
               <div className="space-y-3">
+                {/* หัวตาราง: desktop/tablet */}
                 <div className="hidden grid-cols-12 gap-3 rounded-lg bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 md:grid">
                   <div className="col-span-6">คำอธิบายเกณฑ์</div>
                   <div className="col-span-3">คะแนนขั้นต่ำ</div>
@@ -283,10 +275,13 @@ const CreateCriteriaPage: React.FC = () => {
                         className={inputCls}
                       />
                     </div>
+
+                    {/* คะแนนขั้นต่ำ — แสดง label เฉพาะมือถือ */}
                     <div className="md:col-span-3">
+                      <span className="md:hidden block text-xs text-slate-500 mb-1">คะแนนขั้นต่ำ</span>
                       <InputNumber
                         size="large"
-                        min={-1}
+                        min={0}
                         max={10000}
                         value={c.minScore}
                         onChange={(v) => updateRow(idx, { minScore: (v ?? 0) as number })}
@@ -294,7 +289,10 @@ const CreateCriteriaPage: React.FC = () => {
                         className={numberCls}
                       />
                     </div>
+
+                    {/* คะแนนสูงสุด — แสดง label เฉพาะมือถือ */}
                     <div className="md:col-span-2">
+                      <span className="md:hidden block text-xs text-slate-500 mb-1">คะแนนสูงสุด</span>
                       <InputNumber
                         size="large"
                         min={0}
@@ -305,6 +303,7 @@ const CreateCriteriaPage: React.FC = () => {
                         className={numberCls}
                       />
                     </div>
+
                     <div className="md:col-span-1 flex items-center justify-end">
                       <Popconfirm title="ลบรายการนี้?" okText="ลบ" cancelText="ยกเลิก" onConfirm={() => removeRow(idx)}>
                         <Button

@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Button, Input, InputNumber, Spin, Popconfirm, Modal, message } from "antd";
 import { DeleteOutlined, PlusOutlined, SaveOutlined, RollbackOutlined } from "@ant-design/icons";
 import criteriaIcon from "../../../../assets/criteria.png";
-import {getAllCriteriaByQuestionnaireId,updateCriteriaByQuestionnaireId,} from "../../../../services/https/questionnaire";
+import {  getAllCriteriaByQuestionnaireId,  updateCriteriaByQuestionnaireId,} from "../../../../services/https/questionnaire";
 import { useNavigate, useLocation, useSearchParams, useParams } from "react-router-dom";
 
-/* ---------- ชนิดข้อมูล ---------- */
+/* ชนิดข้อมูล */
 export interface Criterion {
   id?: number;
   description: string;
@@ -14,7 +14,7 @@ export interface Criterion {
 }
 type NavState = { questionnaireId?: number | string };
 
-/* ---------- แปลงฟิลด์จาก API -> รูปแบบที่ UI ใช้ ---------- */
+/* แปลงฟิลด์จาก API -> รูปแบบที่ UI ใช้ */
 const toUI = (x: any): Criterion => ({
   id: x?.id ?? x?.ID,
   description: x?.description ?? x?.Description ?? "",
@@ -22,7 +22,7 @@ const toUI = (x: any): Criterion => ({
   maxScore: Number(x?.maxScore ?? x?.MaxScore ?? x?.max_criteria_score ?? x?.MaxCriteriaScore ?? 0),
 });
 
-/* ---------- คลาสรวมสำหรับ Input/Number ---------- */
+/* คลาสรวมสำหรับ Input/Number*/
 const inputCls =
   "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !h-12 !text-base";
 const numberCls =
@@ -36,10 +36,10 @@ const EditCriteriaPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const params = useParams<{ questionnaireId?: string; id?: string }>();
 
-  /* ---------- toast (antd message) ---------- */
+  /* toast (antd message) */
   const [msg, contextHolder] = message.useMessage();
 
-  /* ---------- หา questionnaireId: state -> query -> param -> sessionStorage ---------- */
+  /* หา questionnaireId: state -> query -> param -> sessionStorage */
   const stateIdRaw = (location.state as NavState | null)?.questionnaireId;
   const queryIdRaw = searchParams.get("questionnaireId");
   const paramIdRaw = params.questionnaireId ?? params.id;
@@ -53,33 +53,30 @@ const EditCriteriaPage: React.FC = () => {
     parseNum(paramIdRaw) ??
     parseNum(sessionStorage.getItem("last_questionnaire_id"));
 
-  /* ---------- เก็บล่าสุดใน sessionStorage ---------- */
-  useEffect(() => {
+  /* เก็บล่าสุดใน sessionStorage */
+  useEffect(() => { 
     if (questionnaireId) sessionStorage.setItem("last_questionnaire_id", String(questionnaireId));
   }, [questionnaireId]);
 
-  /* ---------- สเตตข้อมูล ---------- */
+  /* สเตตข้อมูล */
   const [criteriaList, setCriteriaList] = useState<Criterion[]>([]);
   const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /* ---------- สเตตฟอร์มแถวใหม่ด้านบน ---------- */
   const [description, setDescription] = useState("");
   const [minScore, setMinScore] = useState<number | string>("");
   const [maxScore, setMaxScore] = useState<number | string>("");
-
-  /* ---------- คอนเทนเนอร์ฟอร์มที่ต้อง “เต็มหน้าแล้วค่อยสกรอลล์” + ซ่อนแถบเลื่อน ---------- */
   const formScrollRef = useRef<HTMLDivElement | null>(null);
 
-  // คำนวณ max-height ให้ฟอร์มกางเต็มหน้าจอก่อน แล้วค่อย overflow เมื่อเกิน
+ 
   const updateFormMaxHeight = () => {
     const el = formScrollRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const isMobile = window.innerWidth < 768;      // md breakpoint โดยประมาณ
-    const bottomReserved = isMobile ? 72 : 24;     // เผื่อแถบล่าง/spacing
+    const isMobile = window.innerWidth < 768;      
+    const bottomReserved = isMobile ? 72 : 24;     
     const max = window.innerHeight - rect.top - bottomReserved;
-    el.style.maxHeight = `${Math.max(240, max)}px`; // กันขั้นต่ำ 240px
+    el.style.maxHeight = `${Math.max(240, max)}px`; 
   };
 
   // คำนวณครั้งแรก + เวลารีไซส์
@@ -95,7 +92,7 @@ const EditCriteriaPage: React.FC = () => {
     updateFormMaxHeight();
   }, [criteriaList, loading]);
 
-  /* ---------- โหลดข้อมูล ---------- */
+  /*โหลดข้อมูล*/
   useEffect(() => {
     if (!questionnaireId) {
       Modal.warning({
@@ -121,7 +118,7 @@ const EditCriteriaPage: React.FC = () => {
     fetchData();
   }, [questionnaireId, navigate]);
 
-  /* ---------- ช่วยตรวจข้อมูล ---------- */
+  /* ช่วยตรวจข้อมูล */
   const validateNoOverlap = (list: Criterion[]): string | null => {
     const descSet = new Set<string>();
     for (const [i, c] of list.entries()) {
@@ -141,7 +138,7 @@ const EditCriteriaPage: React.FC = () => {
     return null;
   };
 
-  /* ---------- เพิ่มเกณฑ์ 1 แถว ---------- */
+  /* เพิ่มเกณฑ์ 1 แถว */
   const addCriterion = () => {
     if (!description || minScore === "" || maxScore === "") {
       Modal.warning({ title: "กรุณากรอกข้อมูลให้ครบ", content: "ใส่คำอธิบายและช่วงคะแนนให้ครบถ้วน" });
@@ -176,7 +173,7 @@ const EditCriteriaPage: React.FC = () => {
     });
   };
 
-  /* ---------- อัปเดต/ลบแถว ---------- */
+  /* อัปเดต/ลบแถว */
   const updateRow = (idx: number, patch: Partial<Criterion>) =>
     setCriteriaList(prev => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
@@ -188,7 +185,7 @@ const EditCriteriaPage: React.FC = () => {
       return next;
     });
 
-  /* ---------- บันทึกทั้งหมด -> toast -> ไป questionnaire ---------- */
+  /* บันทึกทั้งหมด ส่ง toast ไปหน้า questionnaire */
   const handleSaveAll = async () => {
     if (!questionnaireId) return;
     const v = validateNoOverlap(criteriaList);
@@ -207,7 +204,6 @@ const EditCriteriaPage: React.FC = () => {
       await updateCriteriaByQuestionnaireId(questionnaireId, { updated, deleted: deletedIds });
       setDeletedIds([]);
 
-      // toast ตามภาพ และ “รอให้ปิด” ก่อนนำทาง
       await new Promise<void>(resolve => {
         msg.success({ content: "แก้ไขเกณฑ์การประเมินสำเร็จ!", duration: 1.2, onClose: resolve });
       });
@@ -228,7 +224,7 @@ const EditCriteriaPage: React.FC = () => {
     }
   };
 
-  /* ---------- นำทางกลับไปหน้าแก้ไขคำถาม/คำตอบ ---------- */
+  /* นำทางกลับไปหน้าแก้ไขคำถาม/คำตอบ */
   const goBackToQnA = () => {
     if (questionnaireId) {
       navigate(`/admin/editQuestionAndAnswerPage?questionnaireId=${questionnaireId}`, {
@@ -238,7 +234,7 @@ const EditCriteriaPage: React.FC = () => {
     }
   };
 
-  /* ---------- UI ---------- */
+  /* UI */
   return (
     <div className="min-h-screen w-full bg-slate-100">
       {contextHolder}
@@ -258,7 +254,7 @@ const EditCriteriaPage: React.FC = () => {
             <Button
               icon={<RollbackOutlined />}
               onClick={goBackToQnA}
-              className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
+              className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm hover:!border-black hover:!bg-gray-700"
             >
               กลับ
             </Button>
@@ -316,7 +312,7 @@ const EditCriteriaPage: React.FC = () => {
                     <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
                     <InputNumber
                       size="large"
-                      min={-1}
+                      min={0}
                       max={10000}
                       value={minScore === "" ? undefined : minScore}
                       onChange={(v) => setMinScore(v === undefined || v === null ? "" : v)}
@@ -329,7 +325,7 @@ const EditCriteriaPage: React.FC = () => {
                     <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
                     <InputNumber
                       size="large"
-                      min={-1}
+                      min={0}
                       max={10000}
                       value={maxScore === "" ? undefined : maxScore}
                       onChange={(v) => setMaxScore(v === undefined || v === null ? "" : v)}
@@ -351,6 +347,7 @@ const EditCriteriaPage: React.FC = () => {
                 <div className="text-slate-500">ยังไม่มีเกณฑ์การประเมิน</div>
               ) : (
                 <div className="space-y-3">
+                  {/* หัวตารางสำหรับจอใหญ่ */}
                   <div className="hidden grid-cols-12 gap-3 rounded-lg bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 md:grid">
                     <div className="col-span-6">คำอธิบายเกณฑ์</div>
                     <div className="col-span-3">คะแนนขั้นต่ำ</div>
@@ -363,6 +360,7 @@ const EditCriteriaPage: React.FC = () => {
                       key={c.id ?? idx}
                       className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 p-3 transition-colors hover:border-black focus-within:border-black md:grid-cols-12"
                     >
+                      {/* คำอธิบาย */}
                       <div className="md:col-span-6">
                         <Input
                           size="large"
@@ -372,10 +370,13 @@ const EditCriteriaPage: React.FC = () => {
                           className={inputCls}
                         />
                       </div>
+
+                      {/* คะแนนขั้นต่ำ — แสดง label เฉพาะมือถือ */}
                       <div className="md:col-span-3">
+                        <span className="md:hidden block text-xs text-slate-500 mb-1">คะแนนขั้นต่ำ</span>
                         <InputNumber
                           size="large"
-                          min={-1}
+                          min={0}
                           max={10000}
                           value={c.minScore}
                           onChange={(v) => updateRow(idx, { minScore: (v ?? 0) as number })}
@@ -383,10 +384,13 @@ const EditCriteriaPage: React.FC = () => {
                           className={numberCls}
                         />
                       </div>
+
+                      {/* คะแนนสูงสุด — แสดง label เฉพาะมือถือ */}
                       <div className="md:col-span-2">
+                        <span className="md:hidden block text-xs text-slate-500 mb-1">คะแนนสูงสุด</span>
                         <InputNumber
                           size="large"
-                          min={-1}
+                          min={0}
                           max={10000}
                           value={c.maxScore}
                           onChange={(v) => updateRow(idx, { maxScore: (v ?? 0) as number })}
@@ -394,9 +398,15 @@ const EditCriteriaPage: React.FC = () => {
                           className={numberCls}
                         />
                       </div>
+
+                      {/* ปุ่มลบ */}
                       <div className="md:col-span-1 flex items-center justify-end">
                         <Popconfirm title="ลบรายการนี้?" okText="ลบ" cancelText="ยกเลิก" onConfirm={() => removeRow(idx)}>
-                          <Button danger icon={<DeleteOutlined />} className="!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none" />
+                          <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            className="!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"
+                          />
                         </Popconfirm>
                       </div>
                     </div>
