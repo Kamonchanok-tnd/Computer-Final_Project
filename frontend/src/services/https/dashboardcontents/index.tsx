@@ -295,6 +295,7 @@ interface Transaction {
 
 // เรียก Pre/Post
 export const getPrePostTransactions = async (uid: number, description: string,tid: number): Promise<Transaction[]> => {
+  //อาจจะยัง
   try {
     const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/prepost`, {
       params: { uid, description,tid },
@@ -309,6 +310,7 @@ export const getPrePostTransactions = async (uid: number, description: string,ti
 
 // เรียก Standalone (3 ครั้งล่าสุด)
 export const getStandaloneTransactions = async (uid: number, description: string,tid:number): Promise<Transaction[]> => {
+ //อาจจะยัง
   try {
     const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/standalone`, {
       params: { uid, description,tid }, ...getAuthHeader(),
@@ -317,5 +319,109 @@ export const getStandaloneTransactions = async (uid: number, description: string
   } catch (error) {
     console.error("Error fetching standalone transactions:", error);
     return [];
+  }
+};
+
+// start dashboard แบบรายคน
+export interface UserSummary {
+  id: number;
+  username: string;
+  avatar: string;
+  gender: string;
+  email: string;
+}
+
+export const GetUserassessment = async (): Promise<UserSummary[]> => {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionnaire/user`, getAuthHeader());
+    return res.data;
+  } catch (err: any) {
+    console.error("Cannot fetch latest respondents:", err);
+    throw new Error(err.message || "Cannot fetch latest respondents");
+  }
+}
+export interface UserKPI {
+  total_taken: number;
+  completed: number;
+  last_taken_date: string ; // จะได้แปลงเป็น Date ใน frontend
+}
+export const GetUserKPI = async (id: number): Promise<UserKPI> => {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionnaire/user/overiew/${id}`, getAuthHeader());
+    return res.data;
+  } catch (err: any) {
+    console.error("Cannot fetch latest respondents:", err);
+    throw new Error(err.message || "Cannot fetch latest respondents");
+  }
+}
+
+export interface UserAssessmentSummary {
+  questionnaire_name: string;
+  count_taken: number;
+}
+export const GetCountTaken = async (id: number): Promise<UserAssessmentSummary[]> => {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionnaire/user/bar/${id}`, getAuthHeader());
+    return res.data;
+  } catch (err: any) {
+    console.error("Cannot fetch latest respondents:", err);
+    throw new Error(err.message || "Cannot fetch latest respondents");
+  }
+}
+
+export interface QuestionnaireGroup {
+  ID: number;
+  Name: string; // เช่น "pre-test", "post-test"
+  Description?: string;
+
+}
+
+
+
+export const getPrePostTransactionsCompare = async (uid: number, description: string): Promise<Transaction[]> => {
+  try {
+    const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/user/prepost`, {
+      params: { uid, description },
+      ...getAuthHeader(), // spread object headers เข้า config ของ axios
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching pre/post transactions:", error);
+    return [];
+  }
+};
+
+export const getPersonalTransactions = async (uid: number, description: string): Promise<Transaction[]> => {
+  try {
+    const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/user/personal`, {
+      params: { uid, description }, ...getAuthHeader(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching standalone transactions:", error);
+    return [];
+  }
+};
+
+export interface IDetailquestionire {
+  questionnaire_group: string;
+  latest_score: number;
+  previous_score?: number | null;
+  latest_result: string;
+  average_score: number;
+}
+
+export const GetDetailQuestionnaire = async (
+  uid: number,
+  description: string
+): Promise<IDetailquestionire> => {
+  try {
+    const res = await axios.get(`${apiUrl}/dashboard/questionnaire/user/detail`, {
+      params: { uid, description },...getAuthHeader() // ส่ง query params
+    });
+    return res.data;
+  } catch (err: any) {
+    console.error("Cannot fetch latest respondents:", err);
+    throw new Error(err.message || "Cannot fetch latest respondents");
   }
 };

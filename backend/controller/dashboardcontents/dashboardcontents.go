@@ -850,6 +850,7 @@ type RespondentWithTrend struct {
 }
 
 func GetPrePostTransactions(c *gin.Context) {
+     //อาจจะยัง
     db := config.DB()
     uidStr := c.Query("uid")
     description := c.Query("description") // แบบสอบถาม เช่น 'แบบวัดระดับความสุข คะแนน 0-10'
@@ -886,6 +887,7 @@ func GetPrePostTransactions(c *gin.Context) {
 }
 
 func GetStandaloneTransactions(c *gin.Context) {
+    //อาจจะยัง
     db := config.DB()
     uidStr := c.Query("uid")
     description := c.Query("description") // แบบสอบถาม เช่น 'แบบวัดระดับความสุข คะแนน 0-10'
@@ -907,7 +909,7 @@ func GetStandaloneTransactions(c *gin.Context) {
     err = db.Table("transactions t").
         Select("t.questionnaire_group, t.total_score, ar.created_at AS date").
         Joins("JOIN assessment_results ar ON ar.id = t.ar_id").
-        Where("ar.uid = ? AND t.description = ? AND t.questionnaire_group = ? AND t.id <= ?", uid, description, "Standalone",tid).
+        Where("ar.uid = ? AND t.description = ? AND t.questionnaire_group = ? AND t.id <= ?", uid, description, "Personal",tid).
         Order("ar.created_at DESC").
         Limit(3).
         Scan(&results).Error
@@ -918,4 +920,233 @@ func GetStandaloneTransactions(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, results)
+}
+
+
+
+// ฟังก์ชัน API
+func GetRespondents(c *gin.Context) {
+    db := config.DB()
+
+    type UserSummary struct {
+        ID       uint   `json:"id"`
+        Username string `json:"username"`
+        Avatar   string `json:"avatar"`
+        Gender   string `json:"gender"`
+        Email    string `json:"email"`
+    }
+
+    var respondents []UserSummary
+
+    err := db.Model(&entity.Users{}).
+    Distinct("users.id, users.username, pa.avatar AS avatar, users.gender, users.email").
+    Joins("JOIN assessment_results ar ON users.id = ar.uid").
+    Joins("JOIN profile_avatars pa ON users.pf_id = pa.id").
+    Order("users.username").
+    Scan(&respondents).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error":   "cannot fetch latest respondents",
+            "details": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK,respondents)
+    
+}
+
+func GetUserKPI(c *gin.Context) {
+    db := config.DB()
+    userID := c.Param("id")
+
+    type UserKPI struct {
+        TotalTaken    int        `json:"total_taken"`     // จำนวนครั้งที่เริ่มทำ
+        Completed     int        `json:"completed"`       // จำนวนที่เสร็จแล้ว
+        LastTakenDate string `json:"last_taken_date"` // วันที่ทำล่าสุด
+    }
+
+    var kpi UserKPI
+
+    // Single GORM query
+    err := db.Model(&entity.AssessmentResult{}).
+        Select(`
+            COUNT(DISTINCT assessment_results.id) AS total_taken,
+            COUNT(DISTINCT transactions.id) AS completed,
+            MAX(assessment_results.created_at) AS last_taken_date
+        `).
+        Joins("LEFT JOIN transactions ON transactions.ar_id = assessment_results.id").
+        Where("assessment_results.uid = ?", userID).
+        Scan(&kpi).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error":   "cannot fetch KPI",
+            "details": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, kpi)
+}
+
+func GetUserAssessmentSummary(c *gin.Context) {
+    db := config.DB()
+    userID := c.Param("id")
+
+    type UserAssessmentSummary struct {
+        QuestionnaireName string `json:"questionnaire_name"`
+        CountTaken        int    `json:"count_taken"`
+    }
+
+    var summary []UserAssessmentSummary
+
+    err := db.Model(&entity.AssessmentResult{}).
+        Select("questionnaires.name_questionnaire AS questionnaire_name, COUNT(*) AS count_taken").
+        Joins("JOIN questionnaires ON questionnaires.id = assessment_results.qu_id").
+        Where("assessment_results.uid = ?", userID).
+        Group("questionnaires.id, questionnaires.name_questionnaire").
+        Order("count_taken DESC").
+        Scan(&summary).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error":   "cannot fetch user assessment summary",
+            "details": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, summary)
+}
+
+
+func GetPrePostTransactionsCompare(c *gin.Context) {
+    db := config.DB()
+    uidStr := c.Query("uid")
+    description := c.Query("description")
+
+    uid, err := strconv.Atoi(uidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid uid"})
+        return
+    }
+
+    type ResultItem struct {
+        QuestionnaireGroup string    `json:"questionnaire_group"`
+        TotalScore         int       `json:"total_score"`
+        Date               time.Time `json:"date"`
+        SessionNumber      int       `json:"session_number"`
+    }
+
+    var results []ResultItem
+
+    sql := `
+    WITH t AS (
+        SELECT t.questionnaire_group,
+               t.total_score,
+               ar.created_at AS ar_created_at
+        FROM transactions t
+        JOIN assessment_results ar ON ar.id = t.ar_id
+        WHERE ar.uid = ? 
+          AND t.description = ?
+          AND t.questionnaire_group IN ('Pre-test','Post-test','Post-test Interval')
+    )
+    SELECT t.questionnaire_group,
+           t.total_score,
+           t.ar_created_at AS date,
+           SUM(CASE WHEN t.questionnaire_group IN ('Pre-test','Post-test Interval') THEN 1 ELSE 0 END)
+           OVER (PARTITION BY ? ORDER BY t.ar_created_at ROWS UNBOUNDED PRECEDING) AS session_number
+    FROM t
+    ORDER BY t.ar_created_at
+    `
+
+    err = db.Raw(sql, uid, description, description).Scan(&results).Error
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, results)
+}
+
+
+
+func GetStandaloneTransactionsPersonal(c *gin.Context) {
+    db := config.DB()
+    uidStr := c.Query("uid")
+    description := c.Query("description") // แบบสอบถาม เช่น 'แบบวัดระดับความสุข คะแนน 0-10'
+   
+
+    uid, err := strconv.Atoi(uidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid uid"})
+        return
+    }
+
+    type ResultItem struct {
+        QuestionnaireGroup string    `json:"questionnaire_group"`
+        TotalScore         int       `json:"total_score"`
+        Date               time.Time `json:"date"`
+    }
+
+    var results []ResultItem
+    err = db.Table("transactions t").
+        Select("t.questionnaire_group, t.total_score, ar.created_at AS date").
+        Joins("JOIN assessment_results ar ON ar.id = t.ar_id").
+        Where("ar.uid = ? AND t.description = ? ", uid, description, ).
+        Order("ar.created_at ASC").
+        Scan(&results).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, results)
+}
+
+func GetDescriptionSummary(c *gin.Context) {
+    db := config.DB()
+    uidStr := c.Query("uid")
+    description := c.Query("description")
+
+    type QuestionnaireSummary struct {
+        LatestScore   int      `json:"latest_score"`
+        PreviousScore *int     `json:"previous_score"` // pointer เผื่อไม่มี previous
+        LatestResult  string   `json:"latest_result"`
+        AverageScore  float64  `json:"average_score"`
+    }
+    
+
+    uid, err := strconv.Atoi(uidStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid uid"})
+        return
+    }
+
+    var result QuestionnaireSummary
+
+    subQuery := db.Table("transactions t2").
+        Select("t2.total_score, t2.result, ROW_NUMBER() OVER(ORDER BY ar.created_at DESC, t2.id DESC) AS rn").
+        Joins("JOIN assessment_results ar ON ar.id = t2.ar_id").
+        Where("ar.uid = ? AND t2.description = ?", uid, description)
+
+    err = db.Table("transactions t").
+        Select(`
+            MAX(CASE WHEN sub.rn = 1 THEN sub.total_score END) AS latest_score,
+            MAX(CASE WHEN sub.rn = 2 THEN sub.total_score END) AS previous_score,
+            MAX(CASE WHEN sub.rn = 1 THEN sub.result END) AS latest_result,
+            ROUND(AVG(sub.total_score)::numeric, 2) AS average_score
+        `).
+        Joins("JOIN (?) sub ON true", subQuery). // join inline subquery
+        Scan(&result).Error
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, result)
 }

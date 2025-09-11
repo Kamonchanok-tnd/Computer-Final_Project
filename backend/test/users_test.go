@@ -31,6 +31,9 @@ func TestUsersValidation(t *testing.T) {
 		}
 
 		ok, err := govalidator.ValidateStruct(user)
+		if err != nil {
+			
+		}
 
 		g.Expect(ok).To(BeTrue())
 		g.Expect(err).To(BeNil())

@@ -101,6 +101,7 @@ export default function RespondentDetailModal({
           console.log("trend is : ",trend);
         } else {
           trend = await getStandaloneTransactions(userId, description,tid);
+          console.log("trend is person : ",trend);
         }
 
         setRespondent({
