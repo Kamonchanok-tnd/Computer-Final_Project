@@ -6,12 +6,11 @@ import {getAllWordHealingMessagesForUser,likeMessage,unlikeMessage,checkIfLikedA
 import type { WordHealingContent } from "../../../interfaces/IWordHealingContent";
 import AmbientBackground from "./AmbientBackground";
 
-/* ============================ Global styles/constants ============================ */
-// ปุ่ม "อ่าน" ใช้ร่วมกันทั้งไฟล์ (กันประกาศซ้ำ)
+/*  Global styles/constants */
 const READ_BTN =
-  "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#5DE2FF] text-white hover:bg-[#4AC5D9] transition";
+  "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-[#5DE2FF] text-white hover:bg-[#4AC5D9] transition";
 
-/* ============================ Helpers ============================ */
+/*  Helpers */
 const isPdf = (s?: string | null) =>
   !!s && (s.includes("application/pdf") || /\.pdf($|\?)/i.test(s || ""));
 const isImage = (s?: string | null) =>
@@ -53,13 +52,13 @@ const estimateRequiredMs = (text: string, imageCount = 0) => {
   return Math.max(8000, Math.min(total * 0.7, 300_000));
 };
 
-/* ====================== ShortBubble ====================== */
+/* ShortBubble */
 type ShortBubbleProps = {
   content: string;
   author?: string;
   dateStr?: string;
   photo?: string | null;
-  isRight?: boolean;   // ใช้กำหนดฝั่ง → สีสลับ
+  isRight?: boolean;
   liked?: boolean;
   likeCount?: number;
   viewCount?: number;
@@ -83,28 +82,28 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
   onOpen,
   layout = "card",
 }) => {
-  // สีการ์ดเดิม (สำหรับฝั่งซ้าย)
   const CARD_BG = "#EAFBFF";
   const CARD_RING = "#BFEAF5";
 
-  const metaColor = isRight ? "text-white/90" : "text-slate-500 dark:text-slate-500";
+  // meta ให้สว่างขึ้นใน dark
+  const metaColor = isRight ? "text-white/90" : "text-slate-500 dark:text-slate-300";
   const ghostBtn =
     isRight
       ? "border-white/60 hover:bg-white/20 text-white"
       : "border-slate-300 hover:bg-slate-50 text-slate-700 dark:border-slate-600 dark:hover:bg-slate-700 dark:text-slate-100";
 
   if (layout === "card") {
-    const IMG_W = "w-[128px] sm:w-[136px]";
-    const IMG_H = "h-[96px] sm:h-[112px]";
+    // ปรับขนาดรูป + ล็อกสัดส่วน ป้องกัน layout shift
+    const IMG_W = "w-[96px] sm:w-[136px]";
+    const IMG_H = "h-[88px] sm:h-[112px]";
     const emphasisBg = isRight ? "bg-white/20" : "bg-black/5 dark:bg-white/10";
     const emphasisRing = isRight ? "ring-white/25" : "ring-black/5 dark:ring-white/10";
 
+    // การ์ดฝั่งซ้าย: รองรับ dark แบบเต็ม
     const outerClass = isRight
       ? "relative flex-1 rounded-2xl px-3 py-3 shadow bg-gradient-to-br from-[#5DE2FF] to-[#49C3D6] text-white"
-      : "relative flex-1 rounded-2xl px-3 py-3 shadow";
-    const outerStyle = isRight
-      ? {}
-      : { background: CARD_BG, boxShadow: "0 8px 20px rgba(0,0,0,0.06)", border: `1px solid ${CARD_RING}` };
+      : "relative flex-1 rounded-2xl px-3 py-3 shadow border border-[#BFEAF5] bg-[#EAFBFF] dark:bg-[#1B2538] dark:text-white dark:border-slate-700";
+    const outerStyle: React.CSSProperties = {};
 
     return (
       <div className={`mb-3 flex ${isRight ? "justify-end" : "justify-start"}`}>
@@ -124,12 +123,14 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                     e.stopPropagation();
                     onImageClick?.(photo!);
                   }}
-                  className={`shrink-0 overflow-hidden rounded-xl ${isRight ? "ring-1 ring-white/40" : "ring-1 ring-black/5"}`}
+                  className={`shrink-0 overflow-hidden rounded-xl ${isRight ? "ring-1 ring-white/40" : "ring-1 ring-black/5 dark:ring-white/10"}`}
                   title="คลิกดูรูปใหญ่"
                 >
                   <img
                     src={photo!}
                     alt=""
+                    width={136}
+                    height={112}
                     className={`${IMG_W} ${IMG_H} object-cover`}
                     loading="lazy"
                     decoding="async"
@@ -138,10 +139,11 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                 </button>
               )}
 
-              <div className="flex-1 min-h-[96px] sm:min-h-[112px] flex items-center">
+              <div className="flex-1 min-h-[88px] sm:min-h-[112px] flex items-center">
                 <div className={["w-full rounded-xl px-3 py-2", emphasisBg, "ring", emphasisRing, "backdrop-blur-[1px]"].join(" ")}>
+                  {/*  line-clamp ให้กระชับบนมือถือ */}
                   <p
-                    className={`text-center font-semibold text-[15px] sm:text-base leading-relaxed whitespace-pre-wrap break-words ${isRight ? "text-white" : "text-slate-900 dark:text-slate-900"}`}
+                    className={`text-center font-semibold text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-wrap break-words ${isRight ? "text-white" : "text-slate-900 dark:text-white"}`}
                     style={{
                       display: "-webkit-box",
                       WebkitLineClamp: 3,
@@ -158,25 +160,25 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
 
                   <div className={`mt-2 flex items-center justify-center gap-4 text-[12px] ${isRight ? "text-white" : ""}`}>
                     <span className="inline-flex items-center gap-1">
-                      <AiOutlineEye  className={`${isRight ? "text-white" : "text-[#5DE2FF]"} w-6 h-6`} />
-                      <span className={isRight ? "text-white tabular-nums" : "text-slate-700 dark:text-slate-500 tabular-nums"}>{viewCount}</span>
+                      <AiOutlineEye className={`${isRight ? "text-white" : "text-[#5DE2FF]"} w-5 h-5 sm:w-6 sm:h-6`} />
+                      <span className={isRight ? "text-white tabular-nums" : "text-slate-700 dark:text-slate-300 tabular-nums"}>{viewCount}</span>
                     </span>
 
-                    {/* ♥ แดงเมื่อถูกใจ */}
                     <button
                       onClick={(e) => { e.stopPropagation(); onLike?.(); }}
                       className="inline-flex items-center gap-1"
                       aria-label={liked ? "เลิกถูกใจ" : "ถูกใจ"}
                       title="ถูกใจ"
                     >
-                      {liked ? <AiFillHeart size={18} className="text-red-500" /> : <AiOutlineHeart size={18} className={isRight ? "text-white" : ""} />}
-                      <span className={isRight ? "text-white text-[12px]" : "text-slate-700 dark:text-slate-500 text-[12px]"}>{likeCount}</span>
+                      {liked ? (
+                        <AiFillHeart className="text-red-500 w-6 h-6 sm:w-7 sm:h-7" />
+                      ) : (
+                        <AiOutlineHeart className={`${isRight ? "text-white" : ""} w-6 h-6 sm:w-7 sm:h-7`} />
+                      )}
+                      <span className={isRight ? "text-white text-[12px]" : "text-slate-700 dark:text-slate-300 text-[12px]"}>{likeCount}</span>
                     </button>
 
-                    <button
-                      className={READ_BTN}
-                      onClick={(e) => { e.stopPropagation(); onOpen?.(); }}
-                    >
+                    <button className={READ_BTN} onClick={(e) => { e.stopPropagation(); onOpen?.(); }}>
                       <BookOpen className="w-3.5 h-3.5" />
                       อ่าน
                     </button>
@@ -189,22 +191,17 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
             {isRight ? (
               <div className="absolute w-3 h-3 rotate-45 -bottom-1 right-3 bg-[#49C3D6] shadow" />
             ) : (
-              <div
-                className="absolute w-3 h-3 rotate-45 -bottom-1 left-3 shadow"
-                style={{ background: CARD_BG, borderBottom: `1px solid ${CARD_RING}`, borderRight: `1px solid ${CARD_RING}` }}
-              />
+              <>
+                {/* light mode tail */}
+                <div
+                  className="absolute w-3 h-3 rotate-45 -bottom-1 left-3 shadow dark:hidden"
+                  style={{ background: CARD_BG, borderBottom: `1px solid ${CARD_RING}`, borderRight: `1px solid ${CARD_RING}` }}
+                />
+                {/* dark mode tail */}
+                <div className="hidden dark:block absolute w-3 h-3 rotate-45 -bottom-1 left-3 bg-[#1B2538] border-b border-r border-slate-700 shadow" />
+              </>
             )}
           </div>
-
-          {/* ปุ่มหัวใจวงกลม (กรอบเดิม) */}
-          <button
-            onClick={() => onLike?.()}
-            className={["shrink-0 inline-flex items-center justify-center rounded-full w-9 h-9 border transition", ghostBtn].join(" ")}
-            aria-label={liked ? "เลิกถูกใจ" : "ถูกใจ"}
-            title="ถูกใจ"
-          >
-            {liked ? <AiFillHeart size={20} className="text-red-500" /> : <AiOutlineHeart size={20} className={isRight ? "text-white" : ""} />}
-          </button>
         </div>
 
         <style>{`@keyframes fadeSlide{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}`}</style>
@@ -212,7 +209,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
     );
   }
 
-  // bubble เดิม (ไม่ใช่การ์ด)
+  // bubble เดิม
   const bubbleColor = isRight
     ? "bg-gradient-to-br from-[#5DE2FF] to-[#49C3D6] text-white"
     : "bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100";
@@ -233,7 +230,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
           title="คลิกเพื่ออ่าน"
         >
           <div className={`absolute w-3 h-3 rotate-45 -bottom-1 ${isRight ? "right-3" : "left-3"} ${tailColor} shadow`} />
-          <p className="text-lg leading-relaxed whitespace-pre-wrap break-words ">{content}</p>
+          <p className="text-base sm:text-lg leading-relaxed whitespace-pre-wrap break-words">{content}</p>
 
           {!!photo && (
             <button
@@ -285,7 +282,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
   );
 };
 
-/* ============================= Page ============================= */
+/* Page  */
 type PageMode = "shorts" | "articles" | "likedShorts" | "likedArticles";
 
 export default function UserMessagePage() {
@@ -351,7 +348,7 @@ export default function UserMessagePage() {
     return () => clearInterval(interval);
   }, []);
 
-  /* ------------------------------ Search + Split ------------------------------ */
+  /*Search + Split*/
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setShortPage(1); setArticlePage(1); setLikedShortsPage(1); setLikedArticlesPage(1);
@@ -364,11 +361,9 @@ export default function UserMessagePage() {
     );
   }, [messages, searchQuery]);
 
-  // เรียงวันล่าสุดก่อน
+  // sort helpers
   const byDateDesc = (a: WordHealingContent, b: WordHealingContent) =>
     new Date(b.date as any).getTime() - new Date(a.date as any).getTime();
-
-  // เรียง id ล่าสุดก่อนภายในวัน
   const byIdDesc = (a: WordHealingContent, b: WordHealingContent) => (b.id ?? 0) - (a.id ?? 0);
 
   const shortsAll = useMemo(
@@ -412,7 +407,7 @@ export default function UserMessagePage() {
     [likedArticlesAll, likedArticlesPage]
   );
 
-  /* --------------------------------- Like --------------------------------- */
+  /*  Like */
   const toggleLike = async (id: number) => {
     if (!isLoggedIn) { alert("กรุณาล็อกอินเพื่อทำการกดถูกใจ"); return; }
     const currentlyLiked = !!liked[id];
@@ -433,7 +428,7 @@ export default function UserMessagePage() {
     }
   };
 
-  /* ---------------------------- Reader ---------------------------- */
+  /*  Reader */
   const showModal = (message: WordHealingContent) => {
     setSelectedMessage(message);
     setIsModalVisible(true);
@@ -453,7 +448,7 @@ export default function UserMessagePage() {
     return Math.max(0, Math.min(99, Math.floor(ratio * 100)));
   };
 
-  const evalPass = (msg: WordHealingContent | null, pct: number, ms: number) => {
+  const evalPass = (msg: WordHealingContent | null, pctNow: number, ms: number) => {
     if (!msg) return false;
     const contentLen = (msg.content || "").trim().length;
     const isVeryShort = contentLen <= 60;
@@ -461,7 +456,7 @@ export default function UserMessagePage() {
       ? scrollBodyRef.current.scrollHeight > scrollBodyRef.current.clientHeight + 2
       : false;
     const timeOk = isVeryShort ? true : ms >= requiredMs * 0.7;
-    const contentOk = scrollable ? pct >= 90 : true;
+    const contentOk = scrollable ? pctNow >= 90 : true;
     return timeOk && contentOk;
   };
 
@@ -478,8 +473,11 @@ export default function UserMessagePage() {
       const active = Date.now() - lastActivityRef.current < 15_000;
       setIsActive(visible && active);
       if (visible && active) setReadMs((t) => t + 1000);
-      setScrollProgress(computeContentPct());
-      if (!passedRef.current && evalPass(selectedMessage, computeContentPct(), readMs + (visible && active ? 1000 : 0))) {
+
+      const nowPct = computeContentPct();
+      setScrollProgress((prev) => Math.max(prev, nowPct));
+
+      if (!passedRef.current && evalPass(selectedMessage, nowPct, readMs + (visible && active ? 1000 : 0))) {
         passedRef.current = true;
       }
     }, 1000);
@@ -491,24 +489,25 @@ export default function UserMessagePage() {
       window.removeEventListener("wheel", onAct);
       window.removeEventListener("touchmove", onAct);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isModalVisible, selectedMessage, requiredMs]);
 
   const onModalBodyScroll: React.UIEventHandler<HTMLDivElement> = () => {
     lastActivityRef.current = Date.now();
-    setScrollProgress(computeContentPct());
+    setScrollProgress((prev) => Math.max(prev, computeContentPct()));
     if (!passedRef.current && evalPass(selectedMessage, computeContentPct(), readMs)) passedRef.current = true;
   };
 
   const handleCancel = async () => {
     if (selectedMessage && !sentRef.current && passedRef.current && isLoggedIn) {
       sentRef.current = true;
-      
-      const pctFinal = computeContentPct();
+
+      const pctFinalNow = computeContentPct();
       const msFinal  = readMs;
-      
       try {
-        const res = await countViewMessage(selectedMessage.id, { readMs: msFinal, pctScrolled: Math.max(pctFinal, scrollProgress) });
+        const res = await countViewMessage(selectedMessage.id, {
+          readMs: msFinal,
+          pctScrolled: Math.max(pctFinalNow, scrollProgress),
+        });
         const newCount = typeof res?.view_count === "number" ? res.view_count : (selectedMessage.viewCount || 0) + 1;
         setMessages((prev) => prev.map((m) => (m.id === selectedMessage.id ? { ...m, viewCount: newCount } : m)));
         setSelectedMessage((prev) => (prev ? { ...prev, viewCount: newCount } : prev));
@@ -520,7 +519,7 @@ export default function UserMessagePage() {
 
   const handleBack = () => window.history.back();
 
-  /* ----------------- Group by day ----------------- */
+  /*  Group by day */
   function groupByDay<T extends { date: string | Date }>(items: T[]) {
     const groups: Record<string, T[]> = {};
     for (const it of items) {
@@ -534,7 +533,7 @@ export default function UserMessagePage() {
     const d = new Date(label);
     const today = new Date(); today.setHours(0,0,0,0);
     const that  = new Date(d); that.setHours(0,0,0,0);
-       const diff = Math.round((today.getTime() - that.getTime()) / 86400000);
+    const diff = Math.round((today.getTime() - that.getTime()) / 86400000);
     if (diff === 0) return "วันนี้";
     if (diff === 1) return "เมื่อวาน";
     return d.toLocaleDateString("en-GB");
@@ -542,84 +541,98 @@ export default function UserMessagePage() {
 
   const isLikedMode = mode === "likedShorts" || mode === "likedArticles";
 
-  /* ================================ UI ================================ */
+  /* UI */
   return (
-    <div className="font-ibmthai relative flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-[#C2F4FF] to-[#5DE2FF] dark:bg-gradient-to-b dark:from-[#1B2538] dark:to-[#0E1626] transition-all duration-300">
+    <div className="font-ibmthai relative flex flex-col items-center p-4 sm:p-6 min-h-screen bg-gradient-to-b from-[#C2F4FF] to-[#5DE2FF] dark:bg-gradient-to-b dark:from-[#1B2538] dark:to-[#0E1626] transition-all duration-300">
       {/* Ambient */}
-      <div aria-hidden className={["pointer-events-none fixed inset-0 z-0 transition-opacity duration-300 ease-out", isLikedMode ? "opacity-0" : "opacity-100"].join(" ")}>
+      <div
+        aria-hidden
+        className={[
+          "pointer-events-none fixed inset-0 z-0 transition-opacity duration-300 ease-out",
+          isLikedMode ? "opacity-0" : "opacity-100",
+        ].join(" ")}
+      >
         <AmbientBackground scope="page" dayCloudsSrc="/ambient/day-clouds.jpg" nightStyle="milkyway" milkyWaySrc="/ambient/milkyway.jpg" />
       </div>
 
       <div className="relative z-10 w-full">
-        {/* Header: ปุ่มย้อนกลับ + ค้นหา (บรรทัดเดียว) */}
-        <div className="w-full max-w-5xl mx-auto mb-4 flex items-center gap-3">
-          <button onClick={handleBack} className="p-2 bg-[#5DE2FF] text-white rounded-full hover:bg-[#4AC5D9] transition duration-300" aria-label="ย้อนกลับ">
-            <AiOutlineArrowLeft size={24} />
+        {/* Header: Back + Search (responsive) */}
+        <div className="w-full max-w-5xl mx-auto mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={handleBack}
+            className="p-2 bg-[#5DE2FF] text-white rounded-full hover:bg-[#4AC5D9] transition duration-300 shrink-0"
+            aria-label="ย้อนกลับ"
+          >
+            <AiOutlineArrowLeft size={22} className="sm:w-6 sm:h-6" />
           </button>
           <input
             type="text"
             placeholder="ค้นหา (ชื่อ/ผู้เขียน/ประเภท/คำในเนื้อหา)..."
             value={searchQuery}
             onChange={handleSearch}
-            className="flex-1 p-2 rounded-lg border border-gray-300 dark:text-white dark:bg-gray-800"
+            className="flex-1 p-2 sm:p-2.5 rounded-lg border border-gray-300 dark:text-white dark:bg-gray-800 min-w-0"
           />
         </div>
 
-        {/* Tabs กลางจอ */}
-        <div className="w-full max-w-5xl mx-auto mb-6 flex justify-center">
-          <div className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/70 p-1 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            {([
-              { key: "shorts",        label: "บทความสั้น",        count: shortsAll.length },
-              { key: "articles",      label: "บทความ",            count: articlesAll.length },
-              { key: "likedShorts",   label: "ที่ถูกใจ (บทสั้น)", count: likedShortsAll.length },
-              { key: "likedArticles", label: "ที่ถูกใจ (บทความ)", count: likedArticlesAll.length },
-            ] as { key: PageMode; label: string; count: number }[]).map((b) => {
-              const active = mode === b.key;
-              return (
-                <button
-                  key={b.key}
-                  onClick={() => setMode(b.key)}
-                  className={[
-                    "relative px-4 py-2 text-sm font-medium rounded-full transition",
-                    active ? "bg-[#5DE2FF] text-white shadow" : "text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-700/50",
-                  ].join(" ")}
-                >
-                  {b.label}
-                  <span
-                    className={[
-                      "ml-2 inline-flex items-center justify-center h-5 rounded-full text-[11px] tabular-nums min-w-[2.25rem]",
-                      active ? "bg-white/25 text-white" : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-100",
-                    ].join(" ")}
-                  >
-                    {b.count}
-                  </span>
-                </button>
-              );
-            })}
+        {/* Tabs */}
+        <div className="w-full max-w-5xl mx-auto mb-4 sm:mb-6 flex justify-center">
+          <div className="overflow-x-auto max-w-full no-scrollbar">
+            <div className="inline-flex w-fit mx-auto items-center rounded-full bg-white/80 dark:bg-slate-800/70 p-1 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+              <div className="flex gap-1 px-1">
+                {([
+                  { key: "shorts",        label: "บทความสั้น",        count: shortsAll.length },
+                  { key: "articles",      label: "บทความ",            count: articlesAll.length },
+                  { key: "likedShorts",   label: "ที่ถูกใจ (บทสั้น)", count: likedShortsAll.length },
+                  { key: "likedArticles", label: "ที่ถูกใจ (บทความ)", count: likedArticlesAll.length },
+                ] as { key: PageMode; label: string; count: number }[]).map((b) => {
+                  const active = mode === b.key;
+                  return (
+                    <button
+                      key={b.key}
+                      onClick={() => setMode(b.key)}
+                      className={[
+                        "relative px-3 sm:px-4 py-1.5 sm:py-2 text-sm rounded-full transition shrink-0",
+                        active ? "bg-[#5DE2FF] text-white shadow" : "text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-700/50",
+                      ].join(" ")}
+                    >
+                      {b.label}
+                      <span
+                        className={[
+                          "ml-2 inline-flex items-center justify-center h-5 rounded-full text-[11px] tabular-nums min-w-[1.9rem] sm:min-w-[2.25rem]",
+                          active ? "bg-white/25 text-white" : "bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-100",
+                        ].join(" ")}
+                      >
+                        {b.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div> 
+            </div>
           </div>
         </div>
 
-        {/* ============================== CONTENT ============================== */}
-        {/* ---- บทความสั้น ---- */}
+        {/* CONTENT */}
+        {/* บทความสั้น */}
         <section className={mode === "shorts" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "shorts"}>
           <div className="w-full max-w-5xl mx-auto mb-10">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">บทความสั้น ({shortsAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">บทความสั้น ({shortsAll.length})</h3>
 
             {shortsPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความสั้น</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความสั้น</div>
             ) : (
               groupByDay(shortsPageItems).map(([dayKey, items]) => {
-                const itemsSorted = [...items].sort(byIdDesc); // id ล่าสุดก่อน
+                const itemsSorted = [...items].sort(byIdDesc);
                 return (
                   <div key={dayKey} className="mb-6">
                     <div className="sticky top-2 z-10 flex items-center justify-center my-2">
-                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
+                      <span className="inline-flex items-center rounded-full bg-white/80  dark:bg-slate-800/80 px-3 sm:px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
                         {humanDay(dayKey)}
                       </span>
                     </div>
 
                     {itemsSorted.map((s: any, idx: number) => {
-                      const isRight = idx % 2 === 1; // สลับซ้าย/ขวา
+                      const isRight = idx % 2 === 1;
                       return (
                         <ShortBubble
                           key={s.id}
@@ -653,31 +666,31 @@ export default function UserMessagePage() {
           </div>
         </section>
 
-        {/* ---- บทความ ---- */}
+        {/* บทความ */}
         <section className={mode === "articles" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "articles"}>
           <div className="w-full max-w-5xl mx-auto">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">บทความ ({articlesAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">บทความ ({articlesAll.length})</h3>
 
             {articlesPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความตามเงื่อนไข</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความตามเงื่อนไข</div>
             ) : (
               groupByDay(articlesPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
                 return (
                   <div key={dayKey} className="mb-6">
                     <div className="sticky top-2 z-10 flex items-center justify-center my-2">
-                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
+                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-3 sm:px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
                         {humanDay(dayKey)}
                       </span>
                     </div>
 
-                    <div className="grid gap-4 grid-cols-1">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1">
                       {itemsSorted.map((m: WordHealingContent) => (
-                        <div key={m.id} className="flex flex-col bg-[#BFEAF5] rounded-xl shadow-lg lg:p-6 p-4 mx-auto dark:bg-[#1B2538] text-white w-full transition-all duration-300">
-                          <h3 className="text-lg text-center mb-4 font-bold text-gray-800 dark:text-white">{m.name}</h3>
+                        <div key={m.id} className="flex flex-col bg-[#BFEAF5] rounded-xl shadow-lg p-3 sm:p-4 lg:p-6 mx-auto dark:bg-[#1B2538] text-white w-full transition-all duration-300">
+                          <h3 className="text-base sm:text-lg text-center mb-3 sm:mb-4 font-bold text-gray-800 dark:text-white">{m.name}</h3>
 
                           {hasImage(m.photo) && (
-                            <figure className="mb-4 overflow-hidden rounded-lg">
+                            <figure className="mb-3 sm:mb-4 overflow-hidden rounded-lg">
                               <img
                                 src={m.photo!}
                                 alt=""
@@ -694,21 +707,21 @@ export default function UserMessagePage() {
                             <p className="text-gray-600 dark:text-white">{fmtDate(m.date)}</p>
                           </div>
 
-                          <p className="text-lg font-bold text-gray-800 mb-4 text-center overflow-ellipsis overflow-hidden whitespace-nowrap dark:text-white">
+                          <p className="text-sm sm:text-base font-bold text-gray-800 mb-3 sm:mb-4 text-center line-clamp-2 dark:text-white">
                             {m.content}
                           </p>
 
                           <div className="flex items-center justify-between mt-auto">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => toggleLike(m.id)} className="text-3xl" aria-label={liked[m.id] ? "เลิกถูกใจ" : "ถูกใจ"}>
+                              <button onClick={() => toggleLike(m.id)} className="text-2xl sm:text-3xl" aria-label={liked[m.id] ? "เลิกถูกใจ" : "ถูกใจ"}>
                                 {liked[m.id] ? <AiFillHeart className="text-red-500" /> : <AiOutlineHeart />}
                               </button>
                               <span className="text-gray-700 dark:text-white tabular-nums">{m.no_of_like}</span>
-                              <AiOutlineEye className="text-xl" style={{ height: 35, width: 35, color: "#5DE2FF" }} />
+                              <AiOutlineEye className="text-xl sm:text-2xl" style={{ height: 28, width: 28, color: "#5DE2FF" }} />
                               <span className="text-gray-700 dark:text-white tabular-nums">{m.viewCount}</span>
                             </div>
                             <button onClick={() => showModal(m)} className={READ_BTN}>
-                              <BookOpen className="w-5 h-5" />
+                              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                               <span>อ่าน</span>
                             </button>
                           </div>
@@ -730,20 +743,20 @@ export default function UserMessagePage() {
           </div>
         </section>
 
-        {/* ---- ที่ถูกใจ (บทสั้น) ---- */}
+        {/* ที่ถูกใจ (บทสั้น) */}
         <section className={mode === "likedShorts" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "likedShorts"}>
           <div className="w-full max-w-5xl mx-auto">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (บทสั้น) ({likedShortsAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (บทสั้น) ({likedShortsAll.length})</h3>
 
             {likedShortsPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีบทความสั้นที่คุณถูกใจ</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีบทความสั้นที่คุณถูกใจ</div>
             ) : (
               groupByDay(likedShortsPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
                 return (
                   <div key={dayKey} className="mb-6">
                     <div className="sticky top-2 z-10 flex items-center justify-center my-2">
-                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
+                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-3 sm:px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
                         {humanDay(dayKey)}
                       </span>
                     </div>
@@ -783,31 +796,31 @@ export default function UserMessagePage() {
           </div>
         </section>
 
-        {/* ---- ที่ถูกใจ (บทความ) ---- */}
+        {/* ที่ถูกใจ (บทความ)  */}
         <section className={mode === "likedArticles" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "likedArticles"}>
           <div className="w-full max-w-5xl mx-auto">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (บทความ) ({likedArticlesAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (บทความ) ({likedArticlesAll.length})</h3>
 
             {likedArticlesPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีบทความที่คุณถูกใจ</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีบทความที่คุณถูกใจ</div>
             ) : (
               groupByDay(likedArticlesPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
                 return (
                   <div key={dayKey} className="mb-6">
                     <div className="sticky top-2 z-10 flex items-center justify-center my-2">
-                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
+                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-3 sm:px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
                         {humanDay(dayKey)}
                       </span>
                     </div>
 
-                    <div className="grid gap-4 grid-cols-1">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1">
                       {itemsSorted.map((m: WordHealingContent) => (
-                        <div key={m.id} className="flex flex-col bg-white/80 rounded-xl shadow-lg lg:p-6 p-4 mx-auto dark:bg-[#1B2538] text-white w-full transition-all duration-300">
-                          <h3 className="text-lg text-center mb-4 font-bold text-gray-800 dark:text-white">{m.name}</h3>
+                        <div key={m.id} className="flex flex-col bg-white/80 rounded-xl shadow-lg p-3 sm:p-4 lg:p-6 mx-auto dark:bg-[#1B2538] text-white w-full transition-all duration-300">
+                          <h3 className="text-base sm:text-lg text-center mb-3 sm:mb-4 font-bold text-gray-800 dark:text-white">{m.name}</h3>
 
                           {hasImage(m.photo) && (
-                            <figure className="mb-4 overflow-hidden rounded-lg">
+                            <figure className="mb-3 sm:mb-4 overflow-hidden rounded-lg">
                               <img
                                 src={m.photo!}
                                 alt=""
@@ -824,21 +837,21 @@ export default function UserMessagePage() {
                             <p className="text-gray-600 dark:text-white">{fmtDate(m.date)}</p>
                           </div>
 
-                          <p className="text-lg font-bold text-gray-800 mb-4 text-center overflow-ellipsis overflow-hidden whitespace-nowrap dark:text-white">
+                          <p className="text-sm sm:text-base font-bold text-gray-800 mb-3 sm:mb-4 text-center line-clamp-2 dark:text-white">
                             {m.content}
                           </p>
 
                           <div className="flex items-center justify-between mt-auto">
                             <div className="flex items-center gap-2">
-                              <button onClick={() => toggleLike(m.id)} className="text-3xl" aria-label={liked[m.id] ? "เลิกถูกใจ" : "ถูกใจ"}>
+                              <button onClick={() => toggleLike(m.id)} className="text-2xl sm:text-3xl" aria-label={liked[m.id] ? "เลิกถูกใจ" : "ถูกใจ"}>
                                 {liked[m.id] ? <AiFillHeart className="text-red-500" /> : <AiOutlineHeart />}
                               </button>
                               <span className="text-gray-700 dark:text-white tabular-nums">{m.no_of_like}</span>
-                              <AiOutlineEye className="text-xl" style={{ height: 35, width: 35, color: "#5DE2FF" }} />
+                              <AiOutlineEye className="text-xl sm:text-2xl" style={{ height: 28, width: 28, color: "#5DE2FF" }} />
                               <span className="text-gray-700 dark:text-white tabular-nums">{m.viewCount}</span>
                             </div>
                             <button onClick={() => showModal(m)} className={READ_BTN}>
-                              <BookOpen className="w-5 h-5" />
+                              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                               <span>อ่าน</span>
                             </button>
                           </div>
@@ -860,12 +873,12 @@ export default function UserMessagePage() {
           </div>
         </section>
 
-        {/* ========================= Reader Modal ========================= */}
+        {/* Reader Modal */}
         <Modal
           open={isModalVisible}
           onCancel={handleCancel}
           footer={null}
-          width={1000}
+          width={Math.min(1000, typeof window !== "undefined" ? window.innerWidth - 24 : 1000)}
           centered
           destroyOnClose
           styles={{
@@ -890,14 +903,14 @@ export default function UserMessagePage() {
           )}
         </Modal>
 
-        {/* ========================= Lightbox รูปบทสั้น ========================= */}
+        {/* Lightbox รูปบทสั้น */}
         <Modal
           open={!!shortImagePreview}
           onCancel={() => setShortImagePreview(null)}
           footer={null}
           centered
           destroyOnClose
-          width={720}
+          width={Math.min(720, typeof window !== "undefined" ? window.innerWidth - 24 : 720)}
           styles={{
             mask: { backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(2px)" },
             content: { padding: 0, background: "transparent", boxShadow: "none", border: "none" },
@@ -921,7 +934,7 @@ export default function UserMessagePage() {
   );
 }
 
-/* ---------------------- ArticleReader ---------------------- */
+/* ArticleReader */
 function ArticleReader({
   message,
   scrollBodyRef,
@@ -944,12 +957,12 @@ function ArticleReader({
   const isShortish  = contentLen > 60 && contentLen <= 240;
 
   const contentWidthClass = isVeryShort || isShortish ? "max-w-2xl" : "max-w-3xl";
-  const contentPadYClass  = isVeryShort ? "py-10" : "py-4";
-  const contentTextSize   = isVeryShort ? "text-2xl sm:text-3xl leading-9" : isShortish ? "text-xl leading-8" : "text-lg leading-7";
+  const contentPadYClass  = isVeryShort ? "py-8 sm:py-10" : "py-4";
+  const contentTextSize   = isVeryShort ? "text-xl sm:text-2xl leading-8 sm:leading-9" : isShortish ? "text-lg sm:text-xl leading-7 sm:leading-8" : "text-base sm:text-lg leading-7";
   const contentAlignClass = isVeryShort || isShortish ? "text-center" : "text-left";
 
   return (
-    <div className="font-ibmthai relative h-[calc(100dvh-120px)] md:h-[calc(100dvh-160px)] overflow-hidden">
+    <div className="font-ibmthai relative h-[calc(100dvh-120px)] md:h-[calc(100dvh-160px)] max-h-[90dvh] overflow-hidden">
       <div
         ref={scrollBodyRef}
         onScroll={onModalBodyScroll}
@@ -958,11 +971,14 @@ function ArticleReader({
       >
         {/* summary bar */}
         <div className="sticky top-0 z-20 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
-          <div className="max-w-3xl mx-auto w-full px-4 pt-3 pb-2">
-            <div className="flex items-center justify-between text-[13px] sm:text-sm">
+          <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2">
+            <div className="flex items-center justify-between text-[12px] sm:text-[13px]">
               <div className="flex items-center gap-2">
                 <span className="font-medium">อ่านแล้ว {Math.floor(scrollProgress)}%</span>
-                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`} title="นับเวลาเฉพาะตอนหน้าจอเปิดและมีการใช้งาน">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`}
+                  title="นับเวลาเฉพาะตอนหน้าจอเปิดและมีการใช้งาน"
+                >
                   <span className={`h-2 w-2 rounded-full ${isActive ? "bg-emerald-500" : "bg-slate-500"}`} />
                   {isActive ? "กำลังอ่าน" : "พัก"}
                 </span>
@@ -970,19 +986,18 @@ function ArticleReader({
 
               <div className="text-right">
                 <div className="font-medium">เวลาอ่าน {fmtDuration(readMs)} / {fmtDuration(requiredMs)}</div>
-                <div className="text-[12px] opacity-70">คงเหลือ ~ {fmtDuration(Math.max(0, requiredMs - readMs))}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className={`${contentWidthClass} mx-auto w-full px-4 sm:px-6 ${contentPadYClass}`}>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-center tracking-tight text-gray-900 dark:text-white">
+        <div className={`${contentWidthClass} mx-auto w-full px-3 sm:px-6 ${contentPadYClass}`}>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-center tracking-tight text-gray-900 dark:text-white">
             {message.name}
           </h1>
 
           {hasImage(message.photo) && (
-            <div className="mt-4 flex justify-center">
+            <div className="mt-3 sm:mt-4 flex justify-center">
               <img
                 src={message.photo!}
                 alt=""
@@ -992,11 +1007,11 @@ function ArticleReader({
             </div>
           )}
 
-          <article className="prose prose-slate dark:prose-invert max-w-none mt-4">
+          <article className="prose prose-slate dark:prose-invert max-w-none mt-3 sm:mt-4">
             <p className={`whitespace-pre-wrap break-words ${contentTextSize} ${contentAlignClass}`}>{message.content || "-"}</p>
           </article>
 
-          <div className="mt-4 flex flex-col gap-2 text-[13px] sm:text-sm text-slate-600 dark:text-white">
+          <div className="mt-4 flex flex-col gap-2 text-[12px] sm:text-[13px] text-slate-600 dark:text-white">
             <div className="flex items-center gap-2">
               {message.articleType && <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">{message.articleType}</span>}
               <span>{fmtDate(message.date)}</span>
@@ -1004,7 +1019,7 @@ function ArticleReader({
 
             <div><span className="opacity-80">ผู้เขียน: {message.author}</span></div>
 
-            <div className="flex items-center justify-center gap-6 opacity-90 text-center mt-4">
+            <div className="flex items-center justify-center gap-6 opacity-90 text-center mt-3">
               <span>ถูกใจทั้งหมด: {message.no_of_like}</span>
               <span>การเข้าชม: {message.viewCount}</span>
             </div>

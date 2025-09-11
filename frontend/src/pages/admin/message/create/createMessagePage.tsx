@@ -2,39 +2,200 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { FileText, MessageSquare } from "lucide-react";
-import {createWordHealingMessage,getArticleTypeOptionsDetailed,} from "../../../../services/https/message";
+import { createWordHealingMessage, getArticleTypeOptionsDetailed } from "../../../../services/https/message";
 import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
 import createMessageIcon from "../../../../assets/createMessageIcon.png";
 
+/* Types & Utils */
 type ArticleTypeOption = { value: string; label: string; description?: string };
 
-// โครงข้อมูลฟอร์ม (เก็บรูปเป็น base64)
 interface FormDataType extends Omit<WordHealingContent, "photo" | "article_type"> {
   photo: string | null;
   error: (message: string) => unknown;
   idts?: number;
   content: string;
-  articleType: string;     // ใช้เฉพาะโหมด "บทความ" (long)
+  articleType: string;
   viewCount: number;
 }
+type ContentKind = "long" | "short";
 
-type ContentKind = "long" | "short"; // long = บทความ, short = บทความสั้น
+const fmtYMD = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+const isTouchDevice = () =>
+  (typeof window !== "undefined" &&
+    (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
+  false;
 
+/** ให้รองรับทั้ง RefObject และ MutableRefObject */
+type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
+
+/* Mobile DatePicker (smart drop-up) */
+const MobileDateField: React.FC<{
+  value: string;
+  max: string;
+  onChange: (ymd: string) => void;
+  cardRef?: CardRefLike;
+}> = ({ value, max, onChange, cardRef }) => {
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
+  const [menuMaxH, setMenuMaxH] = useState(320);
+
+  const today = useMemo(() => new Date(`${max}T00:00:00`), [max]);
+  const initial = useMemo(() => (value ? new Date(`${value}T00:00:00`) : today), [value, today]);
+  const [viewMonth, setViewMonth] = useState<Date>(new Date(initial));
+
+  const weeks = useMemo(() => {
+    const y = viewMonth.getFullYear();
+    const m = viewMonth.getMonth();
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m + 1, 0);
+    const startIdx = first.getDay();
+    const total = last.getDate();
+
+    const cells: (Date | null)[] = [];
+    for (let i = 0; i < startIdx; i++) cells.push(null);
+    for (let d = 1; d <= total; d++) cells.push(new Date(y, m, d));
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    const out: (Array<Date | null>)[] = [];
+    for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
+    return out;
+  }, [viewMonth]);
+
+  const calcDrop = () => {
+    const rect = fieldRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    let below = window.innerHeight - rect.bottom;
+    let above = rect.top;
+    const cardRect = cardRef?.current?.getBoundingClientRect();
+    if (cardRect) {
+      below = Math.min(below, cardRect.bottom - rect.bottom);
+      above = Math.min(above, rect.top - cardRect.top);
+    }
+    const IDEAL = 320;
+    const preferUp = below < IDEAL && above > below;
+    setDropUp(preferUp);
+    const room = (preferUp ? above : below) - 12;
+    setMenuMaxH(Math.max(220, Math.min(IDEAL, room)));
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const recalc = () => calcDrop();
+    recalc();
+
+    const onDoc = (e: MouseEvent) => {
+      if (!fieldRef.current) return;
+      if (!fieldRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", recalc);
+    window.addEventListener("scroll", recalc, true);
+    cardRef?.current?.addEventListener?.("scroll", recalc, true);
+
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", recalc);
+      window.removeEventListener("scroll", recalc, true);
+      cardRef?.current?.removeEventListener?.("scroll", recalc, true);
+    };
+  }, [open, cardRef]);
+
+  const selectDate = (d: Date) => {
+    if (d.getTime() > today.getTime()) return;
+    onChange(fmtYMD(d));
+    setOpen(false);
+  };
+
+  return (
+    <div ref={fieldRef} className="relative">
+      <button
+        type="button"
+        onClick={() => {
+          calcDrop();
+          setOpen((o) => !o);
+        }}
+        className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
+      >
+        <span>{value || "เลือกวันที่ (แตะเพื่อเลือก)"}</span>
+        <svg viewBox="0 0 20 20" className="h-4 w-4 opacity-60" fill="currentColor">
+          <path d="M6 8l4 4 4-4H6z" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className={[
+            "absolute z-20 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg",
+            dropUp ? "bottom-full mb-1" : "top-full mt-1",
+          ].join(" ")}
+          style={{ maxHeight: menuMaxH }}
+        >
+          <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+            <button type="button" className="rounded-md px-2 py-1 text-sm hover:bg-slate-100" onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}>‹</button>
+            <div className="text-sm font-medium">
+              {viewMonth.toLocaleString("en-US", { month: "long" })} {viewMonth.getFullYear()}
+            </div>
+            <button type="button" className="rounded-md px-2 py-1 text-sm hover:bg-slate-100" onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}>›</button>
+          </div>
+
+          <div className="grid grid-cols-7 px-2 pt-2 text-center text-xs text-slate-500">
+            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+              <div key={d} className="py-1">{d}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 p-2">
+            {weeks.map((row, i) =>
+              row.map((cell, j) => {
+                if (!cell) return <div key={`${i}-${j}`} className="h-9" />;
+                const disabled = cell.getTime() > today.getTime();
+                const isSelected = value && fmtYMD(cell) === value;
+                return (
+                  <button
+                    key={`${i}-${j}`}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => selectDate(cell)}
+                    className={[
+                      "h-9 rounded-lg text-sm",
+                      disabled ? "cursor-not-allowed text-slate-300" : "hover:bg-slate-100",
+                      isSelected ? "bg-slate-900 text-white hover:bg-slate-900" : "text-slate-700",
+                    ].join(" ")}
+                  >
+                    {cell.getDate()}
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-slate-200 px-3 py-2 text-sm">
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(""); setViewMonth(new Date(today)); setOpen(false); }}>Clear</button>
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(fmtYMD(today)); setViewMonth(new Date(today)); setOpen(false); }}>Today</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* Main*/
 const CreateMessagePage: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [msgApi, msgCtx] = message.useMessage();
 
-  // วันนี้ (YYYY-MM-DD)
-  const todayStr = (() => {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  })();
-
-  // โหมดเนื้อหา
+  const todayStr = fmtYMD(new Date());
   const [contentKind, setContentKind] = useState<ContentKind>("long");
 
   const [formData, setFormData] = useState<FormDataType>({
@@ -54,7 +215,6 @@ const CreateMessagePage: React.FC = () => {
   const [preview, setPreview] = useState<string>("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // โหลดประเภทบทความ
   const [articleTypeOptions, setArticleTypeOptions] = useState<ArticleTypeOption[]>([]);
   const [articleTypeLoading, setArticleTypeLoading] = useState<boolean>(false);
 
@@ -82,8 +242,6 @@ const CreateMessagePage: React.FC = () => {
           return { value: String(o?.value ?? labelText), label: labelText, description: descText };
         });
         setArticleTypeOptions(opts);
-
-        // sync ค่าเริ่มต้น
         if (opts.length && !opts.some((x) => x.value === String(formData.articleType))) {
           setFormData((prev) => ({ ...prev, articleType: opts[0].value }));
         }
@@ -93,13 +251,12 @@ const CreateMessagePage: React.FC = () => {
         setArticleTypeLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ================= Dropdown ประเภทบทความ (Smart drop-up ภายในการ์ด) ================ */
+  /* Smart drop-up ของ dropdown ประเภทบทความ */
   const [typeOpen, setTypeOpen] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
-  const [dropUp, setDropUp] = useState(false);          // ทิศทางเมนู
+  const [dropUp, setDropUp] = useState(false);
   const [menuMaxH, setMenuMaxH] = useState<number>(280);
   const typeRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -109,11 +266,9 @@ const CreateMessagePage: React.FC = () => {
     const fieldRect = typeRef.current?.getBoundingClientRect();
     if (!fieldRect) return;
 
-    // พื้นที่จาก viewport (สำรอง)
     let spaceBelow = window.innerHeight - fieldRect.bottom;
     let spaceAbove = fieldRect.top;
 
-    // ถ้ามีการ์ด: จำกัดพื้นที่ให้อยู่ในขอบการ์ด
     const cardRect = cardRef.current?.getBoundingClientRect();
     if (cardRect) {
       spaceBelow = Math.min(spaceBelow, cardRect.bottom - fieldRect.bottom);
@@ -123,7 +278,7 @@ const CreateMessagePage: React.FC = () => {
     const preferUp = spaceBelow < IDEAL_MENU_H && spaceAbove > spaceBelow;
     setDropUp(preferUp);
 
-    const room = (preferUp ? spaceAbove : spaceBelow) - 12; // เว้น margin
+    const room = (preferUp ? spaceAbove : spaceBelow) - 12;
     setMenuMaxH(Math.max(160, Math.min(IDEAL_MENU_H, room)));
   };
 
@@ -146,11 +301,9 @@ const CreateMessagePage: React.FC = () => {
     if (!typeOpen) return;
     const recalc = () => calcDropDirection();
     recalc();
-
     window.addEventListener("resize", recalc);
     window.addEventListener("scroll", recalc, true);
     cardRef.current?.addEventListener("scroll", recalc, true);
-
     return () => {
       window.removeEventListener("resize", recalc);
       window.removeEventListener("scroll", recalc, true);
@@ -172,35 +325,29 @@ const CreateMessagePage: React.FC = () => {
     return f?.label || "เลือกประเภทบทความ";
   }, [articleTypeLoading, articleTypeOptions, formData.articleType]);
 
-  /* ========================== ไฮไลต์สวิตช์ (ขนาดเท่าปุ่ม) ========================== */
+  /* ========================== สวิตช์โหมด ========================== */
+  const [thumb, setThumb] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const pillRef = useRef<HTMLDivElement>(null);
   const longRef = useRef<HTMLButtonElement>(null);
   const shortRef = useRef<HTMLButtonElement>(null);
-  const [thumb, setThumb] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
-
   const updateThumb = () => {
     const target = contentKind === "long" ? longRef.current : shortRef.current;
     const container = pillRef.current;
     if (!target || !container) return;
-
     const btnRect = target.getBoundingClientRect();
     const contRect = container.getBoundingClientRect();
     const left = Math.max(0, btnRect.left - contRect.left + 4);
     const width = Math.max(0, btnRect.width - 8);
     setThumb({ left, width });
   };
-
   useEffect(() => { updateThumb(); }, [contentKind]);
-
   useEffect(() => {
     const ro = new ResizeObserver(updateThumb);
     if (pillRef.current) ro.observe(pillRef.current);
     if (longRef.current) ro.observe(longRef.current);
     if (shortRef.current) ro.observe(shortRef.current);
-
     window.addEventListener("resize", updateThumb);
     window.addEventListener("scroll", updateThumb, true);
-
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", updateThumb);
@@ -208,10 +355,9 @@ const CreateMessagePage: React.FC = () => {
     };
   }, []);
 
-  /* ================================= บันทึก =================================== */
+  /*  บันทึก */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.name.trim()) return msgApi.error("กรุณากรอกชื่อบทความ");
     if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
     if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
@@ -246,11 +392,10 @@ const CreateMessagePage: React.FC = () => {
     }
   };
 
-  /* ============================== เลือกไฟล์ ================================ */
+  /* เลือกไฟล์ */
   const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const isImage = file.type.startsWith("image/");
     const isPDF = file.type === "application/pdf";
     if (!isImage && !isPDF) return msgApi.error("กรุณาเลือกไฟล์รูปภาพหรือ PDF เท่านั้น");
@@ -267,38 +412,32 @@ const CreateMessagePage: React.FC = () => {
     };
     reader.readAsDataURL(file);
   };
-
   const removeFile = () => {
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
   };
 
-  /* =================================== UI =================================== */
+  const [useMobilePicker, setUseMobilePicker] = useState(false);
+  useEffect(() => {
+    setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
+    const onResize = () => setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   return (
     <div className="w-full min-h-screen bg-slate-100 p-6 lg:p-8">
       {msgCtx}
 
-      {/* Header */}
       <div className="mb-3 flex items-center gap-1 sm:gap-2">
-        <img
-          src={createMessageIcon}
-          alt="manage icon"
-          className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block"
-        />
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 leading-tight">
-          สร้างบทความให้กำลังใจ
-        </h1>
+        <img src={createMessageIcon} alt="manage icon" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block" />
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 leading-tight">สร้างบทความให้กำลังใจ</h1>
       </div>
 
-      {/* Card ฟอร์ม */}
-      <div
-        ref={cardRef}
-        className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10"
-      >
+      <div ref={cardRef} className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10">
         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          {/* Left column */}
+          {/* Left */}
           <div className="space-y-5">
-            {/* ชื่อบทความ */}
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-slate-700">
                 ชื่อบทความ <span className="text-rose-500">*</span>
@@ -314,7 +453,6 @@ const CreateMessagePage: React.FC = () => {
               />
             </div>
 
-            {/* ผู้เขียน */}
             <div className="space-y-2">
               <label htmlFor="author" className="block text-sm font-medium text-slate-700">
                 ผู้เขียน/อ้างอิง/แหล่งที่มา <span className="text-rose-500">*</span>
@@ -329,24 +467,13 @@ const CreateMessagePage: React.FC = () => {
               />
             </div>
 
-            {/* โหมดเนื้อหา — ตัวสวิตช์อยู่กึ่งกลาง และไฮไลต์เท่าปุ่ม */}
+            {/* Switch */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
-                โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการสร้าง)
-              </label>
+              <label className="block text-sm font-medium text-slate-700">โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการสร้าง)</label>
               <div className="w-full flex justify-center">
                 <div className="relative w-fit mx-auto">
-                  <div
-                    ref={pillRef}
-                    className="relative inline-flex rounded-2xl border border-slate-200 bg-[#5DE2FF] p-1 shadow-sm"
-                  >
-                    {/* ไฮไลต์พื้นหลัง ขนาดเท่าปุ่ม */}
-                    <span
-                      className="absolute top-1 bottom-1 rounded-xl bg-white shadow transition-all duration-300"
-                      style={{ left: `${thumb.left}px`, width: `${thumb.width}px` }}
-                    />
-
-                    {/* ปุ่ม */}
+                  <div ref={pillRef} className="relative inline-flex rounded-2xl border border-slate-200 bg-[#5DE2FF] p-1 shadow-sm">
+                    <span className="absolute top-1 bottom-1 rounded-xl bg-white shadow transition-all duration-300" style={{ left: `${thumb.left}px`, width: `${thumb.width}px` }} />
                     <div className="relative z-10 grid grid-cols-2 gap-1">
                       <button
                         ref={longRef}
@@ -362,7 +489,6 @@ const CreateMessagePage: React.FC = () => {
                         <FileText className="h-4 w-4" />
                         บทความ
                       </button>
-
                       <button
                         ref={shortRef}
                         type="button"
@@ -383,32 +509,7 @@ const CreateMessagePage: React.FC = () => {
               </div>
             </div>
 
-            {/* ไลก์ + เข้าชม (ข้างกัน) */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="no_of_like" className="block text-sm font-medium text-slate-700">
-                  จำนวนไลก์ (ตัวเลข)
-                </label>
-                <input
-                  id="no_of_like"
-                  name="no_of_like"
-                  type="number"
-                  value={formData.no_of_like}
-                  disabled
-                  className="w-full cursor-not-allowed select-none rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-500 outline-none"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">ยอดเข้าชม</label>
-                <input
-                  value={formData.viewCount}
-                  readOnly
-                  className="w-full cursor-not-allowed rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-500"
-                />
-              </div>
-            </div>
-
-            {/* ประเภทบทความ — เฉพาะโหมด "บทความ" (smart drop-up) */}
+            {/* ประเภทบทความ  */}
             {contentKind === "long" && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
@@ -425,21 +526,12 @@ const CreateMessagePage: React.FC = () => {
                   >
                     <span className={articleTypeLoading ? "text-slate-400" : ""}>{selectedTypeLabel}</span>
                     <svg viewBox="0 0 20 20" fill="currentColor" className="ml-2 h-4 w-4 opacity-60">
-                      <path
-                        fillRule="evenodd"
-                        d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
                     </svg>
                   </button>
 
                   {typeOpen && (
-                    <div
-                      className={[
-                        "absolute z-20 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg",
-                        dropUp ? "bottom-full mb-1" : "top-full mt-1",
-                      ].join(" ")}
-                    >
+                    <div className={["absolute z-20 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg", dropUp ? "bottom-full mb-1" : "top-full mt-1"].join(" ")}>
                       <div className="p-2">
                         <input
                           value={typeQuery}
@@ -449,21 +541,15 @@ const CreateMessagePage: React.FC = () => {
                         />
                       </div>
                       <ul role="listbox" className="overflow-y-auto py-1" style={{ maxHeight: menuMaxH }}>
-                        {articleTypeLoading && (
-                          <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>
-                        )}
-                        {!articleTypeLoading && filteredTypeOptions.length === 0 && (
-                          <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>
-                        )}
+                        {articleTypeLoading && <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>}
+                        {!articleTypeLoading && filteredTypeOptions.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>}
                         {filteredTypeOptions.map((o) => (
                           <li key={o.value}>
                             <button
                               type="button"
                               role="option"
                               aria-selected={o.value === String(formData.articleType)}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-100 ${
-                                o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : ""
-                              }`}
+                              className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-100 ${o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : ""}`}
                               onClick={() => {
                                 setFormData((prev) => ({ ...prev, articleType: o.value }));
                                 setTypeOpen(false);
@@ -472,9 +558,7 @@ const CreateMessagePage: React.FC = () => {
                             >
                               <div className="flex flex-col">
                                 <span className="text-sm">{o.label}</span>
-                                {o.description && (
-                                  <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>
-                                )}
+                                {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
                               </div>
                             </button>
                           </li>
@@ -486,7 +570,7 @@ const CreateMessagePage: React.FC = () => {
               </div>
             )}
 
-            {/* เนื้อหา */}
+            {/* Content */}
             <div className="space-y-2">
               <label htmlFor="content" className="block text-sm font-medium text-slate-700">
                 เนื้อหา{contentKind === "short" ? " (บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
@@ -502,11 +586,9 @@ const CreateMessagePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right column (รูป + วันที่ + ปุ่ม) */}
+          {/* Right */}
           <div className="flex flex-col">
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              อัปโหลดรูปภาพประกอบบทความ (ถ้ามี)
-            </label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบบทความ (ถ้ามี)</label>
 
             <div
               className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-white p-4"
@@ -520,89 +602,49 @@ const CreateMessagePage: React.FC = () => {
                 }
               }}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleFilePick}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={handleFilePick} className="hidden" />
 
-              <div
-                className="flex min-h-[280px] items-center justify-center"
-                onClick={() => fileInputRef.current?.click()}
-              >
+              <div className="flex min-h-[280px] items-center justify-center" onClick={() => fileInputRef.current?.click()}>
                 {preview ? (
                   <img src={preview} alt="preview" className="max-h-[420px] w-full rounded-xl object-contain" />
                 ) : formData.photo ? (
                   <div className="text-center text-sm text-slate-500">เลือกไฟล์ PDF แล้ว (ไม่มีตัวอย่างภาพ)</div>
                 ) : (
                   <div className="text-center">
-                    <div className="text-sm text-slate-600">
-                      ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับรูปภาพ)
-                    </div>
+                    <div className="text-sm text-slate-600">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับรูปภาพ)</div>
                   </div>
                 )}
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                >
-                  เลือกไฟล์
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPreviewModal(true)}
-                  disabled={!preview}
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
-                >
-                  เปิดดูรูปตัวอย่าง
-                </button>
-                <button
-                  type="button"
-                  onClick={removeFile}
-                  disabled={!formData.photo}
-                  className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:pointer-events-none disabled:opacity-50"
-                >
-                  ลบไฟล์
-                </button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">เลือกไฟล์</button>
+                <button type="button" onClick={() => setShowPreviewModal(true)} disabled={!preview} className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50">เปิดดูรูปตัวอย่าง</button>
+                <button type="button" onClick={removeFile} disabled={!formData.photo} className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:pointer-events-none disabled:opacity-50">ลบไฟล์</button>
               </div>
             </div>
 
-            {/* วันที่เผยแพร่ — ฝั่งรูปภาพ */}
+            {/* วันที่เผยแพร่ */}
             <div className="mt-5 space-y-2">
-              <label htmlFor="date" className="block text-sm font-medium text-slate-700">
-                วันที่เผยแพร่ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                id="date"
-                name="date"
-                type="date"
-                value={formData.date}
-                max={todayStr}
-                onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
-              />
+              <label className="block text-sm font-medium text-slate-700">วันที่เผยแพร่ <span className="text-rose-500">*</span></label>
+              {useMobilePicker ? (
+                <MobileDateField value={formData.date} max={todayStr} onChange={(ymd) => setFormData((prev) => ({ ...prev, date: ymd }))} cardRef={cardRef} />
+              ) : (
+                <input
+                  id="date"
+                  name="date"
+                  type="date"
+                  value={formData.date}
+                  max={todayStr}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+                />
+              )}
             </div>
 
-            {/* ปุ่มการทำงาน — ฝั่งรูปภาพ */}
+            {/* Buttons */}
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => navigate("/admin/messagePage")}
-                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
-              >
-                ย้อนกลับ
-              </button>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50"
-              >
-                {contentKind === "short" ? "บันทึกบทความสั้น" : "บันทึกบทความ"}
-              </button>
+              <button type="button" onClick={() => navigate("/admin/messagePage")} className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700">ย้อนกลับ</button>
+              <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50">{contentKind === "short" ? "บันทึกบทความสั้น" : "บันทึกบทความ"}</button>
             </div>
           </div>
         </form>
@@ -610,28 +652,11 @@ const CreateMessagePage: React.FC = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && preview && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setShowPreviewModal(false)}
-        >
-          <div
-            className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={preview}
-              alt="Preview"
-              className="mx-auto max-h-[80vh] w-full rounded-xl object-contain"
-            />
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" onClick={() => setShowPreviewModal(false)}>
+          <div className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <img src={preview} alt="Preview" className="mx-auto max-h-[80vh] w-full rounded-xl object-contain" />
             <div className="p-2 text-right">
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-              >
-                ปิด
-              </button>
+              <button onClick={() => setShowPreviewModal(false)} className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">ปิด</button>
             </div>
           </div>
         </div>

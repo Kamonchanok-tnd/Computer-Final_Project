@@ -6,10 +6,9 @@ import {getWordHealingMessageById,updateWordHealingMessage,getArticleTypeOptions
 import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
 import editMessageIcon from "../../../../assets/editMessageIcon.png";
 
-// ----- ประเภทตัวเลือก (ไม่ใช้ AntD Select) + เพิ่ม description ไว้อธิบายใน dropdown -----
+/*Types & Utils */
 type ArticleTypeOption = { value: string; label: string; description?: string };
 
-// ----- โครงข้อมูลฟอร์ม (เก็บรูปเป็น base64) -----
 interface FormDataType extends Omit<WordHealingContent, "photo"> {
   photo: string | null;
   error: (message: string) => void;
@@ -18,6 +17,211 @@ interface FormDataType extends Omit<WordHealingContent, "photo"> {
 
 type ContentKind = "long" | "short";
 
+const fmtYMD = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const isTouchDevice = () =>
+  (typeof window !== "undefined" &&
+    (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
+  false;
+
+type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
+
+/* Mobile DatePicker (smart drop-up) */
+const MobileDateField: React.FC<{
+  value: string;
+  max: string;
+  onChange: (ymd: string) => void;
+  cardRef?: CardRefLike;
+}> = ({ value, max, onChange, cardRef }) => {
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
+  const [menuMaxH, setMenuMaxH] = useState(320);
+
+  const today = useMemo(() => new Date(`${max}T00:00:00`), [max]);
+  const initial = useMemo(() => (value ? new Date(`${value}T00:00:00`) : today), [value, today]);
+  const [viewMonth, setViewMonth] = useState<Date>(new Date(initial));
+
+  const weeks = useMemo(() => {
+    const y = viewMonth.getFullYear();
+    const m = viewMonth.getMonth();
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m + 1, 0);
+    const startIdx = first.getDay();
+    const total = last.getDate();
+
+    const cells: (Date | null)[] = [];
+    for (let i = 0; i < startIdx; i++) cells.push(null);
+    for (let d = 1; d <= total; d++) cells.push(new Date(y, m, d));
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    const out: (Array<Date | null>)[] = [];
+    for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
+    return out;
+  }, [viewMonth]);
+
+  const calcDrop = () => {
+    const rect = fieldRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    let below = window.innerHeight - rect.bottom;
+    let above = rect.top;
+    const cardRect = cardRef?.current?.getBoundingClientRect();
+    if (cardRect) {
+      below = Math.min(below, cardRect.bottom - rect.bottom);
+      above = Math.min(above, rect.top - cardRect.top);
+    }
+    const IDEAL = 320;
+    const preferUp = below < IDEAL && above > below;
+    setDropUp(preferUp);
+    const room = (preferUp ? above : below) - 12;
+    setMenuMaxH(Math.max(220, Math.min(IDEAL, room)));
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const recalc = () => calcDrop();
+    recalc();
+
+    const onDoc = (e: MouseEvent) => {
+      if (!fieldRef.current) return;
+      if (!fieldRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", recalc);
+    window.addEventListener("scroll", recalc, true);
+    cardRef?.current?.addEventListener?.("scroll", recalc, true);
+
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", recalc);
+      window.removeEventListener("scroll", recalc, true);
+      cardRef?.current?.removeEventListener?.("scroll", recalc, true);
+    };
+  }, [open, cardRef]);
+
+  const selectDate = (d: Date) => {
+    if (d.getTime() > today.getTime()) return;
+    onChange(fmtYMD(d));
+    setOpen(false);
+  };
+
+  return (
+    <div ref={fieldRef} className="relative">
+      <button
+        type="button"
+        onClick={() => {
+          calcDrop();
+          setOpen((o) => !o);
+        }}
+        className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
+      >
+        <span>{value || "เลือกวันที่ (แตะเพื่อเลือก)"}</span>
+        <svg viewBox="0 0 20 20" className="h-4 w-4 opacity-60" fill="currentColor">
+          <path d="M6 8l4 4 4-4H6z" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className={[
+            "absolute z-20 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg",
+            dropUp ? "bottom-full mb-1" : "top-full mt-1",
+          ].join(" ")}
+          style={{ maxHeight: menuMaxH }}
+        >
+          <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+            <button
+              type="button"
+              className="rounded-md px-2 py-1 text-sm hover:bg-slate-100"
+              onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
+            >
+              ‹
+            </button>
+            <div className="text-sm font-medium">
+              {viewMonth.toLocaleString("en-US", { month: "long" })} {viewMonth.getFullYear()}
+            </div>
+            <button
+              type="button"
+              className="rounded-md px-2 py-1 text-sm hover:bg-slate-100"
+              onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 px-2 pt-2 text-center text-xs text-slate-500">
+            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+              <div key={d} className="py-1">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 p-2">
+            {weeks.map((row, i) =>
+              row.map((cell, j) => {
+                if (!cell) return <div key={`${i}-${j}`} className="h-9" />;
+                const disabled = cell.getTime() > today.getTime();
+                const isSelected = value && fmtYMD(cell) === value;
+                return (
+                  <button
+                    key={`${i}-${j}`}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => selectDate(cell)}
+                    className={[
+                      "h-9 rounded-lg text-sm",
+                      disabled ? "cursor-not-allowed text-slate-300" : "hover:bg-slate-100",
+                      isSelected ? "bg-slate-900 text-white hover:bg-slate-900" : "text-slate-700",
+                    ].join(" ")}
+                  >
+                    {cell.getDate()}
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-slate-200 px-3 py-2 text-sm">
+            <button
+              type="button"
+              className="rounded-md px-2 py-1 hover:bg-slate-100"
+              onClick={() => {
+                onChange("");
+                setViewMonth(new Date(today));
+                setOpen(false);
+              }}
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              className="rounded-md px-2 py-1 hover:bg-slate-100"
+              onClick={() => {
+                onChange(fmtYMD(today));
+                setViewMonth(new Date(today));
+                setOpen(false);
+              }}
+            >
+              Today
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* Main*/
 const EditMessagePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,13 +252,13 @@ const EditMessagePage: React.FC = () => {
     error: (m) => msgApi.error(m),
   });
 
-  // โหมดเนื้อหา (บทความ / บทความสั้น)
+  // โหมดเนื้อหา
   const [contentKind, setContentKind] = useState<ContentKind>("long");
 
   const [preview, setPreview] = useState<string>("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // ---------- โหลดประเภทบทความ ----------
+  // โหลดประเภทบทความ 
   const [articleTypeOptions, setArticleTypeOptions] = useState<ArticleTypeOption[]>([]);
   const [articleTypeLoading, setArticleTypeLoading] = useState<boolean>(false);
 
@@ -65,20 +269,31 @@ const EditMessagePage: React.FC = () => {
         const detailed = await getArticleTypeOptionsDetailed();
         const opts: ArticleTypeOption[] = (detailed || []).map((o: any) => {
           const labelText =
-            typeof o?.label === "string" ? o.label :
-            typeof o?.label?.th === "string" ? o.label.th :
-            typeof o?.name === "string" ? o.name :
-            typeof o?.title === "string" ? o.title :
-            typeof o?.raw?.label === "string" ? o.raw.label :
-            typeof o?.raw?.name === "string" ? o.raw.name :
-            String(o?.value ?? "");
+            typeof o?.label === "string"
+              ? o.label
+              : typeof o?.label?.th === "string"
+              ? o.label.th
+              : typeof o?.name === "string"
+              ? o.name
+              : typeof o?.title === "string"
+              ? o.title
+              : typeof o?.raw?.label === "string"
+              ? o.raw.label
+              : typeof o?.raw?.name === "string"
+              ? o.raw.name
+              : String(o?.value ?? "");
           const descText =
-            typeof o?.description === "string" ? o.description :
-            typeof o?.raw?.description === "string" ? o.raw.description :
-            typeof o?.detail === "string" ? o.detail :
-            typeof o?.raw?.detail === "string" ? o.raw.detail :
-            typeof o?.raw?.desc === "string" ? o.raw.desc :
-            "";
+            typeof o?.description === "string"
+              ? o.description
+              : typeof o?.raw?.description === "string"
+              ? o.raw.description
+              : typeof o?.detail === "string"
+              ? o.detail
+              : typeof o?.raw?.detail === "string"
+              ? o.raw.detail
+              : typeof o?.raw?.desc === "string"
+              ? o.raw.desc
+              : "";
           return { value: String(o?.value ?? labelText), label: labelText, description: descText };
         });
 
@@ -92,10 +307,9 @@ const EditMessagePage: React.FC = () => {
         setArticleTypeLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- ดึงข้อมูลบทความเดิม ----------
+  // ดึงข้อมูลบทความเดิม
   useEffect(() => {
     (async () => {
       if (!id) return;
@@ -128,7 +342,7 @@ const EditMessagePage: React.FC = () => {
           viewCount: data.viewCount ?? 0,
         }));
 
-        // ตั้งโหมดอัตโนมัติ: ถ้าเป็น "บทความสั้น" → โหมด short
+        // ตั้งโหมดอัตโนมัติ
         if ((data.articleType ?? "") === "บทความสั้น") {
           setContentKind("short");
         } else {
@@ -148,7 +362,7 @@ const EditMessagePage: React.FC = () => {
     })();
   }, [id]); // eslint-disable-line
 
-  /* ================= Dropdown ประเภทบทความ (Smart drop-up ภายในการ์ด) ================ */
+  /* Dropdown ประเภทบทความ (Smart drop-up) */
   const [typeOpen, setTypeOpen] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
   const typeRef = useRef<HTMLDivElement>(null);
@@ -227,7 +441,7 @@ const EditMessagePage: React.FC = () => {
     [articleTypeOptions, formData.articleType]
   );
 
-  /* ========================== ไฮไลต์สวิตช์ (ขนาดเท่าปุ่ม) ========================== */
+  /* ไฮไลต์สวิตช์ (ขนาดเท่าปุ่ม) */
   const pillRef = useRef<HTMLDivElement>(null);
   const longRef = useRef<HTMLButtonElement>(null);
   const shortRef = useRef<HTMLButtonElement>(null);
@@ -244,7 +458,10 @@ const EditMessagePage: React.FC = () => {
     setThumb({ left, width });
   };
 
-  useEffect(() => { updateThumb(); }, [contentKind]);
+  useEffect(() => {
+    updateThumb();
+  }, [contentKind]);
+
   useEffect(() => {
     const ro = new ResizeObserver(updateThumb);
     if (pillRef.current) ro.observe(pillRef.current);
@@ -259,7 +476,7 @@ const EditMessagePage: React.FC = () => {
     };
   }, []);
 
-  // ---------- อัปโหลดไฟล์ ----------
+  // เลือกไฟล์
   const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -286,6 +503,15 @@ const EditMessagePage: React.FC = () => {
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
   };
+
+  // มือถือ/เดสก์ท็อป สำหรับ Date Field 
+  const [useMobilePicker, setUseMobilePicker] = useState(false);
+  useEffect(() => {
+    setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
+    const onResize = () => setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // ---------- บันทึก ----------
   const handleSubmit = async (e: React.FormEvent) => {
@@ -321,7 +547,7 @@ const EditMessagePage: React.FC = () => {
       const ok = await updateWordHealingMessage(String(formData.id), req as any);
       if (ok) {
         msgApi.success("บันทึกการแก้ไขข้อมูลบทความสำเร็จ!");
-        setTimeout(() => navigate("/admin/messagePage"), 800);
+        setTimeout(() => navigate("/admin/messagePage"), 2000);
       } else {
         msgApi.error("เกิดข้อผิดพลาดในการบันทึกบทความ");
       }
@@ -347,7 +573,7 @@ const EditMessagePage: React.FC = () => {
         </h1>
       </div>
 
-      {/* Card ฟอร์ม (เหมือนหน้า Create) */}
+      {/* Card ฟอร์ม */}
       <div
         ref={cardRef}
         className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10"
@@ -386,7 +612,7 @@ const EditMessagePage: React.FC = () => {
               />
             </div>
 
-            {/* โหมดเนื้อหา — แบบเดียวกับ Create (ไฮไลต์เท่าปุ่ม) */}
+            {/* โหมดเนื้อหา */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-700">
                 โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการแก้ไข)
@@ -436,32 +662,7 @@ const EditMessagePage: React.FC = () => {
               </div>
             </div>
 
-            {/* ไลก์ + เข้าชม (ข้างกัน) */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="no_of_like" className="block text-sm font-medium text-slate-700">
-                  จำนวนไลก์ (ตัวเลข)
-                </label>
-                <input
-                  id="no_of_like"
-                  name="no_of_like"
-                  type="number"
-                  value={formData.no_of_like}
-                  disabled
-                  className="w-full cursor-not-allowed select-none rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-500 outline-none"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">ยอดเข้าชม</label>
-                <input
-                  value={formData.viewCount}
-                  readOnly
-                  className="w-full cursor-not-allowed rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-500"
-                />
-              </div>
-            </div>
-
-            {/* ประเภทบทความ - แสดงเฉพาะโหมด "บทความ" (smart drop-up) */}
+            {/* ประเภทบทความ - เฉพาะ "บทความ" */}
             {contentKind === "long" && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
@@ -545,7 +746,8 @@ const EditMessagePage: React.FC = () => {
             {/* เนื้อหา */}
             <div className="space-y-2">
               <label htmlFor="content" className="block text-sm font-medium text-slate-700">
-                เนื้อหา{contentKind === "short" ? " (บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
+                เนื้อหา{contentKind === "short" ? " (บทความสั้น)" : "บทความ"}{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <textarea
                 id="content"
@@ -584,7 +786,10 @@ const EditMessagePage: React.FC = () => {
                 className="hidden"
               />
 
-              <div className="flex min-h-[280px] items-center justify-center" onClick={() => fileInputRef.current?.click()}>
+              <div
+                className="flex min-h-[280px] items-center justify-center"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 {preview ? (
                   <img src={preview} alt="preview" className="max-h-[420px] w-full rounded-xl object-contain" />
                 ) : formData.photo ? (
@@ -625,23 +830,31 @@ const EditMessagePage: React.FC = () => {
               </div>
             </div>
 
-            {/* วันที่เผยแพร่ (ย้ายมาฝั่งรูปภาพ) */}
             <div className="mt-5 space-y-2">
               <label htmlFor="date" className="block text-sm font-medium text-slate-700">
                 วันที่เผยแพร่ <span className="text-rose-500">*</span>
               </label>
-              <input
-                id="date"
-                name="date"
-                type="date"
-                value={formData.date}
-                max={todayStr}
-                onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
-              />
+              {useMobilePicker ? (
+                <MobileDateField
+                  value={formData.date}
+                  max={todayStr}
+                  onChange={(ymd) => setFormData((prev) => ({ ...prev, date: ymd }))}
+                  cardRef={cardRef}
+                />
+              ) : (
+                <input
+                  id="date"
+                  name="date"
+                  type="date"
+                  value={formData.date}
+                  max={todayStr}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
+                />
+              )}
             </div>
 
-            {/* ปุ่มการทำงาน (ย้ายมาฝั่งรูปภาพ) */}
+            {/* ปุ่มการทำงาน */}
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
