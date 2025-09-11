@@ -7,6 +7,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
   Calendar,
@@ -22,6 +25,18 @@ import {
 } from "../../services/https/assessment";
 import type { ITransaction } from "../../interfaces/ITransaction";
 
+// พาเลตต์พาสเทลสำหรับ Pie
+const PASTEL_COLORS = [
+  "#a5b4fc", // indigo-300
+  "#f9a8d4", // pink-300
+  "#6ee7b7", // emerald-300
+  "#fde68a", // amber-300
+  "#fca5a5", // red-300
+  "#93c5fd", // blue-300
+  "#c4b5fd", // violet-300
+  "#fdba74", // orange-300
+];
+
 type RangeKey = "7d" | "1m" | "3m" | "6m" | "1y" | "all";
 type ViewMode = "single" | "combined";
 
@@ -34,6 +49,7 @@ const RANGE_OPTIONS: { key: RangeKey; label: string; days?: number }[] = [
   { key: "all", label: "ทั้งหมด" },
 ];
 
+// พาเลตต์หลัก (เส้น & สีกรุ๊ป)
 const PALETTE = [
   "#2563eb",
   "#10b981",
@@ -135,7 +151,15 @@ function useSize<T extends HTMLElement>() {
 }
 
 // ---------- Legend ----------
-const CustomLegend: React.FC<any> = ({ payload, compact }) => (
+const CustomLegend: React.FC<any> = ({
+  payload,
+  compact,
+  maxItemWidth,
+}: {
+  payload: any;
+  compact?: boolean;
+  maxItemWidth?: number;
+}) => (
   <div
     className="w-full"
     style={{
@@ -159,7 +183,8 @@ const CustomLegend: React.FC<any> = ({ payload, compact }) => (
           />
           <span
             className="text-slate-600 truncate"
-            style={{ maxWidth: compact ? "180px" : "none" }}
+            style={{ maxWidth: maxItemWidth ?? (compact ? 180 : undefined) }}
+            title={it.value}
           >
             {it.value}
           </span>
@@ -193,7 +218,13 @@ const RotXTick: React.FC<TickProps> = ({
   const fill = colorOfGroup(group || "");
   return (
     <g transform={`translate(${x},${y})`}>
-      <text transform="rotate(-45)" textAnchor="end" dy={4} fontSize={fs} fill={fill}>
+      <text
+        transform="rotate(-45)"
+        textAnchor="end"
+        dy={4}
+        fontSize={fs}
+        fill={fill}
+      >
         {date}
       </text>
     </g>
@@ -265,6 +296,19 @@ const AssessmentDashboard: React.FC = () => {
   const { ref: chartBoxRef, width: chartW } = useSize<HTMLDivElement>();
   const isNarrow = chartW < 520;
   const isVeryNarrow = chartW < 400;
+
+  // ขนาดของการ์ด Pie (responsive)
+  const { ref: pieBoxRef, width: pieW } = useSize<HTMLDivElement>();
+  // ความสูง & รัศมีของ Pie ตามความกว้างการ์ด (ให้เล็กลงอัตโนมัติบนจอแคบ)
+  const pieHeight = useMemo(() => {
+    if (!pieW) return 240; // default
+    return Math.max(200, Math.min(320, Math.round(pieW * 0.55)));
+  }, [pieW]);
+  const pieRadius = useMemo(() => {
+    if (!pieW) return 85;
+    return Math.max(70, Math.min(120, Math.round(pieW * 0.26)));
+  }, [pieW]);
+  const pieCompactLegend = pieW < 520;
 
   useEffect(() => {
     (async () => {
@@ -421,17 +465,32 @@ const AssessmentDashboard: React.FC = () => {
   const legendLineHeight = isVeryNarrow ? 16 : isNarrow ? 18 : 20;
   const legendH = legendRows * legendLineHeight + (legendRows > 0 ? 16 : 0);
 
-  // เพิ่มพื้นที่ด้านล่างให้พอสำหรับ label เอียง
+  // เพิ่มพื้นที่ด้านล่างให้พอสำหรับ label เอียง + ขยายกราฟฝั่งซ้ายให้สูงขึ้น
   const xAxisH = isVeryNarrow ? 64 : isNarrow ? 72 : 80;
-  const basePlotH = isVeryNarrow ? 200 : isNarrow ? 240 : 280;
+  const basePlotH = isVeryNarrow ? 260 : isNarrow ? 300 : 360;
 
   const chartHeight = Math.max(
-    isVeryNarrow ? 320 : 360,
+    isVeryNarrow ? 320 : 380, // ยืดความสูงรวมขึ้นเล็กน้อย
     basePlotH +
       xAxisH +
       (view === "combined" ? legendH : 0) +
       (isVeryNarrow ? 16 : 24)
   );
+
+  const [rangePie, setRangePie] = useState<RangeKey>("1m");
+
+  // สรุปจำนวนครั้งต่อแบบสอบถาม
+  const pieData = useMemo(() => {
+    const filtered = filterByRange(tx, rangePie);
+    const counts: Record<string, number> = {};
+    filtered.forEach((t) => {
+      counts[t.description] = (counts[t.description] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  }, [tx, rangePie]);
 
   if (loading)
     return <div className="p-6 text-slate-600">กำลังโหลดข้อมูล…</div>;
@@ -440,7 +499,7 @@ const AssessmentDashboard: React.FC = () => {
     <div className="p-6 space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="rounded-2xl p-5 bg-green-100/70 flex items-center gap-4">
+        <div className="rounded-2xl p-5 bg-emerald-100/70 flex items-center gap-4">
           <div className="rounded-full bg-white/70 p-3 shadow">
             <Activity className="w-6 h-6 text-emerald-600" />
           </div>
@@ -453,27 +512,28 @@ const AssessmentDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl p-5 bg-violet-100/70 flex items-center gap-4">
+        <div className="rounded-2xl p-5 bg-indigo-100/70 flex items-center gap-4">
           <div className="rounded-full bg-white/70 p-3 shadow">
-            <BarChart3 className="w-6 h-6 text-violet-600" />
+            <BarChart3 className="w-6 h-6 text-indigo-600" />
           </div>
           <div>
             <p className="text-slate-600 text-sm">แบบทดสอบที่เคยทำ</p>
-            <p className="text-2xl font-semibold text-violet-700">
-              {uniqueTests.length}
+            <p className="text-2xl font-semibold text-indigo-700">
+              {uniqueTests.length}{" "}
+              <span className="text-base font-normal">แบบทดสอบ</span>
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl p-5 bg-cyan-100/70 flex items-center gap-4">
+        <div className="rounded-2xl p-5 bg-rose-100/70 flex items-center gap-4">
           <div className="rounded-full bg-white/70 p-3 shadow">
-            <Award className="w-6 h-6 text-cyan-600" />
+            <Award className="w-6 h-6 text-rose-600" />
           </div>
           <div className="truncate">
             <p className="text-slate-600 text-sm">รายการล่าสุด</p>
             {latest ? (
               <>
-                <p className="text-cyan-700 font-medium truncate">
+                <p className="text-rose-700 font-medium truncate">
                   {latest.description}
                 </p>
                 <p className="text-slate-500 text-xs">
@@ -486,238 +546,335 @@ const AssessmentDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl p-5 bg-sky-100/70 flex items-center gap-4">
+        <div className="rounded-2xl p-5 bg-amber-100/70 flex items-center gap-4">
           <div className="rounded-full bg-white/70 p-3 shadow">
-            <Calendar className="w-6 h-6 text-sky-600" />
+            <Calendar className="w-6 h-6 text-amber-600" />
           </div>
           <div>
             <p className="text-slate-600 text-sm">แบบทดสอบรอบถัดไป</p>
-            <p className="text-lg md:text-xl font-semibold text-sky-700">
+            <p className="text-lg md:text-xl font-semibold text-amber-700">
               {nextRoundLabel}
             </p>
           </div>
         </div>
       </div>
 
-      {/* ==== Single/Combined in one card ==== */}
-      <div className="rounded-2xl bg-white shadow-sm border border-slate-100">
-        {/* header + toggle */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-slate-100">
-          <div className="space-y-1">
-            <h3 className="font-semibold text-slate-800">
-              {view === "single" ? "กราฟรายแบบทดสอบ" : "กราฟรวมหลายแบบทดสอบ"}
-            </h3>
-            <p className="text-slate-500 text-sm">
-              แกนตั้งเป็นคะแนน • แกนนอนเป็นวันที่ (สีตามกลุ่ม)
-            </p>
-          </div>
+      {/* ==== Charts row: Left (Line) | Right (Pie) ==== */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ===== LEFT: Line charts card ===== */}
+        <div className="rounded-2xl bg-white shadow-sm border border-amber-100 lg:col-span-2">
+          {/* header + toggle */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-amber-300">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-slate-800">
+                {view === "single" ? "กราฟรายแบบทดสอบ" : "กราฟรวมหลายแบบทดสอบ"}
+              </h3>
+              <p className="text-slate-500 text-sm">
+                แกนตั้งเป็นคะแนน • แกนนอนเป็นวันที่ (สีตามกลุ่ม)
+              </p>
+              {/* legend อธิบายสีกรุ๊ปด้านบน */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-2">
+                {uniqueGroups.map((g) => (
+                  <div key={g} className="flex items-center gap-1">
+                    <span
+                      className="inline-block w-3 h-3 rounded-full"
+                      style={{ background: colorOfGroup(g) }}
+                    />
+                    {g}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <div className="relative">
-            <div className="flex items-center bg-cyan-400/90 rounded-full p-1 gap-1">
-              <button
-                onClick={() => setView("single")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm transition-all ${
-                  view === "single"
-                    ? "bg-white text-slate-900 shadow"
-                    : "text-white/90 hover:text-white"
-                }`}
-              >
-                <FileText size={16} /> รายแบบทดสอบ
-              </button>
-              <button
-                onClick={() => setView("combined")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm transition-all ${
-                  view === "combined"
-                    ? "bg-white text-slate-900 shadow"
-                    : "text-white/90 hover:text-white"
-                }`}
-              >
-                <MessageSquare size={16} /> กราฟรวม
-              </button>
+            <div className="relative">
+              <div className="flex items-center bg-orange-200/90 rounded-full p-1 gap-1">
+                <button
+                  onClick={() => setView("single")}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm transition-all ${
+                    view === "single"
+                      ? "bg-white text-slate-900 shadow"
+                      : "text-gray-500 hover:text-orange-900"
+                  }`}
+                >
+                  <FileText size={16} /> รายแบบทดสอบ
+                </button>
+                <button
+                  onClick={() => setView("combined")}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm transition-all ${
+                    view === "combined"
+                      ? "bg-white text-slate-900 shadow"
+                      : "text-gray-500 hover:text-orange-900"
+                  }`}
+                >
+                  <MessageSquare size={16} /> กราฟรวม
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* right toolbar */}
-        <div className="flex flex-wrap items-center justify-end gap-2 px-4 pt-3">
-          {view === "single" ? (
-            <>
-              <select
-                className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
-                value={selectedTest}
-                onChange={(e) => setSelectedTest(e.target.value)}
-              >
-                {uniqueTests.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
-                value={rangeOne}
-                onChange={(e) => setRangeOne(e.target.value as RangeKey)}
-              >
-                {RANGE_OPTIONS.map((o) => (
-                  <option key={o.key} value={o.key}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500">ช่วง:</span>
-              <select
-                className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
-                value={rangeAll}
-                onChange={(e) => setRangeAll(e.target.value as RangeKey)}
-              >
-                {RANGE_OPTIONS.map((o) => (
-                  <option key={o.key} value={o.key}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+          {/* right toolbar */}
+          <div className="flex flex-wrap items-center justify-end gap-2 px-4 pt-3">
+            {view === "single" ? (
+              <>
+                <select
+                  className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                  value={selectedTest}
+                  onChange={(e) => setSelectedTest(e.target.value)}
+                >
+                  {uniqueTests.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                  value={rangeOne}
+                  onChange={(e) => setRangeOne(e.target.value as RangeKey)}
+                >
+                  {RANGE_OPTIONS.map((o) => (
+                    <option key={o.key} value={o.key}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">ช่วง:</span>
+                <select
+                  className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                  value={rangeAll}
+                  onChange={(e) => setRangeAll(e.target.value as RangeKey)}
+                >
+                  {RANGE_OPTIONS.map((o) => (
+                    <option key={o.key} value={o.key}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
 
-        {/* chart box */}
-        <div
-          ref={chartBoxRef}
-          className="p-4 w-full"
-          style={{ height: chartHeight }}
-        >
-          {view === "single" ? (
-            dataOne.length === 0 ? (
+          {/* chart box */}
+          <div
+            ref={chartBoxRef}
+            className="p-4 w-full"
+            style={{ height: chartHeight }}
+          >
+            {view === "single" ? (
+              dataOne.length === 0 ? (
+                <div className="h-full grid place-items-center text-slate-400">
+                  ไม่มีข้อมูลในช่วงที่เลือก
+                </div>
+              ) : (
+                <ResponsiveContainer
+                  key={`single-${chartW}`}
+                  width="100%"
+                  height="100%"
+                >
+                  <LineChart
+                    data={dataOne}
+                    margin={{
+                      top: 10,
+                      right: isVeryNarrow ? 12 : 20,
+                      left: isVeryNarrow ? 6 : 12,
+                      bottom: 8,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="_key"
+                      scale="point"
+                      interval={0}
+                      padding={{ left: 16, right: 16 }}
+                      height={xAxisH}
+                      tickMargin={4}
+                      tick={(p) => (
+                        <RotXTick
+                          {...p}
+                          data={dataOne}
+                          small={isNarrow}
+                          colorOfGroup={colorOfGroup}
+                        />
+                      )}
+                    />
+                    <YAxis />
+                    <Tooltip
+                      formatter={(v: any, name) =>
+                        name === "score" ? [`${v}`, "คะแนน"] : v
+                      }
+                      labelFormatter={(key) => {
+                        const item = dataOne.find((d) => d._key === key);
+                        return item
+                          ? `${item.dateLabel} (${item.group || "-"})`
+                          : "";
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={{ r: isVeryNarrow ? 1 : isNarrow ? 1.5 : 3 }}
+                      activeDot={{ r: isVeryNarrow ? 2.5 : isNarrow ? 3 : 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )
+            ) : dataAll.length === 0 ? (
               <div className="h-full grid place-items-center text-slate-400">
                 ไม่มีข้อมูลในช่วงที่เลือก
               </div>
             ) : (
-              <ResponsiveContainer
-                key={`single-${chartW}`}
-                width="100%"
-                height="100%"
-              >
-                <LineChart
-                  data={dataOne}
-                  margin={{
-                    top: 10,
-                    right: isVeryNarrow ? 12 : 20,
-                    left: isVeryNarrow ? 6 : 12,
-                    bottom: 8,
-                  }}
+              <>
+                <ResponsiveContainer
+                  key={`all-${chartW}-${seriesCount}`}
+                  width="100%"
+                  height={chartHeight - (legendH + (isVeryNarrow ? 8 : 10))}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="_key"
-                    scale="point"
-                    interval={0}
-                    padding={{ left: 16, right: 16 }}
-                    height={xAxisH}
-                    tickMargin={4}
-                    tick={(p) => (
-                      <RotXTick
-                        {...p}
-                        data={dataOne}
-                        small={isNarrow}
-                        colorOfGroup={colorOfGroup}
-                      />
-                    )}
-                  />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(v: any, name) =>
-                      name === "score" ? [`${v}`, "คะแนน"] : v
-                    }
-                    labelFormatter={(key) => {
-                      const item = dataOne.find((d) => d._key === key);
-                      return item
-                        ? `${item.dateLabel} (${item.group || "-"})`
-                        : "";
+                  <LineChart
+                    data={dataAll}
+                    margin={{
+                      top: 10,
+                      right: isVeryNarrow ? 12 : 20,
+                      left: isVeryNarrow ? 6 : 12,
+                      bottom: 8,
                     }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="_key"
+                      scale="point"
+                      interval={0}
+                      padding={{ left: 16, right: 16 }}
+                      height={xAxisH}
+                      tickMargin={4}
+                      tick={(p) => (
+                        <RotXTick
+                          {...p}
+                          data={dataAll}
+                          small={isNarrow}
+                          colorOfGroup={colorOfGroup}
+                        />
+                      )}
+                    />
+                    <YAxis />
+                    <Tooltip
+                      labelFormatter={(key) => {
+                        const item = dataAll.find((d) => d._key === key);
+                        return item
+                          ? `${item.dateLabel} (${item.group || "-"})`
+                          : "";
+                      }}
+                    />
+                    {seriesNames.map((s, i) => (
+                      <Line
+                        key={s}
+                        type="monotone"
+                        dataKey={s}
+                        stroke={colorFor(i)}
+                        strokeWidth={2}
+                        dot={{ r: isVeryNarrow ? 1 : isNarrow ? 1.5 : 2 }}
+                        activeDot={{ r: isVeryNarrow ? 2.5 : isNarrow ? 3 : 4 }}
+                        connectNulls
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+
+                <div className="px-8 pb-9">
+                  <CustomLegend
+                    payload={seriesNames.map((s, i) => ({
+                      value: s,
+                      color: colorFor(i),
+                      type: "line",
+                    }))}
+                    compact={isNarrow}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#2563eb"
-                    strokeWidth={2}
-                    dot={{ r: isVeryNarrow ? 1 : isNarrow ? 1.5 : 3 }}
-                    activeDot={{ r: isVeryNarrow ? 2.5 : isNarrow ? 3 : 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )
-          ) : dataAll.length === 0 ? (
-            <div className="h-full grid place-items-center text-slate-400">
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* ===== RIGHT: Pie card (Responsive) ===== */}
+        <div
+          ref={pieBoxRef}
+          className="rounded-2xl bg-sky-200/30 shadow-sm border border-sky-100 p-4 flex flex-col lg:col-span-1"
+        >
+          {/* header */}
+          <div className="p-5 border-b border-sky-300">
+            <h3 className="font-semibold text-slate-800 mb-3">
+              จำนวนครั้งที่ทำแต่ละแบบสอบถาม
+            </h3>
+            <p className="text-slate-500 text-sm">
+              จำนวนครั้งที่ทำแบบสอบถามทั้งหมด : {totalAttempts} ครั้ง
+            </p>
+          </div>
+
+          {/* toolbar (เหมือนฝั่งซ้าย) */}
+          <div className="flex flex-wrap items-center justify-end gap-2 px-4 pt-10 mb-8">
+            <span className="text-sm text-slate-500">ช่วง:</span>
+            <select
+              className="px-3 py-2 rounded-xl border border-slate-200 text-sm"
+              value={rangePie}
+              onChange={(e) => setRangePie(e.target.value as RangeKey)}
+            >
+              {RANGE_OPTIONS.map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {pieData.length === 0 ? (
+            <div
+              className="grid place-items-center text-slate-400"
+              style={{ height: pieHeight }}
+            >
               ไม่มีข้อมูลในช่วงที่เลือก
             </div>
           ) : (
             <>
-              <ResponsiveContainer
-                key={`all-${chartW}-${seriesCount}`}
-                width="100%"
-                height={chartHeight - (legendH + (isVeryNarrow ? 8 : 10))}
-              >
-                <LineChart
-                  data={dataAll}
-                  margin={{
-                    top: 10,
-                    right: isVeryNarrow ? 12 : 20,
-                    left: isVeryNarrow ? 6 : 12,
-                    bottom: 8,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="_key"
-                    scale="point"
-                    interval={0}
-                    padding={{ left: 16, right: 16 }}
-                    height={xAxisH}
-                    tickMargin={4}
-                    tick={(p) => (
-                      <RotXTick
-                        {...p}
-                        data={dataAll}
-                        small={isNarrow}
-                        colorOfGroup={colorOfGroup}
-                      />
-                    )}
-                  />
-                  <YAxis />
-                  <Tooltip
-                    labelFormatter={(key) => {
-                      const item = dataAll.find((d) => d._key === key);
-                      return item
-                        ? `${item.dateLabel} (${item.group || "-"})`
-                        : "";
-                    }}
-                  />
-                  {seriesNames.map((s, i) => (
-                    <Line
-                      key={s}
-                      type="monotone"
-                      dataKey={s}
-                      stroke={colorFor(i)}
-                      strokeWidth={2}
-                      dot={{ r: isVeryNarrow ? 1 : isNarrow ? 1.5 : 2 }}
-                      activeDot={{ r: isVeryNarrow ? 2.5 : isNarrow ? 3 : 4 }}
-                      connectNulls
+              <div style={{ height: pieHeight }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={pieRadius} // 🔹 responsive
+                      label={false} // ใช้ legend ด้านล่างแทน
+                    >
+                      {pieData.map((p, idx) => (
+                        <Cell
+                          key={`cell-${p.name}-${idx}`}
+                          fill={PASTEL_COLORS[idx % PASTEL_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v: any, n: any) => [`${v} ครั้ง`, n]}
                     />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
 
-              <div className="px-8 pb-9">
+              {/* Legend แบบเดียวกับกราฟรวม ไม่ล้นการ์ด */}
+              <div className="mt-7 px-4 pt-2">
                 <CustomLegend
-                  payload={seriesNames.map((s, i) => ({
-                    value: s,
-                    color: colorFor(i),
-                    type: "line",
+                  payload={pieData.map((p, i) => ({
+                    value: `${p.name}`,
+                    color: PASTEL_COLORS[i % PASTEL_COLORS.length],
+                    type: "square",
                   }))}
-                  compact={isNarrow}
+                  compact={pieCompactLegend}
+                  maxItemWidth={pieCompactLegend ? 180 : 220}
                 />
               </div>
             </>

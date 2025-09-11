@@ -223,6 +223,14 @@ func main() {
 		router.GET("/dashboard/questionnaire/prepost", dashboardcontents.GetPrePostTransactions)
 		router.GET("/dashboard/questionnaire/standalone", dashboardcontents.GetStandaloneTransactions)
 
+		
+		router.GET("/dashboard/questionnaire/user", dashboardcontents.GetRespondents)
+		router.GET("/dashboard/questionnaire/user/overiew/:id", dashboardcontents.GetUserKPI)
+		router.GET("/dashboard/questionnaire/user/bar/:id", dashboardcontents.GetUserAssessmentSummary)
+		router.GET("/dashboard/questionnaire/user/prepost", dashboardcontents.GetPrePostTransactionsCompare)
+		router.GET("/dashboard/questionnaire/user/personal", dashboardcontents.GetStandaloneTransactionsPersonal)
+		router.GET("/dashboard/questionnaire/user/detail", dashboardcontents.GetDescriptionSummary)
+
 
 		// router.GET
 

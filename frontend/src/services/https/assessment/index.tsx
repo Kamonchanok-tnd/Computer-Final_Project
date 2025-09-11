@@ -207,10 +207,22 @@ export const getAvailableQuestionnairesForGroup = async (groupID: number): Promi
   return res.data;
 };
 
-export const addQuestionnaireToGroup = async (groupID: number, questionnaireID: number): Promise<void> => {
-  await axiosInstance.post(`/admin/questionnaire-groups/${groupID}/add-questionnaire`, {
-    questionnaire_id: questionnaireID,
-  });
+// services/https/assessment/index.ts
+export type AddToGroupResponse = {
+  message?: string;
+  message_th?: string;
+  added_ids?: { id: number; role: "parent" | "child" }[];
+};
+
+export const addQuestionnaireToGroup = async (
+  groupID: number,
+  questionnaireID: number
+): Promise<AddToGroupResponse> => {
+  const res = await axiosInstance.post(
+    `/admin/questionnaire-groups/${groupID}/add-questionnaire`,
+    { questionnaire_id: questionnaireID }
+  );
+  return res.data as AddToGroupResponse;
 };
 
 export const removeQuestionnaireFromGroup = async (groupID: number, questionnaireID: number): Promise<void> => {

@@ -4,7 +4,7 @@ import {
   Waves,
   Headphones,
   Play,
-  ChevronDown,
+  //ChevronDown,
   PenTool,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -100,7 +100,7 @@ function RelaxActivities() {
           </p>
         </div>
 
-        <div
+        {/* <div
           className="absolute -right-10 top-1/2 -translate-y-1/2 w-10 h-10 
           bg-[#B3E5FC] rounded-full flex items-center justify-center shadow-lg 
           cursor-pointer hover:scale-110 transition"
@@ -109,12 +109,12 @@ function RelaxActivities() {
           }
         >
           <ChevronDown className="text-white w-5 h-5" />
-        </div>
+        </div> */}
 
         <img
           src={userImage}
           alt="Character"
-          className="absolute right-0 top-20 w-28 transition-all duration-300"
+          className="absolute right-20 top-15 w-28 transition-all duration-300"
         />
       </div>
 

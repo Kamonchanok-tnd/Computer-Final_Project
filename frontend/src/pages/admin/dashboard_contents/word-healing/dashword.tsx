@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { DatePicker, ConfigProvider, Select } from "antd";
+import { DatePicker, ConfigProvider } from "antd";
 import thTH from "antd/locale/th_TH";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/th";
@@ -74,24 +74,27 @@ const DashboardWordHealingViews: React.FC = () => {
     0
   );
 
-  // รวมครั้งอ่านของบทความเดียวกันก่อนแล้วเอามาเรียง Top 5
-  const topArticles = Object.values(
-    filteredData.reduce((acc, item) => {
-      if (!acc[item.title]) {
-        acc[item.title] = { ...item }; // เก็บข้อมูลบทความ
-      } else {
-        acc[item.title].total_views += item.total_views; // รวมครั้งอ่าน
-      }
-      return acc;
-    }, {} as Record<string, ViewsByTitle>)
-  )
-    .sort((a, b) => b.total_views - a.total_views)
-    .slice(0, 5);
+  // ดึงชื่อบทความทั้งหมด
+  const allArticleTitles = Array.from(
+    new Set(filteredData.map((item) => item.title))
+  );
 
-  const chartData = filteredData.map((item) => ({
-    label: item.label,
-    total_views: item.total_views,
-  }));
+  // สร้าง chartData สำหรับหลายบทความ
+  const chartDataMulti = filteredData.reduce((acc: any[], item) => {
+    let dataIndex = acc.findIndex((d) => d.label === item.label);
+    if (dataIndex === -1) {
+      acc.push({ label: item.label });
+      dataIndex = acc.length - 1;
+    }
+    acc[dataIndex][item.title] = item.total_views;
+    return acc;
+  }, []);
+
+  // สีสำหรับเส้นกราฟ
+  const colors = [
+    "#F59E0B", "#3B82F6", "#10B981", "#EF4444", "#8B5CF6",
+    "#EC4899", "#F97316", "#6366F1", "#14B8A6", "#A78BFA"
+  ];
 
   return (
     <ConfigProvider locale={thTH}>
@@ -135,21 +138,33 @@ const DashboardWordHealingViews: React.FC = () => {
             </div>
           </div>
         </div>
+        {/* Top 3 Articles */}
+<div className="bg-yellow-100 rounded-2xl shadow-md p-6">
+  <h2 className="font-semibold text-lg mb-2 text-yellow-800">
+    Top 3 Articles
+  </h2>
+  <ol className="list-decimal ml-6 space-y-1 text-yellow-900">
+    {Object.values(
+      filteredData.reduce((acc, item) => {
+        if (!acc[item.title]) {
+          acc[item.title] = { ...item };
+        } else {
+          acc[item.title].total_views += item.total_views;
+        }
+        return acc;
+      }, {} as Record<string, ViewsByTitle>)
+    )
+      .sort((a, b) => b.total_views - a.total_views)
+      .slice(0, 3)
+      .map((item, idx) => (
+        <li key={idx} className="flex justify-between">
+          <span>{item.title}</span>
+          <span className="font-bold">{item.total_views} ครั้ง</span>
+        </li>
+      ))}
+  </ol>
+</div>
 
-        {/* Top Articles */}
-        <div className="bg-yellow-100 rounded-2xl shadow-md p-6">
-          <h2 className="font-semibold text-lg mb-2 text-yellow-800">
-            Top Articles
-          </h2>
-          <ol className="list-decimal ml-6 space-y-1 text-yellow-900">
-            {topArticles.map((item, idx) => (
-              <li key={idx} className="flex justify-between">
-                <span>{item.title}</span>
-                <span className="font-bold">{item.total_views} ครั้ง</span>
-              </li>
-            ))}
-          </ol>
-        </div>
 
         {/* Trend Line */}
         <div className="bg-yellow-50 rounded-2xl shadow-md p-6">
@@ -158,7 +173,7 @@ const DashboardWordHealingViews: React.FC = () => {
               Trend Line (การอ่าน)
             </h2>
             <div className="flex gap-2">
-              <Select
+              {/* <Select
                 value={period}
                 onChange={(val) =>
                   setPeriod(val as "daily" | "weekly" | "yearly")
@@ -168,7 +183,7 @@ const DashboardWordHealingViews: React.FC = () => {
                   { value: "weekly", label: "รายสัปดาห์" },
                   { value: "yearly", label: "รายปี" },
                 ]}
-              />
+              /> */}
               <DatePicker
                 picker={period === "daily" ? "month" : "year"}
                 value={selectedDate}
@@ -179,19 +194,26 @@ const DashboardWordHealingViews: React.FC = () => {
             </div>
           </div>
 
+          
+
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <LineChart data={chartDataMulti}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#FFECB3" />
                 <XAxis dataKey="label" />
-                <Tooltip formatter={(v: any) => [`${v} ครั้ง`, "views"]} />
-                <Line
-                  type="monotone"
-                  dataKey="total_views"
-                  stroke="#F59E0B"
-                  strokeWidth={3}
-                  dot={{ r: 5, fill: "#F59E0B" }}
+                <Tooltip
+                  formatter={(value, name: any) => [`${value} ครั้ง`, name]}
                 />
+                {allArticleTitles.map((title, idx) => (
+                  <Line
+                    key={title}
+                    type="monotone"
+                    dataKey={title}
+                    stroke={colors[idx % colors.length]}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
