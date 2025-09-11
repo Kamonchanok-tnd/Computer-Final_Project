@@ -152,7 +152,7 @@ const AssessmentLists: React.FC = () => {
           <h1 className="text-xl font-bold">{groupName}</h1>
         </div>
 
-        <h1 className="text-xl font-semibold mb-4">แบบสอบถามที่จะต้องทำ</h1>
+        <h1 className="text-xl font-semibold mb-4">แบบสอบถามที่รอการแบ่งปันจากคุณ 🌱</h1>
 
         <div className="space-y-3 text-left max-h-[45vh] overflow-auto pr-1">
           {rows.map((r, idx) => (

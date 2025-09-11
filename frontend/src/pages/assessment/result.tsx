@@ -3,8 +3,21 @@ import { useLocation, useNavigate } from "react-router-dom";
 import RSH from "../../assets/assessment/ResultHappy.png";
 import RSS from "../../assets/assessment/ResultSad.png";
 import RSB from "../../assets/assessment/ResultBored.png";
+import iconHug from "../../assets/assessment/hug.png";
+import iconYay from "../../assets/assessment/yay.png";
+import iconSmile from "../../assets/assessment/smile.png";
+import iconDoc from "../../assets/assessment/doc.png";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment";
 import { GroupOut } from "../../interfaces/IQuestionnaireGroup";
+
+const InlineIcon: React.FC<{ src: string; alt: string }> = ({ src, alt }) => (
+  <img
+    src={src}
+    alt={alt}
+    className="inline-block align-[-2px] w-6 h-6 mx-1"
+    draggable={false}
+  />
+);
 
 const Result: React.FC = () => {
   const location = useLocation();
@@ -96,31 +109,60 @@ const Result: React.FC = () => {
     }
   };
 
-  const getResultDetails = () => {
+   const getResultDetails = () => {
     switch (resultLevel) {
       case "happy":
         return {
           image: RSH,
-          description:
-            "เห็นได้ชัดว่าคุณดูแลตัวเองได้ดีเยี่ยมจริง ๆ 🥳\n\nขอให้ใช้ชีวิตให้มีความสุขสดใสแบบนี้ตลอดไปเลยนะคะ! 😊",
+          descriptionNode: (
+            <>
+              เห็นได้ชัดว่าคุณดูแลตัวเองได้ดีเยี่ยมจริง ๆ
+              <InlineIcon src={iconYay} alt="yay" />
+              <br />
+              <br />
+              ขอให้ใช้ชีวิตให้มีความสุขสดใสแบบนี้ตลอดไปเลยนะคะ!
+              <InlineIcon src={iconSmile} alt="smile" />
+            </>
+          ),
         };
       case "bored":
         return {
           image: RSB,
-          description:
-            "การดูแลสุขภาพจิตของตัวเองเป็นเรื่องสำคัญ เราจะอยู่เคียงข้างคุณเสมอ🫂\n\nขอเป็นกำลังใจให้คุณก้าวผ่านช่วงเวลานี้ไปได้นะคะ 😊",
+          descriptionNode: (
+            <>
+              การดูแลสุขภาพจิตของตัวเองเป็นเรื่องสำคัญ เราจะอยู่เคียงข้างคุณเสมอ
+              <InlineIcon src={iconHug} alt="hug" />
+              <br />
+              <br />
+              ขอเป็นกำลังใจให้คุณก้าวผ่านช่วงเวลานี้ไปได้นะคะ{" "}
+              <InlineIcon src={iconSmile} alt="smile" />
+            </>
+          ),
         };
       case "sad":
       default:
         return {
           image: RSS,
-          description:
-            "การดูแลสุขภาพจิตของตัวเองเป็นเรื่องสำคัญ เราจะอยู่เคียงข้างคุณเสมอ🫂\n\nถ้าหากคุณรู้สึกไม่โอเค การขอความช่วยเหลือจากผู้เชี่ยวชาญก็เป็นเรื่องสำคัญนะคะ👩‍⚕️\n\nขอให้คุณก้าวผ่านช่วงเวลานี้ไปได้อย่างเข้มแข็งนะคะ! 😊",
+          descriptionNode: (
+            <>
+              การดูแลสุขภาพจิตของตัวเองเป็นเรื่องสำคัญ เราจะอยู่เคียงข้างคุณเสมอ
+              <InlineIcon src={iconHug} alt="hug" />
+              <br />
+              <br />
+              ถ้าหากคุณรู้สึกไม่โอเค การขอความช่วยเหลือจากผู้เชี่ยวชาญก็เป็นเรื่องสำคัญนะคะ
+              <InlineIcon src={iconDoc} alt="doc" />
+              <br />
+              <br />
+              ขอให้คุณก้าวผ่านช่วงเวลานี้ไปได้อย่างเข้มแข็งนะคะ!{" "}
+              <InlineIcon src={iconSmile} alt="smile" />
+            </>
+          ),
         };
     }
   };
 
-  const { image, description } = getResultDetails();
+
+  const { image, descriptionNode  } = getResultDetails();
   const scoreColor = getScoreColor(percentage);
 
   useEffect(() => {
@@ -185,7 +227,7 @@ const Result: React.FC = () => {
 
         <p className="font-semibold text-lg mb-4 whitespace-pre-line">{title}</p>
         <p className="text-sm text-gray-800 leading-relaxed mb-6 whitespace-pre-line">
-          {description}
+          {descriptionNode }
         </p>
 
         {nextQid ? (
