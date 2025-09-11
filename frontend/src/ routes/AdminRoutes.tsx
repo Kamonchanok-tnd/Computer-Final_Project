@@ -32,12 +32,14 @@ import MessagePage from "../pages/admin/message/home/messagePage";
 import EditMessagePage from "../pages/admin/message/edit/editMesagePage";
 import CreateMessagePage from "../pages/admin/message/create/createMessagePage";
 import EditSound from "../pages/admin/meditation/editSound";
-import CreateCriteriaPage from "../pages/admin/questionnaire/create/createCriteriaPage";
+
 import ChatSpaceDetail from "../pages/admin/dashboard_contents/chat/ChatSpaceDetail";
 
 import EditCriteriaPage from "../pages/admin/questionnaire/edit/editCriteriaPage";
 import EditQuestionAndAnswerPage from "../pages/admin/questionnaire/edit/editQuestionAndAnswer";
 import Quetionairedetail from "../pages/admin/dashboard_contents/questionaire/quetionairedetail";
+import CreateCriteriaPage from "../pages/admin/questionnaire/create/CreateCriteriaPage";
+import SummaryUser from "../pages/admin/dashboard_contents/questionaire/summaryUser";
 
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
@@ -99,6 +101,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                  {
                     path: "/admin/dashboard/contents/questionnaire",
                    element: <Quetionairedetail />, // หน้า Settings ของ Admin DashboardChanting
+                 },
+                 {
+                    path: "/admin/dashboard/contents/summary/user/:id",
+                   element: <SummaryUser />, 
                  },
 
                  {
