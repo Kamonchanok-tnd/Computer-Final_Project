@@ -408,7 +408,7 @@ const TimerPanel: React.FC<TimerPanelProps> = ({ volumes, selectedSID }) => {
   const uiMode = isRunning ? phase : mode;
 
   return (
-    <div className="space-y-4">
+    <div className="font-ibmthai space-y-4">
       <h3 className="text-white text-xl font-medium flex items-center gap-2">
         <img src={iconTimer} alt="Focus Timer" className="w-5 h-5" />
         เวลาโฟกัส

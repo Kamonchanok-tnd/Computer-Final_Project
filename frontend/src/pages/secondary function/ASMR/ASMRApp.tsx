@@ -174,7 +174,7 @@ const ASMRApp: React.FC = () => {
   
 
   return (
-    <div className="fixed inset-0 h-[100svh] w-screen overflow-hidden flex bg-gray-900">
+    <div className="font-ibmthai fixed inset-0 h-[100svh] w-screen overflow-hidden flex bg-gray-900">
       {/* Background */}
       <div className="fixed inset-0 z-0 h-[100svh] w-screen overflow-hidden">
         <div

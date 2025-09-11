@@ -243,7 +243,7 @@ const FloatingClock: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   return (
     <div
-      className="fixed right-4 top-20 z-50 px-4 py-3 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-2"
+      className="font-ibmthai fixed right-4 top-20 z-50 px-4 py-3 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-2"
       style={{ background: "rgba(243,244,246,0.95)", border: "1px solid rgba(209,213,219,0.8)" }}
     >
       <div className="flex flex-col items-stretch gap-1 w-full">

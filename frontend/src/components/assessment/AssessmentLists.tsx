@@ -141,7 +141,7 @@ const AssessmentLists: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
+    <div className="font-ibmthai fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
       <div className="bg-sky-200/90 rounded-2xl p-8 w-11/12 max-w-md text-center shadow-xl">
         <div className="flex items-center justify-center gap-3 mb-5">
           <img
@@ -152,7 +152,7 @@ const AssessmentLists: React.FC = () => {
           <h1 className="text-xl font-bold">{groupName}</h1>
         </div>
 
-        <h1 className="text-xl font-semibold mb-4">แบบสอบถามที่จะต้องทำ</h1>
+        <h1 className="text-xl font-semibold mb-4">แบบสอบถามที่รอการแบ่งปันจากคุณ 🌱</h1>
 
         <div className="space-y-3 text-left max-h-[45vh] overflow-auto pr-1">
           {rows.map((r, idx) => (
