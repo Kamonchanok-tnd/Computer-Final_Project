@@ -53,7 +53,7 @@ const MoodPopup: React.FC = () => {
 
   return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-[2147483647] flex items-center justify-center"
+      className="font-ibmthai fixed inset-0 z-[2147483647] flex items-center justify-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="mood-popup-title"
