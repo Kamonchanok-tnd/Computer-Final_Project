@@ -105,7 +105,6 @@ const tailId = (columnId: number) => `__tail_${columnId}`;
 
 const ManageTestOrder: React.FC = () => {
   const [draggedDays, setDraggedDays] = useState<number>(0);
-  const [showSaveButton, setShowSaveButton] = useState<boolean>(false);
   const [columns, setColumns] = useState<Column[]>([]);
   const [questionnaireMap, setQuestionnaireMap] = useState<
     Record<number, Questionnaire[]>
@@ -116,7 +115,6 @@ const ManageTestOrder: React.FC = () => {
   >([]);
   const [isDragMode, setIsDragMode] = useState<boolean>(false);
 
-  console.log("showSaveButton:", showSaveButton);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 3 },
