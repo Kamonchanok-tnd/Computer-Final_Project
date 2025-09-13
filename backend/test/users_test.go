@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"fmt"
 	"sukjai_project/entity"
 	"testing"
 	"time"
@@ -32,7 +33,7 @@ func TestUsersValidation(t *testing.T) {
 
 		ok, err := govalidator.ValidateStruct(user)
 		if err != nil {
-			
+			fmt.Println("Validation error:", err)
 		}
 
 		g.Expect(ok).To(BeTrue())

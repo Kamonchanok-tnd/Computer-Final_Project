@@ -20,7 +20,7 @@ type Users struct {
 	Gender      string `json:"gender"`
 
 	PFID      uint    `json:"pfid" gorm:"default:1"`
-	ProfileAvatar ProfileAvatar `gorm:"foreignKey:PFID"`
+	ProfileAvatar ProfileAvatar `gorm:"foreignKey:PFID" valid:"-"`
 
 	// เพิ่ม attributes สำหรับการรีเซ็ตรหัสผ่าน
 	ResetToken          string    `json:"reset_token" `
