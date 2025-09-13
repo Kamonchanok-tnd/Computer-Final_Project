@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"fmt"
 	"sukjai_project/entity"
 	"testing"
 	"time"
@@ -30,10 +31,12 @@ func TestUsers_AllFieldsCorrect(t *testing.T) {
 		},
 	}
 
-	ok, err := govalidator.ValidateStruct(user)
-	if !ok || err != nil {
-		t.Fatalf("Validation failed: %v", err)
-	}
+
+		ok, err := govalidator.ValidateStruct(user)
+		if err != nil {
+			fmt.Println("Validation error:", err)
+		}
+
 
 	g.Expect(ok).To(BeTrue())
 	g.Expect(err).To(BeNil())

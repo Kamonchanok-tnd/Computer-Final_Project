@@ -19,8 +19,10 @@ type Users struct {
 	BirthDate   string `json:"birth_date"`
 	Gender      string `json:"gender"`
 
+
 	PFID          uint          `json:"pfid" gorm:"default:1"`
 	ProfileAvatar ProfileAvatar `gorm:"foreignKey:PFID" valid:"required~กรุณาเพิ่ม Avatar;required~กรุณากรอกชื่อ Avatar"`
+
 
 	ResetToken       string    `json:"reset_token"`
 	ResetTokenExpiry time.Time `json:"reset_token_expiry"`

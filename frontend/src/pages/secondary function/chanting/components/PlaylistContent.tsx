@@ -1,42 +1,43 @@
-import { EllipsisVertical, Play, Trash2 } from "lucide-react"
-import { DeletePlaylistByID, IMG_URL } from "../../../../services/https/playlist"
-import { CustomPlaylist } from "../../Playlist/Playlist"
-import { Dropdown, MenuProps, message } from "antd"
-import { useState } from "react"
-import DeleteConfirmModal from "../../Playlist/Component/DeleteConfirmModal"
+import { EllipsisVertical, Play, Trash2 } from "lucide-react";
+import { DeletePlaylistByID, IMG_URL } from "../../../../services/https/playlist";
+import { CustomPlaylist } from "../../Playlist/Playlist";
+import { Dropdown, MenuProps, message } from "antd";
+import { useState } from "react";
+import DeleteConfirmModal from "../../Playlist/Component/DeleteConfirmModal";
 
 interface PlaylistContentProps {
-    Playlist : CustomPlaylist[]
-    GotoPlaylist : (id : number) => void
-    gotoPlaylistmedia : (id : number) => void
-    fetchPlaylist: () => void
+  Playlist: CustomPlaylist[];
+  GotoPlaylist: (id: number) => void;
+  gotoPlaylistmedia: (id: number) => void;
+  setPlaylists: React.Dispatch<React.SetStateAction<CustomPlaylist[]>>;
 }
 
-
-function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlaylist}: PlaylistContentProps) {
-  const [openDeletePlaylist, setOpenDeletePlaylist] = useState(false);
+function PlaylistContent({ Playlist, GotoPlaylist, gotoPlaylistmedia, setPlaylists }: PlaylistContentProps) {
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+
   async function DeletePlaylist(id: number) {
-  try {
+    try {
+      setLoading(true);
       await DeletePlaylistByID(Number(id));
-    message.success("ลบเพลย์ลิสต์แล้ว");
-  } catch (error) {
+      message.success("ลบเพลย์ลิสต์แล้ว");
+
+      // อัปเดต state ของ playlist ทันที
+      setPlaylists((prev) => prev.filter((p) => p.ID !== id));
+    } catch (error) {
       console.error("Error deleting playlist:", error);
-    message.error("เกิดข้อผิดพลาดในการลบเพลย์ลิสต์");
-    }finally{
-    setLoading(false);
-      setOpenDeletePlaylist(false)
-      fetchPlaylist()
+      message.error("เกิดข้อผิดพลาดในการลบเพลย์ลิสต์");
+    } finally {
+      setLoading(false);
+      setDeleteId(null);
     }
   }
 
-    return(
-        <div className="font-ibmthai " >
+  return (
+    <div className="font-ibmthai ">
       <h1 className="text-xl text-basic-text dark:text-text-dark mb-4">เพลยลิสต์ของฉัน</h1>
       <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
-          {
-            Playlist?.map((playlist) =>{
-
+        {Playlist?.map((playlist) => {
           const items: MenuProps["items"] = [
             {
               key: "play",
@@ -55,10 +56,11 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlayli
             {
               key: "delete",
               label: (
-                    <div className="flex items-center gap-2 font-ibmthai"
+                <div
+                  className="flex items-center gap-2 font-ibmthai"
                   onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenDeletePlaylist(true);
+                    e.stopPropagation();
+                    setDeleteId(Number(playlist.ID)); // เปิด modal ของ playlist นี้
                   }}
                 >
                   <Trash2 size={16} /> ลบ
@@ -66,43 +68,44 @@ function PlaylistContent({Playlist, GotoPlaylist, gotoPlaylistmedia, fetchPlayli
               ),
               danger: true,
             },
-              ]
+          ];
 
-            return(
+          return (
             <div
               key={playlist.ID}
-               
-                className="group bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
-                dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark
-                ">
-            <img className="h-full w-18 rounded-tl-md rounded-bl-md" src={`${IMG_URL}${playlist.picture}`} />
-          
+              className="group bg-white w-full h-15 rounded-md shadow-sm flex gap-2 transition-all duration-300
+              dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark"
+            >
+              <img className="h-full w-18 rounded-tl-md rounded-bl-md" src={`${IMG_URL}${playlist.picture}`} />
               <div className="h-full w-full flex items-center justify-between">
-              <button onClick={() => GotoPlaylist(Number(playlist.ID))} className="cursor-pointer  h-full">
-                 <p className="text-basic-text font-bold ">{playlist.name}</p>
-              </button>
-              <Dropdown menu={{ items }} trigger={["click"]}  overlayClassName="custom-dropdown">
-                  <button className="mr-4 cursor-pointer h-full  "
-                   onClick={(e) => {
-                    e.stopPropagation();
-                  }}>
-                    <EllipsisVertical size={20}  />
+                <button onClick={() => GotoPlaylist(Number(playlist.ID))} className="cursor-pointer h-full">
+                  <p className="text-basic-text font-bold ">{playlist.name}</p>
+                </button>
+                <Dropdown menu={{ items }} trigger={["click"]} overlayClassName="custom-dropdown">
+                  <button
+                    className="mr-4 cursor-pointer h-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <EllipsisVertical size={20} />
                   </button>
                 </Dropdown>
-        <DeleteConfirmModal
-                  open={openDeletePlaylist}
-                  onConfirm={() => DeletePlaylist(Number(playlist.ID))}
-                  onCancel={() => setOpenDeletePlaylist(false)}
-          loading={loading}
-        />
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Modal delete */}
+      <DeleteConfirmModal
+        open={deleteId !== null}
+        onConfirm={() => deleteId !== null && DeletePlaylist(deleteId)}
+        onCancel={() => setDeleteId(null)}
+        loading={loading}
+      />
     </div>
-            )})
+  );
 }
 
-        </div>
-      </div>
-    )
-}
 export default PlaylistContent;
-
