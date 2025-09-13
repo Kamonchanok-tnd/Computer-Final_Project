@@ -12,7 +12,7 @@ test('test', async ({ page }) => {
   await page.waitForTimeout(1000);
 
   await page.getByRole('textbox', { name: '* อีเมล' }).click();
-  await page.getByRole('textbox', { name: '* อีเมล' }).fill('b6526435@g.sut.ac.th');
+  await page.getByRole('textbox', { name: '* อีเมล' }).fill('b6526499@g.sut.ac.th');
   await page.waitForTimeout(1000);
 
   await page.getByRole('textbox', { name: '* รหัสผ่าน' }).click();

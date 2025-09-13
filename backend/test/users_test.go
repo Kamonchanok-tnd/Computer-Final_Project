@@ -9,144 +9,177 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestUsersValidation(t *testing.T) {
+func TestUsers_AllFieldsCorrect(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	// ✅ case: ข้อมูลถูกต้องทั้งหมด
-	t.Run("all fields correct", func(t *testing.T) {
-		user := entity.Users{
-			Username:          "johndoe",
-			Password:          "securepassword",
-			Email:             "johndoe@example.com",
-			Facebook:          "johndoe.fb",
-			Line:              "johndoe.line",
-			PhoneNumber:       "0812345678",
-			Role:              "admin",
-			Age:               30,
-			Gender:            "male",
-			ResetToken:        "token123",
-			ResetTokenExpiry:  time.Now().Add(24 * time.Hour),
-			ConsentAccepted:   true,
-			ConsentAcceptedAt: time.Now(),
-		}
+	user := entity.Users{
+		Username:         "johndoe",
+		Password:         "Secure@123",
+		Email:            "johndoe@example.com",
+		PhoneNumber:      "0812345678",
+		Role:             "admin",
+		Age:              30,
+		Gender:           "male",
+		ResetToken:       "token123",
+		ResetTokenExpiry: time.Now().Add(24 * time.Hour),
+		ConsentAccepted:  true,
+		ConsentAcceptedAt: time.Now(),
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "cute.png",
+			Name:   "John Avatar",
+		},
+	}
 
-		ok, err := govalidator.ValidateStruct(user)
-		if err != nil {
-			
-		}
+	ok, err := govalidator.ValidateStruct(user)
+	if !ok || err != nil {
+		t.Fatalf("Validation failed: %v", err)
+	}
 
-		g.Expect(ok).To(BeTrue())
-		g.Expect(err).To(BeNil())
-	})
+	g.Expect(ok).To(BeTrue())
+	g.Expect(err).To(BeNil())
+}
 
-	// ❌ case: Username ว่าง
-	t.Run("username is required", func(t *testing.T) {
-		user := entity.Users{
-			Username:    "",
-			Password:    "securepassword",
-			Email:       "johndoe@example.com",
-			PhoneNumber: "0812345678", // ✅ ใส่เบอร์ให้ถูก เพื่อไม่ให้ชน validation อื่น
-		}
+func TestUsers_UsernameRequired(t *testing.T) {
+	g := NewGomegaWithT(t)
 
-		ok, err := govalidator.ValidateStruct(user)
+	user := entity.Users{
+		Username:    "",
+		Password:    "securepassword",
+		Email:       "johndoe@example.com",
+		PhoneNumber: "0812345678",
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "default.png",
+			Name:   "Default Name",
+		},
+	}
 
-		g.Expect(ok).NotTo(BeTrue())
-		g.Expect(err).NotTo(BeNil())
-		g.Expect(err.Error()).To(Equal("Username is required"))
-	})
+	ok, err := govalidator.ValidateStruct(user)
 
-	// ❌ case: Password ว่าง
-	t.Run("password is required", func(t *testing.T) {
-		user := entity.Users{
-			Username:    "johndoe",
-			Password:    "",
-			Email:       "johndoe@example.com",
-			PhoneNumber: "0812345678", // ✅ ใส่เบอร์ให้ถูก
-		}
+	g.Expect(ok).NotTo(BeTrue())
+	g.Expect(err).NotTo(BeNil())
+	g.Expect(err.Error()).To(Equal("กรุณากรอกชื่อผู้ใช้"))
+}
 
-		ok, err := govalidator.ValidateStruct(user)
+func TestUsers_PasswordRequired(t *testing.T) {
+	g := NewGomegaWithT(t)
 
-		g.Expect(ok).NotTo(BeTrue())
-		g.Expect(err).NotTo(BeNil())
-		g.Expect(err.Error()).To(Equal("Password is required"))
-	})
+	user := entity.Users{
+		Username: "johndoe",
+		Password: "",
+		Email:    "johndoe@example.com",
+		PhoneNumber: "0812345678",
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "default.png",
+			Name:   "Default Name",
+		},
+	}
 
-	// ❌ case: Email ว่าง
-	t.Run("email is required", func(t *testing.T) {
-		user := entity.Users{
-			Username:    "johndoe",
-			Password:    "securepassword",
-			Email:       "",
-			PhoneNumber: "0812345678", // ✅ ใส่เบอร์ให้ถูก
-		}
+	ok, err := govalidator.ValidateStruct(user)
 
-		ok, err := govalidator.ValidateStruct(user)
+	g.Expect(ok).NotTo(BeTrue())
+	g.Expect(err).NotTo(BeNil())
+	g.Expect(err.Error()).To(Equal("กรุณากรอกรหัสผ่าน"))
+}
 
-		g.Expect(ok).NotTo(BeTrue())
-		g.Expect(err).NotTo(BeNil())
-		g.Expect(err.Error()).To(Equal("Email is required"))
-	})
+func TestUsers_EmailRequired(t *testing.T) {
+	g := NewGomegaWithT(t)
 
-	// ❌ case: Email format ไม่ถูกต้อง
-	t.Run("email format invalid", func(t *testing.T) {
-		user := entity.Users{
-			Username:    "johndoe",
-			Password:    "securepassword",
-			Email:       "not-an-email",
-			PhoneNumber: "0812345678", // ✅ ใส่เบอร์ให้ถูก
-		}
+	user := entity.Users{
+		Username: "johndoe",
+		Password: "securepassword",
+		Email:    "",
+		PhoneNumber: "0812345678",
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "default.png",
+			Name:   "Default Name",
+		},
+	}
 
-		ok, err := govalidator.ValidateStruct(user)
+	ok, err := govalidator.ValidateStruct(user)
 
-		g.Expect(ok).NotTo(BeTrue())
-		g.Expect(err).NotTo(BeNil())
-		g.Expect(err.Error()).To(Equal("Email format is invalid"))
-	})
+	g.Expect(ok).NotTo(BeTrue())
+	g.Expect(err).NotTo(BeNil())
+	g.Expect(err.Error()).To(Equal("กรุณากรอกอีเมล"))
+}
 
-	// ❌ case: Phone number ว่าง
-	t.Run("phone number is required", func(t *testing.T) {
-		user := entity.Users{
-			Username: "johndoe",
-			Password: "securepassword",
-			Email:    "johndoe@example.com",
-			// PhoneNumber ว่าง
-		}
+func TestUsers_EmailFormatInvalid(t *testing.T) {
+	g := NewGomegaWithT(t)
 
-		ok, err := govalidator.ValidateStruct(user)
+	user := entity.Users{
+		Username:    "johndoe",
+		Password:    "securepassword",
+		Email:       "not-an-email",
+		PhoneNumber: "0812345678",
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "default.png",
+			Name:   "Default Name",
+		},
+	}
 
-		g.Expect(ok).NotTo(BeTrue())
-		g.Expect(err).NotTo(BeNil())
-		g.Expect(err.Error()).To(Equal("Phone number is required"))
-	})
+	ok, err := govalidator.ValidateStruct(user)
 
-	// ❌ case: Phone number format invalid
-	t.Run("phone number format invalid", func(t *testing.T) {
-		user := entity.Users{
-			Username:    "johndoe",
-			Password:    "securepassword",
-			Email:       "johndoe@example.com",
-			PhoneNumber: "12345", // ❌ ไม่ใช่เบอร์มือถือไทย
-		}
+	g.Expect(ok).NotTo(BeTrue())
+	g.Expect(err).NotTo(BeNil())
+	g.Expect(err.Error()).To(Equal("รูปแบบอีเมลไม่ถูกต้อง"))
+}
 
-		ok, err := govalidator.ValidateStruct(user)
+func TestUsers_PhoneNumberRequired(t *testing.T) {
+	g := NewGomegaWithT(t)
 
-		g.Expect(ok).NotTo(BeTrue())
-		g.Expect(err).NotTo(BeNil())
-		g.Expect(err.Error()).To(Equal("Phone number format is invalid"))
-	})
+	user := entity.Users{
+		Username: "johndoe",
+		Password: "securepassword",
+		Email:    "johndoe@example.com",
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "default.png",
+			Name:   "Default Name",
+		},
+	}
 
-	// ✅ case: Phone number correct
-	t.Run("phone number correct", func(t *testing.T) {
-		user := entity.Users{
-			Username:    "johndoe",
-			Password:    "securepassword",
-			Email:       "johndoe@example.com",
-			PhoneNumber: "0812345678", // ✅ เบอร์ถูกต้อง
-		}
+	ok, err := govalidator.ValidateStruct(user)
 
-		ok, err := govalidator.ValidateStruct(user)
+	g.Expect(ok).NotTo(BeTrue())
+	g.Expect(err).NotTo(BeNil())
+	g.Expect(err.Error()).To(Equal("กรุณากรอกเบอร์โทรศัพท์"))
+}
 
-		g.Expect(ok).To(BeTrue())
-		g.Expect(err).To(BeNil())
-	})
+func TestUsers_PhoneNumberFormatInvalid(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	user := entity.Users{
+		Username:    "johndoe",
+		Password:    "securepassword",
+		Email:       "johndoe@example.com",
+		PhoneNumber: "12345",
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "default.png",
+			Name:   "Default Name",
+		},
+	}
+
+	ok, err := govalidator.ValidateStruct(user)
+
+	g.Expect(ok).NotTo(BeTrue())
+	g.Expect(err).NotTo(BeNil())
+	g.Expect(err.Error()).To(Equal("รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง"))
+}
+
+func TestUsers_PhoneNumberCorrect(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	user := entity.Users{
+		Username:    "johndoe",
+		Password:    "securepassword",
+		Email:       "johndoe@example.com",
+		PhoneNumber: "0812345678",
+		ProfileAvatar: entity.ProfileAvatar{
+			Avatar: "default.png",
+			Name:   "Default Name",
+		},
+	}
+
+	ok, err := govalidator.ValidateStruct(user)
+
+	g.Expect(ok).To(BeTrue())
+	g.Expect(err).To(BeNil())
 }

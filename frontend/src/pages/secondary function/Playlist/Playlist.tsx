@@ -74,7 +74,7 @@ function AddSoundPlaylist() {
   async function DeleteSoundPlaylist(id: number) {
     try {
       await DeleteSoundPlaylistByID(id);
-      message.success("ลบเพลย์ลิสต์แล้ว");
+      message.success("ลบออกจากเพลย์ลิสต์แล้ว");
       setDeletedRowIds((prev) => [...prev, id]);
       fetchSoundPlaylist();
     } catch (error) {
@@ -225,7 +225,7 @@ function AddSoundPlaylist() {
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
       console.log("Playlist updated:", updated);
       setEditMode(false);
-      message.success("เปลียนพื้นหลังเพลย์ลิสต์แล้ว");
+      message.success("เปลี่ยนพื้นหลังเพลย์ลิสต์แล้ว");
 
       fetchPlaylist();
     } catch (error) {
