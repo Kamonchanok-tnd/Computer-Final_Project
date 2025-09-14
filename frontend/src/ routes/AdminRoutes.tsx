@@ -41,6 +41,8 @@ import Quetionairedetail from "../pages/admin/dashboard_contents/questionaire/qu
 import CreateCriteriaPage from "../pages/admin/questionnaire/create/CreateCriteriaPage";
 import SummaryUser from "../pages/admin/dashboard_contents/questionaire/summaryUser";
 
+import RetentionRatePage from "../pages/admin/userdataweb/RetentionRatePage";
+import VisitFrequencyPage from "../pages/admin/userdataweb/VisitFrequencyPage";
 // const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
 // const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
 
@@ -178,8 +180,16 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     element: <EditCriteriaPage/>,
                 },
                 {
-                    path: "/admin/editQuestionAndAnswerPage", // เเก้ไขคำถามเเละคำตอบ
+                    path: "/admin/editQuestionAndAnswerPage", // เเก้ไขคำถามเเละคำตอบ  
                     element: <EditQuestionAndAnswerPage/>,
+                },
+                {
+                    path: "/admin/visit-frequency",  
+                    element: <VisitFrequencyPage/>,
+                },
+                {
+                    path: "/admin/retention-rate",  
+                    element: <RetentionRatePage/>,
                 }
                
             ],
