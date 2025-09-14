@@ -462,50 +462,12 @@ func containsID(ids []uint, id uint) bool {
 }
 
 
-
-// transport models (ไม่ผูกกับ gorm)
 type CriteriaOutput struct {
 	ID          uint   `json:"id"`
 	Description string `json:"description"`
 	MinScore    int    `json:"minScore"`
 	MaxScore    int    `json:"maxScore"`
 }
-
-
-// GET /questionnaires/:id/criteria
-func GetCriteriaByQuestionnaireID(c *gin.Context) {
-	db := config.DB()
-	qid := c.Param("id")
-
-	var outputs []CriteriaOutput
-
-	q := db.Table("criteria AS c").
-		Select(`
-			DISTINCT c.id,
-			c.description,
-			c.min_criteria_score AS min_score,
-			c.max_criteria_score AS max_score
-		`).
-		Joins("JOIN calculations AS cal ON cal.c_id = c.id").
-		Where("cal.qu_id = ?", qid).
-		// ถ้าใช้ soft delete ของ GORM:
-		Where("c.deleted_at IS NULL").
-		Where("cal.deleted_at IS NULL") // ตัด calculation ที่ถูกลบออกด้วย (ถ้ามี)
-
-	// ถ้าโปรเจ็กต์ไม่ได้ใช้ soft delete แต่มี flag เช่น is_deleted:
-	// q = q.Where("c.is_deleted = FALSE").Where("cal.is_deleted = FALSE")
-
-	if err := q.
-		Order("c.min_criteria_score ASC, c.id ASC").
-		Scan(&outputs).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลได้"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": outputs})
-}
-
-
 
 type CriteriaUpdateInput struct {
 	ID          *uint  `json:"id"`
@@ -519,8 +481,34 @@ type CriteriaUpdateRequest struct {
 	Deleted []uint                `json:"deleted"`
 }
 
+func GetCriteriaByQuestionnaireID(c *gin.Context) {
+	db := config.DB()
+	qid := c.Param("id")
 
-// PATCH /questionnaires/:id/criteria
+	var outputs []CriteriaOutput
+
+	q := db.Table("criteria AS c").
+		Select(`
+			DISTINCT c.id,
+			c.description,
+			c.min_criteria_score AS min_score,
+			c.max_criteria_score AS max_score
+		`).
+		// กรอง soft-delete ฝั่ง calculation ตั้งแต่ตอน JOIN
+		Joins("JOIN calculations AS cal ON cal.c_id = c.id AND cal.deleted_at IS NULL").
+		Where("cal.qu_id = ? AND c.deleted_at IS NULL", qid)
+
+	if err := q.
+		Order("c.min_criteria_score ASC, c.id ASC").
+		Scan(&outputs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลได้"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": outputs})
+}
+
+/* PATCH /questionnaires/:id/criteria */
 func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 	db := config.DB()
 	qidStr := c.Param("id")
@@ -539,12 +527,13 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
-		// ลบ
+		// ---------- ลบ ----------
 		if len(req.Deleted) > 0 {
+			// ตรวจความเป็นเจ้าของ (กรอง soft-delete)
 			var owns []uint
 			if err := tx.Table("calculations").
 				Select("c_id").
-				Where("qu_id = ? AND c_id IN ?", qid, req.Deleted).
+				Where("qu_id = ? AND c_id IN ? AND deleted_at IS NULL", qid, req.Deleted).
 				Pluck("c_id", &owns).Error; err != nil {
 				return err
 			}
@@ -552,25 +541,29 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 				return fmt.Errorf("บางรายการไม่อยู่ใน questionnaire นี้")
 			}
 
-			if err := tx.Where("c_id IN ?", req.Deleted).Delete(&entity.Calculation{}).Error; err != nil {
+			// ลบความเชื่อมโยงเฉพาะของ questionnaire นี้ (soft delete)
+			if err := tx.Where("qu_id = ? AND c_id IN ?", qid, req.Deleted).
+				Delete(&entity.Calculation{}).Error; err != nil {
 				return err
 			}
-			if err := tx.Where("id IN ?", req.Deleted).Delete(&entity.Criteria{}).Error; err != nil {
+			// ลบ criteria (soft delete)
+			if err := tx.Where("id IN ?", req.Deleted).
+				Delete(&entity.Criteria{}).Error; err != nil {
 				return err
 			}
 		}
 
-		// เพิ่ม/อัปเดต
+		// เพิ่ม/อัปเดต 
 		for _, it := range req.Updated {
 			if it.MinScore > it.MaxScore {
 				return fmt.Errorf("minScore ต้องไม่มากกว่า maxScore")
 			}
 
 			if it.ID != nil {
-				// ตรวจความเป็นเจ้าของ
+				// ตรวจความเป็นเจ้าของ (กรอง soft-delete)
 				var count int64
 				if err := tx.Model(&entity.Calculation{}).
-					Where("qu_id = ? AND c_id = ?", qid, *it.ID).
+					Where("qu_id = ? AND c_id = ? AND deleted_at IS NULL", qid, *it.ID).
 					Count(&count).Error; err != nil {
 					return err
 				}
@@ -578,8 +571,9 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 					return fmt.Errorf("criteria id %d ไม่อยู่ใน questionnaire นี้", *it.ID)
 				}
 
+				// อัปเดต (กันไปชนเรคอร์ดที่ถูกลบ)
 				if err := tx.Model(&entity.Criteria{}).
-					Where("id = ?", *it.ID).
+					Where("id = ? AND deleted_at IS NULL", *it.ID).
 					Updates(map[string]any{
 						"description":         it.Description,
 						"min_criteria_score":  it.MinScore,
@@ -588,6 +582,7 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 					return err
 				}
 			} else {
+				// สร้างใหม่ + ผูกกับ questionnaire
 				crit := entity.Criteria{
 					Description:       it.Description,
 					MinCriteriaScore:  it.MinScore,
@@ -605,16 +600,16 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 			}
 		}
 
-		// ตรวจช่วงคะแนนซ้อนทับ (server-side guard)
+		// ตรวจช่วงคะแนนซ้อนทับ (กรอง soft-delete ทั้งสองฝั่ง) 
 		var rows []struct {
 			ID  uint
 			Min int
 			Max int
 		}
-		if err := tx.Table("criteria c").
+		if err := tx.Table("criteria AS c").
 			Select("c.id, c.min_criteria_score AS min, c.max_criteria_score AS max").
-			Joins("JOIN calculations cal ON cal.c_id = c.id").
-			Where("cal.qu_id = ?", qid).
+			Joins("JOIN calculations AS cal ON cal.c_id = c.id AND cal.deleted_at IS NULL").
+			Where("cal.qu_id = ? AND c.deleted_at IS NULL", qid).
 			Order("min ASC, max ASC, id ASC").
 			Scan(&rows).Error; err != nil {
 			return err
@@ -624,6 +619,7 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 				return fmt.Errorf("ช่วงคะแนนซ้อนทับ (id %d กับ %d)", rows[i-1].ID, rows[i].ID)
 			}
 		}
+
 		return nil
 	})
 
@@ -639,4 +635,3 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "อัปเดตเกณฑ์การประเมินเรียบร้อยแล้ว"})
 }
-

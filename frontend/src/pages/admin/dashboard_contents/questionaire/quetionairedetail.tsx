@@ -8,6 +8,7 @@ import DashboardQuestionnaire from "./barchartquestionaire";
 import SurveyVisualization from "./DashboardSurveyBarChart";
 import AverageScoreChart from "./AvgScore";
 import RecentUseQu from "./RecentUseQu";
+import TableUseAsses from "./tableuseasses";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -84,7 +85,8 @@ function Quetionairedetail() {
   {/* <DashboardQuestionnaire/> */}
  <AverageScoreChart/>
 <SurveyVisualization/>
-    <RecentUseQu/> 
+    {/* <RecentUseQu/>  */}
+    <TableUseAsses/>
 </div>
   );
 }

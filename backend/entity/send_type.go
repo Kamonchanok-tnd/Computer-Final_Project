@@ -4,5 +4,5 @@ import (
 )
 type SendType struct {
 	gorm.Model
-	Type string `json:"type"`
+	Type string `json:"type" valid:"required~Type is required"`
 }

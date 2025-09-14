@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type ProfileAvatar struct {
 	gorm.Model
-	Avatar string `json:"avatar"`
-	Name string `json:"name"`
+	Avatar string `json:"avatar" valid:"required~Avatar is required"`
+	Name string `json:"name" valid:"required~Name is required"`
 
-	Users []Users `gorm:"foreignKey:PFID"`
+	Users []Users `gorm:"foreignKey:PFID" valid:"-"`
 }

@@ -51,7 +51,7 @@ const BackgroundPanel: React.FC<BackgroundPanelProps> = ({
   if (loading) return <div>Loading backgrounds...</div>;
 
   return (
-    <div className="space-y-4">
+    <div className="font-ibmthai space-y-4">
       <h3 className="text-white text-xl font-medium flex items-center gap-2">
         <img src={iconBg} alt="Backgrounds" className="w-8 h-8" />
         ภาพพื้นหลัง

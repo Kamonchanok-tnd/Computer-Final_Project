@@ -412,6 +412,7 @@ function UserEdit() {
 
   const getUserById = async (id: string) => {
     const res = await GetUsersById(id);
+    console.log("ข้อมูลผู้ใช้", res);
     if (res?.status === 200) {
       form.setFieldsValue({
         username: res.data.username,
@@ -419,7 +420,7 @@ function UserEdit() {
         phone_number: res.data.phone_number,
         birth_date: res.data.birth_date ? dayjs(res.data.birth_date).format("YYYY-MM-DD") : null,
         age: res.data.age,
-        gender: res.data.gender,
+        Gender: res.data.gender,
         facebook: res.data.facebook,
         line: res.data.line,
       });
@@ -469,15 +470,16 @@ function UserEdit() {
   const onFinish = async (values: UsersInterface) => {
     const payload = {
       ...values,
-      gender: values.gender,
+      gender: values.Gender,
       pfid: form.getFieldValue('pfid') || (values as any).pfid,
     };
+    console.log("payload is : ",payload);
 
     const res = await UpdateUsersById(userId as string, payload);
     if (res.status === 200) {
       messageApi.open({
         type: "success",
-        content: res.data.message || "แก้ไขข้อมูลสำเร็จ",
+        content: res.data.message || "แก้ไขข้อมูลสำเร็จ!",
       });
 
       // อัปเดตรูปใน context + localStorage
@@ -577,8 +579,8 @@ function UserEdit() {
                   transition: 'all 0.3s ease',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: selectedProfileImage === buildProfileUrl(avatar.avatar) ? '2px solid #5DE2FF' : '1px solid #f0f0f0',
-                  boxShadow: selectedProfileImage === buildProfileUrl(avatar.avatar) ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
+                  border: selectedProfileImage === buildProfileUrl(avatar.avatar ?? '') ? '2px solid #5DE2FF' : '1px solid #f0f0f0',
+                  boxShadow: selectedProfileImage === buildProfileUrl(avatar.avatar ?? '') ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
                 }}
                 onClick={() => handleProfileImageSelect(avatar.ID ?? 0, avatar.avatar ?? '')}
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -586,7 +588,7 @@ function UserEdit() {
               >
                 <Avatar
                   size={120}
-                  src={buildProfileUrl(avatar.avatar)}
+                  src={buildProfileUrl(avatar.avatar ?? '')}
                   icon={<UserOutlined />}
                   style={{
                     width: '100%',
@@ -660,7 +662,7 @@ function UserEdit() {
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Form.Item label="เพศ" name="gender" rules={[{ required: true, message: "กรุณาเลือกเพศ !" }]}>
+              <Form.Item label="เพศ" name="Gender" rules={[{ required: true, message: "กรุณาเลือกเพศ !" }]}>
                 <Select placeholder="เลือกเพศ">
                   <Select.Option value="Male">ชาย</Select.Option>
                   <Select.Option value="Female">หญิง</Select.Option>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // UPDATED
 import { Plus, GripVertical } from "lucide-react";
 import {
   getQuestionnaireGroupByID,
@@ -13,11 +13,12 @@ import iconadd from "../../assets/assessment/add.png";
 import icondelete from "../../assets/assessment/delete.png";
 import {
   DndContext,
-  closestCenter,
+  closestCorners,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
+  MeasuringStrategy,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -54,7 +55,7 @@ const SortableItem = ({
   children,
   disabled = false,
 }: {
-  id: number;
+  id: number | string; // UPDATED: ให้รองรับ tail id (string)
   children: React.ReactNode;
   disabled?: boolean;
 }) => {
@@ -85,9 +86,25 @@ const SortableItem = ({
   );
 };
 
+// ADDED: Drop zone ท้ายลิสต์ ช่วยให้วาง “เป็นอันสุดท้าย” ได้แม่น
+const DropTail = ({ id }: { id: string }) => {
+  const { setNodeRef, isOver } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`h-6 rounded border-2 border-dashed transition-all ${
+        isOver ? "border-blue-400 bg-blue-50" : "border-transparent"
+      }`}
+      aria-hidden // เป็นแค่โซนรับ drop ไม่ใช่ UI จริง
+    />
+  );
+};
+
+// ADDED: tail id helper (หนึ่งอันต่อคอลัมน์)
+const tailId = (columnId: number) => `__tail_${columnId}`;
+
 const ManageTestOrder: React.FC = () => {
   const [draggedDays, setDraggedDays] = useState<number>(0);
-  const [showSaveButton, setShowSaveButton] = useState<boolean>(false);
   const [columns, setColumns] = useState<Column[]>([]);
   const [questionnaireMap, setQuestionnaireMap] = useState<
     Record<number, Questionnaire[]>
@@ -98,15 +115,12 @@ const ManageTestOrder: React.FC = () => {
   >([]);
   const [isDragMode, setIsDragMode] = useState<boolean>(false);
 
-  console.log("showSaveButton:", showSaveButton);
-  // ให้เริ่มลากได้เมื่อขยับจริง ๆ กันคลิกแล้วกลายเป็นลาก
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 },
+      activationConstraint: { distance: 3 },
     })
   );
 
-  // helper: กัน event ปุ่มไม่ให้ไปกระตุ้น drag
   const stopDrag = {
     onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
     onPointerDown: (e: React.PointerEvent) => e.stopPropagation(),
@@ -185,6 +199,10 @@ const ManageTestOrder: React.FC = () => {
   }, [draggedDays]);
 
   const handleToggleDropdown = async (groupId: number) => {
+    if (!dropdownGroupId || dropdownGroupId !== groupId) {
+      setIsDragMode(false);
+    }
+
     if (dropdownGroupId === groupId) {
       setDropdownGroupId(null);
       setAvailableList([]);
@@ -217,6 +235,31 @@ const ManageTestOrder: React.FC = () => {
     setDropdownGroupId(null);
     setAvailableList([]);
   };
+
+  // ADDED: click outside เพื่อหุบเมนู
+  const dropdownAnchors = useRef<Record<number, HTMLDivElement | null>>({});
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownGroupId == null) return;
+      const anchor = dropdownAnchors.current[dropdownGroupId];
+      if (anchor && !anchor.contains(e.target as Node)) {
+        setDropdownGroupId(null);
+        setAvailableList([]);
+      }
+    };
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && dropdownGroupId != null) {
+        setDropdownGroupId(null);
+        setAvailableList([]);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEsc);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [dropdownGroupId]);
 
   const handleRemoveFromGroup = async (groupId: number, qid: number) => {
     try {
@@ -252,7 +295,7 @@ const ManageTestOrder: React.FC = () => {
   const getGroups = (list: Questionnaire[]) => {
     const ids = list.map((q) => q.id);
     return list
-      .filter((q) => !q.condition_on_id) // เฉพาะแม่
+      .filter((q) => !q.condition_on_id)
       .map((parent) => {
         const groupIds = [
           parent.id,
@@ -270,70 +313,92 @@ const ManageTestOrder: React.FC = () => {
   };
 
   const onDragEnd = async (event: DragEndEvent, columnId: number) => {
-    if (!isDragMode) return;
+  if (!isDragMode) return;
 
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const activeId = Number(active.id);
-    const overId = Number(over.id);
-
+  const { active, over } = event;
+  if (!over) {
+    // ปล่อยในช่องว่าง → วางท้ายสุด
     const tasks = getTasksForColumn(columnId);
-    const dragged = tasks.find((q) => q.id === activeId);
+    const activeId = Number(active.id);
+    const fromIndex = tasks.findIndex((q) => q.id === activeId);
+    if (fromIndex === -1) return;
 
-    // ❌ ห้ามลากลูก
-    if (dragged?.condition_on_id) return;
-
-    const ids = tasks.map((q) => q.id);
-    const fromIndex = ids.indexOf(activeId);
-    let toIndex = ids.indexOf(overId); // ต้องแก้เป็น let เพื่อ snap ได้
-
-    // กลุ่มแม่-ลูกทั้งหมดในคอลัมน์นี้
-    const groups = getGroups(tasks);
-    const activeGroup = groups.find((g) => g.parentId === activeId);
-    const overGroup = groups.find((g) => g.ids.includes(overId));
-
-    // ถ้าลากไปทับ "กลาง" กลุ่มอื่น → snap ให้วางเฉพาะขอบกลุ่ม (ก่อน/หลัง)
-    if (overGroup && (!activeGroup || overGroup.parentId !== activeGroup.parentId)) {
-      // ถ้าต้นทางอยู่เหนือกลุ่มที่ไปทับ → วางก่อน start, ถ้าต่ำกว่า → วางหลัง end
-      toIndex = fromIndex < overGroup.start ? overGroup.start : overGroup.end + 1;
-    }
-
-    // ✅ ดึงแม่+ลูกของตัวเอง
     const groupToMove = tasks.filter(
       (q) => q.id === activeId || q.condition_on_id === activeId
     );
-    const chunkLen = groupToMove.length;
-
-    // ปรับ index ปลายทางหลังตัดก้อนออก
-    let insertIndex = toIndex;
-    if (fromIndex < insertIndex) insertIndex -= chunkLen;
-
-    // กัน index หลุดขอบ
-    insertIndex = Math.max(0, Math.min(insertIndex, tasks.length - chunkLen + 1));
-
     const reordered = [...tasks];
-    // ตัดก้อนแม่+ลูกออกจากตำแหน่งเดิม
-    reordered.splice(fromIndex, chunkLen);
-    // แทรกกลับเข้าไปที่ตำแหน่งใหม่
-    reordered.splice(insertIndex, 0, ...groupToMove);
+    reordered.splice(fromIndex, groupToMove.length);
+    reordered.push(...groupToMove);
 
-    setQuestionnaireMap((prev) => ({
-      ...prev,
-      [columnId]: reordered,
-    }));
-
-    setShowSaveButton(true);
-    const orderedIds = reordered.map((q) => q.id);
+    setQuestionnaireMap((prev) => ({ ...prev, [columnId]: reordered }));
     try {
-      await updateQuestionnaireGroupOrder(columnId, orderedIds);
+      await updateQuestionnaireGroupOrder(columnId, reordered.map((q) => q.id));
       message.success("อัปเดตลำดับเรียบร้อย");
     } catch {
       message.error("อัปเดตลำดับไม่สำเร็จ");
-    } finally {
-      setShowSaveButton(false);
     }
-  };
+    return;
+  }
+
+  if (active.id === over.id) return;
+
+  const activeId = Number(active.id);
+  const overRaw = over.id;
+  const tasks = getTasksForColumn(columnId);
+  const dragged = tasks.find((q) => q.id === activeId);
+
+  // ❌ ห้ามลากลูก
+  if (dragged?.condition_on_id) return;
+
+  const ids = tasks.map((q) => q.id);
+  const fromIndex = ids.indexOf(activeId);
+
+  // tail?
+  const isTail = overRaw === tailId(columnId);
+  const overIndex = isTail ? tasks.length : ids.indexOf(Number(overRaw));
+  const movingDown = overIndex > fromIndex;
+
+  // กลุ่มแม่-ลูกในคอลัมน์
+  const groups = getGroups(tasks);
+  const activeGroup = groups.find((g) => g.parentId === activeId);
+  const overGroup = isTail ? null : groups.find((g) => g.ids.includes(Number(overRaw)));
+
+  // ✅ กติกาใหม่: ถ้าลากขึ้น → วางก่อนกลุ่มเป้าหมาย, ถ้าลากลง → วางหลังกลุ่มเป้าหมาย
+  let toIndex: number;
+  if (isTail) {
+    toIndex = tasks.length;
+  } else if (overGroup && (!activeGroup || overGroup.parentId !== activeGroup.parentId)) {
+    toIndex = movingDown ? overGroup.end + 1 : overGroup.start;
+  } else {
+    toIndex = overIndex;
+  }
+
+  // ย้ายเป็น “ก้อน” แม่+ลูก
+  const block = tasks.filter((q) => q.id === activeId || q.condition_on_id === activeId);
+  const blockLen = block.length;
+
+  let insertIndex = toIndex;
+  if (fromIndex < insertIndex) insertIndex -= blockLen; // ขยับเป้าหมายเมื่อเราถอดก้อนออกแล้ว
+
+  insertIndex = Math.max(0, Math.min(insertIndex, tasks.length - blockLen + 1));
+
+  const reordered = [...tasks];
+  reordered.splice(fromIndex, blockLen);
+  reordered.splice(insertIndex, 0, ...block);
+
+  setQuestionnaireMap((prev) => ({
+    ...prev,
+    [columnId]: reordered,
+  }));
+
+  try {
+    await updateQuestionnaireGroupOrder(columnId, reordered.map((q) => q.id));
+    message.success("อัปเดตลำดับเรียบร้อย");
+  } catch {
+    message.error("อัปเดตลำดับไม่สำเร็จ");
+  }
+};
+
 
   const [editingFrequency, setEditingFrequency] = useState<{
     groupId: number;
@@ -348,7 +413,7 @@ const ManageTestOrder: React.FC = () => {
         editingFrequency.groupId,
         editingFrequency.value
       );
-      setDraggedDays(editingFrequency.value); // สำหรับ group.id === 3
+      setDraggedDays(editingFrequency.value);
       setEditingFrequency(null);
     } catch (err) {
       alert("ไม่สามารถอัปเดตความถี่ได้");
@@ -367,10 +432,8 @@ const ManageTestOrder: React.FC = () => {
     const q = list.find((x) => x.id === qid);
     if (!q) return;
 
-    // ห้ามเลื่อนลูก
     if (q.condition_on_id) return;
 
-    // ย้ายระดับ "กลุ่ม" แบบ swap block ทีละขั้น
     const groups = getGroups(list);
     const gIdx = groups.findIndex((g) => g.parentId === qid);
     if (gIdx === -1) return;
@@ -388,7 +451,6 @@ const ManageTestOrder: React.FC = () => {
     const [moving] = newGroups.splice(gIdx, 1);
     newGroups.splice(targetIdx, 0, moving);
 
-    // คลี่กลับเป็นลิสต์ โดยคงลูกใต้แม่ตามเดิม
     const dict = new Map(list.map((it) => [it.id, it]));
     const newOrderIds = newGroups.flatMap((g) => g.ids);
     const newList = newOrderIds.map((id) => dict.get(id)!);
@@ -423,7 +485,7 @@ const ManageTestOrder: React.FC = () => {
               key={column.id}
               className={`${column.color} rounded-lg p-4 border-2 border-dashed`}
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="font-ibmthai flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">
@@ -489,23 +551,46 @@ const ManageTestOrder: React.FC = () => {
                 {/* ปุ่มสลับโหมดลาก-จัดเรียง + ปุ่มเพิ่ม (Plus) */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setIsDragMode((v) => !v)}
+                    onClick={() => {
+                      setIsDragMode((v) => {
+                        const next = !v;
+                        if (next) {
+                          setDropdownGroupId(null);
+                          setAvailableList([]);
+                        }
+                        return next;
+                      });
+                    }}
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                       isDragMode
                         ? "bg-blue-600 text-white"
                         : "bg-white hover:bg-gray-50 text-gray-600"
-                    }`}
-                    title={isDragMode ? "ปิดโหมดจัดเรียง" : "เปิดโหมดจัดเรียง"}
+                    } ${dropdownGroupId ? "opacity-50 cursor-not-allowed" : ""}`}
+                    title="โหมดจัดลำดับ"
+                    aria-label="โหมดจัดลำดับ"
+                    disabled={!!dropdownGroupId}
                   >
                     <GripVertical className="w-4 h-4" />
                   </button>
 
-                  <div className="relative">
+                  <div
+                    className="relative"
+                    ref={(el) => {
+                      dropdownAnchors.current[column.id] = el;
+                    }}
+                  >
                     <button
                       onClick={() => handleToggleDropdown(column.id)}
-                      className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                        isDragMode
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white hover:bg-gray-50 text-gray-600"
+                      }`}
+                      title="เพิ่มแบบสอบถาม"
+                      aria-label="เพิ่มแบบสอบถาม"
+                      disabled={isDragMode}
                     >
-                      <Plus className="w-4 h-4 text-gray-600" />
+                      <Plus className="w-4 h-4" />
                     </button>
                     {dropdownGroupId === column.id && (
                       <div className="absolute right-0 mt-2 w-56 bg-white border rounded shadow z-10">
@@ -543,11 +628,13 @@ const ManageTestOrder: React.FC = () => {
 
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={closestCorners}
+                measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
                 onDragEnd={(e) => onDragEnd(e, column.id)}
               >
                 <SortableContext
-                  items={tasks.map((q) => q.id)}
+                  // UPDATED: เติม tail id ต่อท้ายรายการ เพื่อให้มีจุดวางท้ายลิสต์จริง ๆ
+                  items={[...tasks.map((q) => q.id), tailId(column.id)]}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-3">
@@ -617,6 +704,12 @@ const ManageTestOrder: React.FC = () => {
                         </div>
                       </SortableItem>
                     ))}
+
+                    {/* ADDED: โซนวางท้ายลิสต์ */}
+                    <SortableItem id={tailId(column.id)} disabled>
+                      <DropTail id={tailId(column.id)} />
+                    </SortableItem>
+
                     {tasks.length === 0 && (
                       <p className="text-gray-500 text-sm italic">
                         ไม่มีแบบสอบถามในกลุ่มนี้

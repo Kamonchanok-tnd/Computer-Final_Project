@@ -14,11 +14,11 @@
         },
         {
           "name": "token",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTc4NjE4NzMsImlzcyI6IkF1dGhTZXJ2aWNlIn0.gtHZyN3CF9Bc38YyDh4Puumfx-TnKOiC_hlrTqA8oqo"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NTc3NjU1MDIsImlzcyI6IkF1dGhTZXJ2aWNlIn0.8hMoseVBzTtgOtR7dX4RFh9W4VzgHIynvuy_kC9KjuY"
         },
         {
           "name": "avatarUrl",
-          "value": "http://localhost:8000/images/profile/a1.jpg"
+          "value": "http://localhost:8000/images/profile/a2.jpg"
         },
         {
           "name": "token_type",
@@ -34,7 +34,7 @@
         },
         {
           "name": "username",
-          "value": "user"
+          "value": "user1"
         },
         {
           "name": "id",

@@ -22,7 +22,7 @@ export async function GetALllAvatar() {
   };
 
   try {
-    const response = await fetch(`${IMG_URL}`, requestOptions);
+    const response = await fetch(`${apiUrl}/profile`, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {

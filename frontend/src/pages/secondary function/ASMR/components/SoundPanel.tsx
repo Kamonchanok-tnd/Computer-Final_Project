@@ -24,7 +24,7 @@ interface Props {
 
 const SoundPanel: React.FC<Props> = ({ playingSounds, volumes, toggleSound, updateVolume }) => {
   return (
-    <div className="space-y-4">
+    <div className="font-ibmthai space-y-4">
       <h3 className="text-white text-lg md:text-xl font-medium flex items-center gap-2">
         <img src={iconSound} alt="Ambience" className="w-7 h-7 md:w-8 md:h-8" />
         เสียงบรรยากาศ

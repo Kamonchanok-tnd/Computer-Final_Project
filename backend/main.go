@@ -8,13 +8,14 @@ import (
 	history "sukjai_project/controller/History"
 	profileavatar "sukjai_project/controller/ProfileAvatar"
 	"sukjai_project/controller/admin"
+	"sukjai_project/controller/asmr"
 	"sukjai_project/controller/assessment"
 	"sukjai_project/controller/background"
 	"sukjai_project/controller/breathing"
 	controller "sukjai_project/controller/chat_space"
+	"sukjai_project/controller/dashboardcontents"
 	"sukjai_project/controller/emotion"
-	"sukjai_project/controller/asmr"
-	"sukjai_project/controller/useractivity"
+	"sukjai_project/controller/exportexcel"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
@@ -24,9 +25,9 @@ import (
 	"sukjai_project/controller/reviewsound"
 	"sukjai_project/controller/soundplaylist"
 	"sukjai_project/controller/sounds"
+	"sukjai_project/controller/useractivity"
 	"sukjai_project/controller/users"
 	"sukjai_project/controller/wordhealingmessage"
-	"sukjai_project/controller/dashboardcontents"
 	"sukjai_project/middlewares"
 
 	// "fmt"
@@ -83,6 +84,7 @@ func main() {
 	r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
 	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
 	r.GET("/recent", controller.GetRecentChat)
+	r.GET("/excel", exportexcel.ExportExcel)
 	
 
 	// Protect routes with role-based access
@@ -222,6 +224,14 @@ func main() {
 		router.GET("/dashboard/questionnaire/recent/use", dashboardcontents.GetLatestRespondents)
 		router.GET("/dashboard/questionnaire/prepost", dashboardcontents.GetPrePostTransactions)
 		router.GET("/dashboard/questionnaire/standalone", dashboardcontents.GetStandaloneTransactions)
+
+		
+		router.GET("/dashboard/questionnaire/user", dashboardcontents.GetRespondents)
+		router.GET("/dashboard/questionnaire/user/overiew/:id", dashboardcontents.GetUserKPI)
+		router.GET("/dashboard/questionnaire/user/bar/:id", dashboardcontents.GetUserAssessmentSummary)
+		router.GET("/dashboard/questionnaire/user/prepost", dashboardcontents.GetPrePostTransactionsCompare)
+		router.GET("/dashboard/questionnaire/user/personal", dashboardcontents.GetStandaloneTransactionsPersonal)
+		router.GET("/dashboard/questionnaire/user/detail", dashboardcontents.GetDescriptionSummary)
 
 
 		// router.GET
