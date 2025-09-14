@@ -6,7 +6,7 @@ test.describe('MirrorPage — UAT (real backend)', () => {
   test('เขียนบันทึกและเลือกอารมณ์สำเร็จ', async ({ page }) => {
     await page.goto('/audiohome/mirror');
 
-    // ยืนยันหน้าโหลดสำเร็จ (ต้องเห็นหัวข้อ)
+    // ยืนยันหน้าโหลดสำเร็จ (ต้องเห็นหัวข้อ)ชล  
     await expect(page.getByRole('heading', { name: /วันนี้เป็นไงบ้าง/i })).toBeVisible();
 
     // เลือกวันที่วันนี้ ถ้ามี UI ให้เลือก (ไม่บังคับ)
