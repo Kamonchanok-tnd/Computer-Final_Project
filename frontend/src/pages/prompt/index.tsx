@@ -7,10 +7,11 @@ export default function PromptAdminPage() {
   const [editingPrompt, setEditingPrompt] = useState<IPrompt | null>(null);
   const [, setRefreshTrigger] = useState(0);
 
-  const handleFinishEdit = () => {
-    setEditingPrompt(null);
-    setRefreshTrigger((t) => t + 1);
-  };
+ const handleFinishEdit = (updated: IPrompt) => {
+  setEditingPrompt(updated);            // ⟵ คงโหมดแก้ไข + ค่าที่กรอกไว้
+  setRefreshTrigger(t => t + 1);
+};
+
 
   const handleEditPrompt = (prompt: IPrompt) => {
     setEditingPrompt(prompt);
@@ -56,6 +57,7 @@ export default function PromptAdminPage() {
               extraButtons={<PromptSelector onEditPrompt={handleEditPrompt} />}
               editingPrompt={editingPrompt}
               onFinishEdit={handleFinishEdit}
+              onStartCreate={() => setEditingPrompt(null)}
             />
           </div>
         </div>
