@@ -30,7 +30,7 @@ const isTouchDevice = () =>
     (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
   false;
 
-/** ให้รองรับทั้ง RefObject และ MutableRefObject */
+/*ให้รองรับทั้ง RefObject และ MutableRefObject */
 type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
 
 /* Mobile DatePicker (smart drop-up) */
@@ -262,6 +262,19 @@ const CreateMessagePage: React.FC = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const IDEAL_MENU_H = 280;
 
+  // แสดง 5 รายการพอดี + scroll
+  const VISIBLE_ITEMS = 5;
+  const ITEM_ROW_H = 44; // ความสูงต่อแถวประมาณนี้
+  const listMaxH = Math.min(menuMaxH, VISIBLE_ITEMS * ITEM_ROW_H + 8);
+
+  // โหมดกำหนดเอง
+  const [customTypeMode, setCustomTypeMode] = useState(false);
+  const [customTypeText, setCustomTypeText] = useState("");
+
+  // คีย์บอร์ด
+  const [activeIdx, setActiveIdx] = useState<number>(-1);
+  const listRef = useRef<HTMLUListElement>(null);
+
   const calcDropDirection = () => {
     const fieldRect = typeRef.current?.getBoundingClientRect();
     if (!fieldRect) return;
@@ -285,14 +298,18 @@ const CreateMessagePage: React.FC = () => {
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!typeRef.current) return;
-      if (!typeRef.current.contains(e.target as Node)) setTypeOpen(false);
+      if (!typeRef.current.contains(e.target as Node)) {
+        setTypeOpen(false);
+        setCustomTypeMode(false);
+        setCustomTypeText("");
+      }
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setTypeOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setTypeOpen(false); setCustomTypeMode(false); } };
     if (typeOpen) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [typeOpen]);
@@ -311,6 +328,7 @@ const CreateMessagePage: React.FC = () => {
     };
   }, [typeOpen]);
 
+  /* ====== บล็อก useMemo ที่ต้องใช้ “เหนือ” ทุก useEffect ที่อ้างถึง ====== */
   const filteredTypeOptions = useMemo(() => {
     const q = typeQuery.trim().toLowerCase();
     if (!q) return articleTypeOptions;
@@ -319,13 +337,44 @@ const CreateMessagePage: React.FC = () => {
     );
   }, [typeQuery, articleTypeOptions]);
 
+  const hasExactMatch = useMemo(() => {
+    const q = typeQuery.trim().toLowerCase();
+    if (!q) return false;
+    return articleTypeOptions.some(
+      (o) => o.label.toLowerCase() === q || String(o.value).toLowerCase() === q
+    );
+  }, [typeQuery, articleTypeOptions]);
+
+  const showCreateFromQuery = !!typeQuery.trim() && !articleTypeLoading && !hasExactMatch;
+
   const selectedTypeLabel = useMemo(() => {
     if (articleTypeLoading) return "กำลังโหลดประเภทบทความ...";
     const f = articleTypeOptions.find((o) => o.value === String(formData.articleType));
     return f?.label || "เลือกประเภทบทความ";
   }, [articleTypeLoading, articleTypeOptions, formData.articleType]);
 
-  /* ========================== สวิตช์โหมด ========================== */
+  // ★ ซิงค์ activeIdx และ auto-scroll
+  useEffect(() => {
+    if (articleTypeLoading) return;
+    if (!typeOpen) return;
+    if (filteredTypeOptions.length === 0) {
+      setActiveIdx(-1);
+      return;
+    }
+    setActiveIdx((i) => {
+      if (i < 0) return 0;
+      if (i > filteredTypeOptions.length - 1) return filteredTypeOptions.length - 1;
+      return i;
+    });
+  }, [filteredTypeOptions, typeOpen, articleTypeLoading]);
+
+  useEffect(() => {
+    if (activeIdx < 0 || !listRef.current) return;
+    const el = listRef.current.querySelector<HTMLButtonElement>(`[data-idx="${activeIdx}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [activeIdx]);
+
+  /* สวิตช์โหมด */
   const [thumb, setThumb] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const pillRef = useRef<HTMLDivElement>(null);
   const longRef = useRef<HTMLButtonElement>(null);
@@ -362,6 +411,9 @@ const CreateMessagePage: React.FC = () => {
     if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
     if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
     if (!formData.content.trim()) return msgApi.error("กรุณากรอกเนื้อหา");
+    if (contentKind === "long" && !String(formData.articleType || "").trim()) {
+      return msgApi.error("กรุณาระบุประเภทบทความ");
+    }
 
     const picked = new Date(`${formData.date}T00:00:00`);
     const today = new Date(`${todayStr}T00:00:00`);
@@ -382,7 +434,7 @@ const CreateMessagePage: React.FC = () => {
       const ok = await createWordHealingMessage(form);
       if (ok) {
         msgApi.success(contentKind === "short" ? "บันทึกบทความสั้นสำเร็จ!" : "บันทึกบทความสำเร็จ!");
-        setTimeout(() => navigate("/admin/messagePage"), 800);
+        setTimeout(() => navigate("/admin/messagePage"), 1000);
       } else {
         msgApi.error("เกิดข้อผิดพลาดในการบันทึก");
       }
@@ -440,7 +492,7 @@ const CreateMessagePage: React.FC = () => {
           <div className="space-y-5">
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-slate-700">
-                ชื่อบทความ <span className="text-rose-500">*</span>
+                ชื่อข้อความหรือบทความ <span className="text-rose-500">*</span>
               </label>
               <input
                 id="name"
@@ -501,7 +553,7 @@ const CreateMessagePage: React.FC = () => {
                         aria-pressed={contentKind === "short"}
                       >
                         <MessageSquare className="h-4 w-4" />
-                        บทความสั้น
+                        ข้อความ/บทความสั้น
                       </button>
                     </div>
                   </div>
@@ -536,24 +588,77 @@ const CreateMessagePage: React.FC = () => {
                         <input
                           value={typeQuery}
                           onChange={(e) => setTypeQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowDown") {
+                              e.preventDefault();
+                              if (filteredTypeOptions.length) {
+                                setActiveIdx((i) => Math.min((i < 0 ? -1 : i) + 1, filteredTypeOptions.length - 1));
+                              }
+                            } else if (e.key === "ArrowUp") {
+                              e.preventDefault();
+                              if (filteredTypeOptions.length) {
+                                setActiveIdx((i) => Math.max((i < 0 ? 0 : i) - 1, 0));
+                              }
+                            } else if (e.key === "Enter") {
+                              e.preventDefault();
+                              if (activeIdx >= 0 && activeIdx < filteredTypeOptions.length) {
+                                const o = filteredTypeOptions[activeIdx];
+                                setFormData((prev) => ({ ...prev, articleType: o.value }));
+                                setTypeOpen(false);
+                                setTypeQuery("");
+                                setCustomTypeMode(false);
+                                setCustomTypeText("");
+                              } else if (showCreateFromQuery) {
+                                const val = typeQuery.trim();
+                                if (val) {
+                                  setFormData((prev) => ({ ...prev, articleType: val }));
+                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
+                                  setTypeOpen(false);
+                                  setTypeQuery("");
+                                  setCustomTypeMode(false);
+                                  setCustomTypeText("");
+                                }
+                              }
+                            } else if (e.key === "Escape") {
+                              setTypeOpen(false);
+                              setCustomTypeMode(false);
+                            }
+                          }}
                           placeholder="ค้นหา..."
                           className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
                         />
                       </div>
-                      <ul role="listbox" className="overflow-y-auto py-1" style={{ maxHeight: menuMaxH }}>
+
+                      <ul
+                        role="listbox"
+                        ref={listRef}
+                        className="overflow-y-auto py-1"
+                        style={{ maxHeight: listMaxH }}  // ★ 3 รายการพอดี
+                        aria-activedescendant={activeIdx >= 0 ? `type-opt-${activeIdx}` : undefined}
+                      >
                         {articleTypeLoading && <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>}
                         {!articleTypeLoading && filteredTypeOptions.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>}
-                        {filteredTypeOptions.map((o) => (
+
+                        {filteredTypeOptions.map((o, idx) => (
                           <li key={o.value}>
                             <button
                               type="button"
+                              id={`type-opt-${idx}`}
+                              data-idx={idx}
                               role="option"
                               aria-selected={o.value === String(formData.articleType)}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-100 ${o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : ""}`}
+                              onMouseEnter={() => setActiveIdx(idx)}
+                              className={[
+                                "w-full px-3 py-2 text-left text-sm hover:bg-slate-100",
+                                o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : "",
+                                idx === activeIdx ? "bg-slate-100" : "",
+                              ].join(" ")}
                               onClick={() => {
                                 setFormData((prev) => ({ ...prev, articleType: o.value }));
                                 setTypeOpen(false);
                                 setTypeQuery("");
+                                setCustomTypeMode(false);
+                                setCustomTypeText("");
                               }}
                             >
                               <div className="flex flex-col">
@@ -563,7 +668,103 @@ const CreateMessagePage: React.FC = () => {
                             </button>
                           </li>
                         ))}
+
+                        {/* อื่นๆ / ระบุเอง… */}
+                        {!customTypeMode && (
+                          <li>
+                            <button
+                              type="button"
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                              onClick={() => {
+                                setCustomTypeMode(true);
+                                setCustomTypeText("");
+                              }}
+                            >
+                              อื่นๆ / ระบุเอง…
+                            </button>
+                          </li>
+                        )}
+
+                        {/* สร้างจากคำค้น ถ้าไม่มีตรงเป๊ะ */}
+                        {showCreateFromQuery && !customTypeMode && (
+                          <li>
+                            <button
+                              type="button"
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                              onClick={() => {
+                                const val = typeQuery.trim();
+                                if (!val) return;
+                                setFormData((prev) => ({ ...prev, articleType: val }));
+                                setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
+                                setTypeOpen(false);
+                                setTypeQuery("");
+                                setCustomTypeMode(false);
+                                setCustomTypeText("");
+                              }}
+                            >
+                              สร้างประเภทใหม่: <span className="font-medium">“{typeQuery.trim()}”</span>
+                            </button>
+                          </li>
+                        )}
                       </ul>
+
+                      {/* ฟอร์มกำหนดเอง */}
+                      {customTypeMode && (
+                        <div className="border-t border-slate-200 p-2">
+                          <label className="mb-1 block text-xs text-slate-500">กำหนดชื่อประเภทด้วยตนเอง</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              autoFocus
+                              value={customTypeText}
+                              onChange={(e) => setCustomTypeText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  const val = customTypeText.trim();
+                                  if (!val) return;
+                                  setFormData((prev) => ({ ...prev, articleType: val }));
+                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
+                                  setTypeOpen(false);
+                                  setTypeQuery("");
+                                  setCustomTypeMode(false);
+                                  setCustomTypeText("");
+                                }
+                                if (e.key === "Escape") {
+                                  setCustomTypeMode(false);
+                                  setCustomTypeText("");
+                                }
+                              }}
+                              className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+                              placeholder="พิมพ์ชื่อประเภท เช่น คอลัมน์พิเศษ"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const val = customTypeText.trim();
+                                if (!val) return;
+                                setFormData((prev) => ({ ...prev, articleType: val }));
+                                setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
+                                setTypeOpen(false);
+                                setTypeQuery("");
+                                setCustomTypeMode(false);
+                                setCustomTypeText("");
+                              }}
+                              className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
+                            >
+                              ใช้ค่านี้
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCustomTypeMode(false);
+                                setCustomTypeText("");
+                              }}
+                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                              ยกเลิก
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -573,7 +774,7 @@ const CreateMessagePage: React.FC = () => {
             {/* Content */}
             <div className="space-y-2">
               <label htmlFor="content" className="block text-sm font-medium text-slate-700">
-                เนื้อหา{contentKind === "short" ? " (บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
+                เนื้อหา{contentKind === "short" ? " (ข้อความ/บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
               </label>
               <textarea
                 id="content"
@@ -588,7 +789,7 @@ const CreateMessagePage: React.FC = () => {
 
           {/* Right */}
           <div className="flex flex-col">
-            <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบบทความ (ถ้ามี)</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ (ถ้ามี)</label>
 
             <div
               className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-white p-4"
@@ -644,7 +845,7 @@ const CreateMessagePage: React.FC = () => {
             {/* Buttons */}
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button type="button" onClick={() => navigate("/admin/messagePage")} className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700">ย้อนกลับ</button>
-              <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50">{contentKind === "short" ? "บันทึกบทความสั้น" : "บันทึกบทความ"}</button>
+              <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50">{contentKind === "short" ? "บันทึกข้อความ/บทความสั้น" : "บันทึกบทความ"}</button>
             </div>
           </div>
         </form>

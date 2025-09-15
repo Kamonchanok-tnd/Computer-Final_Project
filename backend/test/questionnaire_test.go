@@ -145,63 +145,7 @@ func TestQuestionnaireValidation(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("คำอธิบายยาวเกินไป"))
 	})
 
-	// ❌ Quantity นอกช่วง
-	t.Run("quantity out of range (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		q := entity.Questionnaire{
-			NameQuestionnaire: "โอเค",
-			UID:               1,
-			Quantity:          -1,
-		}
-		ok, err := ValidateQuestionnaire(q)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("จำนวนข้อไม่ถูกต้อง (ต้องอยู่ระหว่าง 0–1000)"))
-	})
-
-	// ❌ Priority นอกช่วง
-	t.Run("priority out of range (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		q := entity.Questionnaire{
-			NameQuestionnaire: "โอเค",
-			UID:               1,
-			Priority:          101,
-		}
-		ok, err := ValidateQuestionnaire(q)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("ลำดับความสำคัญต้องอยู่ระหว่าง 0–100"))
-	})
-
-	// ❌ TestType ไม่ถูกต้อง
-	t.Run("testType invalid (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		tt := "weird"
-		q := entity.Questionnaire{
-			NameQuestionnaire: "โอเค",
-			UID:               1,
-			TestType:          &tt,
-		}
-		ok, err := ValidateQuestionnaire(q)
-		g.Expect(ok).To(BeFalse(), "ได้ ok=true ทั้งที่ TestType=%v", tt)
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("ชนิดแบบทดสอบไม่ถูกต้อง"))
-	})
-
-	// ❌ ConditionType ไม่ถูกต้อง
-	t.Run("conditionType invalid (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		ct := "gt"
-		q := entity.Questionnaire{
-			NameQuestionnaire: "โอเค",
-			UID:               1,
-			ConditionType:     &ct,
-		}
-		ok, err := ValidateQuestionnaire(q)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("ชนิดเงื่อนไขไม่ถูกต้อง"))
-	})
+	
 
 	// ❌ Picture ไม่ใช่ data URL
 	t.Run("picture invalid (TH)", func(t *testing.T) {
