@@ -27,11 +27,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Popover, InputNumber, Button, message } from "antd";
-import {
-  EditOutlined,
-  CaretUpOutlined,
-  CaretDownOutlined,
-} from "@ant-design/icons";
+import { EditOutlined } from "@ant-design/icons";
 
 interface Questionnaire {
   id: number;
@@ -299,9 +295,13 @@ const ManageTestOrder: React.FC = () => {
       .map((parent) => {
         const groupIds = [
           parent.id,
-          ...list.filter((x) => x.condition_on_id === parent.id).map((c) => c.id),
+          ...list
+            .filter((x) => x.condition_on_id === parent.id)
+            .map((c) => c.id),
         ];
-        const idxs = groupIds.map((id) => ids.indexOf(id)).sort((a, b) => a - b);
+        const idxs = groupIds
+          .map((id) => ids.indexOf(id))
+          .sort((a, b) => a - b);
         return {
           parentId: parent.id,
           ids: groupIds,
@@ -313,92 +313,107 @@ const ManageTestOrder: React.FC = () => {
   };
 
   const onDragEnd = async (event: DragEndEvent, columnId: number) => {
-  if (!isDragMode) return;
+    if (!isDragMode) return;
 
-  const { active, over } = event;
-  if (!over) {
-    // ปล่อยในช่องว่าง → วางท้ายสุด
-    const tasks = getTasksForColumn(columnId);
+    const { active, over } = event;
+    if (!over) {
+      // ปล่อยในช่องว่าง → วางท้ายสุด
+      const tasks = getTasksForColumn(columnId);
+      const activeId = Number(active.id);
+      const fromIndex = tasks.findIndex((q) => q.id === activeId);
+      if (fromIndex === -1) return;
+
+      const groupToMove = tasks.filter(
+        (q) => q.id === activeId || q.condition_on_id === activeId
+      );
+      const reordered = [...tasks];
+      reordered.splice(fromIndex, groupToMove.length);
+      reordered.push(...groupToMove);
+
+      setQuestionnaireMap((prev) => ({ ...prev, [columnId]: reordered }));
+      try {
+        await updateQuestionnaireGroupOrder(
+          columnId,
+          reordered.map((q) => q.id)
+        );
+        message.success("อัปเดตลำดับเรียบร้อย");
+      } catch {
+        message.error("อัปเดตลำดับไม่สำเร็จ");
+      }
+      return;
+    }
+
+    if (active.id === over.id) return;
+
     const activeId = Number(active.id);
-    const fromIndex = tasks.findIndex((q) => q.id === activeId);
-    if (fromIndex === -1) return;
+    const overRaw = over.id;
+    const tasks = getTasksForColumn(columnId);
+    const dragged = tasks.find((q) => q.id === activeId);
 
-    const groupToMove = tasks.filter(
+    // ❌ ห้ามลากลูก
+    if (dragged?.condition_on_id) return;
+
+    const ids = tasks.map((q) => q.id);
+    const fromIndex = ids.indexOf(activeId);
+
+    // tail?
+    const isTail = overRaw === tailId(columnId);
+    const overIndex = isTail ? tasks.length : ids.indexOf(Number(overRaw));
+    const movingDown = overIndex > fromIndex;
+
+    // กลุ่มแม่-ลูกในคอลัมน์
+    const groups = getGroups(tasks);
+    const activeGroup = groups.find((g) => g.parentId === activeId);
+    const overGroup = isTail
+      ? null
+      : groups.find((g) => g.ids.includes(Number(overRaw)));
+
+    // ✅ กติกาใหม่: ถ้าลากขึ้น → วางก่อนกลุ่มเป้าหมาย, ถ้าลากลง → วางหลังกลุ่มเป้าหมาย
+    let toIndex: number;
+    if (isTail) {
+      toIndex = tasks.length;
+    } else if (
+      overGroup &&
+      (!activeGroup || overGroup.parentId !== activeGroup.parentId)
+    ) {
+      toIndex = movingDown ? overGroup.end + 1 : overGroup.start;
+    } else {
+      toIndex = overIndex;
+    }
+
+    // ย้ายเป็น “ก้อน” แม่+ลูก
+    const block = tasks.filter(
       (q) => q.id === activeId || q.condition_on_id === activeId
     );
-    const reordered = [...tasks];
-    reordered.splice(fromIndex, groupToMove.length);
-    reordered.push(...groupToMove);
+    const blockLen = block.length;
 
-    setQuestionnaireMap((prev) => ({ ...prev, [columnId]: reordered }));
+    let insertIndex = toIndex;
+    if (fromIndex < insertIndex) insertIndex -= blockLen; // ขยับเป้าหมายเมื่อเราถอดก้อนออกแล้ว
+
+    insertIndex = Math.max(
+      0,
+      Math.min(insertIndex, tasks.length - blockLen + 1)
+    );
+
+    const reordered = [...tasks];
+    reordered.splice(fromIndex, blockLen);
+    reordered.splice(insertIndex, 0, ...block);
+
+    setQuestionnaireMap((prev) => ({
+      ...prev,
+      [columnId]: reordered,
+    }));
+
     try {
-      await updateQuestionnaireGroupOrder(columnId, reordered.map((q) => q.id));
+      await updateQuestionnaireGroupOrder(
+        columnId,
+        reordered.map((q) => q.id)
+      );
       message.success("อัปเดตลำดับเรียบร้อย");
     } catch {
       message.error("อัปเดตลำดับไม่สำเร็จ");
     }
-    return;
-  }
-
-  if (active.id === over.id) return;
-
-  const activeId = Number(active.id);
-  const overRaw = over.id;
-  const tasks = getTasksForColumn(columnId);
-  const dragged = tasks.find((q) => q.id === activeId);
-
-  // ❌ ห้ามลากลูก
-  if (dragged?.condition_on_id) return;
-
-  const ids = tasks.map((q) => q.id);
-  const fromIndex = ids.indexOf(activeId);
-
-  // tail?
-  const isTail = overRaw === tailId(columnId);
-  const overIndex = isTail ? tasks.length : ids.indexOf(Number(overRaw));
-  const movingDown = overIndex > fromIndex;
-
-  // กลุ่มแม่-ลูกในคอลัมน์
-  const groups = getGroups(tasks);
-  const activeGroup = groups.find((g) => g.parentId === activeId);
-  const overGroup = isTail ? null : groups.find((g) => g.ids.includes(Number(overRaw)));
-
-  // ✅ กติกาใหม่: ถ้าลากขึ้น → วางก่อนกลุ่มเป้าหมาย, ถ้าลากลง → วางหลังกลุ่มเป้าหมาย
-  let toIndex: number;
-  if (isTail) {
-    toIndex = tasks.length;
-  } else if (overGroup && (!activeGroup || overGroup.parentId !== activeGroup.parentId)) {
-    toIndex = movingDown ? overGroup.end + 1 : overGroup.start;
-  } else {
-    toIndex = overIndex;
-  }
-
-  // ย้ายเป็น “ก้อน” แม่+ลูก
-  const block = tasks.filter((q) => q.id === activeId || q.condition_on_id === activeId);
-  const blockLen = block.length;
-
-  let insertIndex = toIndex;
-  if (fromIndex < insertIndex) insertIndex -= blockLen; // ขยับเป้าหมายเมื่อเราถอดก้อนออกแล้ว
-
-  insertIndex = Math.max(0, Math.min(insertIndex, tasks.length - blockLen + 1));
-
-  const reordered = [...tasks];
-  reordered.splice(fromIndex, blockLen);
-  reordered.splice(insertIndex, 0, ...block);
-
-  setQuestionnaireMap((prev) => ({
-    ...prev,
-    [columnId]: reordered,
-  }));
-
-  try {
-    await updateQuestionnaireGroupOrder(columnId, reordered.map((q) => q.id));
-    message.success("อัปเดตลำดับเรียบร้อย");
-  } catch {
-    message.error("อัปเดตลำดับไม่สำเร็จ");
-  }
-};
-
+  };
 
   const [editingFrequency, setEditingFrequency] = useState<{
     groupId: number;
@@ -418,53 +433,6 @@ const ManageTestOrder: React.FC = () => {
     } catch (err) {
       alert("ไม่สามารถอัปเดตความถี่ได้");
       console.error(err);
-    }
-  };
-
-  const moveItemUpDown = async (
-    direction: "up" | "down",
-    groupId: number,
-    qid: number
-  ) => {
-    const list = questionnaireMap[groupId];
-    if (!list) return;
-
-    const q = list.find((x) => x.id === qid);
-    if (!q) return;
-
-    if (q.condition_on_id) return;
-
-    const groups = getGroups(list);
-    const gIdx = groups.findIndex((g) => g.parentId === qid);
-    if (gIdx === -1) return;
-
-    let targetIdx = gIdx;
-    if (direction === "up") {
-      if (gIdx === 0) return;
-      targetIdx = gIdx - 1;
-    } else {
-      if (gIdx === groups.length - 1) return;
-      targetIdx = gIdx + 1;
-    }
-
-    const newGroups = [...groups];
-    const [moving] = newGroups.splice(gIdx, 1);
-    newGroups.splice(targetIdx, 0, moving);
-
-    const dict = new Map(list.map((it) => [it.id, it]));
-    const newOrderIds = newGroups.flatMap((g) => g.ids);
-    const newList = newOrderIds.map((id) => dict.get(id)!);
-
-    setQuestionnaireMap((prev) => ({
-      ...prev,
-      [groupId]: newList,
-    }));
-
-    try {
-      await updateQuestionnaireGroupOrder(groupId, newOrderIds);
-      message.success("อัปเดตลำดับเรียบร้อย");
-    } catch {
-      message.error("อัปเดตลำดับไม่สำเร็จ");
     }
   };
 
@@ -565,7 +533,9 @@ const ManageTestOrder: React.FC = () => {
                       isDragMode
                         ? "bg-blue-600 text-white"
                         : "bg-white hover:bg-gray-50 text-gray-600"
-                    } ${dropdownGroupId ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${
+                      dropdownGroupId ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     title="โหมดจัดลำดับ"
                     aria-label="โหมดจัดลำดับ"
                     disabled={!!dropdownGroupId}
@@ -629,7 +599,9 @@ const ManageTestOrder: React.FC = () => {
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}
-                measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+                measuring={{
+                  droppable: { strategy: MeasuringStrategy.Always },
+                }}
                 onDragEnd={(e) => onDragEnd(e, column.id)}
               >
                 <SortableContext
@@ -639,41 +611,38 @@ const ManageTestOrder: React.FC = () => {
                 >
                   <div className="space-y-3">
                     {tasks.map((q) => (
-                      <SortableItem key={q.id} id={q.id} disabled={!isDragMode}>
+                      <SortableItem
+                        key={q.id}
+                        id={q.id}
+                        disabled={!isDragMode || !!q.condition_on_id}
+                      >
                         <div
                           className={`relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow ${
                             isDragMode ? "cursor-move" : ""
                           }`}
                         >
-                          {/* ปุ่มลอยมุมขวาบน (เฉพาะแม่ และเมื่อเปิด drag mode) - แนวตั้ง */}
-                          {isDragMode && !q.condition_on_id && (
-                            <div className="absolute right-2 top-2 z-10 flex flex-col items-center gap-1 w-8">
-                              <button
-                                {...stopDrag}
-                                onClick={() =>
-                                  moveItemUpDown("up", column.id, q.id)
-                                }
-                                title="เลื่อนขึ้น"
-                                className="h-7 w-7 rounded-md bg-white/80 hover:bg-white shadow border text-gray-600 hover:text-black flex items-center justify-center"
-                              >
-                                <CaretUpOutlined />
-                              </button>
-                              <button
-                                {...stopDrag}
-                                onClick={() =>
-                                  moveItemUpDown("down", column.id, q.id)
-                                }
-                                title="เลื่อนลง"
-                                className="h-7 w-7 rounded-md bg-white/80 hover:bg-white shadow border text-gray-600 hover:text-black flex items-center justify-center"
-                              >
-                                <CaretDownOutlined />
-                              </button>
+                          {isDragMode && (
+                            <div
+                              className={`absolute right-2 top-1/2 -translate-y-1/2
+                ${
+                  q.condition_on_id
+                    ? "opacity-30 cursor-not-allowed"
+                    : "opacity-100"
+                }
+               `}
+                              title={
+                                q.condition_on_id
+                                  ? "รายการย่อย — ลากไม่ได้"
+                                  : "กดค้างเพื่อจัดลำดับ"
+                              }
+                            >
+                              <GripVertical className="w-5 h-5 text-gray-500" />
                             </div>
                           )}
 
                           {/* เนื้อหาในการ์ด */}
                           <div className="flex flex-col gap-2">
-                            <h4 className="font-semibold text-gray-900 pr-12">
+                            <h4 className="font-semibold text-gray-900 pr-10">
                               {q.name}
                             </h4>
                             <p className="text-sm text-gray-500">
