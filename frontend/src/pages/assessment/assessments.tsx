@@ -156,7 +156,7 @@ const Assessments: React.FC = () => {
       setCurrent((prev) => prev + 1);
     } else {
       // ✅ ใช้ message.success ของ Ant Design แทน alert
-      message.success("ขอบคุณที่ทำแบบสอบถามจนเสร็จเรียบร้อยค่ะ ✨", 3);
+      message.success("ขอบคุณสำหรับการทำแบบสอบถามจนเสร็จเรียบร้อยค่ะ ✨", 3);
 
       const transaction = await finishAssessment(assessmentResultID);
       console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
