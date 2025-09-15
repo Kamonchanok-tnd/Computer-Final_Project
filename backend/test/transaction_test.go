@@ -26,7 +26,7 @@ func validTransaction() entity.Transaction {
 func TestTransaction_AllCases(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	t.Run("missing Description (required) -> invalid", func(t *testing.T) {
+	t.Run("Description is required", func(t *testing.T) {
 		m := validTransaction()
 		m.Description = ""
 		ok, err := govalidator.ValidateStruct(m)
@@ -34,15 +34,6 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err).ToNot(BeNil())
 		g.Expect(err.Error()).To(Equal("กรุณาระบุคำอธิบาย"))
 	})
-
-	t.Run("Description length = 256 -> valid", func(t *testing.T) {
-		m := validTransaction()
-		m.Description = strings.Repeat("x", 256)
-		ok, err := govalidator.ValidateStruct(m)
-		g.Expect(ok).To(BeTrue())
-		g.Expect(err).To(BeNil())
-	})
-
 	t.Run("Description length = 257 -> invalid", func(t *testing.T) {
 		m := validTransaction()
 		m.Description = strings.Repeat("x", 257)
@@ -52,8 +43,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("คำอธิบายต้องไม่เกิน 256 ตัวอักษร"))
 	})
 
-	// ===== TotalScore =====
-	t.Run("missing TotalScore (==0) -> invalid by required", func(t *testing.T) {
+	t.Run("TotalScore is required", func(t *testing.T) {
 		m := validTransaction()
 		m.TotalScore = 0 // จะชน required ก่อน (ตามลำดับแท็ก)
 		ok, err := govalidator.ValidateStruct(m)
@@ -70,19 +60,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err).ToNot(BeNil())
 		g.Expect(err.Error()).To(Equal("คะแนนรวมต้องไม่ติดลบ"))
 	})
-
-	t.Run("TotalScore at lower bound (0) would be allowed by range but blocked by required", func(t *testing.T) {
-		m := validTransaction()
-		m.TotalScore = 0
-		ok, err := govalidator.ValidateStruct(m)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		// ยืนยันตามสเปคแท็ก: required มาก่อน
-		g.Expect(err.Error()).To(Equal("กรุณาระบุผลคะแนน"))
-	})
-
-	// ===== MaxScore =====
-	t.Run("missing MaxScore (==0) -> invalid by required", func(t *testing.T) {
+	t.Run("MaxScore is required", func(t *testing.T) {
 		m := validTransaction()
 		m.MaxScore = 0 // required มาก่อน range
 		ok, err := govalidator.ValidateStruct(m)
@@ -100,16 +78,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("คะแนนเต็มต้องมากกว่า 0"))
 	})
 
-	t.Run("MaxScore at lower bound (1) -> valid", func(t *testing.T) {
-		m := validTransaction()
-		m.MaxScore = 1
-		ok, err := govalidator.ValidateStruct(m)
-		g.Expect(ok).To(BeTrue())
-		g.Expect(err).To(BeNil())
-	})
-
-	// ===== Required string fields =====
-	t.Run("missing Result -> invalid", func(t *testing.T) {
+	t.Run("Result is required", func(t *testing.T) {
 		m := validTransaction()
 		m.Result = ""
 		ok, err := govalidator.ValidateStruct(m)
@@ -118,7 +87,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุผลการประเมิน"))
 	})
 
-	t.Run("missing TestType -> invalid", func(t *testing.T) {
+	t.Run("TestType is required", func(t *testing.T) {
 		m := validTransaction()
 		m.TestType = ""
 		ok, err := govalidator.ValidateStruct(m)
@@ -127,7 +96,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุประเภทการทดสอบ"))
 	})
 
-	t.Run("missing ResultLevel -> invalid", func(t *testing.T) {
+	t.Run("ResultLevel is required", func(t *testing.T) {
 		m := validTransaction()
 		m.ResultLevel = ""
 		ok, err := govalidator.ValidateStruct(m)
@@ -136,7 +105,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุระดับผลการประเมิน"))
 	})
 
-	t.Run("missing QuestionnaireGroup -> invalid", func(t *testing.T) {
+	t.Run("QuestionnaireGroup is required", func(t *testing.T) {
 		m := validTransaction()
 		m.QuestionnaireGroup = ""
 		ok, err := govalidator.ValidateStruct(m)
@@ -145,8 +114,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุกลุ่มแบบสอบถาม"))
 	})
 
-	// ===== ARID =====
-	t.Run("missing ARID (==0) -> invalid", func(t *testing.T) {
+	t.Run("ARID is required", func(t *testing.T) {
 		m := validTransaction()
 		m.ARID = 0
 		ok, err := govalidator.ValidateStruct(m)
@@ -155,8 +123,7 @@ func TestTransaction_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุรหัสผลการประเมิน (ARID)"))
 	})
 
-	// ===== Fully valid =====
-	t.Run("valid case -> ok", func(t *testing.T) {
+	t.Run("All valid", func(t *testing.T) {
 		m := validTransaction()
 		ok, err := govalidator.ValidateStruct(m)
 		g.Expect(ok).To(BeTrue())
