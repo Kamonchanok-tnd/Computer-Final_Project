@@ -300,7 +300,9 @@ import { DatePicker, Space, ConfigProvider } from "antd";
 import thTH from "antd/lib/locale/th_TH";
 import admin from "../../../assets/analysis.png";
 import dayjs, { Dayjs } from "dayjs";
-import { UserAddOutlined, UserSwitchOutlined, TeamOutlined } from "@ant-design/icons";
+import { UserAddOutlined, UserSwitchOutlined, TeamOutlined, MoreOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
+import { Tooltip as AntdTooltip, Button, Card } from "antd";
 
 const COLORS = ["#3b82f6", "#10b981"]; // ฟ้า = ผู้ใช้ใหม่, เขียว = ผู้ใช้เดิม
 
@@ -318,8 +320,7 @@ export default function AdminDashboardContent() {
   >([]);
 
   const [loading, setLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -333,35 +334,12 @@ export default function AdminDashboardContent() {
         ]);
 
         const formatDate = (date: string) =>
-          new Date(date).toLocaleDateString("th-TH", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            calendar: "gregory",
-          });
+          dayjs(date).format("D MMM YYYY"); // แสดง ค.ศ.
 
-        const formattedVisits = visits.map((item) => ({
-          ...item,
-          day: formatDate(item.date),
-        }));
-
-        const formattedRetention = retention.map((item) => ({
-          ...item,
-          day: formatDate(item.date),
-        }));
-
-        // ✅ cast type เพื่อบอกว่ามี day
-        const formattedNewUsers: (NewUser & { day: string })[] = newUsers.map((item) => ({
-          ...item,
-          day: formatDate(item.date),
-        }));
-
-        const formattedReturningUsers: (ReturningUser & { day: string })[] = returningUsers.map(
-          (item) => ({
-            ...item,
-            day: formatDate(item.date),
-          })
-        );
+        const formattedVisits = (visits ?? []).map((item) => ({ ...item, day: formatDate(item.date) }));
+        const formattedRetention = (retention ?? []).map((item) => ({ ...item, day: formatDate(item.date) }));
+        const formattedNewUsers = (newUsers ?? []).map((item) => ({ ...item, day: formatDate(item.date) }));
+        const formattedReturningUsers = (returningUsers ?? []).map((item) => ({ ...item, day: formatDate(item.date) }));
 
         setVisitData(formattedVisits);
         setRetentionData(formattedRetention);
@@ -372,30 +350,34 @@ export default function AdminDashboardContent() {
         setFilteredRetentionData(formattedRetention);
         setFilteredNewUserData(formattedNewUsers);
         setFilteredReturningUserData(formattedReturningUsers);
+
+        console.log("NewUsers:", formattedNewUsers);
+        console.log("ReturningUsers:", formattedReturningUsers);
       } catch (error) {
         console.error("ไม่สามารถโหลดข้อมูลได้:", error);
       } finally {
         setLoading(false);
       }
     }
+
     fetchData();
   }, []);
 
   // กรองข้อมูลตามเดือนและปี
   useEffect(() => {
-    const filterData = (data: any[]) =>
-      data.filter((item) => {
-        const date = new Date(item.date);
-        const matchMonth = selectedMonth !== null ? date.getMonth() === selectedMonth : true;
-        const matchYear = selectedYear !== null ? date.getFullYear() === selectedYear : true;
-        return matchMonth && matchYear;
+    const filterByMonth = (data: any[]) => {
+      if (!selectedMonth) return data;
+      return data.filter((item) => {
+        const date = dayjs(item.date);
+        return date.month() === selectedMonth.month() && date.year() === selectedMonth.year();
       });
+    };
 
-    setFilteredVisitData(filterData(visitData));
-    setFilteredRetentionData(filterData(retentionData));
-    setFilteredNewUserData(filterData(newUserData));
-    setFilteredReturningUserData(filterData(returningUserData));
-  }, [selectedMonth, selectedYear, visitData, retentionData, newUserData, returningUserData]);
+    setFilteredVisitData(filterByMonth(visitData));
+    setFilteredRetentionData(filterByMonth(retentionData));
+    setFilteredNewUserData(filterByMonth(newUserData));
+    setFilteredReturningUserData(filterByMonth(returningUserData));
+  }, [selectedMonth, visitData, retentionData, newUserData, returningUserData]);
 
   if (loading) {
     return (
@@ -415,15 +397,23 @@ export default function AdminDashboardContent() {
     { name: "ผู้ใช้เดิม", value: returningUsersCount },
   ];
 
-  // ✅ รวมข้อมูลสำหรับ LineChart
-  const mergedData = filteredNewUserData.map((newUser) => {
-    const matchingReturning = filteredReturningUserData.find((r) => r.day === newUser.day);
+  // Merge data for LineChart safely
+  const allDaysSet = new Set<string>();
+  filteredNewUserData.forEach((d) => allDaysSet.add(d.day));
+  filteredReturningUserData.forEach((d) => allDaysSet.add(d.day));
+  const allDays = Array.from(allDaysSet).sort((a, b) => dayjs(a).unix() - dayjs(b).unix());
+
+  const mergedData = allDays.map((day) => {
+    const newUser = filteredNewUserData.find((d) => d.day === day);
+    const returningUser = filteredReturningUserData.find((d) => d.day === day);
     return {
-      day: newUser.day,
-      visits: newUser.visits,
-      users: matchingReturning ? matchingReturning.users : 0,
+      day,
+      visits: newUser ? newUser.visits : 0,
+      users: returningUser ? returningUser.users : 0,
     };
   });
+
+  console.log("MergedData:", mergedData);
 
   return (
     <div className="p-6 space-y-8">
@@ -439,16 +429,10 @@ export default function AdminDashboardContent() {
             <DatePicker
               picker="month"
               placeholder="เลือกเดือน"
-              onChange={(date: Dayjs | null) => {
-                setSelectedMonth(date ? date.month() : null);
-                setSelectedYear(date ? date.year() : null);
-              }}
-              value={
-                selectedMonth !== null && selectedYear !== null
-                  ? dayjs().year(selectedYear).month(selectedMonth)
-                  : null
-              }
+              value={selectedMonth}
               format="MMMM YYYY"
+              onChange={(date) => setSelectedMonth(date)}
+              style={{ width: 150 }}
             />
           </Space>
         </ConfigProvider>
@@ -496,13 +480,7 @@ export default function AdminDashboardContent() {
         <div className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
           <h2 className="text-lg font-semibold mb-4">ผู้ใช้ใหม่ vs ผู้ใช้เดิม</h2>
           <PieChart width={250} height={250}>
-            <Pie
-              data={donutData}
-              innerRadius={70}
-              outerRadius={100}
-              paddingAngle={5}
-              dataKey="value"
-            >
+            <Pie data={donutData} innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value">
               {donutData.map((_, i) => (
                 <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
               ))}
@@ -511,7 +489,7 @@ export default function AdminDashboardContent() {
           <p className="text-gray-600 mt-2 font-medium">รวม {activeUsers} ผู้ใช้</p>
         </div>
 
-        {/* Line Chart: New vs Returning Trend */}
+        {/* Line Chart */}
         <div className="bg-white rounded-xl shadow p-4">
           <h2 className="text-lg font-semibold mb-4">แนวโน้มผู้ใช้ใหม่ vs ผู้ใช้เดิม</h2>
           <ResponsiveContainer width="100%" height={250}>
@@ -528,80 +506,46 @@ export default function AdminDashboardContent() {
         </div>
       </div>
 
-      {/* Visit Frequency + Retention Rate */}
+      {/* Visit Frequency & Retention Rate */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Visit Frequency */}
-        <div className="bg-white rounded-xl shadow p-4">
-          <h2 className="text-xl font-semibold mb-4">ความถี่การเข้าชมเว็บไซต์</h2>
-
-          {/* KPI Card */}
-          <div className="mb-4 text-center">
+        {/* Visit Frequency Card */}
+        <div className="bg-white rounded-xl shadow p-6 flex flex-col min-h-[250px]">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-semibold">ความถี่การเข้าชมเว็บไซต์</h2>
+            <AntdTooltip title="ดูเพิ่มเติม">
+              <Link to="/admin/visit-frequency">
+                <Button type="text" shape="circle" icon={<MoreOutlined />} />
+              </Link>
+            </AntdTooltip>
+          </div>
+          <div className="flex-1 flex flex-col justify-center items-center">
             <p className="text-gray-500">จำนวนการเข้าชมล่าสุด</p>
-            <h3 className="text-2xl font-bold text-blue-600">
+            <h3 className="text-3xl font-bold text-blue-600">
               {filteredVisitData.length > 0
                 ? filteredVisitData[filteredVisitData.length - 1].visits
                 : 0}
             </h3>
           </div>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={filteredVisitData}
-              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip formatter={(value: any) => `${value} ครั้ง`} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="visits"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                name="จำนวนผู้เข้าชม"
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
         </div>
 
-        {/* Retention Rate */}
-        <div className="bg-white rounded-xl shadow p-4">
-          <h2 className="text-xl font-semibold mb-4">อัตราการกลับมาใช้ซ้ำ (%)</h2>
-
-          {/* KPI Card */}
-          <div className="mb-4 text-center">
+        {/* Retention Rate Card */}
+        <div className="bg-white rounded-xl shadow p-6 flex flex-col min-h-[250px]">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-semibold">อัตราการกลับมาใช้ซ้ำ (%)</h2>
+            <AntdTooltip title="ดูเพิ่มเติม">
+              <Link to="/admin/retention-rate">
+                <Button type="text" shape="circle" icon={<MoreOutlined />} />
+              </Link>
+            </AntdTooltip>
+          </div>
+          <div className="flex-1 flex flex-col justify-center items-center">
             <p className="text-gray-500">อัตราล่าสุด</p>
-            <h3 className="text-2xl font-bold text-green-600">
+            <h3 className="text-3xl font-bold text-green-600">
               {filteredRetentionData.length > 0
                 ? `${filteredRetentionData[filteredRetentionData.length - 1].retentionRate}%`
                 : "0%"}
             </h3>
           </div>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={filteredRetentionData}
-              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis unit="%" />
-              <Tooltip formatter={(value: any) => `${value}%`} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="retentionRate"
-                stroke="#10b981"
-                strokeWidth={2}
-                name="อัตราการกลับมาใช้ซ้ำ"
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
         </div>
       </div>
     </div>

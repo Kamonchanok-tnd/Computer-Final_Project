@@ -184,7 +184,7 @@ export const updateAdminYourselfById = async (id: string, updatedData: AdminInte
         console.log("API response:", data);
 
         // If successful, return the updated data and show success message
-        message.success("Admin updated successfully");
+        message.success("แก้ไขข้อมูลสําเร็จ!");
         return data;
     } catch (error) {
         console.error("Error updating admin:", error);
