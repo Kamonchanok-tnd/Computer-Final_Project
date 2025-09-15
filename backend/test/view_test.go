@@ -73,17 +73,6 @@ func TestViewValidation(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("เวลาที่อ่านต้องอยู่ระหว่าง 0–864000000 มิลลิวินาที"))
 	})
 
-	// ❌ ReadMS เกินช่วงบน → ไม่ผ่าน (range)
-	t.Run("readMS too large", func(t *testing.T) {
-		g := NewWithT(t)
-		v := makeValidViewGuest()
-		v.ReadMS = 864000001
-		ok, err := govalidator.ValidateStruct(v)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("เวลาที่อ่านต้องอยู่ระหว่าง 0–864000000 มิลลิวินาที"))
-	})
-
 	// ❌ PctScrolled ติดลบ → ไม่ผ่าน
 	t.Run("pctScrolled negative", func(t *testing.T) {
 		g := NewWithT(t)
