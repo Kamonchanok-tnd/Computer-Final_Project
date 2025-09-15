@@ -274,7 +274,7 @@ const UploadBox: React.FC<{
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบบทความ</label>
+      <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ</label>
 
       <div
         className={`group rounded-[22px] border-2 border-dashed p-4 sm:p-6 transition-colors ${
