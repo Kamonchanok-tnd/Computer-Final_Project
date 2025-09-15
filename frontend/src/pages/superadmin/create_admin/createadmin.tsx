@@ -12,7 +12,6 @@ import {
   Select,
 } from "antd";
 import { useState } from "react";
-import { PlusOutlined } from "@ant-design/icons";
 import { UsersInterface } from "../../../interfaces/IUser";
 import { CreateUser } from "../../../services/https/login";
 import { useNavigate, Link } from "react-router-dom";

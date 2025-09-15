@@ -20,10 +20,17 @@ func ValidateAnswerOption(ao entity.AnswerOption) (bool, error) {
 	if ok, err := govalidator.ValidateStruct(ao); !ok {
 		return false, err
 	}
+
 	// 2) กันกรณี Description เป็นช่องว่างล้วน
 	if strings.TrimSpace(ao.Description) == "" {
 		return false, errors.New("กรุณาระบุคำตอบ")
 	}
+
+	// 3) EmotionChoiceID ต้องไม่เป็น 0
+	if ao.EmotionChoiceID == 0 {
+		return false, errors.New("กรุณาระบุอารมณ์ (EmotionChoiceID)")
+	}
+
 	return true, nil
 }
 
@@ -33,7 +40,7 @@ func makeValidAO() entity.AnswerOption {
 		Description:     "รู้สึกดีมาก",
 		Point:           10,
 		QID:             1,
-		EmotionChoiceID: 0, // optional
+		EmotionChoiceID: 1, 
 	}
 }
 
@@ -124,39 +131,16 @@ func TestAnswerOptionValidation(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุคำถาม (QID)"))
 	})
 
-	// ✅ EmotionChoiceID ไม่ระบุก็ได้
-	t.Run("emotionChoiceId optional zero ok (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		ao := makeValidAO()
-		ao.EmotionChoiceID = 0
+	// ❌ EmotionChoiceID ว่าง (0) → ต้อง error
+    t.Run("emotionChoiceId is required zero (TH)", func(t *testing.T) {
+	g := NewWithT(t)
+	ao := makeValidAO()
+	ao.EmotionChoiceID = 0
 
-		ok, err := ValidateAnswerOption(ao)
-		g.Expect(ok).To(BeTrue(), "unexpected error: %v", err)
-		g.Expect(err).To(BeNil())
-	})
-
-	// ✅ EmotionChoiceID ระบุเป็นค่า >0 ก็ยังถูก
-	t.Run("emotionChoiceId non-zero ok (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		ao := makeValidAO()
-		ao.EmotionChoiceID = 5
-
-		ok, err := ValidateAnswerOption(ao)
-		g.Expect(ok).To(BeTrue(), "unexpected error: %v", err)
-		g.Expect(err).To(BeNil())
-	})
-
-	// ✅ เฉพาะฟิลด์บังคับ (ไม่มี EmotionChoiceID) ก็ผ่าน
-	t.Run("only required fields valid (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		ao := entity.AnswerOption{
-			Description: "ปกติ",
-			Point:       1,
-			QID:         1,
-		}
-
-		ok, err := ValidateAnswerOption(ao)
-		g.Expect(ok).To(BeTrue(), "unexpected error: %v", err)
-		g.Expect(err).To(BeNil())
-	})
+	ok, err := ValidateAnswerOption(ao)
+	g.Expect(ok).To(BeFalse())
+	g.Expect(err).ToNot(BeNil())
+	g.Expect(err.Error()).To(Equal("กรุณาระบุอารมณ์ (EmotionChoiceID)"))
+    })
+	
 }
