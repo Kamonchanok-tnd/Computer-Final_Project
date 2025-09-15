@@ -26,8 +26,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Popover, InputNumber, Button, message } from "antd";
-import { EditOutlined } from "@ant-design/icons";
+import { Popover, InputNumber, Button, message, Modal } from "antd";
+import { EditOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 interface Questionnaire {
   id: number;
@@ -259,27 +259,68 @@ const ManageTestOrder: React.FC = () => {
 
   const handleRemoveFromGroup = async (groupId: number, qid: number) => {
     try {
-      const group = questionnaireMap[groupId];
-      const hasChildren = group.some((q) => q.condition_on_id === qid);
-      let idsToRemove = [qid];
-      if (hasChildren) {
-        const children = group.filter((q) => q.condition_on_id === qid);
-        idsToRemove.push(...children.map((q) => q.id));
-      }
+      const group = questionnaireMap[groupId] ?? [];
+      const target = group.find((q) => q.id === qid);
+      const children = group.filter((q) => q.condition_on_id === qid);
+      const hasChildren = children.length > 0;
 
-      for (const id of idsToRemove) {
-        const res = await removeQuestionnaireFromGroup(groupId, id);
-        console.log("✅ response จากการลบ ID", id, ":", res);
-      }
+      // ✅ กล่องยืนยันก่อนลบ
+      Modal.confirm({
+        title: "ยืนยันการลบแบบสอบถาม",
+        icon: <ExclamationCircleOutlined />,
+        content: (
+          <div className="text-sm">
+            <div>
+              คุณต้องการลบ <b>{target?.name ?? `ID ${qid}`}</b> ใช่หรือไม่?
+            </div>
+            {hasChildren && (
+              <div className="mt-1">
+                รายการนี้มี “แบบสอบถามลูก” อีก {children.length}{" "}
+                รายการที่จะถูกลบไปด้วย:
+                <ul className="list-disc ml-5 mt-1">
+                  {children.map((c) => (
+                    <li key={c.id}>{c.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ),
+        okText: "ลบ",
+        okButtonProps: { danger: true },
+        cancelText: "ยกเลิก",
+        async onOk() {
+          const idsToRemove = [qid, ...children.map((c) => c.id)];
 
-      const updatedGroup = await getQuestionnaireGroupByID(groupId);
-      console.log("📅 group หลังลบ:", updatedGroup);
+          const hide = message.loading("กำลังลบแบบสอบถาม...", 0);
+          try {
+            for (const id of idsToRemove) {
+              await removeQuestionnaireFromGroup(groupId, id);
+            }
 
-      setQuestionnaireMap((prev) => ({
-        ...prev,
-        [groupId]: updatedGroup.questionnaires,
-      }));
+            const updatedGroup = await getQuestionnaireGroupByID(groupId);
+            setQuestionnaireMap((prev) => ({
+              ...prev,
+              [groupId]: updatedGroup.questionnaires,
+            }));
+
+            hide();
+            message.success(
+              hasChildren
+                ? `ลบ “${target?.name ?? qid}” พร้อมลูกอีก ${
+                    children.length
+                  } รายการเรียบร้อย`
+                : `ลบ “${target?.name ?? qid}” เรียบร้อย`
+            );
+          } catch (err) {
+            hide();
+            message.error("ลบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+            console.error(err);
+          }
+        },
+      });
     } catch (error) {
+      message.error("เกิดข้อผิดพลาดในการเตรียมลบ");
       console.error("❌ เกิดข้อผิดพลาดในการลบ:", error);
     }
   };
@@ -423,15 +464,17 @@ const ManageTestOrder: React.FC = () => {
   const handleSaveFrequency = async () => {
     if (!editingFrequency) return;
 
+    const { groupId, value } = editingFrequency;
+    const hide = message.loading("กำลังอัปเดตจำนวนวัน...", 0);
     try {
-      await updateGroupFrequency(
-        editingFrequency.groupId,
-        editingFrequency.value
-      );
-      setDraggedDays(editingFrequency.value);
+      await updateGroupFrequency(groupId, value);
+      setDraggedDays(value);
       setEditingFrequency(null);
+      hide();
+      message.success(`อัปเดตความถี่เป็นทุก ๆ ${value} วันแล้ว`);
     } catch (err) {
-      alert("ไม่สามารถอัปเดตความถี่ได้");
+      hide();
+      message.error("อัปเดตความถี่ไม่สำเร็จ");
       console.error(err);
     }
   };
