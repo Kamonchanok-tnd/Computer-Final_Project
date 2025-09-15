@@ -120,148 +120,254 @@ function Homemessage() {
   };
 
   return (
-    <div className="font-ibmthai mt-4 xl:px-30 ">
+    <div className="font-ibmthai mt-4 px-4 sm:px-6 lg:px-8 xl:px-30">
       <div className="">
-        <div className="text-2xl mb-4 text-basic-text dark:text-text-dark">
+        <div className="text-xl sm:text-2xl mb-4 text-basic-text dark:text-text-dark">
           <p className="px-2">ข้อความให้กำลังใจ</p>
         </div>
 
-        <div className="flex gap-6 px-1 xl:px-0">
-  {/* ฝั่งซ้าย (การ์ดใหญ่) */}
-  <div className="flex-1">
-    <div className="h-full">
-      {messages.length > 0 && (
-        <div className="bg-white/50 backdrop-blur-md dark:bg-chat-dark  rounded-2xl p-4 shadow-sm space-y-2 h-full flex flex-col justify-between
-        text-basic-text dark:text-text-dark">
-          <img
-            src={messages[0].photo}
-            alt="main"
-            className="rounded-xl mb-3"
-          />
-          <span className="inline-block w-fit px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-100/50">
-            {messages[0].articleType}
-          </span>
-
-          <p className="text-lg font-medium text-center">{messages[0].name}</p>
-
-          <div className="flex items-center justify-between mt-auto">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => toggleLike(messages[0].id)}
-                className="text-red-500 text-3xl"
-                aria-label={liked[messages[0].id] ? "เลิกถูกใจ" : "ถูกใจ"}
-              >
-                {liked[messages[0].id] ? <AiFillHeart /> : <AiOutlineHeart />}
-              </button>
-              <span className="text-gray-700 dark:text-white">
-                {messages[0].no_of_like}
-              </span>
+        {/* Mobile Layout (Stack vertically) */}
+        <div className="block lg:hidden space-y-4">
+          {/* Header section */}
+          <div className="bg-gradient-to-br from-[#F8BBD0] to-[#F48FB1] rounded-2xl p-4">
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 text-[#F06292] bg-white rounded-full shadow-sm">
+                    <Heart className="w-5 h-5" />
+                  </div>
+                  <p className="text-lg sm:text-xl font-bold text-[#1F1F22]">ข้อความให้กำลังใจ</p>
+                </div>
+                <p className="text-sm sm:text-base">
+                  รับข้อความให้กำลังใจ ที่อาจเป็นสิ่งเล็ก ๆ แต่ช่วยได้มากกว่าที่คิด
+                </p>
+              </div>
+              <img src={healmessage} alt="" className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ml-3" />
             </div>
-            <button
-              onClick={() => {
-                showModal(messages[0]);
-                handleReadClick(messages[0].id.toString());
-              }}
-              className="cursor-pointer  px-7 py-2 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white rounded-lg flex items-center gap-4  transition duration-300 dark:bg-gray-600 dark:hover:bg-gray-700
-              dark:text-background-dark"
-             >
-              <BookOpen className="w-5 h-5" />
-              <span>อ่าน</span>
+          </div>
+
+          {/* Featured message */}
+          {messages.length > 0 && (
+            <div className="bg-white/50 backdrop-blur-md dark:bg-chat-dark rounded-2xl p-4 shadow-sm
+            text-basic-text dark:text-text-dark">
+              <img
+                src={messages[0].photo}
+                alt="main"
+                className="w-full h-48 sm:h-64 object-cover rounded-xl mb-3"
+              />
+              <span className="inline-block w-fit px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-100/50 mb-2">
+                {messages[0].articleType}
+              </span>
+              <p className="text-base sm:text-lg font-medium text-center mb-4">{messages[0].name}</p>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleLike(messages[0].id)}
+                    className="text-red-500 text-2xl sm:text-3xl"
+                    aria-label={liked[messages[0].id] ? "เลิกถูกใจ" : "ถูกใจ"}
+                  >
+                    {liked[messages[0].id] ? <AiFillHeart /> : <AiOutlineHeart />}
+                  </button>
+                  <span className="text-gray-700 dark:text-white text-sm sm:text-base">
+                    {messages[0].no_of_like}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    showModal(messages[0]);
+                    handleReadClick(messages[0].id.toString());
+                  }}
+                  className="cursor-pointer px-4 sm:px-6 py-2 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white rounded-lg flex items-center gap-2 transition duration-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-background-dark text-sm sm:text-base"
+                >
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>อ่าน</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Message list */}
+          <div className="space-y-3">
+            {messages.slice(1, 4).map((message) => (
+              <div
+                key={message.id}
+                className="bg-white/50 backdrop-blur-md dark:bg-chat-dark rounded-2xl p-3 flex items-center justify-between shadow-sm text-basic-text dark:text-text-dark"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <img
+                    src={message.photo}
+                    alt="thumb"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
+                  />
+                  <div className="flex flex-col gap-1 min-w-0 flex-1">
+                    <span className="w-fit px-2 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-100/50">
+                      {message.articleType}
+                    </span>
+                    <p className="text-xs sm:text-sm font-bold line-clamp-2">{message.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    showModal(message);
+                    handleReadClick(message.id.toString());
+                  }}
+                  className="cursor-pointer px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white dark:text-background-dark rounded-full flex items-center transition duration-300 dark:bg-gray-600 dark:hover:bg-gray-700 text-xs sm:text-sm flex-shrink-0 ml-2"
+                >
+                  <span>อ่าน</span>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* View more button */}
+          <div className="flex justify-center pt-2">
+            <button 
+              className="dark:text-background-dark bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white py-3 px-8 rounded-lg transition-all duration-300 cursor-pointer hover:scale-105 text-sm sm:text-base"
+              onClick={() => navigate("/message")}
+            >
+              ดูเพิ่มเติม
             </button>
           </div>
         </div>
-      )}
-    </div>
-  </div>
 
-  {/* ฝั่งขวา (list ข้อความเล็กๆ) */}
-  <div className="w-1/2 flex flex-col gap-2  justify-between">
-    <div className="bg-gradient-to-br from-[#F8BBD0] to-[#F48FB1] flex-1 rounded-2xl p-3 space-y-4 flex  justify-between">
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <div className="p-2 text-[#F06292] bg-white rounded-full shadow-sm">
-            <Heart />
+        {/* Desktop Layout (Side by side) */}
+        <div className="hidden lg:flex gap-6">
+          {/* ฝั่งซ้าย (การ์ดใหญ่) */}
+          <div className="flex-1">
+            <div className="h-full">
+              {messages.length > 0 && (
+                <div className="bg-white/50 backdrop-blur-md dark:bg-chat-dark rounded-2xl p-4 shadow-sm space-y-2 h-full flex flex-col justify-between text-basic-text dark:text-text-dark">
+                  <img
+                    src={messages[0].photo}
+                    alt="main"
+                    className="rounded-xl mb-3 w-full h-64 xl:h-80 object-cover"
+                  />
+                  <span className="inline-block w-fit px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-100/50">
+                    {messages[0].articleType}
+                  </span>
+
+                  <p className="text-lg xl:text-xl font-medium text-center">{messages[0].name}</p>
+
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleLike(messages[0].id)}
+                        className="text-red-500 text-3xl"
+                        aria-label={liked[messages[0].id] ? "เลิกถูกใจ" : "ถูกใจ"}
+                      >
+                        {liked[messages[0].id] ? <AiFillHeart /> : <AiOutlineHeart />}
+                      </button>
+                      <span className="text-gray-700 dark:text-white">
+                        {messages[0].no_of_like}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        showModal(messages[0]);
+                        handleReadClick(messages[0].id.toString());
+                      }}
+                      className="cursor-pointer px-7 py-2 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white rounded-lg flex items-center gap-4 transition duration-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-background-dark"
+                    >
+                      <BookOpen className="w-5 h-5" />
+                      <span>อ่าน</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-2xl font-bold text-[#1F1F22] ">ข้อความให้กำลังใจ</p>
-        </div>
-        <p className="text-lg ">
-          รับข้อความให้กำลังใจ ที่อาจเป็นสิ่งเล็ก ๆ แต่ช่วยได้มากกว่าที่คิด
-        </p>
-      </div>
-      <img src={healmessage} alt="" className="lg:w-40 lg:h-40 hidden lg:flex rounded-2xl" />
-    </div>
 
-    {messages.slice(1, 6).map((message) => (
-      <div
-        key={message.id}
-        className="bg-white/50 backdrop-blur-md dark:bg-chat-dark rounded-2xl p-3 flex items-center justify-between shadow-sm
-        text-basic-text dark:text-text-dark"
-      >
-        <div className="flex items-center gap-3">
-          <img
-            src={message.photo}
-            alt="thumb"
-            className="w-16 h-16 rounded-full object-cover"
-          />
-          <div className="h-full flex flex-col justify-between gap-2 px-2">
-            <span className="w-fit px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-100/50">
-              {message.articleType}
-            </span>
-            <p className="text-sm font-bold line-clamp-2">{message.name}</p>
+          {/* ฝั่งขวา (list ข้อความเล็กๆ) */}
+          <div className="w-1/2 xl:w-2/5 flex flex-col gap-2 justify-between">
+            <div className="bg-gradient-to-br from-[#F8BBD0] to-[#F48FB1] flex-1 rounded-2xl p-3 xl:p-4 space-y-4 flex justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 text-[#F06292] bg-white rounded-full shadow-sm">
+                    <Heart />
+                  </div>
+                  <p className="text-xl xl:text-2xl font-bold text-[#1F1F22]">ข้อความให้กำลังใจ</p>
+                </div>
+                <p className="text-base xl:text-lg">
+                  รับข้อความให้กำลังใจ ที่อาจเป็นสิ่งเล็ก ๆ แต่ช่วยได้มากกว่าที่คิด
+                </p>
+              </div>
+              <img src={healmessage} alt="" className="w-32 h-32 xl:w-40 xl:h-40 rounded-2xl flex-shrink-0" />
+            </div>
+
+            {messages.slice(1, 4).map((message) => (
+              <div
+                key={message.id}
+                className="bg-white/50 backdrop-blur-md dark:bg-chat-dark rounded-2xl p-3 flex items-center justify-between shadow-sm text-basic-text dark:text-text-dark"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <img
+                    src={message.photo}
+                    alt="thumb"
+                    className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                  />
+                  <div className="h-full flex flex-col justify-between gap-2 px-2 min-w-0 flex-1">
+                    <span className="w-fit px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 dark:bg-sky-100/50">
+                      {message.articleType}
+                    </span>
+                    <p className="text-sm font-bold line-clamp-2">{message.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    showModal(message);
+                    handleReadClick(message.id.toString());
+                  }}
+                  className="cursor-pointer px-4 py-1 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white dark:text-background-dark rounded-full flex items-center gap-4 transition duration-300 dark:bg-gray-600 dark:hover:bg-gray-700 flex-shrink-0"
+                >
+                  <span>อ่าน</span>
+                </button>
+              </div>
+            ))}
+
+            {/* ปุ่มดูเพิ่มเติม */}
+            <div className="flex justify-center">
+              <button 
+                className="dark:text-background-dark bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white py-2 px-8 rounded-lg transition-all duration-300 cursor-pointer hover:scale-105"
+                onClick={() => navigate("/message")}
+              >
+                ดูเพิ่มเติม
+              </button>
+            </div>
           </div>
         </div>
-        <button
-          onClick={() => {
-            showModal(message);
-            handleReadClick(message.id.toString());
-          }}
-          className="cursor-pointer px-4 py-1 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white dark:text-background-dark rounded-full flex items-center gap-4  transition duration-300 dark:bg-gray-600 dark:hover:bg-gray-700"
-        >
-          <span>อ่าน</span>
-        </button>
       </div>
-    ))}
 
-    {/* ปุ่มดูเพิ่มเติม */}
-    <div className="flex justify-center">
-      <button className=" dark:text-background-dark bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white  py-2 px-8 rounded-lg transition-all duration-300 cursor-pointer hover:scale-105"
-        onClick={() => navigate("/message")}>
-        ดูเพิ่มเติม
-      </button>
-    </div>
-  </div>
-</div>
-
-      </div>
       <Modal
         open={isModalVisible}
         onCancel={handleCancel}
         footer={null}
-        width={1000}
+        width={Math.min(1000, window.innerWidth * 0.9)}
         className="custom-modal"
+        centered
       >
         {selectedMessage && (
-          <div>
+          <div className="p-2 sm:p-4">
             <div className="flex justify-center items-center flex-col mb-4">
               <img
                 src={selectedMessage.photo}
                 alt={selectedMessage.name}
-                className="w-80 h-80 object-cover rounded-lg mb-4"
+                className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:w-80 lg:h-80 object-cover rounded-lg mb-4"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src =
                     "/default-image.png";
                 }}
               />
-              <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center dark:text-white">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-2 text-center dark:text-white">
                 {selectedMessage.name}
               </h3>
-              <p className="text-2xl whitespace-pre-line leading-relaxed mt-4">
+              <p className="text-sm sm:text-base lg:text-xl whitespace-pre-line leading-relaxed mt-4 text-center px-2">
                 {selectedMessage.content || "-"}
               </p>
             </div>
 
             <div className="flex flex-col text-sm text-gray-700">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2 justify-center">
                 {selectedMessage.articleType && (
                   <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">
                     {selectedMessage.articleType}
@@ -271,10 +377,10 @@ function Homemessage() {
                   {fmtDate(selectedMessage.date)}
                 </span>
               </div>
-              <div className="text-gray-600 dark:text-white">
+              <div className="text-gray-600 dark:text-white text-center mb-4">
                 ผู้เขียน: {selectedMessage.author}
               </div>
-              <div className="mt-4 text-sm text-gray-500 text-center dark:text-white flex justify-between px-95">
+              <div className="mt-4 text-sm text-gray-500 dark:text-white flex flex-col sm:flex-row justify-center sm:justify-between gap-2 sm:gap-4 text-center">
                 <div>ถูกใจทั้งหมด: {selectedMessage.no_of_like}</div>
                 <div>การเข้าชม: {selectedMessage.viewCount}</div>
               </div>

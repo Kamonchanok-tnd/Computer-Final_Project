@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Input, Switch, Empty } from 'antd';
+import { Input, Switch, Empty, message } from 'antd';
 import { IPrompt } from '../../interfaces/IPrompt';
 import { getPrompts, nowPrompt, deletePrompt } from '../../services/https/prompt';
 import PromptTitleModal from './component/PromptTitleModal';
@@ -59,6 +59,7 @@ export default function PromptList({
   const handleDelete = async (id: number) => {
     try {
       await deletePrompt(id);
+      message.success("ลบ Prompt สำเร็จ");
       fetchData();
     } catch (error) {
       console.error(error);

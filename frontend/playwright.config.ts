@@ -7,6 +7,18 @@ export default defineConfig({
 
   projects: [
     {
+      name: 'superadmin-tests',
+      testDir: './tests/superadmin',
+      use: {
+        baseURL: 'http://localhost:5173/',
+        storageState: './storage/superadmin.json',    // ✅ เปลี่ยนกลับมาใช้ state ผู้ใช้จริง
+        headless: false,
+        screenshot: 'on',
+        trace: 'on-first-retry',
+        video: 'on-first-retry',
+      },
+    },
+    {
       name: 'admin-tests',
       testDir: './tests/admin',
       use: {

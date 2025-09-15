@@ -13,6 +13,7 @@ import {
 import { Question } from "../../interfaces/IQuestion";
 import { AnswerOption } from "../../interfaces/IAnswerOption";
 import { EmotionChoice } from "../../interfaces/IEmotionChoices";
+import { message } from "antd";
 
 const apiUrl = import.meta.env.VITE_API_URL as string;
 
@@ -34,6 +35,7 @@ const Assessments: React.FC = () => {
   const [answerOptions, setAnswerOptions] = useState<AnswerOption[]>([]);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [emotionChoices, setEmotionChoices] = useState<EmotionChoice[]>([]);
+  const [isBusy, setIsBusy] = useState(false); // 🚦กันคลิกซ้ำระหว่างส่งคำตอบ
   const navigate = useNavigate();
 
   const [assessmentResultID] = useState<number | null>(() => {
@@ -90,13 +92,11 @@ const Assessments: React.FC = () => {
             priority: q.priority,
           }));
 
-        // 🔁 แทนที่บล็อกเดิมนี้ทั้งหมด
         const mappedAnswerOptions: AnswerOption[] = aRes.map((a: any) => ({
           id: a.ID ?? a.id,
           description: a.description ?? a.Description,
           point: a.point ?? a.Point,
           qid: a.qid ?? a.QID ?? a.q_id,
-          // ✅ สำคัญ: รองรับทุกกรณีชื่อคีย์ที่ backend อาจส่งมา
           EmotionChoiceID:
             a.emotionChoiceId ??
             a.EmotionChoiceID ??
@@ -128,59 +128,49 @@ const Assessments: React.FC = () => {
     fetchEmotionChoices();
   }, []);
 
-  const handleSelect = (aoid: number) => {
-    const newAnswers = [...answers];
-    newAnswers[current] = aoid;
+  // 🧠 คลิกอิโมจิ = ตอบ + ส่ง + เด้งไปข้อต่อไป / จบแบบสอบถาม
+  const handleSelectAndAdvance = async (opt: AnswerOption) => {
+  if (isBusy) return;
+  if (assessmentResultID == null) return;
+
+  const question = questions[current];
+  if (!question) return;
+
+  const newAnswers = [...answers];
+  newAnswers[current] = opt.id ?? null;
+
+  setIsBusy(true);
+  try {
+    const payload = {
+      arid: assessmentResultID,
+      qid: question.id,
+      answerOptionID: opt.id!,
+      point: opt.point,
+      question_number: current + 1,
+    };
+    console.log("📤 ส่ง submitAnswer:", payload);
+    await submitAnswer(payload);
     setAnswers(newAnswers);
-  };
-
-  const handleNext = async () => {
-    const question = questions[current];
-    const aoid = answers[current];
-
-    if (assessmentResultID != null && aoid != null) {
-      const answer = answerOptions.find((opt) => opt.id === aoid);
-      if (answer) {
-        const payload = {
-          arid: assessmentResultID,
-          qid: question.id,
-          answerOptionID: answer.id!,
-          point: answer.point,
-          question_number: current + 1,
-        };
-
-        console.log("📤 ส่งข้อมูล submitAnswer:", payload);
-        await submitAnswer(payload);
-      }
-    }
 
     if (current < questions.length - 1) {
-      setCurrent(current + 1);
+      setCurrent((prev) => prev + 1);
     } else {
-      if (assessmentResultID != null) {
-        const transaction = await finishAssessment(assessmentResultID);
-        console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
-        navigate("/result", {
-          state: { answers, questions, transaction },
-        });
-      }
-    }
-  };
+      // ✅ ใช้ message.success ของ Ant Design แทน alert
+      message.success("ขอบคุณสำหรับการทำแบบสอบถามจนเสร็จเรียบร้อยค่ะ ✨", 3);
 
-  // ✅ ฟัง keydown (Enter / Space)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        (e.key === "Enter" || e.code === "Space") &&
-        answers[current] !== null
-      ) {
-        e.preventDefault(); // กัน scroll หรือ submit ฟอร์ม
-        handleNext();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [answers, current, questions]);
+      const transaction = await finishAssessment(assessmentResultID);
+      console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
+      navigate("/result", {
+        state: { answers: newAnswers, questions, transaction },
+      });
+    }
+  } catch (err) {
+    console.error("ส่งคำตอบล้มเหลว:", err);
+    message.error("ส่งคำตอบไม่สำเร็จ ลองใหม่อีกครั้งนะคะ", 3);
+  } finally {
+    setIsBusy(false);
+  }
+};
 
   const currentQuestion = questions[current];
   if (!currentQuestion) {
@@ -203,7 +193,7 @@ const Assessments: React.FC = () => {
         paddingBottom: "calc(6rem + env(safe-area-inset-bottom))",
       }}
     >
-      {/* ✅ หัวข้อชื่อแบบสอบถาม + ไอคอน */}
+      {/* ชื่อแบบสอบถาม */}
       <div className="flex items-center justify-center gap-3 mb-3 max-w-md w-full px-2">
         <img
           src={AssessmentNameIcon}
@@ -257,7 +247,12 @@ const Assessments: React.FC = () => {
         {currentQuestion.nameQuestion}
       </h1>
 
-      <div className="flex gap-4 flex-wrap justify-center mb-10">
+      {/* ตัวเลือกอิโมจิ: คลิก = ตอบ + ไปต่อ */}
+      <div
+        className={`flex gap-4 flex-wrap justify-center mb-10 ${
+          isBusy ? "opacity-60 pointer-events-none" : ""
+        }`}
+      >
         {currentOptions.map((opt) => {
           const emotionChoice = emotionChoices.find(
             (e) => e.id === opt.EmotionChoiceID
@@ -266,46 +261,28 @@ const Assessments: React.FC = () => {
             ? buildImageSrc(emotionChoice.picture)
             : "";
 
-          // ✅ log ตรงนี้
-          console.log("🖼️ EmotionChoice:", {
-            optID: opt.id,
-            description: opt.description,
-            rawPicture: emotionChoice?.picture,
-            finalSrc: imageSrc,
-          });
-
           return (
-            <div
+            <button
               key={opt.id}
-              onClick={() => handleSelect(opt.id!)}
-              className={`cursor-pointer flex flex-col items-center p-2 transition rounded-xl border-2 ${
-                answers[current] === opt.id
-                  ? "border-blue-500 bg-blue-100"
-                  : "border-transparent"
-              }`}
+              onClick={() => handleSelectAndAdvance(opt)}
+              className={`cursor-pointer flex flex-col items-center p-2 transition rounded-xl border-2 bg-white hover:scale-95 active:scale-95
+                ${
+                  answers[current] === opt.id
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-transparent"
+                }`}
             >
               <img
                 src={imageSrc}
                 alt={opt.description}
                 className="w-20 h-20 object-contain"
+                draggable={false}
               />
               <span className="mt-2 font-medium">{opt.description}</span>
-            </div>
+            </button>
           );
         })}
       </div>
-
-      <button
-        onClick={handleNext}
-        disabled={answers[current] === null}
-        className={`px-8 py-2 text-white font-semibold rounded-full transition ${
-          answers[current]
-            ? "bg-blue-600 hover:bg-blue-700"
-            : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        {current < questions.length - 1 ? "ถัดไป" : "ส่งคำตอบ"}
-      </button>
     </div>
   );
 };

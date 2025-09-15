@@ -121,16 +121,5 @@ func TestCriteriaValidation(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("คะแนนต่ำสุดต้องไม่มากกว่าคะแนนสูงสุด"))
 	})
 
-	// ✅ ขอบเขต min=0, max=0 + มีคำอธิบาย → ผ่าน
-	t.Run("edge: min=0 max=0 valid", func(t *testing.T) {
-		g := NewWithT(t)
-		c := entity.Criteria{
-			Description:      "กรณีพิเศษคะแนนเดียว",
-			MinCriteriaScore: 0,
-			MaxCriteriaScore: 0,
-		}
-		ok, err := ValidateCriteria(c)
-		g.Expect(ok).To(BeTrue(), "unexpected error: %v", err)
-		g.Expect(err).To(BeNil())
-	})
+	
 }

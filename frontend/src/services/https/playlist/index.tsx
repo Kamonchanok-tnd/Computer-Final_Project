@@ -3,10 +3,26 @@ import { apiUrl } from "../Chat";
 
 const Authorization = localStorage.getItem("token");
 export const IMG_URL = import.meta.env.VITE_IMG_URL;
+
+
+
+function getAuthHeader() {
+  const token = localStorage.getItem("token");
+  const tokenType = localStorage.getItem("token_type") || "Bearer";
+  if (!token) {
+    console.error("Missing token in localStorage");
+    return null;
+  }
+  return `${tokenType} ${token}`;
+}
+
+
 export async function CreatePlaylist(data: IPlaylist) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `Bearer ${Authorization}`);
+  myHeaders.append("Authorization", authHeader);
   const raw = JSON.stringify(data);
 
   const requestOptions = {
