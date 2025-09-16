@@ -116,6 +116,9 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
         <div className="text-basic-text dark:text-text-dark  w-[70%] line-clamp-1">
           <h1>{sound.name}</h1>
         </div>
+         <p className="text-sm text-gray-600">
+    คำแนะนำ: {sound.description || "ไม่มีคำแนะนำ"}
+  </p>
         <div className="flex justify-between text-subtitle dark:text-text-dark">
           <p>{formatDurationHMS(sound.duration ?? 0)} </p>
           <div className="flex gap-2">

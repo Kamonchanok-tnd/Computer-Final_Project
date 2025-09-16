@@ -9,6 +9,7 @@ export interface UsersInterface {
   Role: string;                // บทบาทของผู้ใช้
   Age: number;                 // อายุ
   Gender: string;              // เพศ
+  birth_date: string;         // วันเกิด
 
   // ✅ ฟิลด์สำหรับเก็บ consent
   ConsentAccepted: boolean;   // true = กดยินยอม
