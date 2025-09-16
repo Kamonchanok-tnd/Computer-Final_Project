@@ -140,7 +140,7 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
         },
 
         {
-          path: "/message", // เส้นทางสำหรับหน้า message
+          path: "/audiohome/message", // เส้นทางสำหรับหน้า message
           element: isLoggedIn ? <UserMessagePage/> : <Navigate to="/" />,
         },
         //assessment
