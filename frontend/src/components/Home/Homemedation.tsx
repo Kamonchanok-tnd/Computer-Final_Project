@@ -54,7 +54,7 @@ function HomeMeditation() {
     <div className=" font-ibmthai ">
       <div className=" xl:px-28 px-2">
         <div className="flex items-center justify-between  px-2">
-          <p className="font-ibmthai text-2xl">ทำสมาธิและฝึกลมหายใจ</p>
+          <p className="font-ibmthai text-2xl">สมาธิบำบัดและฝึกลมหายใจ</p>
         </div>
         <div className="grid grid-cols-4 mt-4">
           <div className="col-span-2 ">
@@ -148,6 +148,7 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
           alt={sound.name}
           className="w-full h-full object-center rounded-t-xl"
         />
+        
 
         {/* ปุ่ม Play */}
         <div
@@ -175,6 +176,7 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
       <div className="p-2 space-y-2">
         <div className="text-basic-text dark:text-text-dark  w-[70%] line-clamp-1">
           <h1>{sound.name}</h1>
+          
         </div>
         <div className="flex justify-between text-subtitle dark:text-text-dark">
           <p>{formatDurationHMS(sound.duration ?? 0)} </p>
@@ -186,6 +188,7 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
             <div className="flex gap-1 items-center">
               <Heart className="text-subtitle h-4 w-4 dark:text-text-dark  " />
               <p>{likes}</p>
+              <p>คำแนะนำ: {sound.description  || "ไม่มีคำแนะนำ"}</p>
             </div>
           </div>
         </div>

@@ -52,7 +52,7 @@ function RelaxActivities() {
 
   const activities = [
     {
-      title: "ทำสมาธิและฝึกลมหายใจ",
+      title: "สมาธิบำบัดและฝึกลมหายใจ",
       description: "หายใจเข้า... แล้วปล่อยความเครียดออกไป",
       icon: <Waves className="w-8 h-8 sm:w-10 sm:h-10 text-[#00B8D9]" />,
       gradient: "bg-gradient-to-br from-[#B3E5FC] to-[#81D4FA]",
