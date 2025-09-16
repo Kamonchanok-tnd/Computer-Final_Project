@@ -130,47 +130,47 @@ const Assessments: React.FC = () => {
 
   // 🧠 คลิกอิโมจิ = ตอบ + ส่ง + เด้งไปข้อต่อไป / จบแบบสอบถาม
   const handleSelectAndAdvance = async (opt: AnswerOption) => {
-  if (isBusy) return;
-  if (assessmentResultID == null) return;
+    if (isBusy) return;
+    if (assessmentResultID == null) return;
 
-  const question = questions[current];
-  if (!question) return;
+    const question = questions[current];
+    if (!question) return;
 
-  const newAnswers = [...answers];
-  newAnswers[current] = opt.id ?? null;
+    const newAnswers = [...answers];
+    newAnswers[current] = opt.id ?? null;
 
-  setIsBusy(true);
-  try {
-    const payload = {
-      arid: assessmentResultID,
-      qid: question.id,
-      answerOptionID: opt.id!,
-      point: opt.point,
-      question_number: current + 1,
-    };
-    console.log("📤 ส่ง submitAnswer:", payload);
-    await submitAnswer(payload);
-    setAnswers(newAnswers);
+    setIsBusy(true);
+    try {
+      const payload = {
+        arid: assessmentResultID,
+        qid: question.id,
+        answerOptionID: opt.id!,
+        point: opt.point,
+        question_number: current + 1,
+      };
+      console.log("📤 ส่ง submitAnswer:", payload);
+      await submitAnswer(payload);
+      setAnswers(newAnswers);
 
-    if (current < questions.length - 1) {
-      setCurrent((prev) => prev + 1);
-    } else {
-      // ✅ ใช้ message.success ของ Ant Design แทน alert
-      message.success("ขอบคุณสำหรับการทำแบบสอบถามจนเสร็จเรียบร้อยค่ะ ✨", 3);
+      if (current < questions.length - 1) {
+        setCurrent((prev) => prev + 1);
+      } else {
+        // ✅ ใช้ message.success ของ Ant Design แทน alert
+        message.success("ขอบคุณสำหรับการทำแบบสอบถามจนเสร็จเรียบร้อยค่ะ ✨", 3);
 
-      const transaction = await finishAssessment(assessmentResultID);
-      console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
-      navigate("/result", {
-        state: { answers: newAnswers, questions, transaction },
-      });
+        const transaction = await finishAssessment(assessmentResultID);
+        console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
+        navigate("/result", {
+          state: { answers: newAnswers, questions, transaction },
+        });
+      }
+    } catch (err) {
+      console.error("ส่งคำตอบล้มเหลว:", err);
+      message.error("ส่งคำตอบไม่สำเร็จ ลองใหม่อีกครั้งนะคะ", 3);
+    } finally {
+      setIsBusy(false);
     }
-  } catch (err) {
-    console.error("ส่งคำตอบล้มเหลว:", err);
-    message.error("ส่งคำตอบไม่สำเร็จ ลองใหม่อีกครั้งนะคะ", 3);
-  } finally {
-    setIsBusy(false);
-  }
-};
+  };
 
   const currentQuestion = questions[current];
   if (!currentQuestion) {
@@ -265,12 +265,13 @@ const Assessments: React.FC = () => {
             <button
               key={opt.id}
               onClick={() => handleSelectAndAdvance(opt)}
-              className={`cursor-pointer flex flex-col items-center p-2 transition rounded-xl border-2 bg-white hover:scale-95 active:scale-95
-                ${
-                  answers[current] === opt.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-transparent"
-                }`}
+              className={`cursor-pointer flex flex-col items-center p-2 transition rounded-xl border-2 hover:scale-95 active:scale-95
+    ${
+      answers[current] === opt.id
+        ? "border-blue-500 bg-blue-50"
+        : "border-transparent"
+    }
+  `}
             >
               <img
                 src={imageSrc}
