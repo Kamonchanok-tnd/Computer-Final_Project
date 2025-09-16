@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRecorder } from "../Voice-Chat/Record/useRecorder";
-import { Mic, MicOff } from "lucide-react";
+import { Mic, MicOff, Square } from "lucide-react";
 import AudioVisualizer from "../../components/Voice-visualizer/VolumeVisualizer"; // 👈 นำเข้า visualizer
 import { useVolumeVisualizer } from "../../components/Voice-visualizer/useVolumeVisualizer";
 import { useParams } from "react-router-dom";
@@ -135,12 +135,13 @@ const VoiceChat: React.FC = () => {
       <div className="m-4">
         <button
         className={`p-4 mb-4 text-white font-medium transition-all rounded-full ${
-          isRecording ? "bg-red-500 hover:bg-red-600" : "bg-[#FF3B2F] hover:#FF3B2F]"
+          isRecording ? "bg-gray-500 hover:bg-gray-600" : "bg-[#FF3B2F] hover:#FF3B2F]"
         }`}
         onClick={isRecording ? handleStop : handleStart}
       >
-        {isRecording ? <MicOff size={30} /> : <Mic size={30} />}
+        {isRecording ? <Square size={30} className="fill-white" /> : <Mic size={30} />}
       </button>
+      
       </div>
       
       {/* <p>{isRecording ? "Stop Recording" : "Start Recording"}</p> */}

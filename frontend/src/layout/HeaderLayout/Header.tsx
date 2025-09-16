@@ -6,6 +6,7 @@ const { Header, Content } = Layout;
 import {
   Book,
   ChartNoAxesCombined,
+  Cross,
   House,
   LogOut,
   Menu,
@@ -21,6 +22,22 @@ import { useUser } from "./UserContext";
 import lightlogo from "../../assets/logo/lightlogo.png";
 import dakhealjai from "../../assets/logo/darklogo.png";
 
+
+const itemdrop=[
+  {
+    key: "editprofile",
+    label: "แก้ไขโปรไฟล์",
+    path: "/edit-profile",
+    icon: <User size={24} />,
+  },
+  {
+    key: "dashboard",
+    label: "ผลการทำแบบทดสอบ",
+    path: "/assessment/dashboard",
+    icon: <ChartNoAxesCombined size={24} />,
+  },
+]
+
 const items = [
   { key: "home", label: "หน้าหลัก", path: "/user", icon: <House size={24} /> },
   {
@@ -35,11 +52,12 @@ const items = [
     path: "/audiohome",
     icon: <Music size={24} />,
   },
+ 
   {
     key: "message",
     label: "Heal Jai Care",
     path: "/doctors",
-    icon: <Book size={24} />,
+    icon: <Cross size={24} />,
   },
 ];
 
@@ -84,7 +102,9 @@ function Headers() {
   ];
 
   useEffect(() => {
-    const currentItem = items.find((item) =>
+    // รวม items และ itemdrop เข้าด้วยกันเพื่อตรวจสอบ active menu
+    const allItems = [...items, ...itemdrop];
+    const currentItem = allItems.find((item) =>
       location.pathname.startsWith(item.path)
     );
     setActiveMenu(currentItem?.key || "");
@@ -236,6 +256,25 @@ function Headers() {
                   {isDarkMode ? "Dark Mode" : "Light Mode"}
                 </button>
               </li>
+
+              {itemdrop.map((item) => (
+                <div key={item.key}>
+                  <li>
+                    <button
+                      onClick={() => handleMenuClick(item.key, item.path)}
+                      className={`w-full text-left px-4 py-2 rounded flex gap-2 font-ibmthai ${
+                        activeMenu === item.key
+                          ? "bg-background-button dark:bg-button-dark/20 text-blue-word"
+                          : "dark:hover:bg-button-dark/20 hover:bg-background-button hover:text-blue-word duration-300 text-basic-text dark:text-text-dark "
+                      }`}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  </li>
+                </div>
+              ))}
+              
               {items.map((item) => (
                 <div key={item.key}>
                   <li>
@@ -243,7 +282,7 @@ function Headers() {
                       onClick={() => handleMenuClick(item.key, item.path)}
                       className={`w-full text-left px-4 py-2 rounded flex gap-2 font-ibmthai ${
                         activeMenu === item.key
-                          ? "bg-background-button dark:bg-button-dark/20 text-blue-word dark:text"
+                          ? "bg-background-button dark:bg-button-dark/20 text-blue-word"
                           : "dark:hover:bg-button-dark/20 hover:bg-background-button hover:text-blue-word duration-300 text-basic-text dark:text-text-dark "
                       }`}
                     >

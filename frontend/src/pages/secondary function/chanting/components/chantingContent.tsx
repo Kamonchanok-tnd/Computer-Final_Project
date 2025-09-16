@@ -66,7 +66,7 @@ function ChantingContent({filteredSounds, extractYouTubeID,gotoSound}: ChantingC
                   />
 
                   <button onClick={() => gotoSound(Number(sound.ID))} className="absolute bottom-[-25px] sm:button-[-20]  right-3 w-15 sm:w-12 sm:h-12 h-15 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white
-             opacity-100 sm:opacity-0 scale-75 translate-y-1
+             opacity-100 lg:opacity-0 scale-75 translate-y-1
              group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0
              transition-all duration-300 ease-out btn-glow-play">
                     <Play className="text-white" />
