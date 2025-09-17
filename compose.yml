@@ -67,6 +67,7 @@ services:
     build: ./VBackend
     container_name: VoiceChatBackend
     restart: always
+    
     ports:
         - "8001:8000"
 
