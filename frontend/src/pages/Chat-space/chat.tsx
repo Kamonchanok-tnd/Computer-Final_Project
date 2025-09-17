@@ -14,7 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { IChatRoom } from "../../interfaces/IChatRoom";
 import ChatHeader from "../../components/Chat.tsx/ChatHeader";
 import ChatInput from "../../components/Chat.tsx/ChatInput";
-import { Modal } from "antd";
+import { message, Modal } from "antd";
 import { useDarkMode } from "../../components/Darkmode/toggleDarkmode";
 import { logActivity } from "../../services/https/activity";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment/index";
@@ -98,7 +98,9 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
       if (found?.id && found?.next?.id) {
         // เหมือนหน้า Home: พาไปหน้า assessment (mood popup route)
         lastPromptAtRef.current = Date.now();
-        navigate(`/assessment/${found.id}/${found.next.id}`, { replace: false });
+        navigate(`/assessment/${found.id}/${found.next.id}`, {
+          replace: false,
+        });
       }
       // ถ้าไม่พบก็เงียบ ๆ ไป
     } catch (e) {
@@ -112,7 +114,13 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   // ติด event ผู้ใช้เพื่อรีเซ็ต idle timer
   useEffect(() => {
     const reset = () => startIdleTimer();
-    const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"];
+    const events = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "touchstart",
+      "scroll",
+    ];
 
     events.forEach((ev) =>
       window.addEventListener(ev, reset, { passive: true })
@@ -243,21 +251,26 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
       navigate(`/chat/${currentRoomID}`);
     }
 
-    const apiResponse = await ChatGemini(userMessage);
-    const responseText = apiResponse.message;
+    try {
+      const apiResponse = await ChatGemini(userMessage);
+      const responseText = apiResponse.message;
 
-    await simulateTyping(responseText, (finalText) => {
-      const botResponse: IConversation = {
-        message: finalText,
-        chatroom_id: currentRoomID ?? 1,
-        stid: 2,
-      };
-      setMessages((prev) => [...prev, botResponse]);
-    });
+      await simulateTyping(responseText, (finalText) => {
+        const botResponse: IConversation = {
+          message: finalText,
+          chatroom_id: currentRoomID ?? 1,
+          stid: 2,
+        };
+        setMessages((prev) => [...prev, botResponse]);
+      });
 
-    /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
-    startIdleTimer();
-    /* ===================== [/Trigger Assessment] ===================== */
+      /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
+      startIdleTimer();
+      /* ===================== [/Trigger Assessment] ===================== */
+    } catch (error) {
+      console.error("Error:", error);
+      message.error("เกิดข้อผิดพลาดในการส่งข้อความ");
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -324,13 +337,18 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     }
 
     const data: IChatRoom = { uid: Number(Uid) };
-    const res = await NewChat(data);
-    console.log(" chatroom send: ", res.id);
-    setChatRoomID(res.id);
-    navigate(`/chat/voice-chat/${res.id}`);
-    /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
-    startIdleTimer();
-    /* ===================== [/Trigger Assessment] ===================== */
+    try {
+      const res = await NewChat(data);
+      console.log(" chatroom send: ", res.id);
+      setChatRoomID(res.id);
+      navigate(`/chat/voice-chat/${res.id}`);
+      /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
+      startIdleTimer();
+      /* ===================== [/Trigger Assessment] ===================== */
+    } catch (error) {
+      console.error("Error:", error);
+      message.error("เกิดข้อผิดพลาดในการสร้างห้องแชท");
+    }
   }
 
   return (

@@ -338,11 +338,6 @@ const HomeContents: React.FC = () => {
           <img src={admin} alt="Admin" className="w-15 h-15" />
           <h1 className="text-2xl font-semibold">ข้อมูลของคอนเทนต์ </h1>
         </div>
-        <input
-          type="text"
-          placeholder="Search..."
-          className="px-4 py-2 rounded-xl border border-gray-300 focus:outline-none w-full md:w-64"
-        />
       </header>
 
       <main className="p-6 space-y-6">

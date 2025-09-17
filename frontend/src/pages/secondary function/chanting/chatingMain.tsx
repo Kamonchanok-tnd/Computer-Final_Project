@@ -129,6 +129,10 @@ function ChantingMain() {
   function gotoPlaylist(id: number) {
     console.log("id is: ", id);
     setTimeout(() => {
+      if (!id){
+        message.error("เกิดข้อผิดพลาด");
+        return
+      }
       navigate(`/audiohome/Playlist/${id}`);
     });
   }
@@ -143,6 +147,7 @@ function ChantingMain() {
     topPage();
   }, []);
 
+  
   return (
     <div
       className={`flex flex-col  duration-300 items-center  min-h-full max-h-fit font-ibmthai  
@@ -239,7 +244,7 @@ function ChantingMain() {
               Playlist={playlists}
               GotoPlaylist={gotoplaylist}
               gotoPlaylistmedia={gotoPlaylistmedia}
-              fetchPlaylist={fetchPlaylist}
+              setPlaylists={setPlaylists}
             />
           ))}
 
