@@ -85,6 +85,8 @@ func main() {
 	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
 	r.GET("/recent", controller.GetRecentChat)
 	r.GET("/excel", exportexcel.ExportExcel)
+	r.GET("/csv", exportexcel.ExportCSV)
+
 	
 
 	// Protect routes with role-based access

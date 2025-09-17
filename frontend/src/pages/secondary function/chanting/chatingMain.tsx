@@ -129,6 +129,10 @@ function ChantingMain() {
   function gotoPlaylist(id: number) {
     console.log("id is: ", id);
     setTimeout(() => {
+      if (!id){
+        message.error("เกิดข้อผิดพลาด");
+        return
+      }
       navigate(`/audiohome/Playlist/${id}`);
     });
   }

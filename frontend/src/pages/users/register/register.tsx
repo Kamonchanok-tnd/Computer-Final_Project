@@ -20,6 +20,11 @@ import { CreateUser } from "../../../services/https/login";
 import logo from "../../../assets/ยินดีต้อนรับ.png";
 import "./register.css";
 const { Title, Text } = Typography;
+import dayjs from "dayjs";
+import "dayjs/locale/th";
+
+import thTH from 'antd/es/date-picker/locale/th_TH';
+
 
 function SignUpPages() {
   const navigate = useNavigate();
@@ -57,6 +62,11 @@ function SignUpPages() {
     if (!consentAccepted || !consentAcceptedAt) {
       messageApi.error("คุณต้องยินยอมก่อนสมัครสมาชิก");
       return;
+    }
+
+    // ✅ แปลงวันเกิดเป็น YYYY-MM (string) ก่อนส่ง
+    if (values.birth_date) {
+      values.birth_date = dayjs(values.birth_date).format("YYYY-MM");
     }
 
     const payload = {
@@ -229,7 +239,7 @@ function SignUpPages() {
                     name="username"
                     rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้งาน !" }]}
                   >
-                    <Input placeholder="Username" />
+                    <Input placeholder="ชื่อผู้ใช้" />
                   </Form.Item>
                 </Col>
 
@@ -242,7 +252,7 @@ function SignUpPages() {
                       { required: true, message: "กรุณากรอกอีเมล !" },
                     ]}
                   >
-                    <Input placeholder="Email" />
+                    <Input placeholder="อีเมล" />
                   </Form.Item>
                 </Col>
 
@@ -258,7 +268,7 @@ function SignUpPages() {
       },
     ]}
   >
-    <Input.Password placeholder="Password" />
+    <Input.Password placeholder="รหัสผ่าน" />
   </Form.Item>
 </Col>
                 {/* <Col xs={24} md={12}>
@@ -272,16 +282,22 @@ function SignUpPages() {
                 </Col> */}
                 <Col xs={24} md={12}>
             <Form.Item
-              label="วันเกิด"
-              name="birth_date"
-              rules={[{ required: true, message: "กรุณาเลือกวันเกิด !" }]}
-            >
-              <DatePicker
-                format="YYYY-MM-DD"
-                className="!w-full"
-                placeholder="เลือกวันเกิด"
-              />
-            </Form.Item>
+                    label="เดือนและปีเกิด"
+                    name="birth_date"
+                    rules={[
+                      { required: true, message: "กรุณาเลือกเดือนและปีเกิด !" },
+                    ]}
+                  >
+                    <DatePicker
+  picker="month"
+  format="MMMM YYYY"
+  locale={thTH}   // ✅ ใส่เป็น object ไม่ใช่ string
+  className="!w-full"
+  placeholder="เลือกเดือนและปีเกิด"
+/>
+
+                  </Form.Item>
+
           </Col>
                 <Col xs={24} md={12}>
                   <Form.Item
@@ -308,18 +324,18 @@ function SignUpPages() {
       { pattern: /^[0-9]{9,10}$/, message: "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก" },
     ]}
   >
-    <Input placeholder="Phone Number" maxLength={10} />
+    <Input placeholder="เบอร์โทรศัพท์" maxLength={10} />
   </Form.Item>
 </Col>
 
                 <Col xs={24} md={12}>
                   <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
-                    <Input placeholder="Facebook" />
+                    <Input placeholder="เฟซบุ๊ก" />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
                   <Form.Item label="Line (ไม่จำเป็น)" name="line">
-                    <Input placeholder="Line ID" />
+                    <Input placeholder="ไลน์ ไอดี" />
                   </Form.Item>
                 </Col>
 
