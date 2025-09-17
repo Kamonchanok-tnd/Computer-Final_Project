@@ -433,6 +433,7 @@ const EditQuestionnaire: React.FC = () => {
       return msg.error("กรุณากรอกข้อมูลให้ครบถ้วน");
 
     setSaving(true);
+    let didNavigate = false;
     try {
       const payload: Questionnaire = {
         nameQuestionnaire: name,
@@ -458,6 +459,7 @@ const EditQuestionnaire: React.FC = () => {
         });
       });
 
+      didNavigate = true;
       navigate("/admin/editQuestionAndAnswerPage", {
         state: { questionnaireId: qid, quantity },
       });
@@ -465,7 +467,7 @@ const EditQuestionnaire: React.FC = () => {
       console.error(err);
       msg.error("บันทึกการแก้ไขไม่สำเร็จ กรุณาลองใหม่");
     } finally {
-      setSaving(false);
+      if (!didNavigate) setSaving(false);
     }
   };
 
@@ -489,6 +491,7 @@ const EditQuestionnaire: React.FC = () => {
     <div className="min-h-screen w-full bg-slate-100 py-8">
       {/* contextHolder จำเป็นต่อการแสดง message */}
       {contextHolder}
+      <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
       <div className="w-full px-6">
         <div className="mb-6 flex items-center gap-3">

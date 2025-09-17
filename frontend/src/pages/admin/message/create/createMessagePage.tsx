@@ -30,7 +30,7 @@ const isTouchDevice = () =>
     (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
   false;
 
-/*ให้รองรับทั้ง RefObject และ MutableRefObject */
+/* ให้รองรับทั้ง RefObject และ MutableRefObject */
 type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
 
 /* Mobile DatePicker (smart drop-up) */
@@ -189,7 +189,7 @@ const MobileDateField: React.FC<{
   );
 };
 
-/* Main*/
+/* Main */
 const CreateMessagePage: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -217,6 +217,9 @@ const CreateMessagePage: React.FC = () => {
 
   const [articleTypeOptions, setArticleTypeOptions] = useState<ArticleTypeOption[]>([]);
   const [articleTypeLoading, setArticleTypeLoading] = useState<boolean>(false);
+
+  /* สถานะระหว่างบันทึก */
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -264,7 +267,7 @@ const CreateMessagePage: React.FC = () => {
 
   // แสดง 5 รายการพอดี + scroll
   const VISIBLE_ITEMS = 5;
-  const ITEM_ROW_H = 44; // ความสูงต่อแถวประมาณนี้
+  const ITEM_ROW_H = 44;
   const listMaxH = Math.min(menuMaxH, VISIBLE_ITEMS * ITEM_ROW_H + 8);
 
   // โหมดกำหนดเอง
@@ -328,7 +331,7 @@ const CreateMessagePage: React.FC = () => {
     };
   }, [typeOpen]);
 
-  /* ====== บล็อก useMemo ที่ต้องใช้ “เหนือ” ทุก useEffect ที่อ้างถึง ====== */
+  /* ====== useMemo พึ่งพาใน effects ====== */
   const filteredTypeOptions = useMemo(() => {
     const q = typeQuery.trim().toLowerCase();
     if (!q) return articleTypeOptions;
@@ -404,9 +407,11 @@ const CreateMessagePage: React.FC = () => {
     };
   }, []);
 
-  /*  บันทึก */
+  /* บันทึก */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+
     if (!formData.name.trim()) return msgApi.error("กรุณากรอกชื่อบทความ");
     if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
     if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
@@ -430,6 +435,7 @@ const CreateMessagePage: React.FC = () => {
     form.append("article_type", contentKind === "short" ? "บทความสั้น" : formData.articleType);
     if (formData.photo) form.append("photo", formData.photo);
 
+    setSaving(true);
     try {
       const ok = await createWordHealingMessage(form);
       if (ok) {
@@ -441,6 +447,8 @@ const CreateMessagePage: React.FC = () => {
     } catch (err) {
       console.error(err);
       msgApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -561,7 +569,7 @@ const CreateMessagePage: React.FC = () => {
               </div>
             </div>
 
-            {/* ประเภทบทความ  */}
+            {/* ประเภทบทความ */}
             {contentKind === "long" && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
@@ -625,7 +633,7 @@ const CreateMessagePage: React.FC = () => {
                             }
                           }}
                           placeholder="ค้นหา..."
-                          className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
                         />
                       </div>
 
@@ -633,7 +641,7 @@ const CreateMessagePage: React.FC = () => {
                         role="listbox"
                         ref={listRef}
                         className="overflow-y-auto py-1"
-                        style={{ maxHeight: listMaxH }}  // ★ 3 รายการพอดี
+                        style={{ maxHeight: listMaxH }}
                         aria-activedescendant={activeIdx >= 0 ? `type-opt-${activeIdx}` : undefined}
                       >
                         {articleTypeLoading && <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>}
@@ -649,7 +657,8 @@ const CreateMessagePage: React.FC = () => {
                               aria-selected={o.value === String(formData.articleType)}
                               onMouseEnter={() => setActiveIdx(idx)}
                               className={[
-                                "w-full px-3 py-2 text-left text-sm hover:bg-slate-100",
+                                "w-full px-3 py-3 text-left text-base hover:bg-slate-100",
+                                "sm:py-2 sm:text-sm",
                                 o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : "",
                                 idx === activeIdx ? "bg-slate-100" : "",
                               ].join(" ")}
@@ -662,7 +671,7 @@ const CreateMessagePage: React.FC = () => {
                               }}
                             >
                               <div className="flex flex-col">
-                                <span className="text-sm">{o.label}</span>
+                                <span className="text-sm sm:text-[13px]">{o.label}</span>
                                 {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
                               </div>
                             </button>
@@ -674,7 +683,7 @@ const CreateMessagePage: React.FC = () => {
                           <li>
                             <button
                               type="button"
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
                               onClick={() => {
                                 setCustomTypeMode(true);
                                 setCustomTypeText("");
@@ -690,7 +699,7 @@ const CreateMessagePage: React.FC = () => {
                           <li>
                             <button
                               type="button"
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-slate-100"
+                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
                               onClick={() => {
                                 const val = typeQuery.trim();
                                 if (!val) return;
@@ -708,11 +717,12 @@ const CreateMessagePage: React.FC = () => {
                         )}
                       </ul>
 
-                      {/* ฟอร์มกำหนดเอง */}
+                      {/* ฟอร์มกำหนดเอง — Mobile Friendly & Sticky Bottom */}
                       {customTypeMode && (
-                        <div className="border-t border-slate-200 p-2">
+                        <div className="border-t border-slate-200 p-2 bg-white sticky bottom-0 sm:static">
                           <label className="mb-1 block text-xs text-slate-500">กำหนดชื่อประเภทด้วยตนเอง</label>
-                          <div className="flex items-center gap-2">
+
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <input
                               autoFocus
                               value={customTypeText}
@@ -733,35 +743,39 @@ const CreateMessagePage: React.FC = () => {
                                   setCustomTypeText("");
                                 }
                               }}
-                              className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-slate-900"
+                              className="w-full sm:flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
                               placeholder="พิมพ์ชื่อประเภท เช่น คอลัมน์พิเศษ"
                             />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const val = customTypeText.trim();
-                                if (!val) return;
-                                setFormData((prev) => ({ ...prev, articleType: val }));
-                                setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                              className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700"
-                            >
-                              ใช้ค่านี้
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                            >
-                              ยกเลิก
-                            </button>
+
+                            <div className="flex gap-2 sm:w-auto">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const val = customTypeText.trim();
+                                  if (!val) return;
+                                  setFormData((prev) => ({ ...prev, articleType: val }));
+                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
+                                  setTypeOpen(false);
+                                  setTypeQuery("");
+                                  setCustomTypeMode(false);
+                                  setCustomTypeText("");
+                                }}
+                                className="w-full sm:w-auto rounded-lg bg-slate-900 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-white hover:bg-slate-700 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                              >
+                                ใช้ค่านี้
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCustomTypeMode(false);
+                                  setCustomTypeText("");
+                                }}
+                                className="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                              >
+                                ยกเลิก
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -844,8 +858,29 @@ const CreateMessagePage: React.FC = () => {
 
             {/* Buttons */}
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => navigate("/admin/messagePage")} className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700">ย้อนกลับ</button>
-              <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50">{contentKind === "short" ? "บันทึกข้อความ/บทความสั้น" : "บันทึกบทความ"}</button>
+              <button
+                type="button"
+                onClick={() => navigate("/admin/messagePage")}
+                disabled={saving}
+                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                ย้อนกลับ
+              </button>
+
+              <button
+                type="submit"
+                disabled={saving}
+                aria-busy={saving}
+                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <span>
+                  {saving
+                    ? "กำลังบันทึก…"
+                    : contentKind === "short"
+                      ? "บันทึกข้อความ/บทความสั้น"
+                      : "บันทึกบทความ"}
+                </span>
+              </button>
             </div>
           </div>
         </form>

@@ -92,6 +92,20 @@ func TestChatRoom(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("StartDate must be in the present"))
 	})
 
+	t.Run("ChatRoom valid: StartDate in future", func(t *testing.T) {
+		chatRoom := entity.ChatRoom{
+			StartDate: time.Now().Add(1 * time.Hour),  // อนาคต
+			EndDate:   time.Now().Add(2 * time.Hour), // ต้องมากกว่า StartDate
+			IsClose:   false,
+			UID:       1,
+		}
+
+		ok, err := govalidator.ValidateStruct(chatRoom)
+
+		g.Expect(ok).To(BeTrue())
+		g.Expect(err).To(BeNil())
+	})
+
 	t.Run("UID is required", func(t *testing.T) {
 		chatRoom := entity.ChatRoom{
 			StartDate: time.Now(), 

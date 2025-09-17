@@ -14,7 +14,8 @@ test('Like/Unlike บทความ', async ({ page, context }) => {
   await page.waitForTimeout(2000);
   await page.getByRole('button', { name: 'บางครั้ง…เรากดดันตัวเองเหลือเกินว่าต้องเก่ง ต้องสำเร็จ ต้องผ่านมันไปให้ได้เร็วที' }).getByLabel('ถูกใจ').click();
   await page.waitForTimeout(2000);
-
+  await page.getByRole('button', { name: 'บางครั้ง…เรากดดันตัวเองเหลือเกินว่าต้องเก่ง ต้องสำเร็จ ต้องผ่านมันไปให้ได้เร็วที' }).getByLabel('ถูกใจ').click();
+  await page.waitForTimeout(2000);
 
   // ตรวจสอบ title ให้ตรงกับจริง
   await expect(page).toHaveTitle(/SUT HEALJAI/);

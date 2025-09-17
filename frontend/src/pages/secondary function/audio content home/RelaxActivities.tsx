@@ -91,7 +91,7 @@ function RelaxActivities() {
   return (
     <div className="flex flex-col items-center p-6 min-h-screen bg-gradient-to-b from-white dark:from-transparent to-[#C2F4FF] dark:to-[#C2F4FF]/30 font-ibmthai">
       {/* Greeting bubble */}
-      <div className="w-full max-w-4xl relative mb-20">
+      <div className="w-full max-w-4xl relative mb-15">
         <div className="bg-[#E6F9FF] rounded-xl p-4 w-[75%] shadow-sm dark:bg-chat-dark">
           <p className="font-bold text-gray-900 mb-1 dark:text-text-dark">สวัสดี {username || "..."}</p>
           <p className="text-gray-800 text-base leading-relaxed dark:text-text-dark">
@@ -112,10 +112,10 @@ function RelaxActivities() {
         </div> */}
 
         <img
-          src={userImage}
-          alt="Character"
-          className="absolute right-20 top-15 w-28 transition-all duration-300"
-        />
+    src={userImage}
+    alt="Character"
+    className="mt-4 w-24 ml-auto sm:mt-0 sm:absolute sm:right-20 sm:top-15 sm:w-28 transition-all duration-300"
+  />
       </div>
 
       <div className="w-full max-w-4xl mb-4">
