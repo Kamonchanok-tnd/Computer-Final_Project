@@ -5,5 +5,6 @@ export interface Criteria {
   description: string;
   min_criteria_score: number;
   max_criteria_score: number;
+  recommendation?: string; 
   calculations?: Calculation[];
 }

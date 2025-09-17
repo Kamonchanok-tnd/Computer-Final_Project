@@ -4,7 +4,7 @@ test.describe('Admin DeleteMessage — UAT', () => {
    
   await page.goto('http://localhost:5173/admin/messagePage');
   await page.waitForTimeout(1000);  
-   await page.getByRole('row', { name: '9 test test บทความ How-to' }).getByRole('button').nth(1).click();
+   await page.getByRole('row', { name: '9 testx testx บทความ How-to' }).getByRole('button').nth(1).click();
   await page.waitForTimeout(1000); 
   await page.getByRole('button', { name: 'ยืนยัน' }).click();
   await page.waitForTimeout(1000); 
