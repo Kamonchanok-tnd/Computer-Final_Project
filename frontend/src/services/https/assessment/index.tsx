@@ -190,6 +190,25 @@ export async function getMyTransactions(): Promise<ITransaction[]> {
   return getUserTransactions(uid);
 }
 
+// เพิ่ม: ดึง AssessmentResult ตาม ID (ใช้ของ user ปัจจุบัน)
+export const getAssessmentResultByID = async (arid: number): Promise<any> => {
+  const res = await axiosInstance.get(`/assessment/AssessmentResults/${arid}`);
+  return res.data; // ควรมี field QuID หรือ Questionnaire.ID
+};
+
+// เพิ่ม: ดึง Criteria เฉพาะของแบบสอบถาม (qu_id)
+export const getCriteriaByQuID = async (quId: number): Promise<any[]> => {
+  try {
+    const res = await axiosInstance.get(`/assessment/Criteria`, {
+      params: { qu_id: quId },
+    });
+    return res.data as any[];
+  } catch (err) {
+    console.error("❌ Failed to fetch criteria by qu_id", err);
+    return [];
+  }
+};
+
 
 ////////////////////////////////////////////Admin Finished//////////////////////////////////////////////////////////////////////////
 export const getQuestionnaireGroupByID = async (id: number) => {
