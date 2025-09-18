@@ -32,6 +32,9 @@ type (
        Age        int       `json:"age"`  
        BirthDate   string `json:"birth_date"`
        Gender     string    `json:"gender"`
+       PersonType string  `json:"person_type"`
+       Faculty    string  `json:"faculty"`
+       Year       *int    `json:"year"`
        ConsentAccepted   bool      `json:"consent_accepted"`
        ConsentAcceptedAt time.Time `json:"consent_accepted_at"`
    }
@@ -108,6 +111,9 @@ user := entity.Users{
     Gender:           payload.Gender,
     ConsentAccepted:  payload.ConsentAccepted,       // เพิ่มตรงนี้
     ConsentAcceptedAt: payload.ConsentAcceptedAt,    // เพิ่มตรงนี้
+    PersonType: payload.PersonType,
+    Faculty:    payload.Faculty,
+    Year:       *payload.Year,
 }
 
 
