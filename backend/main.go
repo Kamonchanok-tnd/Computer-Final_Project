@@ -223,9 +223,8 @@ func main() {
 		router.GET("/dashboard/questionaire/resultsoverview",dashboardcontents.GetSurveyVisualization )
 		router.GET("/dashboard/questionaire/resultsoverview/:id",dashboardcontents.GetSurveyVisualizationByID )
 		router.GET("/dashboard/questionnaire/:id/average-score", dashboardcontents.GetAverageScoreCard)
-		router.GET("/dashboard/questionnaire/recent/use", dashboardcontents.GetLatestRespondents)
-		router.GET("/dashboard/questionnaire/prepost", dashboardcontents.GetPrePostTransactions)
-		router.GET("/dashboard/questionnaire/standalone", dashboardcontents.GetStandaloneTransactions)
+		
+	
 
 		
 		router.GET("/dashboard/questionnaire/user", dashboardcontents.GetRespondents)

@@ -212,8 +212,13 @@ const FormStepQuestion: React.FC = () => {
     return null;
   };
 
-  const goCreateCriteria = (qid: number) =>
-    navigate(`/admin/createCriteriaPage?questionnaireId=${qid}`, { state: { questionnaireId: qid }, replace: true });
+  const goCreateCriteria = (qid: number) => {
+    
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/createCriteriaPage?questionnaireId=${qid}`, { state: { questionnaireId: qid }, replace: true });
+  }
+
 
   const handleSubmit = async () => {
     if (submitting) return;

@@ -782,55 +782,7 @@ func GetAverageScoreCard(c *gin.Context) {
     c.JSON(http.StatusOK, resp)
 }
 
-func GetLatestRespondents(c *gin.Context) {
-    db := config.DB()
 
-    // limit จำนวนผลลัพธ์
-    limitStr := c.Query("limit")
-    limit := 5 // default
-    if limitStr != "" {
-        l, err := strconv.Atoi(limitStr)
-        if err == nil && l > 0 {
-            limit = l
-        }
-    }
-
-    type Respondent struct {
-        ID                uint    `json:"id"`
-        UserID            uint    `json:"user_id"`
-        Username          string  `json:"username"`
-        QuestionnaireName string  `json:"questionnaire_name"`
-        Score             float64 `json:"score"`
-        Result             string  `json:"result"`
-        TakenAt           string  `json:"taken_at"`
-        QType             string  `json:"q_type"`
-
-    }
-
-    var respondents []Respondent
-
-    err := db.Table("transactions").
-        Select(`transactions.id AS id,
-                users.id AS user_id,
-                users.username,
-                transactions.description AS questionnaire_name,
-                transactions.total_score AS score,
-                transactions.result AS result,
-                transactions.created_at AS taken_at,
-                transactions.questionnaire_group AS q_type`).
-        Joins("JOIN assessment_results ON assessment_results.id = transactions.ar_id").
-        Joins("JOIN users ON users.id = assessment_results.uid").
-        Order("transactions.created_at DESC").
-        Limit(limit).
-        Scan(&respondents).Error
-
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch latest respondents"})
-        return
-    }
-
-    c.JSON(http.StatusOK, respondents)
-}
 
 // GET /dashboard/questionnaire/detail/:userId
 type RespondentTrend struct {
@@ -848,80 +800,6 @@ type RespondentWithTrend struct {
     SurveyType        string             `json:"survey_type"`
     Trend             []RespondentTrend  `json:"trend"`
 }
-
-func GetPrePostTransactions(c *gin.Context) {
-     //อาจจะยัง
-    db := config.DB()
-    uidStr := c.Query("uid")
-    description := c.Query("description") // แบบสอบถาม เช่น 'แบบวัดระดับความสุข คะแนน 0-10'
-    tid := c.Query("tid")
-
-    uid, err := strconv.Atoi(uidStr)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid uid"})
-        return
-    }
-
-    type ResultItem struct {
-        QuestionnaireGroup string    `json:"questionnaire_group"`
-        TotalScore         int       `json:"total_score"`
-        Date               time.Time `json:"date"`
-        SessionNumber      int       `json:"session_number"`
-    }
-
-    var results []ResultItem
-    err = db.Table("transactions t").
-        Select("t.questionnaire_group, t.total_score, ar.created_at AS date, ROW_NUMBER() OVER(PARTITION BY ar.uid, t.description, t.questionnaire_group ORDER BY ar.date) AS session_number").
-        Joins("JOIN assessment_results ar ON ar.id = t.ar_id").
-        Where("ar.uid = ? AND t.description = ? AND t.questionnaire_group IN (?) AND t.id <= ?", uid, description, []string{"Pre-test", "Post-test"},tid).
-        Order("t.created_at ASC").
-        // Limit(2).
-        Scan(&results).Error
-
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-
-    c.JSON(http.StatusOK, results)
-}
-
-func GetStandaloneTransactions(c *gin.Context) {
-    //อาจจะยัง
-    db := config.DB()
-    uidStr := c.Query("uid")
-    description := c.Query("description") // แบบสอบถาม เช่น 'แบบวัดระดับความสุข คะแนน 0-10'
-    tid := c.Query("tid")
-
-    uid, err := strconv.Atoi(uidStr)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid uid"})
-        return
-    }
-
-    type ResultItem struct {
-        QuestionnaireGroup string    `json:"questionnaire_group"`
-        TotalScore         int       `json:"total_score"`
-        Date               time.Time `json:"date"`
-    }
-
-    var results []ResultItem
-    err = db.Table("transactions t").
-        Select("t.questionnaire_group, t.total_score, ar.created_at AS date").
-        Joins("JOIN assessment_results ar ON ar.id = t.ar_id").
-        Where("ar.uid = ? AND t.description = ? AND t.questionnaire_group = ? AND t.id <= ?", uid, description, "Personal",tid).
-        Order("ar.created_at DESC").
-        Limit(3).
-        Scan(&results).Error
-
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-
-    c.JSON(http.StatusOK, results)
-}
-
 
 
 // ฟังก์ชัน API

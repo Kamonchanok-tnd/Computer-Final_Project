@@ -55,7 +55,7 @@ function ListSound() {
   const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
 
   const [AllSounds, setAllSounds] = useState<SoundList[]>([]);
-  const [deletedRowIds, setDeletedRowIds] = useState<number[]>([]);
+  const [deletedRowIds, _setDeletedRowIds] = useState<number[]>([]);
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -173,10 +173,11 @@ function ListSound() {
     },
     {
       header: "แก้ไข",
+      
       cell: ({ row }) => (
         <div className="flex gap-2">
           <button className="text-gray-400 hover:text-gray-600  transition-all duration-500 bg-gray-100 p-2 rounded-md "
-            onClick={() => navigate(`/admin/sounds/${row.original.ID}`)}>
+            onClick={() => getRolePath(`sounds/${row.original.ID}`)}>
             <SquarePen  size={20}/>
           </button>
   
@@ -282,6 +283,13 @@ function ListSound() {
   }
 
   // ลบเพลง
+
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
   
 
   return (
@@ -294,7 +302,7 @@ function ListSound() {
   การจัดการเสียง
 </h2>
           <button className="bg-button-blue text-white py-1 px-2 rounded mr-2"
-            onClick={() => navigate("/admin/meditation")}
+            onClick={() => getRolePath("meditation")}
           >
             <div className="flex gap-2">
               <Plus />

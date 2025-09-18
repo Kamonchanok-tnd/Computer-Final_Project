@@ -55,10 +55,12 @@ const CreateCriteriaPage: React.FC = () => {
 
   useEffect(() => {
     if (!questionnaireId) {
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
       Modal.warning({
         title: "ไม่พบแบบทดสอบ",
         content: "ไม่มี questionnaireId ถูกส่งมา",
-        onOk: () => navigate("/admin/questionnairePage", { replace: true }),
+        onOk: () => navigate(`/${rolePrefix}/questionnairePage`, { replace: true }),
       });
     }
   }, [questionnaireId, navigate]);
@@ -133,8 +135,10 @@ const CreateCriteriaPage: React.FC = () => {
       await new Promise<void>((resolve) => {
         msg.success({ content: "สร้างเกณฑ์การประเมินสำเร็จ!", duration: 1.2, onClose: resolve });
       });
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
 
-      navigate("/admin/questionnairePage", {
+      navigate(`/${rolePrefix}/questionnairePage`, {
         replace: true,
         state: {
           flash: {

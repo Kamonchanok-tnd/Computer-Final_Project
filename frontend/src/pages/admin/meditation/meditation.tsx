@@ -63,6 +63,13 @@ const VideoForm: React.FC = () => {
     }
   }, [form]);
 
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
+
   const handleSubmit = async (values: any) => {
     if (userId) {
       values.uid = Number(userId);
@@ -87,7 +94,7 @@ const VideoForm: React.FC = () => {
       message.error('เกิดข้อผิดพลาดในการเพิ่มวิดีโอ');
     } finally {
       setTimeout(() => {
-        navigate('/admin/sounds');
+        getRolePath("sounds");
       }, 2000);
     }
   };
@@ -292,7 +299,7 @@ const VideoForm: React.FC = () => {
 
                 <div className="flex justify-end gap-3 mt-8">
               <button 
-                onClick={() => navigate("/admin")}
+                onClick={() => getRolePath('sounds')}
                 className="px-6 py-2 text-red-500 hover:text-red-600 border-none shadow-none bg-transparent"
               >
                 ยกเลิก

@@ -20,6 +20,8 @@ interface Slide {
   icon: ReactNode; 
   secondBg: string;
   secondIcon: ReactNode; 
+  path: string;
+  secondPath: string;
 }
 
 const slides: Slide[] = [
@@ -45,6 +47,9 @@ const slides: Slide[] = [
     icon: <Headphones className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-[#AED581]" />,
     secondBg: "bg-gradient-to-br from-[#E1BEE7] to-[#CE93D8]",
     secondIcon: <PenTool className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-[#BA68C8] " />,
+    path: "/audiohome/asmr",
+    secondPath: "/audiohome/mirror",
+
   },
   {
     img: pray,
@@ -65,6 +70,8 @@ const slides: Slide[] = [
     icon: <Book className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-[#FFD54F]" />,
     secondBg: "bg-gradient-to-br from-[#B3E5FC] to-[#81D4FA]",
     secondIcon: <Waves className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-[#00B8D9]" />,
+    path: "/audiohome/chanting",
+    secondPath:"/audiohome/meditation",
   },
 ];
 
@@ -82,7 +89,7 @@ function Homeasmr() {
   const currentSlide = slides[index];
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 xl:px-30 font-ibmthai">
+    <div className="px-4 sm:px-6 lg:px-8 xl:px-30 font-ibmthai border">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
         <h1 className="text-xl sm:text-2xl px-2 text-basic-text dark:text-text-dark">พื้นที่ผ่อนคลาย</h1>
         <button
@@ -98,7 +105,9 @@ function Homeasmr() {
         {/* Mobile Layout (Stack vertically) */}
         <div className="block lg:hidden space-y-4 transition-all duration-700 ease-in-out mt-4">
           {/* First Card */}
-          <div className={`${currentSlide.bg} rounded-xl p-4 flex flex-col`}>
+          <div className={`${currentSlide.bg} rounded-xl p-4 flex flex-col cursor-pointer `}
+          onClick={() => navigate(currentSlide.path)}
+         >
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-white rounded-full shadow-sm">
                 {currentSlide.icon}
@@ -118,7 +127,8 @@ function Homeasmr() {
           </div>
 
           {/* Second Card */}
-          <div className={`${currentSlide.secondBg} rounded-xl p-4 flex flex-col`}>
+          <div className={`${currentSlide.secondBg} rounded-xl p-4 flex flex-col cursor-pointer`}
+          onClick={() => navigate(currentSlide.secondPath)}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-white rounded-full shadow-sm">
                 {currentSlide.secondIcon}
@@ -141,14 +151,16 @@ function Homeasmr() {
         {/* Desktop Layout (Grid) */}
         <div className="hidden lg:grid grid-cols-2 gap-6 transition-all duration-700 ease-in-out mt-4">
           {/* Left side */}
-          <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center"
+         >
             <img 
               src={currentSlide.img} 
               alt={currentSlide.title} 
               className="w-48 xl:w-60 rounded-xl object-cover" 
             />
           </div>
-          <div className={`${currentSlide.bg} rounded-xl p-6 min-h-[300px] flex flex-col`}>
+          <div className={`${currentSlide.bg} rounded-xl p-6 min-h-[300px] flex flex-col cursor-pointer`}
+           onClick={() => navigate(currentSlide.path)}>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-full shadow-sm">
                 {currentSlide.icon}
@@ -161,7 +173,8 @@ function Homeasmr() {
           </div>
 
           {/* Right side */}
-          <div className={`${currentSlide.secondBg} rounded-xl p-6 min-h-[300px] flex flex-col`}>
+          <div className={`${currentSlide.secondBg} rounded-xl p-6 min-h-[300px] flex flex-col cursor-pointer`}
+          onClick={() => navigate(currentSlide.secondPath)}>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-full shadow-sm">
                 {currentSlide.secondIcon}

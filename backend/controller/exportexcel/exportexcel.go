@@ -93,16 +93,15 @@ func ExportExcel(c *gin.Context) {
 	var rows []ExportRow
 	result := db.Raw(`
 		SELECT
-			u.id                AS user_id,
+		
 			u.username          AS username,
-			ar.id               AS assessment_result_id,
+		
 			ar.date             AS assessment_date,
-			qn.id               AS questionnaire_id,
+			
 			qn.name_questionnaire AS questionnaire_name,
-			q.id                AS question_id,
+		
 			q.name_question     AS question_text,
-			aa.id               AS assessment_answer_id,
-			ao.id               AS answer_option_id,
+			
 			ao.description      AS answer_text,
 			aa.point            AS answer_score
 		FROM assessment_answers aa
@@ -188,8 +187,8 @@ func ExportExcel(c *gin.Context) {
 
 		// Header
         headers := []string{
-			"รหัสผู้ใช้", "ชื่อผู้ใช้", "รหัสผลการประเมิน", "วันที่ประเมิน",
-			"รหัสคำถาม", "คำถาม", "คำตอบ", "คะแนน",
+			 "ชื่อผู้ใช้", "วันที่ประเมิน",
+			 "คำถาม", "คำตอบ", "คะแนน",
 		}
 		
 		// เขียน header
@@ -208,11 +207,9 @@ func ExportExcel(c *gin.Context) {
 			
 			// ใช้ array เพื่อให้ code สั้นลง
 			values := []interface{}{
-				row.UserID,
+			
 				row.Username,
-				row.AssessmentResultID,
 				row.AssessmentDate,
-				row.QuestionID,
 				row.QuestionText,
 				row.AnswerText,
 				row.AnswerScore,
