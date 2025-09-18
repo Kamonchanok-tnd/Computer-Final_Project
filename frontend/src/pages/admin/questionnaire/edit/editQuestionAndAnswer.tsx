@@ -1,7 +1,6 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {Button,Form,  Input,InputNumber,Modal,Tag,Collapse,Upload,Select,message,} from "antd";
+import {Button,Form,Input,InputNumber,Modal,Tag,Collapse,Upload,Select,message,Spin, } from "antd";
 import {DeleteOutlined,MenuOutlined,MinusSquareOutlined,PlusSquareOutlined,UploadOutlined,PlusOutlined,SaveOutlined,RollbackOutlined,} from "@ant-design/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Question } from "../../../../interfaces/IQuestion";
@@ -100,9 +99,7 @@ const EditQuestionAndAnswer: React.FC = () => {
 
         const mapped = (serverItems || []).map(normalize);
         const prioritized = mapped
-          .sort(
-            (a, b) => (a.question.priority || 0) - (b.question.priority || 0)
-          )
+          .sort((a, b) => (a.question.priority || 0) - (b.question.priority || 0))
           .map((x, i) => ({ ...x, question: { ...x.question, priority: i + 1 } }));
 
         setQuestions(prioritized);
@@ -174,10 +171,7 @@ const EditQuestionAndAnswer: React.FC = () => {
       const next = [...prev];
       next[qi] = {
         ...next[qi],
-        answers: [
-          ...next[qi].answers,
-          { id: 0, description: "", point: 0, EmotionChoiceID: 0 },
-        ],
+        answers: [...next[qi].answers, { id: 0, description: "", point: 0, EmotionChoiceID: 0 }],
       };
       return next;
     });
@@ -264,11 +258,9 @@ const EditQuestionAndAnswer: React.FC = () => {
   const validateBeforeSave = (): string | null => {
     if (!questions.length) return "กรุณาเพิ่มคำถามอย่างน้อย 1 ข้อ";
     for (const [i, item] of questions.entries()) {
-      if (!item.question.nameQuestion?.trim())
-        return `กรุณากรอกข้อความคำถามที่ ${i + 1}`;
+      if (!item.question.nameQuestion?.trim()) return `กรุณากรอกข้อความคำถามที่ ${i + 1}`;
       const valid = item.answers.filter((a) => a.description.trim() !== "");
-      if (!valid.length)
-        return `กรุณากรอกอย่างน้อย 1 ตัวเลือกในคำถามที่ ${i + 1}`;
+      if (!valid.length) return `กรุณากรอกอย่างน้อย 1 ตัวเลือกในคำถามที่ ${i + 1}`;
       for (const [j, a] of valid.entries()) {
         if (!a.EmotionChoiceID)
           return `กรุณาเลือกอารมณ์สำหรับคำตอบที่ ${j + 1} ของคำถามที่ ${i + 1}`;
@@ -286,6 +278,8 @@ const EditQuestionAndAnswer: React.FC = () => {
   const handleSave = async () => {
     const err = validateBeforeSave();
     if (err) return msg.warning(err);
+
+    let didNavigate = false; // ✅ กันกะพริบ spinner เมื่อนำทางสำเร็จ
     try {
       setSaving(true);
       const payload = questions.map((q) => ({
@@ -293,19 +287,18 @@ const EditQuestionAndAnswer: React.FC = () => {
         answers: q.answers.filter((a) => a.description.trim() !== ""),
       }));
       await updateQuestionAndAnswer(questionnaireId!, payload);
+
       await new Promise<void>((r) =>
-        msg.success({
-          content: "แก้ไขคำถามและคำตอบสำเร็จ!",
-          duration: 1.2,
-          onClose: r,
-        })
+        msg.success({ content: "แก้ไขคำถามและคำตอบสำเร็จ!", duration: 1.2, onClose: r })
       );
+
+      didNavigate = true;
       goEditCriteria(questionnaireId!);
     } catch (e: any) {
       console.error(e);
       msg.error(e?.message || "บันทึกไม่สำเร็จ กรุณาลองใหม่");
     } finally {
-      setSaving(false);
+      if (!didNavigate) setSaving(false);
     }
   };
 
@@ -323,7 +316,7 @@ const EditQuestionAndAnswer: React.FC = () => {
       : joinUrl(apiUrl, `images/emotion_choice/${p}`);
 
   if (!questionnaireId) return null;
-  
+
   const inputCls =
     "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors";
   const answerInputCls =
@@ -340,6 +333,7 @@ const EditQuestionAndAnswer: React.FC = () => {
   return (
     <div className="w-full max-w-none min-h-screen p-4 pb-20 sm:p-6 lg:p-8 md:pb-8">
       {contextHolder}
+      <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." /> {/* สปินเนอร์เต็มจอ */}
 
       {/* Header */}
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -350,17 +344,13 @@ const EditQuestionAndAnswer: React.FC = () => {
             className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
           />
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-              แก้ไขคำถามและคำตอบ
-            </h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">แก้ไขคำถามและคำตอบ</h2>
             <div className="text-sm text-gray-500">
               แบบทดสอบ ID: {questionnaireId}
               {typeof quantity === "number" && (
                 <Tag color={remaining! < 0 ? "red" : "blue"} className="ml-2">
                   จำนวนข้อที่กำหนด: {quantity}
-                  {typeof remaining === "number" && remaining >= 0 && (
-                    <> (เหลือเพิ่มได้อีก {remaining})</>
-                  )}
+                  {typeof remaining === "number" && remaining >= 0 && <> (เหลือเพิ่มได้อีก {remaining})</>}
                 </Tag>
               )}
             </div>
@@ -408,9 +398,7 @@ const EditQuestionAndAnswer: React.FC = () => {
               icon={<PlusOutlined />}
               className={`${toolBtnCls} !bg-yellow-200 !border-yellow-300 !text-yellow-800 hover:!bg-yellow-300`}
               onClick={addQuestion}
-              disabled={
-                typeof quantity === "number" && questions.length >= quantity
-              }
+              disabled={typeof quantity === "number" && questions.length >= quantity}
             >
               เพิ่มคำถาม
             </Button>
@@ -427,11 +415,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                 {questions.map((q, qIndex) => {
                   const panelKey = qIndex.toString();
                   return (
-                    <Draggable
-                      key={`question-${qIndex}`}
-                      draggableId={`question-${qIndex}`}
-                      index={qIndex}
-                    >
+                    <Draggable key={`question-${qIndex}`} draggableId={`question-${qIndex}`} index={qIndex}>
                       {(provided2) => (
                         <div
                           ref={provided2.innerRef}
@@ -439,16 +423,8 @@ const EditQuestionAndAnswer: React.FC = () => {
                           className="w-full mb-4 rounded-2xl shadow-sm overflow-hidden"
                           style={provided2.draggableProps.style}
                         >
-                          <div
-                            className={`rounded-2xl p-2 sm:p-3 ${
-                              bgClasses[qIndex % bgClasses.length]
-                            }`}
-                          >
-                            <Collapse
-                              activeKey={activeKeys}
-                              bordered={false}
-                              className="bg-transparent"
-                            >
+                          <div className={`rounded-2xl p-2 sm:p-3 ${bgClasses[qIndex % bgClasses.length]}`}>
+                            <Collapse activeKey={activeKeys} bordered={false} className="bg-transparent">
                               <Panel
                                 key={panelKey}
                                 showArrow={false}
@@ -456,14 +432,8 @@ const EditQuestionAndAnswer: React.FC = () => {
                                 header={
                                   <div className="flex flex-col gap-1 md:gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-2">
-                                      <img
-                                        src={questionIcon}
-                                        alt="question"
-                                        className="w-5 h-5 object-contain"
-                                      />
-                                      <span className="text-base sm:text-lg font-semibold">
-                                        คำถามข้อที่ {qIndex + 1}
-                                      </span>
+                                      <img src={questionIcon} alt="question" className="w-5 h-5 object-contain" />
+                                      <span className="text-base sm:text-lg font-semibold">คำถามข้อที่ {qIndex + 1}</span>
                                     </div>
 
                                     {/* ปุ่มชิดขวา */}
@@ -489,13 +459,7 @@ const EditQuestionAndAnswer: React.FC = () => {
 
                                       <Button
                                         type="default"
-                                        icon={
-                                          activeKeys.includes(panelKey) ? (
-                                            <MinusSquareOutlined />
-                                          ) : (
-                                            <PlusSquareOutlined />
-                                          )
-                                        }
+                                        icon={activeKeys.includes(panelKey) ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           togglePanel(panelKey);
@@ -519,27 +483,18 @@ const EditQuestionAndAnswer: React.FC = () => {
                                   <div className="flex-1 flex flex-col gap-3">
                                     {/* คำถาม */}
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                                      <label className="text-sm sm:text-base font-semibold">
-                                        คำถาม:
-                                      </label>
+                                      <label className="text-sm sm:text-base font-semibold">คำถาม:</label>
                                       <Input
                                         placeholder={`คำถามข้อที่ ${qIndex + 1}`}
                                         value={q.question.nameQuestion}
-                                        onChange={(e) =>
-                                          updateQuestionText(
-                                            qIndex,
-                                            e.target.value
-                                          )
-                                        }
+                                        onChange={(e) => updateQuestionText(qIndex, e.target.value)}
                                         className={`w-full ${inputCls}`}
                                       />
                                     </div>
 
                                     {/* Header ตาราง (desktop) */}
                                     <div className="hidden sm:grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700">
-                                      <span className="col-span-6">
-                                        ตัวเลือกคำตอบ
-                                      </span>
+                                      <span className="col-span-6">ตัวเลือกคำตอบ</span>
                                       <span className="col-span-2">คะแนน</span>
                                       <span className="col-span-3">อารมณ์</span>
                                       <span className="col-span-1" />
@@ -554,8 +509,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                         >
                                           <div className="mb-3 flex items-center justify-between">
                                             <span className="text-sm font-semibold text-gray-700">
-                                              คำตอบที่ {i + 1} ของข้อ{" "}
-                                              {qIndex + 1}
+                                              คำตอบที่ {i + 1} ของข้อ {qIndex + 1}
                                             </span>
                                             <Button
                                               danger
@@ -563,9 +517,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                               size="small"
                                               icon={<DeleteOutlined />}
                                               className="!bg-rose-600 hover:!bg-rose-700 !border-none"
-                                              onClick={() =>
-                                                removeAnswer(qIndex, i)
-                                              }
+                                              onClick={() => removeAnswer(qIndex, i)}
                                             />
                                           </div>
 
@@ -573,14 +525,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                             <Input
                                               placeholder={`ตัวเลือกที่ ${i + 1}`}
                                               value={a.description}
-                                              onChange={(e) =>
-                                                updateAnswer(
-                                                  qIndex,
-                                                  i,
-                                                  "description",
-                                                  e.target.value
-                                                )
-                                              }
+                                              onChange={(e) => updateAnswer(qIndex, i, "description", e.target.value)}
                                               className={`${answerInputCls}`}
                                             />
 
@@ -588,14 +533,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                               <InputNumber
                                                 placeholder="คะแนน"
                                                 value={a.point}
-                                                onChange={(v) =>
-                                                  updateAnswer(
-                                                    qIndex,
-                                                    i,
-                                                    "point",
-                                                    Number(v ?? 0)
-                                                  )
-                                                }
+                                                onChange={(v) => updateAnswer(qIndex, i, "point", Number(v ?? 0))}
                                                 min={0}
                                                 style={{ width: "100%" }}
                                                 className={`${answerNumberCls} !block [&_.ant-input-number-input]:text-center`}
@@ -605,43 +543,22 @@ const EditQuestionAndAnswer: React.FC = () => {
                                             <div className="mt-4">
                                               <Select
                                                 placeholder="เลือกอารมณ์"
-                                                value={
-                                                  a.EmotionChoiceID || undefined
-                                                }
-                                                onChange={(v) =>
-                                                  setAnswerEmotion(
-                                                    qIndex,
-                                                    i,
-                                                    v as number
-                                                  )
-                                                }
+                                                value={a.EmotionChoiceID || undefined}
+                                                onChange={(v) => setAnswerEmotion(qIndex, i, v as number)}
                                                 optionLabelProp="label"
                                                 showSearch
                                                 style={{ width: "100%" }}
                                                 className={`${answerSelectCls} !block`}
-                                                filterOption={(
-                                                  input,
-                                                  option
-                                                ) =>
-                                                  (option?.label as string)
-                                                    .toLowerCase()
-                                                    .includes(
-                                                      input.toLowerCase()
-                                                    )
+                                                filterOption={(input, option) =>
+                                                  (option?.label as string).toLowerCase().includes(input.toLowerCase())
                                                 }
                                               >
                                                 {emotionChoices.map((c) => (
-                                                  <Select.Option
-                                                    key={c.id}
-                                                    value={c.id}
-                                                    label={c.name}
-                                                  >
+                                                  <Select.Option key={c.id} value={c.id} label={c.name}>
                                                     <div className="flex items-center gap-2">
                                                       {c.picture && (
                                                         <img
-                                                          src={buildImageSrc(
-                                                            c.picture
-                                                          )}
+                                                          src={buildImageSrc(c.picture)}
                                                           alt={c.name}
                                                           className="w-6 h-6 object-cover rounded-full"
                                                         />
@@ -661,20 +578,12 @@ const EditQuestionAndAnswer: React.FC = () => {
                                     <div className="hidden sm:block">
                                       <div className="space-y-2">
                                         {q.answers.map((a, i) => (
-                                          <div
-                                            key={`q${qIndex}-a${i}-${a.id ?? "new"}`}
-                                            className="grid grid-cols-12 gap-2"
-                                          >
+                                          <div key={`q${qIndex}-a${i}-${a.id ?? "new"}`} className="grid grid-cols-12 gap-2">
                                             <Input
                                               placeholder={`ตัวเลือกที่ ${i + 1}`}
                                               value={a.description}
                                               onChange={(e) =>
-                                                updateAnswer(
-                                                  qIndex,
-                                                  i,
-                                                  "description",
-                                                  e.target.value
-                                                )
+                                                updateAnswer(qIndex, i, "description", e.target.value)
                                               }
                                               className={`col-span-6 ${answerInputCls}`}
                                             />
@@ -682,14 +591,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                               <InputNumber
                                                 placeholder="คะแนน"
                                                 value={a.point}
-                                                onChange={(v) =>
-                                                  updateAnswer(
-                                                    qIndex,
-                                                    i,
-                                                    "point",
-                                                    Number(v ?? 0)
-                                                  )
-                                                }
+                                                onChange={(v) => updateAnswer(qIndex, i, "point", Number(v ?? 0))}
                                                 min={0}
                                                 className={`${answerNumberCls} [&_.ant-input-number-input]:text-center w-full`}
                                               />
@@ -697,38 +599,20 @@ const EditQuestionAndAnswer: React.FC = () => {
                                             <Select
                                               className={`col-span-3 ${answerSelectCls}`}
                                               placeholder="เลือกอารมณ์"
-                                              value={
-                                                a.EmotionChoiceID || undefined
-                                              }
-                                              onChange={(v) =>
-                                                setAnswerEmotion(
-                                                  qIndex,
-                                                  i,
-                                                  v as number
-                                                )
-                                              }
+                                              value={a.EmotionChoiceID || undefined}
+                                              onChange={(v) => setAnswerEmotion(qIndex, i, v as number)}
                                               optionLabelProp="label"
                                               showSearch
                                               filterOption={(input, option) =>
-                                                (option?.label as string)
-                                                  .toLowerCase()
-                                                  .includes(
-                                                    input.toLowerCase()
-                                                  )
+                                                (option?.label as string).toLowerCase().includes(input.toLowerCase())
                                               }
                                             >
                                               {emotionChoices.map((c) => (
-                                                <Select.Option
-                                                  key={c.id}
-                                                  value={c.id}
-                                                  label={c.name}
-                                                >
+                                                <Select.Option key={c.id} value={c.id} label={c.name}>
                                                   <div className="flex items-center gap-2">
                                                     {c.picture && (
                                                       <img
-                                                        src={buildImageSrc(
-                                                          c.picture
-                                                        )}
+                                                        src={buildImageSrc(c.picture)}
                                                         alt={c.name}
                                                         className="w-6 h-6 object-cover rounded-full"
                                                       />
@@ -743,9 +627,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                                 type="primary"
                                                 danger
                                                 icon={<DeleteOutlined />}
-                                                onClick={() =>
-                                                  removeAnswer(qIndex, i)
-                                                }
+                                                onClick={() => removeAnswer(qIndex, i)}
                                                 className={`h-8 w-8 !p-0 flex items-center justify-center !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 ${noRingCls}`}
                                                 style={noRingStyle}
                                               />
@@ -755,36 +637,25 @@ const EditQuestionAndAnswer: React.FC = () => {
                                       </div>
                                     </div>
 
-                                    <Button
-                                      type="dashed"
-                                      onClick={() => addAnswer(qIndex)}
-                                    >
+                                    <Button type="dashed" onClick={() => addAnswer(qIndex)}>
                                       + เพิ่มตัวเลือก
                                     </Button>
 
                                     {/* Upload image */}
                                     <Form.Item
-                                      label={
-                                        <span className="text-sm sm:text-base font-semibold">
-                                          อัปโหลดรูป (ถ้ามี)
-                                        </span>
-                                      }
+                                      label={<span className="text-sm sm:text-base font-semibold">อัปโหลดรูป (ถ้ามี)</span>}
                                       className="w-full"
                                     >
                                       {!q.question.picture ? (
                                         <Upload
                                           listType="picture-card"
                                           className="w-full"
-                                          beforeUpload={(f) =>
-                                            handleImageUpload(f, qIndex)
-                                          }
+                                          beforeUpload={(f) => handleImageUpload(f, qIndex)}
                                           fileList={[]}
                                         >
                                           <div className="flex flex-col items-center justify-center py-4">
                                             <UploadOutlined />
-                                            <div className="mt-2">
-                                              เพิ่มรูปภาพ
-                                            </div>
+                                            <div className="mt-2">เพิ่มรูปภาพ</div>
                                           </div>
                                         </Upload>
                                       ) : (
@@ -793,19 +664,13 @@ const EditQuestionAndAnswer: React.FC = () => {
                                             src={q.question.picture}
                                             alt="Preview"
                                             className="w-auto h-auto max-w-full sm:max-w-md max-h-[340px] rounded-xl cursor-pointer object-contain"
-                                            onClick={() =>
-                                              handlePreview(
-                                                q.question.picture!
-                                              )
-                                            }
+                                            onClick={() => handlePreview(q.question.picture!)}
                                           />
                                           <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-100 xl:opacity-0 xl:hover:opacity-100 transition-opacity">
                                             <Button
                                               aria-label="ลบรูป"
                                               icon={<DeleteOutlined />}
-                                              onClick={() =>
-                                                handleRemoveImage(qIndex)
-                                              }
+                                              onClick={() => handleRemoveImage(qIndex)}
                                               type="text"
                                               danger
                                               className={`!text-white !bg-black/60 rounded-full ${noRingCls}`}
