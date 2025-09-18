@@ -24,7 +24,7 @@ const AssessmentLists: React.FC = () => {
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [groupName, setGroupName] = useState<string>("แบบสอบถาม");
+  const [groupName, setGroupName] = useState<string>("แบบทดสอบสุขภาพจิต");
 
   useEffect(() => {
     const run = async () => {
@@ -45,9 +45,9 @@ const AssessmentLists: React.FC = () => {
           setLoading(false);
           return;
         }
-        setGroupName(found?.name || "แบบสอบถาม");
+        setGroupName(found?.name || "แบบทดสอบสุขภาพจิต");
 
-        // queue แบบสอบถามที่ต้องทำ โดยอัด startQid ให้อยู่หัวคิวเสมอ
+        // queue แบบทดสอบสุขภาพจิตที่ต้องทำ โดยอัด startQid ให้อยู่หัวคิวเสมอ
         const pending: number[] = (found?.pending_quids || []) as number[];
         const uniqueIds = Array.from(new Set([startQid, ...pending]));
 
@@ -68,7 +68,7 @@ const AssessmentLists: React.FC = () => {
 
         setRows(nextRows);
       } catch (e) {
-        console.error("❌ โหลดรายการแบบสอบถามไม่สำเร็จ:", e);
+        console.error("❌ โหลดรายการแบบทดสอบสุขภาพจิตไม่สำเร็จ:", e);
       } finally {
         setLoading(false);
       }
@@ -98,8 +98,8 @@ const AssessmentLists: React.FC = () => {
 
       navigate("/assessments");
     } catch (e) {
-      console.error("❌ เริ่มทำแบบสอบถามไม่สำเร็จ:", e);
-      alert("เริ่มทำแบบสอบถามไม่สำเร็จ กรุณาลองใหม่");
+      console.error("❌ เริ่มทำแบบทดสอบสุขภาพจิตไม่สำเร็จ:", e);
+      alert("เริ่มทำแบบทดสอบสุขภาพจิตไม่สำเร็จ กรุณาลองใหม่");
     }
   }, [rows, gid, startQid, navigate]);
 
@@ -128,7 +128,7 @@ const AssessmentLists: React.FC = () => {
     return (
       <div className="fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
         <div className="bg-sky-200 rounded-2xl p-8 text-center shadow-xl">
-          <p className="font-semibold">ไม่พบรายการแบบสอบถามในกลุ่มนี้</p>
+          <p className="font-semibold">ไม่พบรายการแบบทดสอบสุขภาพจิตในกลุ่มนี้</p>
           <button
             onClick={() => navigate("/")}
             className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition"
@@ -152,7 +152,7 @@ const AssessmentLists: React.FC = () => {
           <h1 className="text-xl font-bold">{groupName}</h1>
         </div>
 
-        <h1 className="text-xl font-semibold mb-4">แบบสอบถามที่รอการแบ่งปันจากคุณ 🌱</h1>
+        <h1 className="text-xl font-semibold mb-4">แบบทดสอบที่รอการแบ่งปันจากคุณ 🌱</h1>
 
         <div className="space-y-3 text-left max-h-[45vh] overflow-auto pr-1">
           {rows.map((r, idx) => (
