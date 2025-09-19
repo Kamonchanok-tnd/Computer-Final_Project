@@ -6,7 +6,7 @@ import {
   message,
   Row,
   Col,
-  InputNumber,
+  //InputNumber,
   Select,
   Typography,
   Divider,
@@ -20,6 +20,11 @@ import { CreateUser } from "../../../services/https/login";
 import logo from "../../../assets/ยินดีต้อนรับ.png";
 import "./register.css";
 const { Title, Text } = Typography;
+import dayjs from "dayjs";
+import "dayjs/locale/th";
+
+import thTH from 'antd/es/date-picker/locale/th_TH';
+
 
 function SignUpPages() {
   const navigate = useNavigate();
@@ -28,7 +33,8 @@ function SignUpPages() {
   const genderOptions = [
     { value: "ชาย", label: "ชาย" },
     { value: "หญิง", label: "หญิง" },
-    { value: "อื่นๆ", label: "อื่นๆ" },
+    { value: "LGBTQ+", label: "LGBTQ+" },
+    { value: "ไม่ระบุ", label: "ไม่ระบุ" },
   ];
 
   // state สำหรับ consent
@@ -59,6 +65,11 @@ function SignUpPages() {
       return;
     }
 
+    // ✅ แปลงวันเกิดเป็น YYYY-MM (string) ก่อนส่ง
+    if (values.birth_date) {
+      values.birth_date = dayjs(values.birth_date).format("YYYY-MM");
+    }
+
     const payload = {
     ...values,
     consent_accepted: consentAccepted,
@@ -76,6 +87,32 @@ function SignUpPages() {
       messageApi.error(res.data.error);
     }
   };
+const personTypeOptions = [
+  { value: "นักศึกษามทส", label: "นักศึกษามทส" },
+  { value: "บุคคลภายนอก", label: "บุคคลภายนอก" },
+  { value: "อาจารย์", label: "อาจารย์" },
+];
+
+const facultyOptions = [
+  "สำนักวิชาสาธารณสุขศาสตร์",
+  "สำนักวิชาทันตแพทยศาสตร์",
+  "สำนักวิชาพยาบาลศาสตร์",
+  "สำนักวิชาวิศวกรรมศาสตร์",
+  "สำนักวิชาแพทยศาสตร์",
+  "สำนักวิชาเทคโนโลยีการเกษตร",
+  "สำนักวิชาเทคโนโลยีสังคม",
+  "สำนักวิชาวิทยาศาสตร์",
+  "สำนักวิชาศาสตร์และศิลป์ดิจิทัล",
+];
+
+const yearOptions = [
+  { value: 1, label: "ชั้นปี 1" },
+  { value: 2, label: "ชั้นปี 2" },
+  { value: 3, label: "ชั้นปี 3" },
+  { value: 4, label: "ชั้นปี 4" },
+  { value: 5, label: "ชั้นปี 5" },
+  { value: 6, label: "ชั้นปี 6" },
+];
 
   return (
     <div
@@ -229,7 +266,7 @@ function SignUpPages() {
                     name="username"
                     rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้งาน !" }]}
                   >
-                    <Input placeholder="Username" />
+                    <Input placeholder="ชื่อผู้ใช้" />
                   </Form.Item>
                 </Col>
 
@@ -242,7 +279,7 @@ function SignUpPages() {
                       { required: true, message: "กรุณากรอกอีเมล !" },
                     ]}
                   >
-                    <Input placeholder="Email" />
+                    <Input placeholder="อีเมล" />
                   </Form.Item>
                 </Col>
 
@@ -258,9 +295,57 @@ function SignUpPages() {
       },
     ]}
   >
-    <Input.Password placeholder="Password" />
+    <Input.Password placeholder="รหัสผ่าน" />
   </Form.Item>
 </Col>
+<Col span={24}>
+  <Form.Item
+    label="ประเภทผู้ใช้งาน"
+    name="person_type"
+    rules={[{ required: true, message: "กรุณาเลือกประเภทผู้ใช้งาน !" }]}
+  >
+    <Select
+      placeholder="เลือกประเภทผู้ใช้งาน"
+      options={personTypeOptions}
+    />
+  </Form.Item>
+</Col>
+
+{/* ถ้าเลือกเป็นนักศึกษามทส -> แสดงฟอร์มสำนักวิชาและชั้นปี */}
+<Form.Item noStyle shouldUpdate={(prev, curr) => prev.person_type !== curr.person_type}>
+  {({ getFieldValue }) =>
+    getFieldValue("person_type") === "นักศึกษามทส" && (
+      <>
+        <Col span={24}>
+          <Form.Item
+            label="สำนักวิชา"
+            name="faculty"
+            rules={[{ required: true, message: "กรุณาเลือกสำนักวิชา !" }]}
+          >
+            <Select placeholder="เลือกสำนักวิชา">
+              {facultyOptions.map((f) => (
+                <Select.Option key={f} value={f}>
+                  {f}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+
+        <Col span={24}>
+          <Form.Item
+            label="ชั้นปี"
+            name="year"
+            rules={[{ required: true, message: "กรุณาเลือกชั้นปี !" }]}
+          >
+            <Select placeholder="เลือกชั้นปี" options={yearOptions} />
+          </Form.Item>
+        </Col>
+      </>
+    )
+  }
+</Form.Item>
+
                 {/* <Col xs={24} md={12}>
                   <Form.Item
                     label="อายุ"
@@ -272,16 +357,23 @@ function SignUpPages() {
                 </Col> */}
                 <Col xs={24} md={12}>
             <Form.Item
-              label="วันเกิด"
-              name="birth_date"
-              rules={[{ required: true, message: "กรุณาเลือกวันเกิด !" }]}
-            >
-              <DatePicker
-                format="YYYY-MM-DD"
-                className="!w-full"
-                placeholder="เลือกวันเกิด"
-              />
-            </Form.Item>
+                    label="เดือนและปีเกิด"
+                    name="birth_date"
+                    rules={[
+                      { required: true, message: "กรุณาเลือกเดือนและปีเกิด !" },
+                    ]}
+                  >
+                    <DatePicker
+  picker="month"
+  format="MMMM YYYY"
+  locale={thTH}   // ✅ ใส่เป็น object ไม่ใช่ string
+  className="!w-full"
+  placeholder="เลือกเดือนและปีเกิด"
+/>
+
+
+                  </Form.Item>
+
           </Col>
                 <Col xs={24} md={12}>
                   <Form.Item
@@ -308,18 +400,18 @@ function SignUpPages() {
       { pattern: /^[0-9]{9,10}$/, message: "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก" },
     ]}
   >
-    <Input placeholder="Phone Number" maxLength={10} />
+    <Input placeholder="เบอร์โทรศัพท์" maxLength={10} />
   </Form.Item>
 </Col>
 
                 <Col xs={24} md={12}>
                   <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
-                    <Input placeholder="Facebook" />
+                    <Input placeholder="เฟซบุ๊ก" />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
                   <Form.Item label="Line (ไม่จำเป็น)" name="line">
-                    <Input placeholder="Line ID" />
+                    <Input placeholder="ไลน์ ไอดี" />
                   </Form.Item>
                 </Col>
 

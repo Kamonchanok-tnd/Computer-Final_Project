@@ -22,7 +22,7 @@ func TestAssessmentResult_AllCases(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	// required ทุกช่อง
-	t.Run("missing Date -> required", func(t *testing.T) {
+	t.Run("Date is required", func(t *testing.T) {
 		m := validAssessmentResult()
 		m.Date = ""
 		ok, err := govalidator.ValidateStruct(m)
@@ -30,7 +30,7 @@ func TestAssessmentResult_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุวันที่"))
 	})
 
-	t.Run("missing UID -> required", func(t *testing.T) {
+	t.Run("UID is required", func(t *testing.T) {
 		m := validAssessmentResult()
 		m.UID = 0
 		ok, err := govalidator.ValidateStruct(m)
@@ -38,7 +38,7 @@ func TestAssessmentResult_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุผู้ใช้"))
 	})
 
-	t.Run("missing QuID -> required", func(t *testing.T) {
+	t.Run("QuID is required", func(t *testing.T) {
 		m := validAssessmentResult()
 		m.QuID = 0
 		ok, err := govalidator.ValidateStruct(m)
@@ -46,7 +46,7 @@ func TestAssessmentResult_AllCases(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุแบบสอบถาม"))
 	})
 
-	t.Run("missing QGID -> required", func(t *testing.T) {
+	t.Run("QGID is required", func(t *testing.T) {
 		m := validAssessmentResult()
 		m.QGID = 0
 		ok, err := govalidator.ValidateStruct(m)
@@ -55,7 +55,7 @@ func TestAssessmentResult_AllCases(t *testing.T) {
 	})
 
 	// valid
-	t.Run("valid -> ok", func(t *testing.T) {
+	t.Run("All valid", func(t *testing.T) {
 		ok, err := govalidator.ValidateStruct(validAssessmentResult())
 		g.Expect(ok).To(BeTrue())
 		g.Expect(err).To(BeNil())

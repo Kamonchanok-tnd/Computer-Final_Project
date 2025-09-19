@@ -239,6 +239,7 @@ type CriteriaDTO struct {
 	Description string `json:"description"`
 	MinScore    int    `json:"minScore"`
 	MaxScore    int    `json:"maxScore"`
+	Recommendation string `json:"recommendation"`
 }
 
 // ฟังก์ชันสำหรับสร้าง Criteria พร้อมสร้าง Calculation
@@ -267,6 +268,7 @@ func CreateCriterias(c *gin.Context) {
 			Description:       it.Description,
 			MinCriteriaScore:  it.MinScore,
 			MaxCriteriaScore:  it.MaxScore,
+			Recommendation:    it.Recommendation,
 		}
 
 		// สร้าง Criteria

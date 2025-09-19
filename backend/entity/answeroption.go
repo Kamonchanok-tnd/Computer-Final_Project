@@ -14,7 +14,7 @@ type AnswerOption struct {
 	// อ้างอิงคำถาม: บังคับ
 	QID uint `json:"qid" valid:"required~กรุณาระบุคำถาม (QID)"`
 
-	// EmotionChoice อาจเลือกหรือไม่เลือกก็ได้ → ไม่บังคับ
+	// EmotionChoice บังคับ
 	EmotionChoiceID uint          `json:"emotionChoiceId" valid:"-"`
 	EmotionChoice   EmotionChoice `gorm:"foreignKey:EmotionChoiceID" json:"emotionChoice" valid:"-"`
 

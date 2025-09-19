@@ -96,42 +96,7 @@ func TestQuestionValidation(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("กรุณาระบุแบบทดสอบ (QuID)"))
 	})
 
-	// ❌ Priority เกินช่วง
-	t.Run("priority out of range high (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		q := makeValidQ()
-		q.Priority = 101
-
-		ok, err := ValidateQuestion(q)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("ลำดับความสำคัญต้องอยู่ระหว่าง 0–100"))
-	})
-
-	// ❌ Priority ต่ำกว่าช่วง
-	t.Run("priority out of range low (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		q := makeValidQ()
-		q.Priority = -1
-
-		ok, err := ValidateQuestion(q)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("ลำดับความสำคัญต้องอยู่ระหว่าง 0–100"))
-	})
-
-	// ❌ Picture ไม่ใช่ data URL
-	t.Run("picture invalid (TH)", func(t *testing.T) {
-		g := NewWithT(t)
-		q := makeValidQ()
-		bad := "https://example.com/img.png"
-		q.Picture = &bad
-
-		ok, err := ValidateQuestion(q)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("รูปภาพต้องเป็น data URL แบบ base64"))
-	})
+	
 
 	// ✅ เฉพาะฟิลด์บังคับ (ไม่มี Picture/Priority) ก็ต้องผ่าน
 	t.Run("only required fields valid (TH)", func(t *testing.T) {

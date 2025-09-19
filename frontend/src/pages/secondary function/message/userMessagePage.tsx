@@ -577,12 +577,12 @@ export default function UserMessagePage() {
         {/* Tabs */}
         <div className="w-full max-w-5xl mx-auto mb-4 sm:mb-6 flex justify-center">
           <div className="overflow-x-auto max-w-full no-scrollbar">
-            <div className="inline-flex w-fit mx-auto items-center rounded-full bg-white/80 dark:bg-slate-800/70 p-1 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-              <div className="flex gap-1 px-1">
+            <div className="mx-auto inline-block min-w-max rounded-full bg-white/80 dark:bg-slate-800/70 p-1 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+              <div className="flex gap-1 px-1 whitespace-nowrap">
                 {([
-                  { key: "shorts",        label: "บทความสั้น",        count: shortsAll.length },
+                  { key: "shorts",        label: "ข้อความ",        count: shortsAll.length },
                   { key: "articles",      label: "บทความ",            count: articlesAll.length },
-                  { key: "likedShorts",   label: "ที่ถูกใจ (บทสั้น)", count: likedShortsAll.length },
+                  { key: "likedShorts",   label: "ที่ถูกใจ (ข้อความ)", count: likedShortsAll.length },
                   { key: "likedArticles", label: "ที่ถูกใจ (บทความ)", count: likedArticlesAll.length },
                 ] as { key: PageMode; label: string; count: number }[]).map((b) => {
                   const active = mode === b.key;
@@ -616,7 +616,7 @@ export default function UserMessagePage() {
         {/* บทความสั้น */}
         <section className={mode === "shorts" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "shorts"}>
           <div className="w-full max-w-5xl mx-auto mb-10">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">บทความสั้น ({shortsAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ข้อความหรือบทความสั้น ({shortsAll.length})</h3>
 
             {shortsPageItems.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความสั้น</div>
@@ -746,10 +746,10 @@ export default function UserMessagePage() {
         {/* ที่ถูกใจ (บทสั้น) */}
         <section className={mode === "likedShorts" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "likedShorts"}>
           <div className="w-full max-w-5xl mx-auto">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (บทสั้น) ({likedShortsAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (ข้อความหรือบทความสั้น) ({likedShortsAll.length})</h3>
 
             {likedShortsPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีบทความสั้นที่คุณถูกใจ</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีข้อความหรือบทความสั้นที่คุณถูกใจ</div>
             ) : (
               groupByDay(likedShortsPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);

@@ -18,6 +18,11 @@ type Users struct {
 	Age         int    `json:"age"`
 	BirthDate   string `json:"birth_date"` //why
 	Gender      string `json:"gender"`
+	
+	// เพิ่มข้อมูลเกี่ยวกับการศึกษา / สถานะบุคคล
+	Year      int    `json:"year"`       // ชั้นปี (1-4, 5, etc.)
+	PersonType string `json:"person_type"` // นักศึกษามทส | บุคคลภายนอก | อาจารย์
+	Faculty   string `json:"faculty"`    // คณะ
 
 
 	PFID          uint          `json:"pfid" gorm:"default:1"`

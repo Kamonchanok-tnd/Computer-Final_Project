@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { message } from "antd";
+import { message, Spin } from "antd";
 import type { MessageInstance } from "antd/es/message/interface";
 import { useNavigate } from "react-router-dom";
 import createQuestionIcon from "../../../../assets/createQuestionnaire.png";
@@ -9,7 +9,10 @@ import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 /* ชนิดข้อมูล/ตัวเลือก */
 type TestType = "positive" | "negative";
 type Option = { label: string; value: string | number; icon?: React.ReactNode | string };
-type CardRefLike =| React.MutableRefObject<HTMLDivElement | null>| React.RefObject<HTMLDivElement | null>| null
+type CardRefLike =
+  | React.MutableRefObject<HTMLDivElement | null>
+  | React.RefObject<HTMLDivElement | null>
+  | null
   | undefined;
 
 /* คลาสอินพุตมาตรฐานของหน้า*/
@@ -25,14 +28,14 @@ const DropdownSearchSelect: React.FC<{
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  cardRef?: CardRefLike; 
+  cardRef?: CardRefLike;
 }> = ({ value, onChange, options, placeholder = "เลือก...", disabled, className = "", cardRef }) => {
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
   const boxRef = useRef<HTMLDivElement | null>(null);
 
   const [dropUp, setDropUp] = useState(false);
-  const [menuMaxH, setMenuMaxH] = useState(288); 
+  const [menuMaxH, setMenuMaxH] = useState(288);
   const IDEAL_MENU_H = 288;
 
   const selected = options.find((o) => o.value === value);
@@ -271,7 +274,7 @@ const UploadBox: React.FC<{
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบบทความ</label>
+      <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ</label>
 
       <div
         className={`group rounded-[22px] border-2 border-dashed p-4 sm:p-6 transition-colors ${
@@ -374,6 +377,7 @@ const FormStepInfo: React.FC = () => {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+    let didNavigate = false;
 
     const idStr = localStorage.getItem("id");
     const uid = idStr ? parseInt(idStr) : undefined;
@@ -392,7 +396,12 @@ const FormStepInfo: React.FC = () => {
       setSubmitting(false);
       return;
     }
-    if (hasCondition && (!conditionOnID || !conditionScore || !conditionType)) {
+
+    // ใช้ค่า default 1 เมื่อเปิดเงื่อนไขแต่ยังไม่ขยับปุ่ม
+    const effectiveScore = hasCondition ? (conditionScore ?? 1) : undefined;
+
+    // ตรวจเฉพาะ field ที่ต้องมีจริง ๆ เมื่อเปิดเงื่อนไข
+    if (hasCondition && (!conditionOnID || !conditionType)) {
       messageApi.error("กรุณากรอกเงื่อนไขให้ครบถ้วน");
       setSubmitting(false);
       return;
@@ -405,7 +414,7 @@ const FormStepInfo: React.FC = () => {
       uid,
       testType,
       conditionOnID: hasCondition ? conditionOnID : undefined,
-      conditionScore: hasCondition ? conditionScore : undefined,
+      conditionScore: effectiveScore, 
       conditionType: hasCondition ? conditionType : undefined,
       picture: pictureBase64,
       questions: [],
@@ -425,18 +434,21 @@ const FormStepInfo: React.FC = () => {
         });
       });
 
+      didNavigate = true;
       navigate("/admin/createquestion", { state: { questionnaireId, quantity } });
     } catch (err) {
       console.error(err);
       messageApi.error("ไม่สามารถบันทึกแบบทดสอบได้ กรุณาลองใหม่");
     } finally {
-      setSubmitting(false);
+      if (!didNavigate) setSubmitting(false);
     }
   };
 
   return (
     <>
       {contextHolder}
+      <Spin spinning={submitting} fullscreen tip="กำลังบันทึกข้อมูล..." />
+
       <div className="min-h-screen w-full bg-slate-100 py-8">
         <div className="w-full px-6">
           <div className="mb-6 flex items-center gap-3">
@@ -486,7 +498,18 @@ const FormStepInfo: React.FC = () => {
                       type="checkbox"
                       className="h-4 w-4 rounded border-slate-300 hover:border-black"
                       checked={hasCondition}
-                      onChange={(e) => setHasCondition(e.target.checked)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setHasCondition(checked);
+                        if (checked) {
+                          // ตั้งค่าเริ่มต้นทันทีเพื่อกัน error
+                          setConditionType("greaterThan");
+                          setConditionScore((s) => s ?? 1);
+                        } else {
+                          setConditionOnID(undefined);
+                          // ไม่ต้องล้าง score ก็ได้ เพราะจะไม่ถูกส่งใน payload
+                        }
+                      }}
                     />
                     แบบทดสอบนี้มีเงื่อนไขก่อนทำ
                   </label>

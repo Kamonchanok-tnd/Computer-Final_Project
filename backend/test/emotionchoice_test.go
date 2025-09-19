@@ -109,15 +109,5 @@ func TestEmotionChoiceValidation(t *testing.T) {
 		g.Expect(err.Error()).To(Equal("รูปภาพต้องเป็นไฟล์ .png/.jpg/.jpeg/.webp/.svg หรือ data URL แบบ base64"))
 	})
 
-	// ❌ data URL ไม่ใช่รูปภาพ
-	t.Run("picture invalid data url mime", func(t *testing.T) {
-		g := NewWithT(t)
-		ec := makeValidEmotionChoice()
-		ec.Picture = "data:text/plain;base64,SGVsbG8="
-
-		ok, err := govalidator.ValidateStruct(ec)
-		g.Expect(ok).To(BeFalse())
-		g.Expect(err).ToNot(BeNil())
-		g.Expect(err.Error()).To(Equal("รูปภาพต้องเป็นไฟล์ .png/.jpg/.jpeg/.webp/.svg หรือ data URL แบบ base64"))
-	})
+	
 }

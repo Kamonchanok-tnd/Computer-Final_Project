@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {Button, Form, Input, InputNumber, Modal, Tag, Collapse,Upload, Select, message,} from "antd";
-import {DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined,UploadOutlined, PlusOutlined, SaveOutlined,} from "@ant-design/icons";
+import { Button, Form, Input, InputNumber, Modal, Tag, Collapse, Upload, Select, message, Spin } from "antd";
+import { DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined, UploadOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 import { Question } from "../../../../interfaces/IQuestion";
@@ -25,7 +25,6 @@ const bgClasses = [
   "bg-gradient-to-br from-amber-50 to-amber-100",
   "bg-gradient-to-br from-violet-50 to-violet-100",
 ];
-
 
 const squareBtnCls =
   "!p-0 rounded-lg border border-slate-300 bg-white text-gray-700 " +
@@ -220,6 +219,7 @@ const FormStepQuestion: React.FC = () => {
     const err = validateBeforeSubmit();
     if (err) return msg.warning(err);
 
+    let didNavigate = false;
     try {
       setSubmitting(true);
       const cleaned = questions.map((q) => ({
@@ -230,12 +230,13 @@ const FormStepQuestion: React.FC = () => {
       await new Promise<void>((resolve) =>
         msg.success({ content: "สร้างคำถามเเละคำตอบสำเร็จ", duration: 1.2, onClose: resolve })
       );
+      didNavigate = true;
       goCreateCriteria(questionnaireId!);
     } catch (error: any) {
       console.error(error);
       msg.error(error?.message || "บันทึกไม่สำเร็จ กรุณาลองใหม่");
     } finally {
-      setSubmitting(false);
+      if (!didNavigate) setSubmitting(false);
     }
   };
 
@@ -266,6 +267,7 @@ const FormStepQuestion: React.FC = () => {
   return (
     <div className="w-full max-w-none min-h-screen p-4 pb-20 sm:p-6 lg:p-8 md:pb-8">
       {contextHolder}
+      <Spin spinning={submitting} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
       {/* Title */}
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -549,7 +551,6 @@ const FormStepQuestion: React.FC = () => {
                                           className="w-full"
                                           beforeUpload={(file) => handleImageUpload(file, qIndex)}
                                           fileList={[]}
-                                          // เอา onPreview ออกตามคำขอ (ไม่ต้องมีปุ่ม preview)
                                         >
                                           <div className="flex flex-col items-center justify-center py-4">
                                             <UploadOutlined />
@@ -562,9 +563,8 @@ const FormStepQuestion: React.FC = () => {
                                             src={q.question.picture}
                                             alt="Preview"
                                             className="w-auto h-auto max-w-full sm:max-w-md max-h-[340px] rounded-xl cursor-pointer object-contain"
-                                            onClick={() => handlePreview(q.question.picture!)} // ยังคลิกที่รูปเพื่อดูได้
+                                            onClick={() => handlePreview(q.question.picture!)}
                                           />
-                                          {/* เอาปุ่ม Preview ออก เหลือเฉพาะปุ่มลบ */}
                                           <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-100 xl:opacity-0 xl:hover:opacity-100 transition-opacity">
                                             <Button
                                               aria-label="ลบรูป"
@@ -623,6 +623,3 @@ const FormStepQuestion: React.FC = () => {
 };
 
 export default FormStepQuestion;
-
-
-
