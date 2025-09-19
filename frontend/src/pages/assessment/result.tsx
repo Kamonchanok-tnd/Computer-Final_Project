@@ -1,23 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import RSH from "../../assets/assessment/ResultHappy.png";
 import RSS from "../../assets/assessment/ResultSad.png";
 import RSB from "../../assets/assessment/ResultBored.png";
-import iconHug from "../../assets/assessment/hug.png";
-import iconYay from "../../assets/assessment/yay.png";
-import iconSmile from "../../assets/assessment/smile.png";
-import iconDoc from "../../assets/assessment/doc.png";
-import { getAvailableGroupsAndNext } from "../../services/https/assessment";
+import { getAvailableGroupsAndNext, getAssessmentResultByID, getCriteriaByQuID } from "../../services/https/assessment";
 import { GroupOut } from "../../interfaces/IQuestionnaireGroup";
-
-const InlineIcon: React.FC<{ src: string; alt: string }> = ({ src, alt }) => (
-  <img
-    src={src}
-    alt={alt}
-    className="inline-block align-[-2px] w-6 h-6 mx-1"
-    draggable={false}
-  />
-);
 
 const Result: React.FC = () => {
   const location = useLocation();
@@ -30,10 +17,20 @@ const Result: React.FC = () => {
   const resultLevel = transaction?.result_level ?? "bored";
   const testType = transaction?.test_type ?? "positive";
   const title = transaction?.result ?? "ผลการประเมิน";
+  const arid = transaction?.arid;
 
   // QID/Group ถัดไปที่ “พร้อมทำจริงๆ”
   const [nextQid, setNextQid] = useState<number | null>(null);
   const [nextGroupId, setNextGroupId] = useState<number | null>(null);
+
+  const [recommendation, setRecommendation] = useState<string>("");
+
+  // ✅ เก็บ QID จาก localStorage ตั้งแต่ mount แรก (กันโดน effect อื่นล้าง)
+  const initialQidRef = useRef<number | null>(null);
+  if (initialQidRef.current === null) {
+    const lsQid = Number(localStorage.getItem("questionnaireID"));
+    initialQidRef.current = Number.isNaN(lsQid) ? null : lsQid;
+  }
 
   useEffect(() => {
     const userObj = JSON.parse(localStorage.getItem("user") || "{}");
@@ -88,6 +85,90 @@ const Result: React.FC = () => {
     navigate(`/assessmentlists/${nextGroupId}/${nextQid}`);
   };
 
+  // ✅ โหลด Recommendation ตามเกณฑ์ของ qu_id ที่แมตช์คะแนน (มี fallback หา quId หลายแหล่ง)
+  useEffect(() => {
+    (async () => {
+      try {
+        // 0) คะแนนที่จะใช้ match กับช่วง
+        const currentScore = Number(score);
+
+        // 1) พยายามใช้ qu_id จาก transaction ก่อน (ถ้า backend มีส่งมา)
+        let quId: number | null =
+          (transaction?.qu_id ??
+            transaction?.QuID ??
+            null) as number | null;
+
+        // 2) ถ้ายังไม่มี ลองใช้ค่าแรกเริ่มจาก localStorage (ก่อนโดนล้าง)
+        if (!quId && initialQidRef.current) {
+          quId = initialQidRef.current;
+          console.log("[Result] use quId from localStorage:", quId);
+        }
+
+        // 3) ถ้ายังไม่เจอ และมี arid → โหลด AssessmentResult เพื่อคาย QuID ออกมา
+        if (!quId && arid) {
+          const ar = await getAssessmentResultByID(Number(arid));
+          quId =
+            ar?.QuID ??
+            ar?.qu_id ??
+            ar?.Questionnaire?.ID ??
+            ar?.Questionnaire?.id ??
+            null;
+          console.log("[Result] use quId from AssessmentResult:", quId);
+        }
+
+        if (!quId) {
+          console.warn("⚠️ Cannot resolve QuID from any source");
+          setRecommendation("ไม่พบแบบทดสอบที่สัมพันธ์กับผลลัพธ์นี้ (QuID) กรุณาลองใหม่อีกครั้ง");
+          return;
+        }
+
+        // 4) ดึง criteria ของ qu_id นี้
+        const criteriaList = await getCriteriaByQuID(Number(quId));
+
+        // 5) หา criteria ที่ช่วงคะแนนครอบคลุม score → ดึง Recommendation
+        type CriteriaLike = {
+          min?: number;
+          max?: number;
+          MinCriteriaScore?: number;
+          MaxCriteriaScore?: number;
+          min_criteria_score?: number;
+          max_criteria_score?: number;
+          Recommendation?: string;
+          recommendation?: string;
+        };
+
+        const matched = (criteriaList as CriteriaLike[]).find((cr) => {
+          const min =
+            cr.MinCriteriaScore ??
+            cr.min_criteria_score ??
+            (cr as any).min ??
+            0;
+          const max =
+            cr.MaxCriteriaScore ??
+            cr.max_criteria_score ??
+            (cr as any).max ??
+            0;
+          return currentScore >= Number(min) && currentScore <= Number(max);
+        });
+
+        const reco =
+          matched?.Recommendation ??
+          matched?.recommendation ??
+          "";
+
+        setRecommendation(
+          reco ||
+            ""
+        );
+      } catch (e) {
+        console.error("❌ load recommendation failed:", e);
+        setRecommendation(
+          "เกิดข้อผิดพลาดในการโหลดคำแนะนำ (Recommendation) กรุณาลองใหม่ภายหลัง"
+        );
+      }
+    })();
+  }, [arid, transaction?.qu_id, transaction?.QuID, score]);
+
   // ===== UI เดิมของหน้าผลลัพธ์ =====
   const percentage = (score / maxScore) * 100;
   const circumference = 2 * Math.PI * 45;
@@ -109,60 +190,25 @@ const Result: React.FC = () => {
     }
   };
 
-   const getResultDetails = () => {
+  const getResultDetails = () => {
     switch (resultLevel) {
       case "happy":
         return {
           image: RSH,
-          descriptionNode: (
-            <>
-              เห็นได้ชัดว่าคุณดูแลตัวเองได้ดีเยี่ยมจริง ๆ
-              <InlineIcon src={iconYay} alt="yay" />
-              <br />
-              <br />
-              ขอให้ใช้ชีวิตให้มีความสุขสดใสแบบนี้ตลอดไปเลยนะคะ!
-              <InlineIcon src={iconSmile} alt="smile" />
-            </>
-          ),
         };
       case "bored":
         return {
           image: RSB,
-          descriptionNode: (
-            <>
-              การดูแลสุขภาพจิตของตัวเองเป็นเรื่องสำคัญ เราจะอยู่เคียงข้างคุณเสมอ
-              <InlineIcon src={iconHug} alt="hug" />
-              <br />
-              <br />
-              ขอเป็นกำลังใจให้คุณก้าวผ่านช่วงเวลานี้ไปได้นะคะ{" "}
-              <InlineIcon src={iconSmile} alt="smile" />
-            </>
-          ),
         };
       case "sad":
       default:
         return {
           image: RSS,
-          descriptionNode: (
-            <>
-              การดูแลสุขภาพจิตของตัวเองเป็นเรื่องสำคัญ เราจะอยู่เคียงข้างคุณเสมอ
-              <InlineIcon src={iconHug} alt="hug" />
-              <br />
-              <br />
-              ถ้าหากคุณรู้สึกไม่โอเค การขอความช่วยเหลือจากผู้เชี่ยวชาญก็เป็นเรื่องสำคัญนะคะ
-              <InlineIcon src={iconDoc} alt="doc" />
-              <br />
-              <br />
-              ขอให้คุณก้าวผ่านช่วงเวลานี้ไปได้อย่างเข้มแข็งนะคะ!{" "}
-              <InlineIcon src={iconSmile} alt="smile" />
-            </>
-          ),
         };
     }
   };
 
-
-  const { image, descriptionNode  } = getResultDetails();
+  const { image } = getResultDetails();
   const scoreColor = getScoreColor(percentage);
 
   useEffect(() => {
@@ -227,7 +273,7 @@ const Result: React.FC = () => {
 
         <p className="font-semibold text-lg mb-4 whitespace-pre-line">{title}</p>
         <p className="text-sm text-gray-800 leading-relaxed mb-6 whitespace-pre-line">
-          {descriptionNode }
+          {recommendation}
         </p>
 
         {nextQid ? (

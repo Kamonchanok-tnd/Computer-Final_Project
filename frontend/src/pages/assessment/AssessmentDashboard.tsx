@@ -479,7 +479,6 @@ const AssessmentDashboard: React.FC = () => {
 
   const [rangePie, setRangePie] = useState<RangeKey>("1m");
 
-  // สรุปจำนวนครั้งต่อแบบสอบถาม
   const pieData = useMemo(() => {
     const filtered = filterByRange(tx, rangePie);
     const counts: Record<string, number> = {};
@@ -504,7 +503,7 @@ const AssessmentDashboard: React.FC = () => {
             <Activity className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <p className="text-slate-600 text-sm">การเข้าทำแบบทดสอบ</p>
+            <p className="text-slate-600 text-sm">การเข้าทำแบบทดสอบสุขภาพจิต</p>
             <p className="text-2xl font-semibold text-emerald-700">
               {totalAttempts}{" "}
               <span className="text-base font-normal">ครั้ง</span>
@@ -517,7 +516,7 @@ const AssessmentDashboard: React.FC = () => {
             <BarChart3 className="w-6 h-6 text-indigo-600" />
           </div>
           <div>
-            <p className="text-slate-600 text-sm">แบบทดสอบที่เคยทำ</p>
+            <p className="text-slate-600 text-sm">แบบทดสอบสุขภาพจิตที่เคยทำ</p>
             <p className="text-2xl font-semibold text-indigo-700">
               {uniqueTests.length}{" "}
               <span className="text-base font-normal">แบบทดสอบ</span>
@@ -551,7 +550,7 @@ const AssessmentDashboard: React.FC = () => {
             <Calendar className="w-6 h-6 text-amber-600" />
           </div>
           <div>
-            <p className="text-slate-600 text-sm">แบบทดสอบรอบถัดไป</p>
+            <p className="text-slate-600 text-sm">แบบทดสอบสุขภาพจิตรอบถัดไป</p>
             <p className="text-lg md:text-xl font-semibold text-amber-700">
               {nextRoundLabel}
             </p>
@@ -807,10 +806,10 @@ const AssessmentDashboard: React.FC = () => {
           {/* header */}
           <div className="p-5 border-b border-sky-300">
             <h3 className="font-semibold text-slate-800 mb-3">
-              จำนวนครั้งที่ทำแต่ละแบบสอบถาม
+              จำนวนครั้งที่ทำแต่ละแบบทดสอบสุขภาพจิต
             </h3>
             <p className="text-slate-500 text-sm">
-              จำนวนครั้งที่ทำแบบสอบถามทั้งหมด : {totalAttempts} ครั้ง
+              จำนวนครั้งที่ทำแบบทดสอบสุขภาพจิตทั้งหมด : {totalAttempts} ครั้ง
             </p>
           </div>
 

@@ -218,10 +218,10 @@ const ManageTestOrder: React.FC = () => {
       } else if (res?.message) {
         message.success(res.message);
       } else {
-        message.success("เพิ่มแบบสอบถามสำเร็จ");
+        message.success("เพิ่มข้อมูลสำเร็จ");
       }
     } catch (e) {
-      message.success("เพิ่มแบบสอบถามสำเร็จ");
+      message.success("เพิ่มข้อมูลสำเร็จ");
     }
     const updatedGroup = await getQuestionnaireGroupByID(dropdownGroupId);
     setQuestionnaireMap((prev) => ({
@@ -266,7 +266,7 @@ const ManageTestOrder: React.FC = () => {
 
       // ✅ กล่องยืนยันก่อนลบ
       Modal.confirm({
-        title: "ยืนยันการลบแบบสอบถาม",
+        title: "ยืนยันการลบแบบทดสอบสุขภาพจิต",
         icon: <ExclamationCircleOutlined />,
         content: (
           <div className="text-sm">
@@ -275,7 +275,7 @@ const ManageTestOrder: React.FC = () => {
             </div>
             {hasChildren && (
               <div className="mt-1">
-                รายการนี้มี “แบบสอบถามลูก” อีก {children.length}{" "}
+                รายการนี้มี “แบบทดสอบสุขภาพจิตลูก” อีก {children.length}{" "}
                 รายการที่จะถูกลบไปด้วย:
                 <ul className="list-disc ml-5 mt-1">
                   {children.map((c) => (
@@ -292,7 +292,7 @@ const ManageTestOrder: React.FC = () => {
         async onOk() {
           const idsToRemove = [qid, ...children.map((c) => c.id)];
 
-          const hide = message.loading("กำลังลบแบบสอบถาม...", 0);
+          const hide = message.loading("กำลังลบแบบทดสอบสุขภาพจิต...", 0);
           try {
             for (const id of idsToRemove) {
               await removeQuestionnaireFromGroup(groupId, id);
@@ -484,7 +484,7 @@ const ManageTestOrder: React.FC = () => {
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <img src={iconas} alt="priority" className="w-10 h-10" />
-          จัดการลำดับการแสดงแบบทดสอบถาม
+          จัดการลำดับการแสดงแบบทดสอบสุขภาพจิต
         </h1>
       </div>
 
@@ -599,8 +599,8 @@ const ManageTestOrder: React.FC = () => {
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                           : "bg-white hover:bg-gray-50 text-gray-600"
                       }`}
-                      title="เพิ่มแบบสอบถาม"
-                      aria-label="เพิ่มแบบสอบถาม"
+                      title="เพิ่มแบบทดสอบสุขภาพจิต"
+                      aria-label="เพิ่มแบบทดสอบสุขภาพจิต"
                       disabled={isDragMode}
                     >
                       <Plus className="w-4 h-4" />
@@ -609,7 +609,7 @@ const ManageTestOrder: React.FC = () => {
                       <div className="absolute right-0 mt-2 w-56 bg-white border rounded shadow z-10">
                         {availableList.length === 0 ? (
                           <p className="p-2 text-sm text-gray-500">
-                            ไม่มีแบบสอบถามใหม่
+                            ไม่มีแบบทดสอบสุขภาพจิตใหม่
                           </p>
                         ) : (
                           <ul className="p-2 space-y-1">
@@ -704,7 +704,7 @@ const ManageTestOrder: React.FC = () => {
                                 handleRemoveFromGroup(column.id, q.id)
                               }
                               className="absolute right-2 top-2 p-1 rounded hover:bg-red-50 transition-colors"
-                              title="ลบแบบสอบถาม"
+                              title="ลบแบบทดสอบสุขภาพจิต"
                             >
                               <img
                                 src={icondelete}
@@ -724,7 +724,7 @@ const ManageTestOrder: React.FC = () => {
 
                     {tasks.length === 0 && (
                       <p className="text-gray-500 text-sm italic">
-                        ไม่มีแบบสอบถามในกลุ่มนี้
+                        ไม่มีแบบทดสอบสุขภาพจิตในกลุ่มนี้
                       </p>
                     )}
                   </div>

@@ -40,13 +40,57 @@ const ASMRApp: React.FC = () => {
     setActivePanel(null);
   };
 
+  // ✅ ฟังก์ชันหยุดเสียงทุกอย่าง + ทำลาย resource
+  const stopAllAudio = () => {
+    // หยุด/ทำลาย YouTube player
+    try {
+      if (playerRef.current) {
+        if (playerRef.current.stopVideo) playerRef.current.stopVideo();
+        if (playerRef.current.pauseVideo) playerRef.current.pauseVideo();
+        if (playerRef.current.destroy) playerRef.current.destroy();
+      }
+    } catch (e) {
+      console.warn("YT cleanup error:", e);
+    } finally {
+      playerRef.current = null;
+    }
+
+    // หยุดเสียง ambience ทั้งหมด
+    try {
+      Object.values(audioRefs.current).forEach((audio) => {
+        if (!audio) return;
+        audio.pause();
+        audio.currentTime = 0;
+        try {
+          // ตัด src ช่วยให้ browser คืน resource เร็วขึ้น (optional)
+          audio.src = "";
+        } catch {}
+      });
+    } catch (e) {
+      console.warn("Audio cleanup error:", e);
+    } finally {
+      audioRefs.current = {};
+    }
+
+    // ล้าง state
+    setPlayingSounds(new Set());
+  };
+
   useEffect(() => {
     const tag = document.createElement("script");
     tag.src = "https://www.youtube.com/iframe_api";
     document.body.appendChild(tag);
     window.onYouTubeIframeAPIReady = createPlayer;
+
+    // ✅ cleanup ตอน component unmount → หยุดทุกเสียง
     return () => {
-      document.body.removeChild(tag);
+      try {
+        document.body.removeChild(tag);
+      } catch {}
+      stopAllAudio();
+      // กัน callback ถูกเรียกซ้ำหลัง unmount
+      // @ts-ignore
+      window.onYouTubeIframeAPIReady = undefined;
     };
   }, []);
 
@@ -57,9 +101,14 @@ const ASMRApp: React.FC = () => {
   }, [selectedBgUrl]);
 
   const createPlayer = () => {
-    if (iframeContainerRef.current && selectedBgUrl) {
+    if (iframeContainerRef.current && selectedBgUrl && window.YT?.Player) {
       const videoId = extractVideoId(selectedBgUrl);
-      if (playerRef.current) playerRef.current.destroy();
+
+      // ✅ ทำลาย player เดิมก่อนสร้างใหม่ กันเสียงซ้อน
+      try {
+        if (playerRef.current?.destroy) playerRef.current.destroy();
+      } catch {}
+      playerRef.current = null;
 
       playerRef.current = new window.YT.Player(iframeContainerRef.current, {
         videoId,
@@ -133,8 +182,6 @@ const ASMRApp: React.FC = () => {
     { id: "timer" as const, label: "Timer", icon: iconTimer },
   ];
 
-  
-
   const renderPanelContent = () => {
     switch (activePanel) {
       case "background":
@@ -171,8 +218,6 @@ const ASMRApp: React.FC = () => {
     }
   };
 
-  
-
   return (
     <div className="font-ibmthai fixed inset-0 h-[100svh] w-screen overflow-hidden flex bg-gray-900">
       {/* Background */}
@@ -198,12 +243,12 @@ const ASMRApp: React.FC = () => {
             <div
               ref={iframeContainerRef}
               className="
-      absolute top-1/2 left-1/2 
-      -translate-x-1/2 -translate-y-1/2
-      h-screen w-[177.78vh]   /* ใช้ความสูง fix = 100vh */
-      min-w-full             /* บังคับเต็มความกว้าง */
-      scale-150
-    "
+                absolute top-1/2 left-1/2 
+                -translate-x-1/2 -translate-y-1/2
+                h-screen w-[177.78vh]   /* ใช้ความสูง fix = 100vh */
+                min-w-full             /* บังคับเต็มความกว้าง */
+                scale-150
+              "
             />
           </div>
 
