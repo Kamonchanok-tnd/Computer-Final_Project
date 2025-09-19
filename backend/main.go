@@ -27,6 +27,7 @@ import (
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/useractivity"
 	"sukjai_project/controller/users"
+	"sukjai_project/controller/handler"
 	"sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/middlewares"
 
@@ -264,6 +265,9 @@ func main() {
 		userRouter.GET("/emotions", emotion.GetEmotions)
 		userRouter.GET("/emotions/:id", emotion.GetEmotionByID)
 		// routes/mirror.go หรือที่คุณ register route
+		userRouter.GET("/onboarding/mirror", handler.GetMirrorOnboarding)
+	userRouter.POST("/onboarding/mirror/seen", handler.SetMirrorOnboardingSeen)
+
 		userRouter.GET("/mirror/summary", mirror.GetMonthlySummary)
 		userRouter.POST("/mirror", mirror.CreateMirror)
 		userRouter.GET("/mirror/:date", mirror.GetMirrorByDate)
