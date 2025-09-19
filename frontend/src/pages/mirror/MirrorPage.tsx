@@ -13,6 +13,7 @@ import {
 } from "../../services/https/mirror";
 import { getEmotions } from "../../services/https/emotion";
 import SideOrnaments from "./components/SideOrnaments";
+import OnboardingGuide from "./components/OnboardingGuide";
 
 // YYYY-MM-DD -> 00:00:00Z (UTC)
 function toStartOfDayUTCISO(dateYMD: string) {
@@ -188,6 +189,7 @@ return (
         </div>
       </div>
     </div>
+    <OnboardingGuide />
   </div>
 );
 

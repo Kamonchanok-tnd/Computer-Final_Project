@@ -173,6 +173,7 @@ export default function MirrorFrame({
             ref={wrapRef}
             className="absolute"
             style={{ top: SAFE.top, left: SAFE.left, width: SAFE.w, height: SAFE.h }}
+            data-onboard="mirror-editor"
           >
             <div
               className="relative h-full w-full overflow-hidden flex items-start justify-center overscroll-none"
