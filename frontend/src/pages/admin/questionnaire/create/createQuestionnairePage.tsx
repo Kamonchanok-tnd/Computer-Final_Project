@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { message } from "antd";
+import { message, Spin } from "antd";
 import type { MessageInstance } from "antd/es/message/interface";
 import { useNavigate } from "react-router-dom";
 import createQuestionIcon from "../../../../assets/createQuestionnaire.png";
@@ -274,7 +274,7 @@ const UploadBox: React.FC<{
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบบทความ</label>
+      <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ</label>
 
       <div
         className={`group rounded-[22px] border-2 border-dashed p-4 sm:p-6 transition-colors ${
@@ -379,6 +379,7 @@ const FormStepInfo: React.FC = () => {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+    let didNavigate = false;
 
     const idStr = localStorage.getItem("id");
     const uid = idStr ? parseInt(idStr) : undefined;
@@ -415,7 +416,7 @@ const FormStepInfo: React.FC = () => {
       uid,
       testType,
       conditionOnID: hasCondition ? conditionOnID : undefined,
-      conditionScore: effectiveScore, // ✅ ใช้ค่า default แล้ว
+      conditionScore: effectiveScore, 
       conditionType: hasCondition ? conditionType : undefined,
       picture: pictureBase64,
       questions: [],
@@ -442,13 +443,15 @@ const FormStepInfo: React.FC = () => {
       console.error(err);
       messageApi.error("ไม่สามารถบันทึกแบบทดสอบได้ กรุณาลองใหม่");
     } finally {
-      setSubmitting(false);
+      if (!didNavigate) setSubmitting(false);
     }
   };
 
   return (
     <>
       {contextHolder}
+      <Spin spinning={submitting} fullscreen tip="กำลังบันทึกข้อมูล..." />
+
       <div className="min-h-screen w-full bg-slate-100 py-8">
         <div className="w-full px-6">
           <div className="mb-6 flex items-center gap-3">
@@ -502,7 +505,7 @@ const FormStepInfo: React.FC = () => {
                         const checked = e.target.checked;
                         setHasCondition(checked);
                         if (checked) {
-                          // ✅ ตั้งค่าเริ่มต้นทันทีเพื่อกัน error
+                          // ตั้งค่าเริ่มต้นทันทีเพื่อกัน error
                           setConditionType("greaterThan");
                           setConditionScore((s) => s ?? 1);
                         } else {

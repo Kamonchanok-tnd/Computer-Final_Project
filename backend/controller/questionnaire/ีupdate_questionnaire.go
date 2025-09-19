@@ -467,6 +467,7 @@ type CriteriaOutput struct {
 	Description string `json:"description"`
 	MinScore    int    `json:"minScore"`
 	MaxScore    int    `json:"maxScore"`
+	Recommendation string `json:"recommendation"`
 }
 
 type CriteriaUpdateInput struct {
@@ -474,6 +475,7 @@ type CriteriaUpdateInput struct {
 	Description string `json:"description" binding:"required"`
 	MinScore    int    `json:"minScore"`
 	MaxScore    int    `json:"maxScore"`
+	Recommendation string `json:"recommendation"`
 }
 
 type CriteriaUpdateRequest struct {
@@ -492,7 +494,8 @@ func GetCriteriaByQuestionnaireID(c *gin.Context) {
 			DISTINCT c.id,
 			c.description,
 			c.min_criteria_score AS min_score,
-			c.max_criteria_score AS max_score
+			c.max_criteria_score AS max_score,
+			c.recommendation
 		`).
 		// กรอง soft-delete ฝั่ง calculation ตั้งแต่ตอน JOIN
 		Joins("JOIN calculations AS cal ON cal.c_id = c.id AND cal.deleted_at IS NULL").
@@ -578,6 +581,7 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 						"description":         it.Description,
 						"min_criteria_score":  it.MinScore,
 						"max_criteria_score":  it.MaxScore,
+						"recommendation":      it.Recommendation,
 					}).Error; err != nil {
 					return err
 				}
@@ -587,6 +591,7 @@ func UpdateCriteriaByQuestionnaireID(c *gin.Context) {
 					Description:       it.Description,
 					MinCriteriaScore:  it.MinScore,
 					MaxCriteriaScore:  it.MaxScore,
+					Recommendation:   it.Recommendation,
 				}
 				if err := tx.Create(&crit).Error; err != nil {
 					return err

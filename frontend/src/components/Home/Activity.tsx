@@ -5,7 +5,7 @@ const card = [
   {
     id: 1,
     image: meditaion,
-    title: "ทำสมาธิและฝึกลมหายใจ",
+    title: "สมาธิบำบัดและฝึกลมหายใจ",
   },
   {
     id: 2,

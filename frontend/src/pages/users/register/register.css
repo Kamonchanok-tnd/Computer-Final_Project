@@ -91,3 +91,12 @@
 .ant-select-item-option-content {
   font-family: 'IBM Plex Sans Thai', ui-sans-serif, system-ui, sans-serif !important;
 }
+
+/* สำหรับ DatePicker เฉพาะ */
+.ant-picker-input > input {
+  font-family: 'IBM Plex Sans Thai', 'ibmthai', sans-serif !important;
+}
+
+.ant-picker-input > input::placeholder {
+  font-family: 'IBM Plex Sans Thai', 'ibmthai', sans-serif !important;
+}

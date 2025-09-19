@@ -2,27 +2,26 @@ import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Button, Input, InputNumber, Spin, Popconfirm, Modal, message } from "antd";
 import { DeleteOutlined, PlusOutlined, SaveOutlined, RollbackOutlined } from "@ant-design/icons";
 import criteriaIcon from "../../../../assets/criteria.png";
-import {  getAllCriteriaByQuestionnaireId,  updateCriteriaByQuestionnaireId,} from "../../../../services/https/questionnaire";
+import { getAllCriteriaByQuestionnaireId, updateCriteriaByQuestionnaireId } from "../../../../services/https/questionnaire";
 import { useNavigate, useLocation, useSearchParams, useParams } from "react-router-dom";
 
-/* ชนิดข้อมูล */
 export interface Criterion {
   id?: number;
   description: string;
   minScore: number;
   maxScore: number;
+  recommendation?: string;
 }
 type NavState = { questionnaireId?: number | string };
 
-/* แปลงฟิลด์จาก API -> รูปแบบที่ UI ใช้ */
 const toUI = (x: any): Criterion => ({
   id: x?.id ?? x?.ID,
   description: x?.description ?? x?.Description ?? "",
   minScore: Number(x?.minScore ?? x?.MinScore ?? x?.min_criteria_score ?? x?.MinCriteriaScore ?? 0),
   maxScore: Number(x?.maxScore ?? x?.MaxScore ?? x?.max_criteria_score ?? x?.MaxCriteriaScore ?? 0),
+  recommendation: x?.recommendation ?? x?.Recommendation ?? "",
 });
 
-/* คลาสรวมสำหรับ Input/Number*/
 const inputCls =
   "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !h-12 !text-base";
 const numberCls =
@@ -36,10 +35,8 @@ const EditCriteriaPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const params = useParams<{ questionnaireId?: string; id?: string }>();
 
-  /* toast (antd message) */
   const [msg, contextHolder] = message.useMessage();
 
-  /* หา questionnaireId: state -> query -> param -> sessionStorage */
   const stateIdRaw = (location.state as NavState | null)?.questionnaireId;
   const queryIdRaw = searchParams.get("questionnaireId");
   const paramIdRaw = params.questionnaireId ?? params.id;
@@ -53,33 +50,32 @@ const EditCriteriaPage: React.FC = () => {
     parseNum(paramIdRaw) ??
     parseNum(sessionStorage.getItem("last_questionnaire_id"));
 
-  /* เก็บล่าสุดใน sessionStorage */
-  useEffect(() => { 
+  useEffect(() => {
     if (questionnaireId) sessionStorage.setItem("last_questionnaire_id", String(questionnaireId));
   }, [questionnaireId]);
 
-  /* สเตตข้อมูล */
   const [criteriaList, setCriteriaList] = useState<Criterion[]>([]);
   const [deletedIds, setDeletedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const [description, setDescription] = useState("");
+  const [recommendation, setRecommendation] = useState("");
   const [minScore, setMinScore] = useState<number | string>("");
   const [maxScore, setMaxScore] = useState<number | string>("");
+
   const formScrollRef = useRef<HTMLDivElement | null>(null);
 
- 
   const updateFormMaxHeight = () => {
     const el = formScrollRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const isMobile = window.innerWidth < 768;      
-    const bottomReserved = isMobile ? 72 : 24;     
+    const isMobile = window.innerWidth < 768;
+    const bottomReserved = isMobile ? 72 : 24;
     const max = window.innerHeight - rect.top - bottomReserved;
-    el.style.maxHeight = `${Math.max(240, max)}px`; 
+    el.style.maxHeight = `${Math.max(240, max)}px`;
   };
 
-  // คำนวณครั้งแรก + เวลารีไซส์
   useLayoutEffect(() => {
     const handler = () => updateFormMaxHeight();
     handler();
@@ -87,12 +83,10 @@ const EditCriteriaPage: React.FC = () => {
     return () => window.removeEventListener("resize", handler);
   }, []);
 
-  // คำนวณซ้ำเมื่อโหลดเสร็จหรือรายการเปลี่ยน
   useEffect(() => {
     updateFormMaxHeight();
   }, [criteriaList, loading]);
 
-  /*โหลดข้อมูล*/
   useEffect(() => {
     if (!questionnaireId) {
       Modal.warning({
@@ -118,7 +112,6 @@ const EditCriteriaPage: React.FC = () => {
     fetchData();
   }, [questionnaireId, navigate]);
 
-  /* ช่วยตรวจข้อมูล */
   const validateNoOverlap = (list: Criterion[]): string | null => {
     const descSet = new Set<string>();
     for (const [i, c] of list.entries()) {
@@ -138,7 +131,6 @@ const EditCriteriaPage: React.FC = () => {
     return null;
   };
 
-  /* เพิ่มเกณฑ์ 1 แถว */
   const addCriterion = () => {
     if (!description || minScore === "" || maxScore === "") {
       Modal.warning({ title: "กรุณากรอกข้อมูลให้ครบ", content: "ใส่คำอธิบายและช่วงคะแนนให้ครบถ้วน" });
@@ -154,7 +146,7 @@ const EditCriteriaPage: React.FC = () => {
       Modal.warning({ title: "ช่วงคะแนนไม่ถูกต้อง", content: "ขั้นต่ำต้อง ≤ สูงสุด" });
       return;
     }
-    const next = [...criteriaList, { description, minScore: minN, maxScore: maxN }];
+    const next = [...criteriaList, { description, recommendation, minScore: minN, maxScore: maxN }];
     const v = validateNoOverlap(next);
     if (v) {
       Modal.warning({ title: "ช่วงคะแนนซ้อนทับ", content: v });
@@ -162,10 +154,10 @@ const EditCriteriaPage: React.FC = () => {
     }
     setCriteriaList(next);
     setDescription("");
+    setRecommendation("");
     setMinScore("");
     setMaxScore("");
 
-    // หลัง DOM อัปเดต: อัปเดตความสูง + เลื่อนลงล่างในฟอร์ม
     requestAnimationFrame(() => {
       updateFormMaxHeight();
       const el = formScrollRef.current;
@@ -173,7 +165,6 @@ const EditCriteriaPage: React.FC = () => {
     });
   };
 
-  /* อัปเดต/ลบแถว */
   const updateRow = (idx: number, patch: Partial<Criterion>) =>
     setCriteriaList(prev => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
@@ -185,7 +176,6 @@ const EditCriteriaPage: React.FC = () => {
       return next;
     });
 
-  /* บันทึกทั้งหมด ส่ง toast ไปหน้า questionnaire */
   const handleSaveAll = async () => {
     if (!questionnaireId) return;
     const v = validateNoOverlap(criteriaList);
@@ -193,13 +183,15 @@ const EditCriteriaPage: React.FC = () => {
       Modal.warning({ title: "ตรวจสอบข้อมูล", content: v });
       return;
     }
+    let didNavigate = false;
     try {
-      setLoading(true);
+      setSubmitting(true);
       const updated = criteriaList.map(c => ({
         id: c.id,
         description: c.description.trim(),
         minScore: Number(c.minScore),
         maxScore: Number(c.maxScore),
+        recommendation: c.recommendation?.trim() ?? "",
       }));
       await updateCriteriaByQuestionnaireId(questionnaireId, { updated, deleted: deletedIds });
       setDeletedIds([]);
@@ -208,6 +200,7 @@ const EditCriteriaPage: React.FC = () => {
         msg.success({ content: "แก้ไขเกณฑ์การประเมินสำเร็จ!", duration: 1.2, onClose: resolve });
       });
 
+      didNavigate = true;
       navigate("/admin/questionnairePage", {
         replace: true,
         state: {
@@ -220,11 +213,10 @@ const EditCriteriaPage: React.FC = () => {
     } catch (e: any) {
       Modal.error({ title: "บันทึกไม่สำเร็จ", content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" });
     } finally {
-      setLoading(false);
+      if (!didNavigate) setSubmitting(false);
     }
   };
 
-  /* นำทางกลับไปหน้าแก้ไขคำถาม/คำตอบ */
   const goBackToQnA = () => {
     if (questionnaireId) {
       navigate(`/admin/editQuestionAndAnswerPage?questionnaireId=${questionnaireId}`, {
@@ -234,10 +226,12 @@ const EditCriteriaPage: React.FC = () => {
     }
   };
 
-  /* UI */
   return (
     <div className="min-h-screen w-full bg-slate-100">
       {contextHolder}
+
+      {/* สปิน fullscreen แบบเดียวกับหน้า create */}
+      <Spin spinning={submitting} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
       {/* Header */}
       <div className="w-full px-4 pt-4 sm:px-6">
@@ -258,7 +252,13 @@ const EditCriteriaPage: React.FC = () => {
             >
               กลับ
             </Button>
-            <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveAll} className="!bg-[#5DE2FF] hover:!bg-cyan-500">
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              onClick={handleSaveAll}
+              loading={submitting}
+              className="!bg-[#5DE2FF] hover:!bg-cyan-500"
+            >
               บันทึกการแก้ไข
             </Button>
           </div>
@@ -268,35 +268,36 @@ const EditCriteriaPage: React.FC = () => {
       {/* Card */}
       <div className="w-full px-4 pb-6 sm:px-6">
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 pb-16 md:pb-6">
-          {/* ตัวอย่าง (ช่วยอธิบายรูปแบบคะแนน) */}
-          <div className="mb-4 sm:mb-6">
-            <h3 className="mb-2 text-sm font-semibold text-slate-700 sm:text-base">ตัวอย่างการวัดระดับความสุข</h3>
-            <div className="grid gap-2 text-sm text-slate-700 md:grid-cols-2">
-              <ul className="list-disc pl-6">
-                <li>0 = ไม่มีความสุขเลย</li>
-                <li>1–2 = ความสุขน้อยที่สุด</li>
-                <li>3–4 = ความสุขน้อย</li>
-                <li>5–6 = ความสุขปานกลาง</li>
-                <li>7–8 = ความสุขมาก</li>
-                <li>9–10 = ความสุขมากที่สุด</li>
-              </ul>
-              <ul className="list-disc pl-6 text-red-500">
-                <li>“ไม่มีความสุขเลย” → ต่ำสุด 0 สูงสุด 0</li>
-                <li>“ความสุขน้อยที่สุด” → ต่ำสุด 1 สูงสุด 2</li>
-                <li>“ความสุขน้อย” → ต่ำสุด 3 สูงสุด 4</li>
-                <li>“ความสุขปานกลาง” → ต่ำสุด 5 สูงสุด 6</li>
-                <li>“ความสุขมาก” → ต่ำสุด 7 สูงสุด 8</li>
-                <li>“ความสุขมากที่สุด” → ต่ำสุด 9 สูงสุด 10</li>
-              </ul>
-            </div>
-          </div>
-
           <Spin spinning={loading} tip="กำลังโหลดข้อมูล...">
-            {/* คอนเทนเนอร์ฟอร์ม: กางเต็มหน้าก่อน แล้วเริ่มสกรอลล์เมื่อเกิน + ซ่อน scrollbar */}
+            {/* ── ตัวอย่าง ── */}
+            <div className="mb-4 sm:mb-6">
+              <h3 className="mb-2 text-sm font-semibold text-slate-700 sm:text-base">ตัวอย่างการวัดระดับความสุข</h3>
+              <div className="grid gap-2 text-sm text-slate-700 md:grid-cols-2">
+                <ul className="list-disc pl-6">
+                  <li>0 = ไม่มีความสุขเลย</li>
+                  <li>1–2 = ความสุขน้อยที่สุด</li>
+                  <li>3–4 = ความสุขน้อย</li>
+                  <li>5–6 = ความสุขปานกลาง</li>
+                  <li>7–8 = ความสุขมาก</li>
+                  <li>9–10 = ความสุขมากที่สุด</li>
+                </ul>
+                <ul className="list-disc pl-6 text-red-500">
+                  <li>“ไม่มีความสุขเลย” → ต่ำสุด 0 สูงสุด 0</li>
+                  <li>“ความสุขน้อยที่สุด” → ต่ำสุด 1 สูงสุด 2</li>
+                  <li>“ความสุขน้อย” → ต่ำสุด 3 สูงสุด 4</li>
+                  <li>“ความสุขปานกลาง” → ต่ำสุด 5 สูงสุด 6</li>
+                  <li>“ความสุขมาก” → ต่ำสุด 7 สูงสุด 8</li>
+                  <li>“ความสุขมากที่สุด” → ต่ำสุด 9 สูงสุด 10</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* เนื้อหาที่สกรอลล์ได้ */}
             <div ref={formScrollRef} className="space-y-6 pr-1 overflow-y-auto hide-scrollbar">
-              {/* ฟอร์มเพิ่มเกณฑ์ (ด้านบน) */}
+              {/* ฟอร์มเพิ่มเกณฑ์ */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+                {/* Desktop / Tablet */}
+                <div className="hidden md:grid md:grid-cols-12 md:gap-4">
                   <div className="md:col-span-6">
                     <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
                     <Input
@@ -305,11 +306,10 @@ const EditCriteriaPage: React.FC = () => {
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="กรอกคำอธิบายเกณฑ์"
                       className={inputCls}
-                      onPressEnter={addCriterion}
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
+                    <label className="mb-1 block text_sm text-slate-700">คะแนนขั้นต่ำ</label>
                     <InputNumber
                       size="large"
                       min={0}
@@ -318,11 +318,10 @@ const EditCriteriaPage: React.FC = () => {
                       onChange={(v) => setMinScore(v === undefined || v === null ? "" : v)}
                       placeholder="ขั้นต่ำ"
                       className={numberCls}
-                      onPressEnter={addCriterion as any}
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
+                    <label className="mb-1 block text_sm text-slate-700">คะแนนสูงสุด</label>
                     <InputNumber
                       size="large"
                       min={0}
@@ -331,14 +330,75 @@ const EditCriteriaPage: React.FC = () => {
                       onChange={(v) => setMaxScore(v === undefined || v === null ? "" : v)}
                       placeholder="สูงสุด"
                       className={numberCls}
-                      onPressEnter={addCriterion as any}
                     />
                   </div>
-                  <div className="md:col-span-12 flex justify-end">
-                    <Button type="primary" icon={<PlusOutlined />} onClick={addCriterion} className="!bg-[#5DE2FF] hover:!bg-cyan-500">
-                      เพิ่มเกณฑ์
-                    </Button>
+
+                  <div className="md:col-span-12">
+                    <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์</label>
+                    <Input.TextArea
+                      rows={3}
+                      value={recommendation}
+                      onChange={(e) => setRecommendation(e.target.value)}
+                      placeholder="กรอกคำแนะนำเพิ่มเติมสำหรับเกณฑ์"
+                      className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !text-base"
+                    />
                   </div>
+                </div>
+
+                {/* Mobile */}
+                <div className="grid gap-3 md:hidden">
+                  <div>
+                    <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
+                    <Input
+                      size="large"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="กรอกคำอธิบายเกณฑ์"
+                      className={inputCls}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
+                      <InputNumber
+                        size="large"
+                        min={0}
+                        max={10000}
+                        value={minScore === "" ? undefined : minScore}
+                        onChange={(v) => setMinScore(v === undefined || v === null ? "" : v)}
+                        placeholder="ขั้นต่ำ"
+                        className={numberCls}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
+                      <InputNumber
+                        size="large"
+                        min={0}
+                        max={10000}
+                        value={maxScore === "" ? undefined : maxScore}
+                        onChange={(v) => setMaxScore(v === undefined || v === null ? "" : v)}
+                        placeholder="สูงสุด"
+                        className={numberCls}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์</label>
+                    <Input.TextArea
+                      rows={3}
+                      value={recommendation}
+                      onChange={(e) => setRecommendation(e.target.value)}
+                      placeholder="กรอกคำแนะนำเพิ่มเติมสำหรับเกณฑ์"
+                      className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 flex justify-end">
+                  <Button type="primary" icon={<PlusOutlined />} onClick={addCriterion} className="!bg-[#5DE2FF] hover:!bg-cyan-500">
+                    เพิ่มเกณฑ์
+                  </Button>
                 </div>
               </div>
 
@@ -347,60 +407,13 @@ const EditCriteriaPage: React.FC = () => {
                 <div className="text-slate-500">ยังไม่มีเกณฑ์การประเมิน</div>
               ) : (
                 <div className="space-y-3">
-                  {/* หัวตารางสำหรับจอใหญ่ */}
-                  <div className="hidden grid-cols-12 gap-3 rounded-lg bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 md:grid">
-                    <div className="col-span-6">คำอธิบายเกณฑ์</div>
-                    <div className="col-span-3">คะแนนขั้นต่ำ</div>
-                    <div className="col-span-2">คะแนนสูงสุด</div>
-                    <div className="col-span-1 text-right">ลบ</div>
-                  </div>
-
                   {criteriaList.map((c, idx) => (
                     <div
                       key={c.id ?? idx}
-                      className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 p-3 transition-colors hover:border-black focus-within:border-black md:grid-cols-12"
+                      className="rounded-xl border border-slate-200 p-3 transition-colors hover:border-black focus-within:border-black"
                     >
-                      {/* คำอธิบาย */}
-                      <div className="md:col-span-6">
-                        <Input
-                          size="large"
-                          value={c.description}
-                          onChange={(e) => updateRow(idx, { description: e.target.value })}
-                          placeholder="คำอธิบายเกณฑ์"
-                          className={inputCls}
-                        />
-                      </div>
-
-                      {/* คะแนนขั้นต่ำ — แสดง label เฉพาะมือถือ */}
-                      <div className="md:col-span-3">
-                        <span className="md:hidden block text-xs text-slate-500 mb-1">คะแนนขั้นต่ำ</span>
-                        <InputNumber
-                          size="large"
-                          min={0}
-                          max={10000}
-                          value={c.minScore}
-                          onChange={(v) => updateRow(idx, { minScore: (v ?? 0) as number })}
-                          placeholder="ขั้นต่ำ"
-                          className={numberCls}
-                        />
-                      </div>
-
-                      {/* คะแนนสูงสุด — แสดง label เฉพาะมือถือ */}
-                      <div className="md:col-span-2">
-                        <span className="md:hidden block text-xs text-slate-500 mb-1">คะแนนสูงสุด</span>
-                        <InputNumber
-                          size="large"
-                          min={0}
-                          max={10000}
-                          value={c.maxScore}
-                          onChange={(v) => updateRow(idx, { maxScore: (v ?? 0) as number })}
-                          placeholder="สูงสุด"
-                          className={numberCls}
-                        />
-                      </div>
-
-                      {/* ปุ่มลบ */}
-                      <div className="md:col-span-1 flex items-center justify-end">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="m-0 font-semibold text-slate-700">เกณฑ์ที่ {idx + 1}</p>
                         <Popconfirm title="ลบรายการนี้?" okText="ลบ" cancelText="ยกเลิก" onConfirm={() => removeRow(idx)}>
                           <Button
                             danger
@@ -408,6 +421,102 @@ const EditCriteriaPage: React.FC = () => {
                             className="!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"
                           />
                         </Popconfirm>
+                      </div>
+
+                      <div className="hidden md:grid md:grid-cols-12 md:gap-4">
+                        <div className="md:col-span-6">
+                          <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
+                          <Input
+                            size="large"
+                            value={c.description}
+                            onChange={(e) => updateRow(idx, { description: e.target.value })}
+                            placeholder="คำอธิบายเกณฑ์"
+                            className={inputCls}
+                          />
+                        </div>
+                        <div className="md:col-span-3">
+                          <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
+                          <InputNumber
+                            size="large"
+                            min={0}
+                            max={10000}
+                            value={c.minScore}
+                            onChange={(v) => updateRow(idx, { minScore: (v ?? 0) as number })}
+                            placeholder="ขั้นต่ำ"
+                            className={numberCls}
+                          />
+                        </div>
+                        <div className="md:col-span-3">
+                          <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
+                          <InputNumber
+                            size="large"
+                            min={0}
+                            max={10000}
+                            value={c.maxScore}
+                            onChange={(v) => updateRow(idx, { maxScore: (v ?? 0) as number })}
+                            placeholder="สูงสุด"
+                            className={numberCls}
+                          />
+                        </div>
+                        <div className="md:col-span-12">
+                          <label className="mb-1 block text_sm text-slate-700">คำแนะนำเกณฑ์</label>
+                          <Input.TextArea
+                            rows={2}
+                            value={c.recommendation}
+                            onChange={(e) => updateRow(idx, { recommendation: e.target.value })}
+                            placeholder="คำแนะนำเกณฑ์"
+                            className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 md:hidden">
+                        <div>
+                          <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
+                          <Input
+                            size="large"
+                            value={c.description}
+                            onChange={(e) => updateRow(idx, { description: e.target.value })}
+                            placeholder="คำอธิบายเกณฑ์"
+                            className={inputCls}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
+                            <InputNumber
+                              size="large"
+                              min={0}
+                              max={10000}
+                              value={c.minScore}
+                              onChange={(v) => updateRow(idx, { minScore: (v ?? 0) as number })}
+                              placeholder="ขั้นต่ำ"
+                              className={numberCls}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
+                            <InputNumber
+                              size="large"
+                              min={0}
+                              max={10000}
+                              value={c.maxScore}
+                              onChange={(v) => updateRow(idx, { maxScore: (v ?? 0) as number })}
+                              placeholder="สูงสุด"
+                              className={numberCls}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์</label>
+                          <Input.TextArea
+                            rows={2}
+                            value={c.recommendation}
+                            onChange={(e) => updateRow(idx, { recommendation: e.target.value })}
+                            placeholder="คำแนะนำเกณฑ์"
+                            className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black"
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -418,27 +527,37 @@ const EditCriteriaPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ปุ่มล่าง (มือถือ) */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2">
           <Button
             icon={<RollbackOutlined />}
             onClick={goBackToQnA}
-            className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
+            className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:!border-black hover:!bg-gray-700"
             block
           >
             กลับ
           </Button>
-          <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveAll} className="!bg-[#5DE2FF] hover:!bg-cyan-500" block>
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            onClick={handleSaveAll}
+            loading={submitting}
+            className="!bg-[#5DE2FF] hover:!bg-cyan-500"
+            block
+          >
             บันทึกการแก้ไข
           </Button>
         </div>
       </div>
 
-      {/* ซ่อน scrollbar แต่ยังเลื่อนได้ */}
+      {/* เหมือนหน้า create: ปรับสี/พื้นหลังของ Spin แบบ fullscreen */}
       <style>{`
         .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        .ant-spin-fullscreen { background-color: rgba(0,0,0,0.45); }
+        .ant-spin-fullscreen .ant-spin-dot-item { background-color: #fff !important; }
+        .ant-spin-fullscreen .ant-spin-text { color: #fff !important; }
       `}</style>
     </div>
   );

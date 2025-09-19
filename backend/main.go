@@ -86,6 +86,7 @@ func main() {
 	r.GET("/recent", controller.GetRecentChat)
 	r.GET("/excel", exportexcel.ExportExcel)
 	r.GET("/csv", exportexcel.ExportCSV)
+	r.POST("/gemini", controller.GeminiHistory)
 
 	
 
@@ -313,7 +314,7 @@ func main() {
 		userRouter.GET("/assessments/transactions", assessment.GetTransactions)
 
 		//chat space
-		userRouter.POST("/gemini", controller.GeminiHistory)
+		// userRouter.POST("/gemini", controller.GeminiHistory)
 		userRouter.GET("/conversation/:id", controller.GetConversationHistory)
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)

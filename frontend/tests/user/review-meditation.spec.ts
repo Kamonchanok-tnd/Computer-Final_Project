@@ -12,7 +12,7 @@ test('visit audiohome as user', async ({ page }) => {
   await page.waitForTimeout(1000);
 
   await page.locator('div')
-    .filter({ hasText: /^ทำสมาธิและฝึกลมหายใจหายใจเข้า\.\.\. แล้วปล่อยความเครียดออกไปดูกิจกรรม$/ })
+    .filter({ hasText: /^สมาธิบำบัดและฝึกลมหายใจหายใจเข้า\.\.\. แล้วปล่อยความเครียดออกไปดูกิจกรรม$/ })
     .getByRole('button')
     .click();
   await page.waitForTimeout(1000);
