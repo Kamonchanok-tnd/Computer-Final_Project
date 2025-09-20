@@ -5,7 +5,7 @@ import (
 	"time"
 	"github.com/gin-gonic/gin"
 	"sukjai_project/config"
-   "sukjai_project/entity"
+    "sukjai_project/entity"
 )
 
 // LogActivity บันทึกการเข้าใช้งานของผู้ใช้
@@ -18,7 +18,7 @@ func LogActivity(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลที่ส่งมาไม่ถูกต้อง"})
 		return
 	}
 
@@ -30,15 +30,12 @@ func LogActivity(c *gin.Context) {
 	}
 
 	if err := config.DB().Create(&activity).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log activity"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถบันทึกกิจกรรมผู้ใช้ได้"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Activity logged successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "บันทึกกิจกรรมผู้ใช้เรียบร้อยแล้ว"})
 }
-
-
-
 
 // GetVisitFrequency คืนข้อมูลจำนวนครั้งที่ผู้ใช้เข้าชมในแต่ละวัน
 func GetVisitFrequency(c *gin.Context) {
@@ -47,7 +44,6 @@ func GetVisitFrequency(c *gin.Context) {
 		Visits int    `json:"visits"`
 	}
 
-	// ตัวอย่าง query: group by วันที่
 	if err := config.DB().
 		Model(&entity.UserActivity{}).
 		Select("DATE(created_at) as date, COUNT(*) as visits").
@@ -55,35 +51,35 @@ func GetVisitFrequency(c *gin.Context) {
 		Group("DATE(created_at)").
 		Order("DATE(created_at) ASC").
 		Scan(&results).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get visit frequency"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลจำนวนการเข้าชมได้"})
 		return
 	}
 
 	c.JSON(http.StatusOK, results)
 }
 
+// GetNewuser คืนจำนวนผู้ใช้ที่สมัครใหม่ในแต่ละวัน
 func GetNewuser(c *gin.Context) {
 	var results []struct {
 		Date   string `json:"date"`
 		Visits int    `json:"visits"`
 	}
 
-	// ตัวอย่าง query: group by วันที่
 	if err := config.DB().
 		Model(&entity.UserActivity{}).
 		Select("DATE(created_at) as date, COUNT(*) as visits").
-		Where("action = ?","create_account").
+		Where("action = ?", "create_account").
 		Group("DATE(created_at)").
 		Order("DATE(created_at) ASC").
 		Scan(&results).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get visit frequency"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลผู้ใช้ใหม่ได้"})
 		return
 	}
 
 	c.JSON(http.StatusOK, results)
 }
 
-// Returning Users = login แต่ไม่ใช่ account ที่เพิ่งสมัคร
+// GetReturningUsers คืนจำนวนผู้ใช้ที่กลับมาใช้งานอีกครั้ง
 func GetReturningUsers(c *gin.Context) {
     var results []struct {
         Date  string `json:"date"`
@@ -104,22 +100,15 @@ func GetReturningUsers(c *gin.Context) {
         Order("DATE(created_at) ASC").
         Scan(&results).Error; err != nil {
 
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get returning users"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลผู้ใช้ที่กลับมาใช้งานได้"})
         return
     }
 
     c.JSON(http.StatusOK, results)
 }
 
-
-
-
-
 // GetRetentionRate คืนค่า % ของผู้ใช้ที่กลับมาใช้งาน
 func GetRetentionRate(c *gin.Context) {
-	// สมมติว่าเราจะคำนวณ retention rate ต่อวัน
-	// retention = จำนวนผู้ใช้ที่เคยใช้งานแล้วกลับมาภายใน 7 วัน / จำนวนผู้ใช้ทั้งหมดในวันนั้น * 100
-
 	type Result struct {
 		Date          string  `json:"date"`
 		RetentionRate float64 `json:"retentionRate"`
@@ -136,7 +125,7 @@ func GetRetentionRate(c *gin.Context) {
 		Group("DATE(created_at)").
 		Order("DATE(created_at) ASC").
 		Pluck("DATE(created_at)", &dates).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get dates"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถดึงข้อมูลวันที่ได้"})
 		return
 	}
 
@@ -151,7 +140,7 @@ func GetRetentionRate(c *gin.Context) {
 			Distinct("uid").
 			Count(&totalUsers)
 
-		// จำนวนผู้ใช้ที่เคยใช้แล้วกลับมา (ก่อนหน้านั้นเคยมี activity)
+		// จำนวนผู้ใช้ที่เคยใช้แล้วกลับมา
 		config.DB().
 			Model(&entity.UserActivity{}).
 			Where("DATE(created_at) = ?", d.Format("2006-01-02")).
@@ -177,4 +166,3 @@ func GetRetentionRate(c *gin.Context) {
 
 	c.JSON(http.StatusOK, results)
 }
-

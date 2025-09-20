@@ -53,47 +53,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "h" | "m" | "s"
-  ) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length > 2) value = value.slice(0, 2);
-    if (type === "h") setHours(value || "00");
-    if (type === "m") setMinutes(value || "00");
-    if (type === "s") setSeconds(value || "00");
-  };
-
-  const pad = (num: number) => num.toString().padStart(2, "0");
-
-  const increaseTime = () => {
-    let h = parseInt(hours);
-    let m = parseInt(minutes);
-    m += 1;
-    if (m >= 60) {
-      m = 0;
-      h += 1;
-    }
-    setHours(pad(h));
-    setMinutes(pad(m));
-  };
-
-  const decreaseTime = () => {
-    let h = parseInt(hours);
-    let m = parseInt(minutes);
-    if (h === 0 && m === 0) return;
-    m -= 1;
-    if (m < 0) {
-      if (h > 0) {
-        h -= 1;
-        m = 59;
-      } else {
-        m = 0;
-      }
-    }
-    setHours(pad(h));
-    setMinutes(pad(m));
-  };
+  
 
   // ✅ เรียกตอนกด Start
   const handleStart = async (h: number, m: number, s: number) => {
