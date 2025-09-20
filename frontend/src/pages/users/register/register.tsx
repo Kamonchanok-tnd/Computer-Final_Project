@@ -112,6 +112,7 @@ const yearOptions = [
   { value: 4, label: "ชั้นปี 4" },
   { value: 5, label: "ชั้นปี 5" },
   { value: 6, label: "ชั้นปี 6" },
+  { value: "6 ปีขึ้นไป", label: "6 ปีขึ้นไป" },
 ];
 
   return (
@@ -369,6 +370,7 @@ const yearOptions = [
   locale={thTH}   // ✅ ใส่เป็น object ไม่ใช่ string
   className="!w-full"
   placeholder="เลือกเดือนและปีเกิด"
+  disabledDate={(current) => current && current > dayjs().endOf("month")} 
 />
 
 

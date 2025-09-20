@@ -73,6 +73,9 @@ function UserEdit() {
         Gender: res.data.gender,
         facebook: res.data.facebook,
         line: res.data.line,
+        person_type: res.data.person_type,   // เพิ่ม
+        year: res.data.year,                 // เพิ่ม
+        faculty: res.data.faculty,           // เพิ่ม
       });
 
       // ตั้งรูปโปรไฟล์เดิม
@@ -149,202 +152,237 @@ function UserEdit() {
       });
     }
   };
+  const personType = Form.useWatch("person_type", form);
 
-  return (
-    <div className="user-edit-container">
-      {contextHolder}
-      <Card className="user-edit-card" title={<h2 className="user-edit-title">แก้ไขข้อมูล</h2>}>
+return (
+  <div className="user-edit-container">
+    {contextHolder}
+    <Card className="user-edit-card" title={<h2 className="user-edit-title">แก้ไขข้อมูล</h2>}>
 
-        {/* Profile Picture */}
-        <div className="profile-section" style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: '32px',
-          flexDirection: 'column'
+      {/* Profile Picture */}
+      <div className="profile-section" style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: '32px',
+        flexDirection: 'column'
+      }}>
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <Avatar
+            size={120}
+            src={selectedProfileImage}
+            icon={!selectedProfileImage && <UserOutlined />}
+            style={{
+              border: '4px solid #f0f0f0',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              cursor: 'pointer',
+            }}
+            onClick={openProfileModal}
+          />
+          <Button
+            type="primary"
+            shape="circle"
+            icon={<PictureOutlined />}
+            size="small"
+            onClick={openProfileModal}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              zIndex: 1,
+              width: '32px',
+              height: '32px',
+              border: '1px solid white',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            }}
+            title="เลือกรูปโปรไฟล์"
+          />
+        </div>
+        <p style={{
+          marginTop: '12px',
+          color: '#666',
+          fontSize: '14px',
+          textAlign: 'center'
         }}>
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <Avatar
-              size={120}
-              src={selectedProfileImage}
-              icon={!selectedProfileImage && <UserOutlined />}
+          คลิกเพื่อเปลี่ยนรูปโปรไฟล์
+        </p>
+      </div>
+
+      {/* Modal เลือกรูป */}
+      <Modal
+        title="เลือกรูปโปรไฟล์"
+        open={profileModalVisible}
+        onCancel={() => setProfileModalVisible(false)}
+        footer={null}
+        width={700}
+        centered
+      >
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+          gap: '16px',
+          padding: '20px 0',
+          maxHeight: '500px',
+          overflowY: 'auto'
+        }}>
+          {allAvatar.map((avatar, index) => (
+            <div
+              key={avatar.ID || index}
               style={{
-                border: '4px solid #f0f0f0',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                 cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                border: selectedProfileImage === buildProfileUrl(avatar.avatar ?? '') ? '2px solid #5DE2FF' : '1px solid #f0f0f0',
+                boxShadow: selectedProfileImage === buildProfileUrl(avatar.avatar ?? '') ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
               }}
-              onClick={openProfileModal}
-            />
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<PictureOutlined />}
-              size="small"
-              onClick={openProfileModal}
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                zIndex: 1,
-                width: '32px',
-                height: '32px',
-                border: '1px solid white',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-              }}
-              title="เลือกรูปโปรไฟล์"
-            />
-          </div>
-          <p style={{
-            marginTop: '12px',
-            color: '#666',
-            fontSize: '14px',
-            textAlign: 'center'
-          }}>
-            คลิกเพื่อเปลี่ยนรูปโปรไฟล์
-          </p>
+              onClick={() => handleProfileImageSelect(avatar.ID ?? 0, avatar.avatar ?? '')}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <Avatar
+                size={120}
+                src={buildProfileUrl(avatar.avatar ?? '')}
+                icon={<UserOutlined />}
+                style={{
+                  width: '100%',
+                  height: '120px',
+                  borderRadius: '12px'
+                }}
+              />
+              {avatar.name && (
+                <div style={{
+                  padding: '8px',
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  color: '#666',
+                  backgroundColor: 'white'
+                }}>
+                  {avatar.name}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Modal เลือกรูป */}
-        <Modal
-          title="เลือกรูปโปรไฟล์"
-          open={profileModalVisible}
-          onCancel={() => setProfileModalVisible(false)}
-          footer={null}
-          width={700}
-          centered
-        >
+        {allAvatar.length === 0 && (
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-            gap: '16px',
-            padding: '20px 0',
-            maxHeight: '500px',
-            overflowY: 'auto'
+            textAlign: 'center',
+            padding: '60px',
+            color: '#999'
           }}>
-            {allAvatar.map((avatar, index) => (
-              <div
-                key={avatar.ID || index}
-                style={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  border: selectedProfileImage === buildProfileUrl(avatar.avatar ?? '') ? '2px solid #5DE2FF' : '1px solid #f0f0f0',
-                  boxShadow: selectedProfileImage === buildProfileUrl(avatar.avatar ?? '') ? '0 2px 8px rgba(24, 144, 255, 0.1)' : 'none',
-                }}
-                onClick={() => handleProfileImageSelect(avatar.ID ?? 0, avatar.avatar ?? '')}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                <Avatar
-                  size={120}
-                  src={buildProfileUrl(avatar.avatar ?? '')}
-                  icon={<UserOutlined />}
-                  style={{
-                    width: '100%',
-                    height: '120px',
-                    borderRadius: '12px'
-                  }}
-                />
-                {avatar.name && (
-                  <div style={{
-                    padding: '8px',
-                    textAlign: 'center',
-                    fontSize: '12px',
-                    color: '#666',
-                    backgroundColor: 'white'
-                  }}>
-                    {avatar.name}
-                  </div>
-                )}
-              </div>
-            ))}
+            <UserOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+            <p>ไม่พบรูปโปรไฟล์ในระบบ</p>
           </div>
+        )}
+      </Modal>
 
-          {allAvatar.length === 0 && (
-            <div style={{
-              textAlign: 'center',
-              padding: '60px',
-              color: '#999'
-            }}>
-              <UserOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <p>ไม่พบรูปโปรไฟล์ในระบบ</p>
-            </div>
+      <Divider />
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        autoComplete="off"
+        className="user-edit-form"
+      >
+        <Row gutter={[24, 16]}>
+          <Col xs={24} md={12}>
+            <Form.Item label="ชื่อผู้ใช้งาน" name="username" rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้งาน !" }]}>
+              <Input placeholder="ระบุชื่อผู้ใช้งาน" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item label="อีเมล" name="email" rules={[
+              { type: "email", message: "รูปแบบอีเมลไม่ถูกต้อง !" },
+              { required: true, message: "กรุณากรอกอีเมล !" },
+            ]}>
+              <Input placeholder="example@email.com" />
+            </Form.Item>
+          </Col>
+
+          {/* PersonType */}
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="ประเภทบุคคล"
+              name="person_type"
+              rules={[{ required: true, message: "กรุณาเลือกประเภทบุคคล !" }]}
+            >
+              <Select placeholder="เลือกประเภทบุคคล">
+                <Select.Option value="นักศึกษามทส">นักศึกษามทส</Select.Option>
+                <Select.Option value="อาจารย์">อาจารย์</Select.Option>
+                <Select.Option value="บุคคลภายนอก">บุคคลภายนอก</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+
+          {/* Year & Faculty เฉพาะนักศึกษามทส */}
+          {personType === "นักศึกษามทส" && (
+            <>
+              <Col xs={24} md={12}>
+                <Form.Item label="ชั้นปี" name="year" rules={[{ required: true, message: "กรุณากรอกชั้นปี !" }]}>
+                  <InputNumber min={1} max={8} style={{ width: "100%" }} placeholder="เช่น 1, 2, 3, 4" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item label="คณะ" name="faculty" rules={[{ required: true, message: "กรุณาระบุคณะ !" }]}>
+                  <Input placeholder="เช่น คณะวิศวกรรมศาสตร์" />
+                </Form.Item>
+              </Col>
+            </>
           )}
-        </Modal>
+
+          <Col xs={24} md={12}>
+            <Form.Item label="เบอร์โทรศัพท์" name="phone_number" rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" }]}>
+              <Input placeholder="0812345678" />
+            </Form.Item>
+          </Col>
+          {/* <Col xs={24} md={12}>
+            <Form.Item label="อายุ" name="age" rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}>
+              <InputNumber min={0} max={120} style={{ width: "100%" }} placeholder="ระบุอายุ" />
+            </Form.Item>
+          </Col> */}
+          <Col xs={24} md={12}>
+            <Form.Item label="วันเกิด" name="birth_date" rules={[{ required: true, message: "กรุณากรอกวันเกิด !" }]}>
+              <Input placeholder="YYYY-MM-DD" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item label="เพศ" name="Gender" rules={[{ required: true, message: "กรุณาเลือกเพศ !" }]}>
+              <Select placeholder="เลือกเพศ">
+                <Select.Option value="Male">ชาย</Select.Option>
+                <Select.Option value="Female">หญิง</Select.Option>
+                <Select.Option value="Other">LGBTQ+</Select.Option>
+                <Select.Option value="Other">ไม่ระบุ</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
+              <Input placeholder="ระบุ Facebook (ถ้ามี)" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item label="Line (ไม่จำเป็น)" name="line">
+              <Input placeholder="ระบุ Line ID (ถ้ามี)" />
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Divider />
-
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          autoComplete="off"
-          className="user-edit-form"
-        >
-          <Row gutter={[24, 16]}>
-            <Col xs={24} md={12}>
-              <Form.Item label="ชื่อผู้ใช้งาน" name="username" rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้งาน !" }]}>
-                <Input placeholder="ระบุชื่อผู้ใช้งาน" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="อีเมล" name="email" rules={[
-                { type: "email", message: "รูปแบบอีเมลไม่ถูกต้อง !" },
-                { required: true, message: "กรุณากรอกอีเมล !" },
-              ]}>
-                <Input placeholder="example@email.com" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="เบอร์โทรศัพท์" name="phone_number" rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" }]}>
-                <Input placeholder="0812345678" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="อายุ" name="age" rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}>
-                <InputNumber min={0} max={120} style={{ width: "100%" }} placeholder="ระบุอายุ" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="วันเกิด" name="birth_date" rules={[{ required: true, message: "กรุณากรอกวันเกิด !" }]}>
-                <Input placeholder="YYYY-MM-DD" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="เพศ" name="Gender" rules={[{ required: true, message: "กรุณาเลือกเพศ !" }]}>
-                <Select placeholder="เลือกเพศ">
-                  <Select.Option value="Male">ชาย</Select.Option>
-                  <Select.Option value="Female">หญิง</Select.Option>
-                  <Select.Option value="Other">อื่นๆ</Select.Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
-                <Input placeholder="ระบุ Facebook (ถ้ามี)" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="Line (ไม่จำเป็น)" name="line">
-                <Input placeholder="ระบุ Line ID (ถ้ามี)" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider />
-          <div className="user-edit-btn-group">
-            <Link to="/user">
-              <Button icon={<ArrowLeftOutlined />} className="btn-back">ย้อนกลับ</Button>
-            </Link>
-            <Button type="primary" htmlType="submit" icon={<SaveOutlined />} className="btn-save">
-              บันทึกข้อมูล
-            </Button>
-          </div>
-        </Form>
-      </Card>
-    </div>
-  );
+        <div className="user-edit-btn-group">
+          <Link to="/user">
+            <Button icon={<ArrowLeftOutlined />} className="btn-back">ย้อนกลับ</Button>
+          </Link>
+          <Button type="primary" htmlType="submit" icon={<SaveOutlined />} className="btn-save">
+            บันทึกข้อมูล
+          </Button>
+        </div>
+      </Form>
+    </Card>
+  </div>
+);
 }
+
 
 export default UserEdit;
