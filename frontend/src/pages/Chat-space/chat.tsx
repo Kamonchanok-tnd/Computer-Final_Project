@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   ChatGemini,
   ClearChat,
-  CloseChat,
+ 
   GetChat,
   NewChat,
 } from "../../services/https/Chat/index";
@@ -14,7 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { IChatRoom } from "../../interfaces/IChatRoom";
 import ChatHeader from "../../components/Chat.tsx/ChatHeader";
 import ChatInput from "../../components/Chat.tsx/ChatInput";
-import { message, Modal } from "antd";
+import { message, Modal, Spin } from "antd";
 import { useDarkMode } from "../../components/Darkmode/toggleDarkmode";
 import { logActivity } from "../../services/https/activity";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment/index";
@@ -33,7 +33,6 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const [isNewChat, setIsNewChat] = useState<boolean>(
     isNewChatDefault?.isNewChatDefault ?? false
   );
@@ -141,11 +140,13 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
 
   async function getmessage(id: number) {
     try {
+     
       const message = await GetChat(id, navigate);
+     
       setMessages(message);
-      console.log("new chat: ", message);
+    
     } catch (error) {
-      console.error(error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
@@ -291,16 +292,27 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   // };
 
   async function Close() {
-    console.log("chatroom: ", chatRoomID);
-    // await CloseChat(Number(chatRoomID));
-    await ClearChat(Number(chatRoomID));
-    setIsNewChat(!isNewChat);
-    setMessages([]);
-    setChatRoomID(null);
-    /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
-    startIdleTimer();
-    /* ===================== [/Trigger Assessment] ===================== */
-    navigate("/chat");
+   
+    modal.confirm({
+            title: "การล้างห้องสนทนา",
+            content:
+              "คุณต้องการล้างห้องสนทนาใช่หรือไม่?",
+            okText: "ยืนยัน",
+            cancelText: "ยกเลิก",
+            className: "custom-modal",
+            onOk: async () => {
+              await ClearChat(Number(chatRoomID));
+              setIsNewChat(!isNewChat);
+              setMessages([]);
+              setChatRoomID(null);
+              /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
+              startIdleTimer();
+              /* ===================== [/Trigger Assessment] ===================== */
+              navigate("/chat");
+           
+            },
+          });
+ 
   }
 
   // const formatTime = (date: Date): string => {
@@ -352,14 +364,16 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   }
 
   return (
+
     <div
       className={`min-h-[calc(100vh-64px)] transition-colors duration-300 overflow-auto font-ibmthai
        flex justify-center items-center sm:px-4 
       ${isDarkMode ? "bg-background-dark" : "bg-background-blue"}`}
     >
+ 
       {contextHolder}
       <div
-        className={` shadow-md rounded-xl container border duration-300 mx-auto max-w-full  h-[90vh]  
+        className={` shadow-sm rounded-xl container border duration-300 mx-auto max-w-full  h-[90vh]  
       flex flex-col justify-between ${
         isDarkMode ? " border-stoke-dark" : "border-gray-200"
       }`}
@@ -371,10 +385,11 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
           onClearChat={Close}
         />
         {/* Messages Area */}
-        {isNewChat || messages.length === 0 ? (
+        {isNewChat ? (
           <NewChatWelcome isDarkMode={isDarkMode} />
         ) : (
           <HistoryChat
+         
             messages={messages}
             isTyping={isTyping}
             typingText={typingText}

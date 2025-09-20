@@ -224,7 +224,7 @@ function Homemessage() {
           <div className="flex justify-center pt-2">
             <button 
               className="dark:text-background-dark bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white py-3 px-8 rounded-lg transition-all duration-300 cursor-pointer hover:scale-105 text-sm sm:text-base"
-              onClick={() => navigate("/message")}
+              onClick={() => navigate("audiohome/message")}
             >
               ดูเพิ่มเติม
             </button>
@@ -329,7 +329,7 @@ function Homemessage() {
             <div className="flex justify-center">
               <button 
                 className="dark:text-background-dark bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] text-white py-2 px-8 rounded-lg transition-all duration-300 cursor-pointer hover:scale-105"
-                onClick={() => navigate("/message")}
+                onClick={() => navigate("/audiohome/message")}
               >
                 ดูเพิ่มเติม
               </button>

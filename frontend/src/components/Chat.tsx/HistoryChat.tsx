@@ -1,12 +1,13 @@
-import { Bot } from "lucide-react";
+
 import { IConversation } from "../../interfaces/IConversation";
 import headbot from "../../assets/logo/header1.png";
 import { useUser } from "../../layout/HeaderLayout/UserContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useEffect } from "react";
+
 
 interface ChatMessagesProps {
+ 
   messages: IConversation[];
   isTyping: boolean;
   typingText: string;
@@ -15,11 +16,13 @@ interface ChatMessagesProps {
 }
 
 function HistoryChat({
+
   messages,
   isTyping,
   typingText,
   isDarkMode,
   messagesEndRef,
+
 }: ChatMessagesProps) {
   const { avatarUrl } = useUser();
 
@@ -36,9 +39,7 @@ function HistoryChat({
     return formattedMessage;
   };
 
-  useEffect(() => {
-    console.log("messages:", messages);
-  }, []);
+ 
 
   return (
     <div
@@ -46,6 +47,8 @@ function HistoryChat({
         isDarkMode ? "bg-box-dark" : "bg-white"
       } backdrop-blur-sm`}
     >
+        
+        
       <div
         className={`md:px-4 pb-4 h-full scrollbar-hide duration-300
             overflow-y-auto ${
@@ -82,7 +85,7 @@ function HistoryChat({
                   )}
                 </div>
                 <div
-                  className={`max-w-xs lg:max-w-2xl ${
+                  className={` max-w-3/4  ${
                     message.stid === 1 ? "text-right" : "text-left"
                   }`}
                 >
@@ -97,7 +100,7 @@ function HistoryChat({
                         : "bg-white text-gray-800 border-gray-200"
                     } ${message.stid === 1 ? "rounded-br-md" : "rounded-bl-md"}`}
                   >
-                    <div className="text-sm leading-relaxed">
+                    <div className="md:text-xl text-md leading-relaxed">
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
                         components={{
@@ -148,7 +151,7 @@ function HistoryChat({
                 alt="bot avatar"
                 className="w-8 h-8 object-center"
               />
-              <div className={`max-w-xs lg:max-w-md`}>
+              <div className={`max-w-3/4`}>
                 <div
                   className={`px-4 py-3 rounded-2xl rounded-bl-md ${
                     isDarkMode
@@ -158,7 +161,7 @@ function HistoryChat({
                 >
                   {typingText ? (
                     <div>
-                      <div className="text-sm leading-relaxed">
+                      <div className="md:text-xl text-md leading-relaxed">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {formatMessage(typingText)}
                         </ReactMarkdown>
@@ -195,7 +198,7 @@ function HistoryChat({
                   )}
                 </div>
                 <p
-                  className={`text-xs mt-1 text-left ${
+                  className={`md:text-xl text-md mt-1 text-left ${
                     isDarkMode ? "text-gray-400" : "text-gray-500"
                   }`}
                 >
