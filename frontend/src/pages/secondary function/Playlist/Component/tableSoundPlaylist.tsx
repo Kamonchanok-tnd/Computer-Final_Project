@@ -86,7 +86,7 @@ function TableSoundPlaylist({
             setEditRating(false);
           }else{
              const res = await CreateReview(data)
-          console.log(res);
+          //console.log(res);
           message.success(`ให้คะแนน "${selectedSong?.name}" ${currentRating} ดาว`);
           }
          

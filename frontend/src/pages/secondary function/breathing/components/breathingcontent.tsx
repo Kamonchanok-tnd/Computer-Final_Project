@@ -62,7 +62,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
     try {
       await addSoundView(realId);
       await CreateHistory({ uid, sid: realId });
-      console.log("View and history created successfully");
+      //console.log("View and history created successfully");
     } catch (err) {
       console.error("ไม่สามารถบันทึก view/history:", err);
     }

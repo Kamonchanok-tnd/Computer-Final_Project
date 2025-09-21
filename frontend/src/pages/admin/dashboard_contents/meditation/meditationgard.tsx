@@ -45,7 +45,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
     setLoading(true);
     try {
       const response: DailySoundUsage[] = await getSoundFourType();
-      console.log("Raw data from API (four-type daily):", response);
+      //console.log("Raw data from API (four-type daily):", response);
 
       const today = dayjs();
       const todayData = response.filter(

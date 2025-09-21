@@ -382,7 +382,7 @@ function AddSoundPlaylistMeditation() {
     try {
       const res = await GetSoundPlaylistByPID(Number(p_id));
       setSoundPlaylist(res);
-      console.log("sound playlist is: ", res);
+      //console.log("sound playlist is: ", res);
     } catch (error) {
       console.error("Error fetching playlist:", error);
     }

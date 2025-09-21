@@ -27,14 +27,14 @@ export const getAllAdmins = async (): Promise<AdminInterface[]> => {
         }
 
         // Log the token and Bearer to check if they are correctly retrieved
-        console.log("Token retrieved from localStorage:", Authorization);
-        console.log("Bearer retrieved from localStorage:", Bearer);
+        //console.log("Token retrieved from localStorage:", Authorization);
+        //console.log("Bearer retrieved from localStorage:", Bearer);
 
         // Make the fetch request to get all admins
         const response = await fetch(`${apiUrl}/admin`, requestOptions);
 
         // Log the response to check what is being returned by the API
-        console.log("Response from API:", response);
+        //console.log("Response from API:", response);
 
         // Check if the response status is ok (status code 200-299)
         if (!response.ok) {
@@ -46,7 +46,7 @@ export const getAllAdmins = async (): Promise<AdminInterface[]> => {
         const data: AdminInterface[] = await response.json();
 
         // Log the data to check the contents of the response
-        console.log("Data from API:", data);
+        //console.log("Data from API:", data);
 
         return data;
     } catch (error: unknown) {

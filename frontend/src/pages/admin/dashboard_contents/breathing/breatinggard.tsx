@@ -31,13 +31,9 @@ const BreathingCard: React.FC<BreathingCardProps> = ({
   useEffect(() => {
   const fetchData = async () => {
     try {
-      console.log("Fetching Breathing data..."); // เริ่มดึงข้อมูล
       const res = await getDailyBreathingUsage();
-      console.log("Raw response from service:", res); // ดูว่า service return อะไร
       setData(res);
-
-      const totalViewsCheck = res.reduce((sum, d) => sum + d.view_count, 0);
-      console.log("Total views calculated:", totalViewsCheck); // เช็คจำนวนรวม
+      
     } catch (err) {
       console.error("Error fetching Breathing data:", err);
       setError("ไม่สามารถโหลดข้อมูลการฝึกหายใจได้");

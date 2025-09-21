@@ -121,7 +121,7 @@ function PlayerPlaylistMeditation() {
       try {
         const res = await GetSoundPlaylistByPID(Number(pid));
         setSoundPlaylist(res);
-        console.log("sound playlist is: ", res);
+        //console.log("sound playlist is: ", res);
       } catch (error) {
         console.error("Error fetching playlist:", error);
       }
