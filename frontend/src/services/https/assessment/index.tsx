@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Question } from '../../../interfaces/IQuestion';
 import { AnswerOption } from '../../../interfaces/IAnswerOption';
 import { QuestionnaireGroup } from '../../../interfaces/IQuestionnaireGroup';
@@ -237,11 +237,21 @@ export const addQuestionnaireToGroup = async (
   groupID: number,
   questionnaireID: number
 ): Promise<AddToGroupResponse> => {
-  const res = await axiosInstance.post(
-    `/admin/questionnaire-groups/${groupID}/add-questionnaire`,
-    { questionnaire_id: questionnaireID }
-  );
-  return res.data as AddToGroupResponse;
+  try {
+    const res = await axiosInstance.post(
+      `/admin/questionnaire-groups/${groupID}/add-questionnaire`,
+      { questionnaire_id: questionnaireID }
+    );
+    return res.data as AddToGroupResponse;
+  } catch (error) {
+    // ✅ ใช้ axios.isAxiosError ให้ถูกต้อง
+    if (axios.isAxiosError(error) && error.response) {
+      // ส่งต่อให้ caller (handleAddToGroup) จัดการ 409/อื่น ๆ
+      throw error;
+    }
+    // เครือข่าย/Unknown ก็ส่งต่อเหมือนกัน
+    throw error as AxiosError;
+  }
 };
 
 export const removeQuestionnaireFromGroup = async (groupID: number, questionnaireID: number): Promise<void> => {

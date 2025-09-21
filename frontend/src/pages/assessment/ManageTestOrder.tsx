@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"; // UPDATED
+import axios from "axios";
 import { Plus, GripVertical } from "lucide-react";
 import {
   getQuestionnaireGroupByID,
@@ -211,8 +212,11 @@ const ManageTestOrder: React.FC = () => {
 
   const handleAddToGroup = async (qid: number) => {
     if (dropdownGroupId === null) return;
-    const res = await addQuestionnaireToGroup(dropdownGroupId, qid);
+
     try {
+      const res = await addQuestionnaireToGroup(dropdownGroupId, qid);
+
+      // ✅ success
       if (res?.message_th) {
         message.success(res.message_th);
       } else if (res?.message) {
@@ -220,16 +224,46 @@ const ManageTestOrder: React.FC = () => {
       } else {
         message.success("เพิ่มข้อมูลสำเร็จ");
       }
-    } catch (e) {
-      message.success("เพิ่มข้อมูลสำเร็จ");
+
+      // refresh กลุ่ม
+      const updatedGroup = await getQuestionnaireGroupByID(dropdownGroupId);
+      setQuestionnaireMap((prev) => ({
+        ...prev,
+        [dropdownGroupId]: updatedGroup.questionnaires,
+      }));
+      setDropdownGroupId(null);
+      setAvailableList([]);
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response) {
+        const status = err.response.status;
+        const data: any = err.response.data || {};
+
+        if (status === 409) {
+          // 🟡 เคสซ้ำ
+          if (data?.error === "CONDITION_DUPLICATE") {
+            message.warning(
+              data?.message ||
+                "เพิ่มไม่ได้: มีแบบทดสอบสุขภาพจิตลูกที่มีเงื่อนไขเดียวกันอยู่แล้วในกลุ่มนี้"
+            );
+          } else if (data?.error === "DUPLICATE") {
+            message.warning(
+              data?.message ||
+                "เพิ่มไม่ได้: แบบทดสอบสุขภาพจิตนี้อยู่ในกลุ่มแล้ว"
+            );
+          } else {
+            message.warning(data?.message || "ข้อมูลซ้ำในกลุ่มนี้");
+          }
+        } else {
+          message.error(
+            data?.message_th ||
+              data?.message ||
+              "เพิ่มแบบทดสอบสุขภาพจิตไม่สำเร็จ"
+          );
+        }
+      } else {
+        message.error("เครือข่ายมีปัญหา กรุณาลองใหม่");
+      }
     }
-    const updatedGroup = await getQuestionnaireGroupByID(dropdownGroupId);
-    setQuestionnaireMap((prev) => ({
-      ...prev,
-      [dropdownGroupId]: updatedGroup.questionnaires,
-    }));
-    setDropdownGroupId(null);
-    setAvailableList([]);
   };
 
   // ADDED: click outside เพื่อหุบเมนู

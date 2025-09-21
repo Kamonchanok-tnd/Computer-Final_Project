@@ -1066,6 +1066,23 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 			return fmt.Errorf("แบบทดสอบสุขภาพจิตนี้อยู่ในกลุ่มแล้ว")
 		}
 
+		// ✅ NEW: ถ้าเป็น “ลูก” ให้ห้ามซ้ำตามชุดเงื่อนไข (condition_on_id, condition_score, condition_type)
+		if parentID != nil && child.ConditionScore != nil && child.ConditionType != nil {
+			var dup int64
+			if err := tx.Model(&entity.QuestionnaireGroupQuestionnaire{}).
+				Joins("JOIN questionnaires q ON q.id = questionnaire_group_questionnaires.questionnaire_id").
+				Where("questionnaire_group_questionnaires.questionnaire_group_id = ?", groupID).
+				Where("q.condition_on_id = ? AND q.condition_score = ? AND q.condition_type = ?",
+					*parentID, *child.ConditionScore, *child.ConditionType).
+				Count(&dup).Error; err != nil {
+				return err
+			}
+			if dup > 0 {
+				// พบลูกที่มีเงื่อนไขเดียวกันแล้วในกลุ่มนี้ → ปฏิเสธ
+				return fmt.Errorf("มีแบบทดสอบสุขภาพจิตลูกที่มีเงื่อนไขเดียวกันอยู่แล้วในกลุ่มนี้")
+			}
+		}
+
 		// หา order ที่จะวาง
 		var insertOrder uint
 
@@ -1149,7 +1166,24 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 	})
 
 	if err != nil {
-		// ถ้าอยากแยก 409 สำหรับซ้ำ: ตรวจข้อความจาก err แล้ว map เป็น 409 ได้
+		// ✅ แยกเคสลูกซ้ำเงื่อนไข → ส่ง Conflict
+		if strings.Contains(err.Error(), "มีแบบทดสอบสุขภาพจิตลูกที่มีเงื่อนไขเดียวกัน") {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":   "CONDITION_DUPLICATE",
+				"message": err.Error(),
+			})
+			return
+		}
+		// ✅ แยกเคสซ้ำตัวเดียวกัน → ก็ใช้ Conflict เช่นกัน
+		if strings.Contains(err.Error(), "อยู่ในกลุ่มแล้ว") {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":   "DUPLICATE",
+				"message": err.Error(),
+			})
+			return
+		}
+
+		// ❌ อย่างอื่น → 500
 		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถเพิ่มแบบทดสอบสุขภาพจิตได้", "CREATE_FAILED")
 		return
 	}
