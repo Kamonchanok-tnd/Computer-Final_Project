@@ -188,7 +188,7 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
             <div className="flex gap-1 items-center">
               <Heart className="text-subtitle h-4 w-4 dark:text-text-dark  " />
               <p>{likes}</p>
-              <p>คำแนะนำ: {sound.description  || "ไม่มีคำแนะนำ"}</p>
+              {/* <p>คำแนะนำ: {sound.description  || "ไม่มีคำแนะนำ"}</p> */}
             </div>
           </div>
         </div>

@@ -4,6 +4,9 @@ import { RequestPasswordReset } from "../../../services/https/login";
 import { validateApi, resetPassword } from "../../../services/https/resetpassword";
 import { message,Input } from "antd";
 import Stepper from "./stepper";
+import { Eye, EyeOff } from "lucide-react";
+import { Form,  Button } from "antd";
+
 
 const ForgotPasswordStepPage: React.FC = () => {
   const [step, setStep] = useState(0);
@@ -13,6 +16,9 @@ const ForgotPasswordStepPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
   const navigate = useNavigate();
   
@@ -181,6 +187,7 @@ const ForgotPasswordStepPage: React.FC = () => {
           maxLength={1}
           autoFocus={i === 0}
           className="w-14 h-14 border rounded-lg !text-center !text-xl focus:ring-2 focus:ring-cyan-400 outline-none"
+          
         />
       ))}
     </div>
@@ -210,33 +217,80 @@ const ForgotPasswordStepPage: React.FC = () => {
 
 
         {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-center">ตั้งรหัสผ่านใหม่</h2>
-            <input
-              type="password"
-              placeholder="รหัสผ่านใหม่"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              onKeyDown={handleKeyDown} // Enter ที่รหัสผ่าน
-              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-cyan-400 outline-none"
-            />
-            <input
-              type="password"
-              placeholder="ยืนยันรหัสผ่านใหม่"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              onKeyDown={handleKeyDown} // Enter ที่ยืนยันรหัสผ่าน
-              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-cyan-400 outline-none"
-            />
-            <button
-              onClick={handlePasswordReset}
-              disabled={loading}
-              className="w-full bg-blue-300 text-white py-3 rounded-lg hover:bg-blue-400 disabled:opacity-50"
-            >
-              {loading ? "กำลังบันทึก..." : "ตั้งรหัสผ่านใหม่"}
-            </button>
-          </div>
-        )}
+  <Form layout="vertical" onFinish={handlePasswordReset} className="space-y-6">
+    <h2 className="text-2xl font-bold text-center mb-4">ตั้งรหัสผ่านใหม่</h2>
+
+    <Form.Item
+      label="รหัสผ่านใหม่"
+      name="newPassword"
+      rules={[
+        { required: true, message: "กรุณากรอกรหัสผ่าน !" },
+        { 
+          pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+          message: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร พร้อมตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ"
+        },
+      ]}
+    >
+      <div className="relative">
+        <Input
+          type={showNewPassword ? "text" : "password"}
+          placeholder="รหัสผ่านใหม่"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          className="w-full pr-10"
+        />
+        <button
+          type="button"
+          onClick={() => setShowNewPassword(!showNewPassword)}
+          className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+        >
+          {showNewPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+        </button>
+      </div>
+    </Form.Item>
+
+    <Form.Item
+      label="ยืนยันรหัสผ่านใหม่"
+      name="confirmPassword"
+      dependencies={['newPassword']}
+      rules={[
+        { required: true, message: "กรุณายืนยันรหัสผ่าน !" },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            if (!value || getFieldValue('newPassword') === value) {
+              return Promise.resolve();
+            }
+            return Promise.reject(new Error('รหัสผ่านไม่ตรงกัน'));
+          },
+        }),
+      ]}
+    >
+      <div className="relative">
+        <Input
+          type={showConfirmPassword ? "text" : "password"}
+          placeholder="ยืนยันรหัสผ่านใหม่"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full pr-10"
+        />
+        <button
+          type="button"
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+        >
+          {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+        </button>
+      </div>
+    </Form.Item>
+
+    <Form.Item>
+      <Button type="primary" htmlType="submit" block disabled={loading}>
+        {loading ? "กำลังบันทึก..." : "ตั้งรหัสผ่านใหม่"}
+      </Button>
+    </Form.Item>
+  </Form>
+)}
+
       </div>
     </div>
   );

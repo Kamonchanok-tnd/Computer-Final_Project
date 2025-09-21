@@ -7,7 +7,6 @@ import (
 	"sukjai_project/entity"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"log"
 	"fmt"
 	"strings"
 )
@@ -72,15 +71,13 @@ func UpdateQuestionnaire(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	log.Println("Received update payload:", req)
-
+	
 	// หา record เดิม
 	var existing entity.Questionnaire
 	if err := config.DB().First(&existing, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Questionnaire not found"})
 		return
 	}
-	log.Println("Existing questionnaire before update:", existing)
 
 	// อัปเดตฟิลด์ปกติ
 	existing.NameQuestionnaire = req.NameQuestionnaire
@@ -123,7 +120,6 @@ func UpdateQuestionnaire(c *gin.Context) {
 
 	// บันทึก entity ก่อน
 	if err := config.DB().Save(&existing).Error; err != nil {
-		log.Println("Error saving questionnaire:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update questionnaire"})
 		return
 	}
@@ -149,8 +145,6 @@ func UpdateQuestionnaire(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reload updated questionnaire"})
 		return
 	}
-
-	log.Println("Updated questionnaire after saving:", existing)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "Update successful",
