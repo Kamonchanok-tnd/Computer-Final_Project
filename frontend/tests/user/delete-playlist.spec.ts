@@ -16,7 +16,7 @@ test('การลบเพลย์ลิสต์สมาธิ', async ({ pa
 
     await page.getByRole('button', { name: 'บันทึก' }).click();
 
-    const createSuccess = page.getByText('สร้างเพลย์ลิสต์สำเร็จ!');
+    const createSuccess = page.getByText('สร้างเพลย์ลิสต์สำเร็จ');
     await expect(createSuccess).toBeVisible({ timeout: 1000 });
     await page.waitForTimeout(1000);
 

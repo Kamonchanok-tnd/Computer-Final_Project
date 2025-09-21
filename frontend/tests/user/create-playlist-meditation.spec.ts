@@ -13,7 +13,7 @@ test.describe('Admin — Sounds Playlist Flow', () => {
 
     await page.getByRole('button', { name: 'บันทึก' }).click();
 
-    const createSuccess = page.getByText('สร้างเพลย์ลิสต์สำเร็จ!');
+    const createSuccess = page.getByText('สร้างเพลย์ลิสต์สำเร็จ');
     await expect(createSuccess).toBeVisible({ timeout: 5000 });
     await page.waitForTimeout(1000);
   });

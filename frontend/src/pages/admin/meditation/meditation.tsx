@@ -79,7 +79,7 @@ const VideoForm: React.FC = () => {
   
     try {
       await createVideo(values);
-      message.success('เพิ่มข้อมูลสำเร็จ!');
+      message.success('เพิ่มข้อมูลสำเร็จ');
       form.resetFields();
       setStid(undefined);
       form.setFieldsValue({ uid: Number(userId) });
