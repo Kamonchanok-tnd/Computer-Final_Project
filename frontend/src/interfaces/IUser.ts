@@ -11,6 +11,12 @@ export interface UsersInterface {
   Gender: string;              // เพศ
   birth_date: string;         // วันเกิด
 
+  // ✅ ฟิลด์สำหรับนักศึกษา
+  person_type: string;         // นักศึกษามทส / บุคคลภายนอก / อาจารย์
+  faculty?: string;            // สำนักวิชา (optional เฉพาะนักศึกษา)
+  year?: number;               // ชั้นปี (optional เฉพาะนักศึกษา)
+
+
   // ✅ ฟิลด์สำหรับเก็บ consent
   ConsentAccepted: boolean;   // true = กดยินยอม
   ConsentAcceptedAt: Date;    // เวลากดยินยอม

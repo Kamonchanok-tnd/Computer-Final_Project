@@ -35,7 +35,7 @@ export default function MoodSelector({ emotions, selectedID, onSelect }: Props) 
   const safeEmotions = Array.isArray(emotions) ? emotions : []; // ✅ ป้องกัน map error
 
   return (
-    <div className="mx-auto w-full max-w-[420px] px-4 mt-7 sm:mt-8">
+   <div className="mx-auto w-full max-w-[420px] px-4 mt-7 sm:mt-8" data-onboard="mood-selector">
       <ul className="flex items-end justify-center gap-x-5 sm:gap-x-7 md:gap-x-9 lg:gap-x-10">
         {safeEmotions.map((emotion, idx) => {
           const isActive = selectedID === emotion.ID;

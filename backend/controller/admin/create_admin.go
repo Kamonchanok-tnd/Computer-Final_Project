@@ -43,13 +43,13 @@ func CreateAdmin(c *gin.Context) {
     var payload signUp
     // Bind JSON payload to the struct
     if err := c.ShouldBindJSON(&payload); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลที่ส่งมาไม่ถูกต้อง"})
         return
     }
 
     // ตรวจสอบว่าอีเมลเป็นรูปแบบที่ถูกต้องหรือไม่
     if !isValidEmail(payload.Email) {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "รูปแบบอีเมลไม่ถูกต้อง"})
         return
     }
 
@@ -58,11 +58,11 @@ func CreateAdmin(c *gin.Context) {
     // ตรวจสอบว่าผู้ใช้ที่ใช้ email นี้มีอยู่หรือไม่
     result := db.Where("email = ?", payload.Email).First(&userCheck)
     if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการตรวจสอบผู้ใช้งาน"})
         return
     }
     if userCheck.ID != 0 {
-        c.JSON(http.StatusConflict, gin.H{"error": "Email is already registered"})
+        c.JSON(http.StatusConflict, gin.H{"error": "อีเมลนี้ถูกลงทะเบียนแล้ว"})
         return
     }
 
@@ -74,14 +74,14 @@ func CreateAdmin(c *gin.Context) {
 
     // ตรวจสอบความปลอดภัยของรหัสผ่าน เช่น ความยาวขั้นต่ำ 6 ตัว
     if len(payload.Password) < 6 {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 6 characters"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"})
         return
     }
 
     // แฮชรหัสผ่านก่อนบันทึก
     hashedPassword, err := config.HashPassword(payload.Password)
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการเข้ารหัสรหัสผ่าน"})
         return
     }
 
@@ -100,7 +100,7 @@ func CreateAdmin(c *gin.Context) {
 
     // บันทึกผู้ใช้ลงในฐานข้อมูล
     if err := db.Create(&user).Error; err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "ไม่สามารถบันทึกข้อมูลผู้ใช้ได้"})
         return
     }
 

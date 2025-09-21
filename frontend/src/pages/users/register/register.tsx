@@ -33,7 +33,8 @@ function SignUpPages() {
   const genderOptions = [
     { value: "ชาย", label: "ชาย" },
     { value: "หญิง", label: "หญิง" },
-    { value: "อื่นๆ", label: "อื่นๆ" },
+    { value: "LGBTQ+", label: "LGBTQ+" },
+    { value: "ไม่ระบุ", label: "ไม่ระบุ" },
   ];
 
   // state สำหรับ consent
@@ -86,6 +87,33 @@ function SignUpPages() {
       messageApi.error(res.data.error);
     }
   };
+const personTypeOptions = [
+  { value: "นักศึกษามทส", label: "นักศึกษามทส" },
+  { value: "บุคคลภายนอก", label: "บุคคลภายนอก" },
+  { value: "อาจารย์", label: "อาจารย์" },
+];
+
+const facultyOptions = [
+  "สำนักวิชาสาธารณสุขศาสตร์",
+  "สำนักวิชาทันตแพทยศาสตร์",
+  "สำนักวิชาพยาบาลศาสตร์",
+  "สำนักวิชาวิศวกรรมศาสตร์",
+  "สำนักวิชาแพทยศาสตร์",
+  "สำนักวิชาเทคโนโลยีการเกษตร",
+  "สำนักวิชาเทคโนโลยีสังคม",
+  "สำนักวิชาวิทยาศาสตร์",
+  "สำนักวิชาศาสตร์และศิลป์ดิจิทัล",
+];
+
+const yearOptions = [
+  { value: 1, label: "ชั้นปี 1" },
+  { value: 2, label: "ชั้นปี 2" },
+  { value: 3, label: "ชั้นปี 3" },
+  { value: 4, label: "ชั้นปี 4" },
+  { value: 5, label: "ชั้นปี 5" },
+  { value: 6, label: "ชั้นปี 6" },
+  { value: "6 ปีขึ้นไป", label: "6 ปีขึ้นไป" },
+];
 
   return (
     <div
@@ -271,6 +299,54 @@ function SignUpPages() {
     <Input.Password placeholder="รหัสผ่าน" />
   </Form.Item>
 </Col>
+<Col span={24}>
+  <Form.Item
+    label="ประเภทผู้ใช้งาน"
+    name="person_type"
+    rules={[{ required: true, message: "กรุณาเลือกประเภทผู้ใช้งาน !" }]}
+  >
+    <Select
+      placeholder="เลือกประเภทผู้ใช้งาน"
+      options={personTypeOptions}
+    />
+  </Form.Item>
+</Col>
+
+{/* ถ้าเลือกเป็นนักศึกษามทส -> แสดงฟอร์มสำนักวิชาและชั้นปี */}
+<Form.Item noStyle shouldUpdate={(prev, curr) => prev.person_type !== curr.person_type}>
+  {({ getFieldValue }) =>
+    getFieldValue("person_type") === "นักศึกษามทส" && (
+      <>
+        <Col span={24}>
+          <Form.Item
+            label="สำนักวิชา"
+            name="faculty"
+            rules={[{ required: true, message: "กรุณาเลือกสำนักวิชา !" }]}
+          >
+            <Select placeholder="เลือกสำนักวิชา">
+              {facultyOptions.map((f) => (
+                <Select.Option key={f} value={f}>
+                  {f}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+
+        <Col span={24}>
+          <Form.Item
+            label="ชั้นปี"
+            name="year"
+            rules={[{ required: true, message: "กรุณาเลือกชั้นปี !" }]}
+          >
+            <Select placeholder="เลือกชั้นปี" options={yearOptions} />
+          </Form.Item>
+        </Col>
+      </>
+    )
+  }
+</Form.Item>
+
                 {/* <Col xs={24} md={12}>
                   <Form.Item
                     label="อายุ"
@@ -294,7 +370,9 @@ function SignUpPages() {
   locale={thTH}   // ✅ ใส่เป็น object ไม่ใช่ string
   className="!w-full"
   placeholder="เลือกเดือนและปีเกิด"
+  disabledDate={(current) => current && current > dayjs().endOf("month")} 
 />
+
 
                   </Form.Item>
 
