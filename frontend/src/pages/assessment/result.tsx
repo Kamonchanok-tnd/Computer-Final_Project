@@ -101,7 +101,7 @@ const Result: React.FC = () => {
         // 2) ถ้ายังไม่มี ลองใช้ค่าแรกเริ่มจาก localStorage (ก่อนโดนล้าง)
         if (!quId && initialQidRef.current) {
           quId = initialQidRef.current;
-          console.log("[Result] use quId from localStorage:", quId);
+          // console.log("[Result] use quId from localStorage:", quId);
         }
 
         // 3) ถ้ายังไม่เจอ และมี arid → โหลด AssessmentResult เพื่อคาย QuID ออกมา
@@ -113,7 +113,7 @@ const Result: React.FC = () => {
             ar?.Questionnaire?.ID ??
             ar?.Questionnaire?.id ??
             null;
-          console.log("[Result] use quId from AssessmentResult:", quId);
+          // console.log("[Result] use quId from AssessmentResult:", quId);
         }
 
         if (!quId) {

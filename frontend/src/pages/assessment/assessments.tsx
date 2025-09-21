@@ -148,7 +148,7 @@ const Assessments: React.FC = () => {
         point: opt.point,
         question_number: current + 1,
       };
-      console.log("📤 ส่ง submitAnswer:", payload);
+      // console.log("📤 ส่ง submitAnswer:", payload);
       await submitAnswer(payload);
       setAnswers(newAnswers);
 
@@ -159,7 +159,7 @@ const Assessments: React.FC = () => {
         message.success("ขอบคุณสำหรับการทำแบบทดสอบจนเสร็จเรียบร้อยค่ะ ✨", 3);
 
         const transaction = await finishAssessment(assessmentResultID);
-        console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
+        // console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
         navigate("/result", {
           state: { answers: newAnswers, questions, transaction },
         });
