@@ -81,7 +81,7 @@ function SignUpPages() {
     console.log("ข้อมูลผู้ใช้",res);
 
     if (res.status === 201) {
-      messageApi.success("ลงทะเบียนสำเร็จ!");
+      messageApi.success("ลงทะเบียนสำเร็จ");
       setTimeout(() => navigate("/"), 2000);
     } else {
       messageApi.error(res.data.error);
