@@ -237,7 +237,7 @@ const Result: React.FC = () => {
   return (
     <div className="font-ibmthai fixed inset-0 z-[2147483647] min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-100 to-white">
       <div className="bg-sky-200 rounded-2xl p-6 md:p-10 w-11/12 max-w-sm md:max-w-xl text-center shadow-xl">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">คะแนนที่ได้คือ</h1>
+        <h1 className="text-2xl md:text-4xl font-bold mb-6">คะแนนที่ได้คือ</h1>
 
         <div className="relative w-48 h-48 mx-auto mb-12 mt-20">
           <svg className="w-48 h-48 transform -rotate-270" viewBox="0 0 100 100">
@@ -271,8 +271,8 @@ const Result: React.FC = () => {
           </div>
         </div>
 
-        <p className="font-semibold text-lg mb-4 whitespace-pre-line">{title}</p>
-        <p className="text-sm text-gray-800 leading-relaxed mb-6 whitespace-pre-line">
+        <p className="font-semibold text-3xl mb-4 whitespace-pre-line">{title}</p>
+        <p className="text-xl text-gray-800 leading-relaxed mb-6 whitespace-pre-line">
           {recommendation}
         </p>
 
