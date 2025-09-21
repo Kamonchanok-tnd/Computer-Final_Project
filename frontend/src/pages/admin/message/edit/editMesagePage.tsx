@@ -2,15 +2,18 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { FileText, MessageSquare } from "lucide-react";
-import {getWordHealingMessageById,updateWordHealingMessage,getArticleTypeOptionsDetailed,} from "../../../../services/https/message";
+import {
+  getWordHealingMessageById,
+  updateWordHealingMessage,
+  getArticleTypeOptionsDetailed,
+} from "../../../../services/https/message";
 import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
 import editMessageIcon from "../../../../assets/editMessageIcon.png";
 
 /* Types & Utils */
 type ArticleTypeOption = { value: string; label: string; description?: string };
 
-interface FormDataType
-  extends Omit<WordHealingContent, "photo" | "article_type"> {
+interface FormDataType extends Omit<WordHealingContent, "photo" | "article_type"> {
   photo: string | null;
   error: (message: string) => unknown;
   idts?: number;
@@ -29,8 +32,7 @@ const fmtYMD = (d: Date) => {
 };
 const isTouchDevice = () =>
   (typeof window !== "undefined" &&
-    (window.matchMedia?.("(pointer: coarse)").matches ||
-      "ontouchstart" in window)) ||
+    (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
   false;
 
 /** ให้รองรับทั้ง RefObject และ MutableRefObject */
@@ -49,10 +51,7 @@ const MobileDateField: React.FC<{
   const [menuMaxH, setMenuMaxH] = useState(320);
 
   const today = useMemo(() => new Date(`${max}T00:00:00`), [max]);
-  const initial = useMemo(
-    () => (value ? new Date(`${value}T00:00:00`) : today),
-    [value, today]
-  );
+  const initial = useMemo(() => (value ? new Date(`${value}T00:00:00`) : today), [value, today]);
   const [viewMonth, setViewMonth] = useState<Date>(new Date(initial));
 
   const weeks = useMemo(() => {
@@ -147,35 +146,16 @@ const MobileDateField: React.FC<{
           style={{ maxHeight: menuMaxH }}
         >
           <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-            <button
-              type="button"
-              className="rounded-md px-2 py-1 text-sm hover:bg-slate-100"
-              onClick={() =>
-                setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
-              }
-            >
-              ‹
-            </button>
+            <button type="button" className="rounded-md px-2 py-1 text-sm hover:bg-slate-100" onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}>‹</button>
             <div className="text-sm font-medium">
-              {viewMonth.toLocaleString("en-US", { month: "long" })}{" "}
-              {viewMonth.getFullYear()}
+              {viewMonth.toLocaleString("en-US", { month: "long" })} {viewMonth.getFullYear()}
             </div>
-            <button
-              type="button"
-              className="rounded-md px-2 py-1 text-sm hover:bg-slate-100"
-              onClick={() =>
-                setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
-              }
-            >
-              ›
-            </button>
+            <button type="button" className="rounded-md px-2 py-1 text-sm hover:bg-slate-100" onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}>›</button>
           </div>
 
           <div className="grid grid-cols-7 px-2 pt-2 text-center text-xs text-slate-500">
             {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-              <div key={d} className="py-1">
-                {d}
-              </div>
+              <div key={d} className="py-1">{d}</div>
             ))}
           </div>
 
@@ -193,12 +173,8 @@ const MobileDateField: React.FC<{
                     onClick={() => selectDate(cell)}
                     className={[
                       "h-9 rounded-lg text-sm",
-                      disabled
-                        ? "cursor-not-allowed text-slate-300"
-                        : "hover:bg-slate-100",
-                      isSelected
-                        ? "bg-slate-900 text-white hover:bg-slate-900"
-                        : "text-slate-700",
+                      disabled ? "cursor-not-allowed text-slate-300" : "hover:bg-slate-100",
+                      isSelected ? "bg-slate-900 text-white hover:bg-slate-900" : "text-slate-700",
                     ].join(" ")}
                   >
                     {cell.getDate()}
@@ -209,28 +185,8 @@ const MobileDateField: React.FC<{
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-200 px-3 py-2 text-sm">
-            <button
-              type="button"
-              className="rounded-md px-2 py-1 hover:bg-slate-100"
-              onClick={() => {
-                onChange("");
-                setViewMonth(new Date(today));
-                setOpen(false);
-              }}
-            >
-              Clear
-            </button>
-            <button
-              type="button"
-              className="rounded-md px-2 py-1 hover:bg-slate-100"
-              onClick={() => {
-                onChange(fmtYMD(today));
-                setViewMonth(new Date(today));
-                setOpen(false);
-              }}
-            >
-              Today
-            </button>
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(""); setViewMonth(new Date(today)); setOpen(false); }}>Clear</button>
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(fmtYMD(today)); setViewMonth(new Date(today)); setOpen(false); }}>Today</button>
           </div>
         </div>
       )}
@@ -278,34 +234,20 @@ const EditMessagePage: React.FC = () => {
         const detailed = await getArticleTypeOptionsDetailed();
         const opts: ArticleTypeOption[] = (detailed || []).map((o: any) => {
           const labelText =
-            typeof o?.label === "string"
-              ? o.label
-              : typeof o?.label?.th === "string"
-              ? o.label.th
-              : typeof o?.name === "string"
-              ? o.name
-              : typeof o?.title === "string"
-              ? o.title
-              : typeof o?.raw?.label === "string"
-              ? o.raw.label
-              : typeof o?.raw?.name === "string"
-              ? o.raw.name
-              : String(o?.value ?? "");
-
+            typeof o?.label === "string" ? o.label :
+            typeof o?.label?.th === "string" ? o.label.th :
+            typeof o?.name === "string" ? o.name :
+            typeof o?.title === "string" ? o.title :
+            typeof o?.raw?.label === "string" ? o.raw.label :
+            typeof o?.raw?.name === "string" ? o.raw.name :
+            String(o?.value ?? "");
           const descText =
-            typeof o?.description === "string"
-              ? o.description
-              : typeof o?.raw?.description === "string"
-              ? o.raw.description
-              : typeof o?.detail === "string"
-              ? o.detail
-              : typeof o?.raw?.detail === "string"
-              ? o.raw.detail
-              : typeof o?.raw?.desc === "string"
-              ? o.raw.desc
-              : "";
-
-          // ให้ String() มีอาร์กิวเมนต์เดียว (แก้ error ts2554)
+            typeof o?.description === "string" ? o.description :
+            typeof o?.raw?.description === "string" ? o.raw.description :
+            typeof o?.detail === "string" ? o.detail :
+            typeof o?.raw?.detail === "string" ? o.raw.detail :
+            typeof o?.raw?.desc === "string" ? o.raw.desc :
+            "";
           return { value: String(o?.value ?? labelText), label: labelText, description: descText };
         });
         setArticleTypeOptions(opts);
@@ -347,11 +289,7 @@ const EditMessagePage: React.FC = () => {
 
         setContentKind((data.articleType ?? "") === "บทความสั้น" ? "short" : "long");
 
-        if (
-          data.photo &&
-          (String(data.photo).startsWith("data:image") ||
-            String(data.photo).startsWith("http"))
-        ) {
+        if (data.photo && (String(data.photo).startsWith("data:image") || String(data.photo).startsWith("http"))) {
           setPreview(data.photo);
         } else {
           setPreview("");
@@ -372,12 +310,10 @@ const EditMessagePage: React.FC = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const IDEAL_MENU_H = 280;
 
-  // แสดง 5 แถวพอดี + scroll (เหมือนหน้า Create)
   const VISIBLE_ITEMS = 5;
   const ITEM_ROW_H = 44;
   const listMaxH = Math.min(menuMaxH, VISIBLE_ITEMS * ITEM_ROW_H + 8);
 
-  // โหมดกำหนดเอง + คีย์บอร์ด
   const [customTypeMode, setCustomTypeMode] = useState(false);
   const [customTypeText, setCustomTypeText] = useState("");
   const [activeIdx, setActiveIdx] = useState<number>(-1);
@@ -386,19 +322,15 @@ const EditMessagePage: React.FC = () => {
   const calcDropDirection = () => {
     const fieldRect = typeRef.current?.getBoundingClientRect();
     if (!fieldRect) return;
-
     let spaceBelow = window.innerHeight - fieldRect.bottom;
     let spaceAbove = fieldRect.top;
-
     const cardRect = cardRef.current?.getBoundingClientRect();
     if (cardRect) {
       spaceBelow = Math.min(spaceBelow, cardRect.bottom - fieldRect.bottom);
       spaceAbove = Math.min(spaceAbove, fieldRect.top - cardRect.top);
     }
-
     const preferUp = spaceBelow < IDEAL_MENU_H && spaceAbove > spaceBelow;
     setDropUp(preferUp);
-
     const room = (preferUp ? spaceAbove : spaceBelow) - 12;
     setMenuMaxH(Math.max(160, Math.min(IDEAL_MENU_H, room)));
   };
@@ -417,12 +349,7 @@ const EditMessagePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setTypeOpen(false);
-        setCustomTypeMode(false);
-      }
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setTypeOpen(false); setCustomTypeMode(false); } };
     if (typeOpen) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [typeOpen]);
@@ -441,37 +368,29 @@ const EditMessagePage: React.FC = () => {
     };
   }, [typeOpen]);
 
-  /* useMemo (ต้องมาก่อน useEffect ที่อ้างถึง) */
+  /* useMemo */
   const filteredTypeOptions = useMemo(() => {
     const q = typeQuery.trim().toLowerCase();
     if (!q) return articleTypeOptions;
     return articleTypeOptions.filter(
-      (o) =>
-        o.label.toLowerCase().includes(q) ||
-        (o.description?.toLowerCase() || "").includes(q)
+      (o) => o.label.toLowerCase().includes(q) || (o.description?.toLowerCase() || "").includes(q)
     );
   }, [typeQuery, articleTypeOptions]);
 
   const hasExactMatch = useMemo(() => {
     const q = typeQuery.trim().toLowerCase();
     if (!q) return false;
-    return articleTypeOptions.some(
-      (o) =>
-        o.label.toLowerCase() === q || String(o.value).toLowerCase() === q
-    );
+    return articleTypeOptions.some((o) => o.label.toLowerCase() === q || String(o.value).toLowerCase() === q);
   }, [typeQuery, articleTypeOptions]);
 
-  const showCreateFromQuery =
-    !!typeQuery.trim() && !articleTypeLoading && !hasExactMatch;
+  const showCreateFromQuery = !!typeQuery.trim() && !articleTypeLoading && !hasExactMatch;
 
-  // เป็นค่าอื่นๆ ไหม? (ไม่มีในตัวเลือกมาตรฐาน)
   const isCustomType = useMemo(() => {
     const cur = String(formData.articleType || "").trim();
     if (!cur) return false;
     return !articleTypeOptions.some((o) => String(o.value) === cur);
   }, [formData.articleType, articleTypeOptions]);
 
-  // ป้ายชื่อบนปุ่ม
   const selectedTypeLabel = useMemo(() => {
     if (articleTypeLoading) return "กำลังโหลดประเภทบทความ...";
     const cur = String(formData.articleType || "").trim();
@@ -481,7 +400,6 @@ const EditMessagePage: React.FC = () => {
     return "เลือกประเภทบทความ";
   }, [articleTypeLoading, articleTypeOptions, formData.articleType]);
 
-  // sync activeIdx
   useEffect(() => {
     if (articleTypeLoading || !typeOpen) return;
     if (filteredTypeOptions.length === 0) {
@@ -495,19 +413,14 @@ const EditMessagePage: React.FC = () => {
     });
   }, [filteredTypeOptions, typeOpen, articleTypeLoading]);
 
-  // auto scroll ให้ item active โผล่
   useEffect(() => {
     if (activeIdx < 0 || !listRef.current) return;
-    const el =
-      listRef.current.querySelector<HTMLButtonElement>(`[data-idx="${activeIdx}"]`);
+    const el = listRef.current.querySelector<HTMLButtonElement>(`[data-idx="${activeIdx}"]`);
     el?.scrollIntoView({ block: "nearest" });
   }, [activeIdx]);
 
   /* สวิตช์โหมด */
-  const [thumb, setThumb] = useState<{ left: number; width: number }>({
-    left: 0,
-    width: 0,
-  });
+  const [thumb, setThumb] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const pillRef = useRef<HTMLDivElement>(null);
   const longRef = useRef<HTMLButtonElement>(null);
   const shortRef = useRef<HTMLButtonElement>(null);
@@ -521,9 +434,7 @@ const EditMessagePage: React.FC = () => {
     const width = Math.max(0, btnRect.width - 8);
     setThumb({ left, width });
   };
-  useEffect(() => {
-    updateThumb();
-  }, [contentKind]);
+  useEffect(() => { updateThumb(); }, [contentKind]);
   useEffect(() => {
     const ro = new ResizeObserver(updateThumb);
     if (pillRef.current) ro.observe(pillRef.current);
@@ -538,13 +449,15 @@ const EditMessagePage: React.FC = () => {
     };
   }, []);
 
-  /*  บันทึก */
+  /* บันทึก */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return msgApi.error("กรุณากรอกชื่อบทความ");
     if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
     if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
     if (!formData.content.trim()) return msgApi.error("กรุณากรอกเนื้อหา");
+    // บังคับต้องมีรูป (ถ้ามีรูปเดิมอยู่ใน formData.photo ก็ถือว่าผ่าน)
+    if (!formData.photo) return msgApi.error("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
     if (contentKind === "long" && !String(formData.articleType || "").trim()) {
       return msgApi.error("กรุณาระบุประเภทบทความ");
     }
@@ -561,17 +474,17 @@ const EditMessagePage: React.FC = () => {
       date: new Date(formData.date).toISOString(),
       content: formData.content,
       article_type: contentKind === "short" ? "บทความสั้น" : formData.articleType,
-      photo: formData.photo,
+      photo: formData.photo, // base64 ของรูป
       viewCount: formData.viewCount ?? 0,
     };
 
     try {
       const ok = await updateWordHealingMessage(String(formData.id), reqBody as any);
       if (ok) {
-        msgApi.success("บันทึกการแก้ไขสำเร็จ!");
-        setTimeout(() => navigate("/admin/messagePage"), 1000);
+        msgApi.success("แก้ไขข้อมูลสำเร็จ");
+        setTimeout(() => navigate("/admin/messagePage"), 2000);
       } else {
-        msgApi.error("เกิดข้อผิดพลาดในการบันทึก");
+        msgApi.error("เกิดข้อผิดพลาดในการเเก้ไขข้อมูล");
       }
     } catch (err) {
       console.error(err);
@@ -579,16 +492,13 @@ const EditMessagePage: React.FC = () => {
     }
   };
 
-  /* เลือกไฟล์ */
+  /* เลือกไฟล์ — รับเฉพาะรูปภาพเท่านั้น */
   const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const isImage = file.type.startsWith("image/");
-    const isPDF = file.type === "application/pdf";
-    if (!isImage && !isPDF)
-      return msgApi.error("กรุณาเลือกไฟล์รูปภาพหรือ PDF เท่านั้น");
-    if (file.size / 1024 / 1024 >= 5)
-      return msgApi.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
+    if (!isImage) return msgApi.error("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
+    if (file.size / 1024 / 1024 >= 5) return msgApi.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
 
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
@@ -597,7 +507,7 @@ const EditMessagePage: React.FC = () => {
     reader.onloadend = () => {
       const base64 = reader.result as string;
       setFormData((prev) => ({ ...prev, photo: base64 }));
-      if (isImage) setPreview(base64);
+      setPreview(base64);
     };
     reader.readAsDataURL(file);
   };
@@ -609,8 +519,7 @@ const EditMessagePage: React.FC = () => {
   const [useMobilePicker, setUseMobilePicker] = useState(false);
   useEffect(() => {
     setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
-    const onResize = () =>
-      setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
+    const onResize = () => setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -620,13 +529,9 @@ const EditMessagePage: React.FC = () => {
       {msgCtx}
 
       <div className="mb-3 flex items-center gap-1 sm:gap-2">
-        <img
-          src={editMessageIcon}
-          alt="manage icon"
-          className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block"
-        />
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 leading-tight">
-          แก้ไขบทความให้กำลังใจ
+        <img src={editMessageIcon} alt="manage icon" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block" />
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 leading-tight">
+          แก้ไขข้อความให้กำลังใจ
         </h1>
       </div>
 
@@ -634,18 +539,11 @@ const EditMessagePage: React.FC = () => {
         ref={cardRef}
         className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10 lg:overflow-hidden"
       >
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          className="grid grid-cols-1 gap-10 lg:grid-cols-2"
-        >
+        <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           {/* Left */}
           <div className="space-y-5">
             <div className="space-y-2">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-slate-700"
-              >
+              <label htmlFor="name" className="block text-sm font-medium text-slate-700">
                 ชื่อข้อความหรือบทความ <span className="text-rose-500">*</span>
               </label>
               <input
@@ -653,29 +551,21 @@ const EditMessagePage: React.FC = () => {
                 name="name"
                 type="text"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
                 placeholder="เช่น กำลังใจในวันที่เหนื่อยล้า"
               />
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="author"
-                className="block text-sm font-medium text-slate-700"
-              >
-                ผู้เขียน/อ้างอิง/แหล่งที่มา{" "}
-                <span className="text-rose-500">*</span>
+              <label htmlFor="author" className="block text-sm font-medium text-slate-700">
+                ผู้เขียน/อ้างอิง/แหล่งที่มา <span className="text-rose-500">*</span>
               </label>
               <textarea
                 id="author"
                 name="author"
                 value={formData.author}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, author: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, author: e.target.value }))}
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
                 placeholder="เช่น ทีมงานดูแลใจ"
               />
@@ -683,19 +573,11 @@ const EditMessagePage: React.FC = () => {
 
             {/* Switch */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
-                โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการแก้ไข)
-              </label>
+              <label className="block text-sm font-medium text-slate-700">โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการแก้ไข)</label>
               <div className="w-full flex justify-center">
                 <div className="relative w-fit mx-auto">
-                  <div
-                    ref={pillRef}
-                    className="relative inline-flex rounded-2xl border border-slate-200 bg-[#5DE2FF] p-1 shadow-sm"
-                  >
-                    <span
-                      className="absolute top-1 bottom-1 rounded-xl bg-white shadow transition-all duration-300"
-                      style={{ left: `${thumb.left}px`, width: `${thumb.width}px` }}
-                    />
+                  <div ref={pillRef} className="relative inline-flex rounded-2xl border border-slate-200 bg-[#5DE2FF] p-1 shadow-sm">
+                    <span className="absolute top-1 bottom-1 rounded-xl bg-white shadow transition-all duration-300" style={{ left: `${thumb.left}px`, width: `${thumb.width}px` }} />
                     <div className="relative z-10 grid grid-cols-2 gap-1">
                       <button
                         ref={longRef}
@@ -704,9 +586,7 @@ const EditMessagePage: React.FC = () => {
                         className={[
                           "flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 sm:px-5 py-2 text-sm font-medium transition",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-200",
-                          contentKind === "long"
-                            ? "text-slate-900"
-                            : "text-slate-500 hover:text-slate-700",
+                          contentKind === "long" ? "text-slate-900" : "text-slate-500 hover:text-slate-700",
                         ].join(" ")}
                         aria-pressed={contentKind === "long"}
                       >
@@ -720,9 +600,7 @@ const EditMessagePage: React.FC = () => {
                         className={[
                           "flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 sm:px-5 py-2 text-sm font-medium transition",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-200",
-                          contentKind === "short"
-                            ? "text-slate-900"
-                            : "text-slate-500 hover:text-slate-700",
+                          contentKind === "short" ? "text-slate-900" : "text-slate-500 hover:text-slate-700",
                         ].join(" ")}
                         aria-pressed={contentKind === "short"}
                       >
@@ -751,14 +629,8 @@ const EditMessagePage: React.FC = () => {
                     }}
                     className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
                   >
-                    <span className={articleTypeLoading ? "text-slate-400" : ""}>
-                      {selectedTypeLabel}
-                    </span>
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="ml-2 h-4 w-4 opacity-60"
-                    >
+                    <span className={articleTypeLoading ? "text-slate-400" : ""}>{selectedTypeLabel}</span>
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="ml-2 h-4 w-4 opacity-60">
                       <path
                         fillRule="evenodd"
                         d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
@@ -767,7 +639,6 @@ const EditMessagePage: React.FC = () => {
                     </svg>
                   </button>
 
-                  {/* helper text ใต้ปุ่ม เมื่อเป็นค่าอื่นๆ */}
                   {isCustomType && !!String(formData.articleType || "").trim() && (
                     <p className="mt-1.5 text-xs text-slate-500">
                       ตอนนี้ตั้งค่าเป็น <span className="font-medium">อื่นๆ</span>:
@@ -790,12 +661,7 @@ const EditMessagePage: React.FC = () => {
                             if (e.key === "ArrowDown") {
                               e.preventDefault();
                               if (filteredTypeOptions.length) {
-                                setActiveIdx((i) =>
-                                  Math.min(
-                                    (i < 0 ? -1 : i) + 1,
-                                    filteredTypeOptions.length - 1
-                                  )
-                                );
+                                setActiveIdx((i) => Math.min((i < 0 ? -1 : i) + 1, filteredTypeOptions.length - 1));
                               }
                             } else if (e.key === "ArrowUp") {
                               e.preventDefault();
@@ -815,10 +681,7 @@ const EditMessagePage: React.FC = () => {
                                 const val = typeQuery.trim();
                                 if (val) {
                                   setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [
-                                    { value: val, label: val },
-                                    ...prev,
-                                  ]);
+                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
                                   setTypeOpen(false);
                                   setTypeQuery("");
                                   setCustomTypeMode(false);
@@ -839,33 +702,19 @@ const EditMessagePage: React.FC = () => {
                         role="listbox"
                         ref={listRef}
                         className="overflow-y-auto py-1"
-                        style={{ maxHeight: listMaxH }} // 5 แถวพอดี
-                        aria-activedescendant={
-                          activeIdx >= 0 ? `type-opt-${activeIdx}` : undefined
-                        }
+                        style={{ maxHeight: listMaxH }}
+                        aria-activedescendant={activeIdx >= 0 ? `type-opt-${activeIdx}` : undefined}
                       >
-                        {/* แถบแสดงค่าปัจจุบัน ถ้าเป็นอื่นๆ */}
-                        {isCustomType &&
-                          !!String(formData.articleType || "").trim() && (
-                            <li className="px-3 py-2 text-xs text-slate-500 border-b border-slate-100 bg-slate-50">
-                              ค่าปัจจุบัน:{" "}
-                              <span className="font-medium">
-                                อื่นๆ – {String(formData.articleType)}
-                              </span>
-                            </li>
-                          )}
-
-                        {articleTypeLoading && (
-                          <li className="px-3 py-2 text-sm text-slate-500">
-                            กำลังโหลด...
+                        {isCustomType && !!String(formData.articleType || "").trim() && (
+                          <li className="px-3 py-2 text-xs text-slate-500 border-b border-slate-100 bg-slate-50">
+                            ค่าปัจจุบัน: <span className="font-medium">อื่นๆ – {String(formData.articleType)}</span>
                           </li>
                         )}
-                        {!articleTypeLoading &&
-                          filteredTypeOptions.length === 0 && (
-                            <li className="px-3 py-2 text-sm text-slate-500">
-                              ไม่พบประเภทบทความ
-                            </li>
-                          )}
+
+                        {articleTypeLoading && <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>}
+                        {!articleTypeLoading && filteredTypeOptions.length === 0 && (
+                          <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>
+                        )}
 
                         {filteredTypeOptions.map((o, idx) => (
                           <li key={o.value}>
@@ -879,16 +728,11 @@ const EditMessagePage: React.FC = () => {
                               className={[
                                 "w-full px-3 py-3 text-left text-base hover:bg-slate-100",
                                 "sm:py-2 sm:text-sm",
-                                o.value === String(formData.articleType)
-                                  ? "bg-slate-50 font-medium"
-                                  : "",
+                                o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : "",
                                 idx === activeIdx ? "bg-slate-100" : "",
                               ].join(" ")}
                               onClick={() => {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  articleType: o.value,
-                                }));
+                                setFormData((prev) => ({ ...prev, articleType: o.value }));
                                 setTypeOpen(false);
                                 setTypeQuery("");
                                 setCustomTypeMode(false);
@@ -896,20 +740,13 @@ const EditMessagePage: React.FC = () => {
                               }}
                             >
                               <div className="flex flex-col">
-                                <span className="text-sm sm:text-[13px]">
-                                  {o.label}
-                                </span>
-                                {o.description && (
-                                  <span className="text-xs text-slate-500 line-clamp-2">
-                                    {o.description}
-                                  </span>
-                                )}
+                                <span className="text-sm sm:text-[13px]">{o.label}</span>
+                                {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
                               </div>
                             </button>
                           </li>
                         ))}
 
-                        {/* อื่นๆ / ระบุเอง… */}
                         {!customTypeMode && (
                           <li>
                             <button
@@ -925,7 +762,6 @@ const EditMessagePage: React.FC = () => {
                           </li>
                         )}
 
-                        {/* สร้างประเภทใหม่จากคำค้น */}
                         {showCreateFromQuery && !customTypeMode && (
                           <li>
                             <button
@@ -935,29 +771,22 @@ const EditMessagePage: React.FC = () => {
                                 const val = typeQuery.trim();
                                 if (!val) return;
                                 setFormData((prev) => ({ ...prev, articleType: val }));
-                                setArticleTypeOptions((prev) => [
-                                  { value: val, label: val },
-                                  ...prev,
-                                ]);
+                                setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
                                 setTypeOpen(false);
                                 setTypeQuery("");
                                 setCustomTypeMode(false);
                                 setCustomTypeText("");
                               }}
                             >
-                              สร้างประเภทใหม่:{" "}
-                              <span className="font-medium">“{typeQuery.trim()}”</span>
+                              สร้างประเภทใหม่: <span className="font-medium">“{typeQuery.trim()}”</span>
                             </button>
                           </li>
                         )}
                       </ul>
 
-                      {/* ฟอร์มกำหนดเอง — Sticky bottom */}
                       {customTypeMode && (
                         <div className="border-t border-slate-200 p-2 bg-white sticky bottom-0 sm:static">
-                          <label className="mb-1 block text-xs text-slate-500">
-                            กำหนดชื่อประเภทด้วยตนเอง
-                          </label>
+                          <label className="mb-1 block text-xs text-slate-500">กำหนดชื่อประเภทด้วยตนเอง</label>
 
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <input
@@ -968,14 +797,8 @@ const EditMessagePage: React.FC = () => {
                                 if (e.key === "Enter") {
                                   const val = customTypeText.trim();
                                   if (!val) return;
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    articleType: val,
-                                  }));
-                                  setArticleTypeOptions((prev) => [
-                                    { value: val, label: val },
-                                    ...prev,
-                                  ]);
+                                  setFormData((prev) => ({ ...prev, articleType: val }));
+                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
                                   setTypeOpen(false);
                                   setTypeQuery("");
                                   setCustomTypeMode(false);
@@ -996,14 +819,8 @@ const EditMessagePage: React.FC = () => {
                                 onClick={() => {
                                   const val = customTypeText.trim();
                                   if (!val) return;
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    articleType: val,
-                                  }));
-                                  setArticleTypeOptions((prev) => [
-                                    { value: val, label: val },
-                                    ...prev,
-                                  ]);
+                                  setFormData((prev) => ({ ...prev, articleType: val }));
+                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
                                   setTypeOpen(false);
                                   setTypeQuery("");
                                   setCustomTypeMode(false);
@@ -1036,26 +853,16 @@ const EditMessagePage: React.FC = () => {
 
             {/* Content */}
             <div className="space-y-2">
-              <label
-                htmlFor="content"
-                className="block text-sm font-medium text-slate-700"
-              >
-                เนื้อหา{contentKind === "short" ? " (ข้อความ/บทความสั้น)" : "บทความ"}{" "}
-                <span className="text-rose-500">*</span>
+              <label htmlFor="content" className="block text-sm font-medium text-slate-700">
+                เนื้อหา{contentKind === "short" ? " (ข้อความ/บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
               </label>
               <textarea
                 id="content"
                 name="content"
                 value={formData.content}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, content: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
                 className="min-h-40 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
-                placeholder={
-                  contentKind === "short"
-                    ? "พิมพ์ข้อความสั้นๆ ให้กำลังใจ..."
-                    : "พิมพ์ข้อความให้กำลังใจที่นี่..."
-                }
+                placeholder={contentKind === "short" ? "พิมพ์ข้อความสั้นๆ ให้กำลังใจ..." : "พิมพ์ข้อความให้กำลังใจที่นี่..."}
               />
             </div>
           </div>
@@ -1063,7 +870,7 @@ const EditMessagePage: React.FC = () => {
           {/* Right */}
           <div className="flex flex-col">
             <label className="mb-2 block text-sm font-medium text-slate-700">
-              อัปโหลดรูปภาพประกอบ (ถ้ามี)
+              อัปโหลดรูปภาพประกอบ <span className="text-rose-500">*</span>
             </label>
 
             <div
@@ -1072,41 +879,34 @@ const EditMessagePage: React.FC = () => {
               onDrop={(e) => {
                 e.preventDefault();
                 const f = e.dataTransfer.files?.[0];
-                if (f) {
-                  const evt = {
-                    target: { files: [f] },
-                  } as unknown as React.ChangeEvent<HTMLInputElement>;
+                if (f && f.type.startsWith("image/")) {
+                  const evt = { target: { files: [f] } } as unknown as React.ChangeEvent<HTMLInputElement>;
                   handleFilePick(evt);
+                } else {
+                  msgApi.error("กรุณาลากไฟล์รูปภาพเท่านั้น");
                 }
               }}
             >
+              {/* รับเฉพาะรูปภาพ */}
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/*"
                 onChange={handleFilePick}
                 className="hidden"
               />
 
-              <div
-                className="flex min-h-[280px] items-center justify-center"
-                onClick={() => fileInputRef.current?.click()}
-              >
+              <div className="flex min-h-[280px] items-center justify-center" onClick={() => fileInputRef.current?.click()}>
                 {preview ? (
-                  <img
-                    src={preview}
-                    alt="preview"
-                    className="max-h-[420px] w-full rounded-xl object-contain"
-                  />
+                  <img src={preview} alt="preview" className="max-h-[420px] w-full rounded-xl object-contain" />
                 ) : formData.photo ? (
                   <div className="text-center text-sm text-slate-500">
-                    เลือกไฟล์ PDF แล้ว (ไม่มีตัวอย่างภาพ)
+                    เลือกรูปไว้แล้ว แต่ไม่พบตัวอย่าง (กรุณาอัปโหลดใหม่ถ้าต้องการแสดงตัวอย่าง)
                   </div>
                 ) : (
                   <div className="text-center">
-                    <div className="text-sm text-slate-600">
-                      ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับรูปภาพ)
-                    </div>
+                    <div className="text-sm text-slate-600">ลากรูปมาวางที่นี่ หรือคลิกเพื่อเลือกรูป </div>
+                    <div className="mt-1 text-xs text-slate-500">รองรับไฟล์ภาพเท่านั้น</div>
                   </div>
                 )}
               </div>
@@ -1117,7 +917,7 @@ const EditMessagePage: React.FC = () => {
                   onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                 >
-                  เลือกไฟล์
+                  เลือกรูป
                 </button>
                 <button
                   type="button"
@@ -1133,7 +933,7 @@ const EditMessagePage: React.FC = () => {
                   disabled={!formData.photo}
                   className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:pointer-events-none disabled:opacity-50"
                 >
-                  ลบไฟล์
+                  ลบรูป
                 </button>
               </div>
             </div>
@@ -1144,14 +944,7 @@ const EditMessagePage: React.FC = () => {
                 วันที่เผยแพร่ <span className="text-rose-500">*</span>
               </label>
               {useMobilePicker ? (
-                <MobileDateField
-                  value={formData.date}
-                  max={todayStr}
-                  onChange={(ymd) =>
-                    setFormData((prev) => ({ ...prev, date: ymd }))
-                  }
-                  cardRef={cardRef}
-                />
+                <MobileDateField value={formData.date} max={todayStr} onChange={(ymd) => setFormData((prev) => ({ ...prev, date: ymd }))} cardRef={cardRef} />
               ) : (
                 <input
                   id="date"
@@ -1159,9 +952,7 @@ const EditMessagePage: React.FC = () => {
                   type="date"
                   value={formData.date}
                   max={todayStr}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, date: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
                 />
               )}
@@ -1180,9 +971,7 @@ const EditMessagePage: React.FC = () => {
                 type="submit"
                 className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50"
               >
-                {contentKind === "short"
-                  ? "บันทึกข้อความ/บทความสั้น"
-                  : "บันทึกบทความ"}
+                {contentKind === "short" ? "บันทึกข้อความ/บทความสั้น" : "บันทึกบทความ"}
               </button>
             </div>
           </div>
@@ -1191,21 +980,9 @@ const EditMessagePage: React.FC = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && preview && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setShowPreviewModal(false)}
-        >
-          <div
-            className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={preview}
-              alt="Preview"
-              className="mx-auto max-h-[80vh] w-full rounded-xl object-contain"
-            />
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" onClick={() => setShowPreviewModal(false)}>
+          <div className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <img src={preview} alt="Preview" className="mx-auto max-h-[80vh] w-full rounded-xl object-contain" />
             <div className="p-2 text-right">
               <button
                 onClick={() => setShowPreviewModal(false)}

@@ -416,6 +416,7 @@ const CreateMessagePage: React.FC = () => {
     if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
     if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
     if (!formData.content.trim()) return msgApi.error("กรุณากรอกเนื้อหา");
+    if (!formData.photo) return msgApi.error("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
     if (contentKind === "long" && !String(formData.articleType || "").trim()) {
       return msgApi.error("กรุณาระบุประเภทบทความ");
     }
@@ -433,16 +434,17 @@ const CreateMessagePage: React.FC = () => {
     form.append("content", formData.content);
     form.append("viewCount", String(formData.viewCount ?? 0));
     form.append("article_type", contentKind === "short" ? "บทความสั้น" : formData.articleType);
+    // แนบรูปภาพ (จำเป็น)
     if (formData.photo) form.append("photo", formData.photo);
 
     setSaving(true);
     try {
       const ok = await createWordHealingMessage(form);
       if (ok) {
-        msgApi.success(contentKind === "short" ? "บันทึกบทความสั้นสำเร็จ!" : "บันทึกบทความสำเร็จ!");
+        msgApi.success(contentKind === "short" ? "เพิ่มข้อมูลสำเร็จ" : "เพิ่มข้อมูลสำเร็จ");
         setTimeout(() => navigate("/admin/messagePage"), 1000);
       } else {
-        msgApi.error("เกิดข้อผิดพลาดในการบันทึก");
+        msgApi.error("เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
       }
     } catch (err) {
       console.error(err);
@@ -452,13 +454,13 @@ const CreateMessagePage: React.FC = () => {
     }
   };
 
-  /* เลือกไฟล์ */
+  /* เลือกไฟล์ — รับเฉพาะรูปภาพ และบังคับต้องแนบรูป */
   const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const isImage = file.type.startsWith("image/");
-    const isPDF = file.type === "application/pdf";
-    if (!isImage && !isPDF) return msgApi.error("กรุณาเลือกไฟล์รูปภาพหรือ PDF เท่านั้น");
+    if (!isImage) return msgApi.error("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
     if (file.size / 1024 / 1024 >= 5) return msgApi.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
 
     setPreview("");
@@ -468,10 +470,11 @@ const CreateMessagePage: React.FC = () => {
     reader.onloadend = () => {
       const base64 = reader.result as string;
       setFormData((prev) => ({ ...prev, photo: base64 }));
-      if (isImage) setPreview(base64);
+      setPreview(base64);
     };
     reader.readAsDataURL(file);
   };
+
   const removeFile = () => {
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
@@ -491,7 +494,7 @@ const CreateMessagePage: React.FC = () => {
 
       <div className="mb-3 flex items-center gap-1 sm:gap-2">
         <img src={createMessageIcon} alt="manage icon" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block" />
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 leading-tight">สร้างบทความให้กำลังใจ</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 leading-tight">สร้างข้อความให้กำลังใจ</h1>
       </div>
 
       <div ref={cardRef} className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10">
@@ -678,7 +681,6 @@ const CreateMessagePage: React.FC = () => {
                           </li>
                         ))}
 
-                        {/* อื่นๆ / ระบุเอง… */}
                         {!customTypeMode && (
                           <li>
                             <button
@@ -694,7 +696,6 @@ const CreateMessagePage: React.FC = () => {
                           </li>
                         )}
 
-                        {/* สร้างจากคำค้น ถ้าไม่มีตรงเป๊ะ */}
                         {showCreateFromQuery && !customTypeMode && (
                           <li>
                             <button
@@ -717,7 +718,6 @@ const CreateMessagePage: React.FC = () => {
                         )}
                       </ul>
 
-                      {/* ฟอร์มกำหนดเอง — Mobile Friendly & Sticky Bottom */}
                       {customTypeMode && (
                         <div className="border-t border-slate-200 p-2 bg-white sticky bottom-0 sm:static">
                           <label className="mb-1 block text-xs text-slate-500">กำหนดชื่อประเภทด้วยตนเอง</label>
@@ -803,7 +803,7 @@ const CreateMessagePage: React.FC = () => {
 
           {/* Right */}
           <div className="flex flex-col">
-            <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ (ถ้ามี)</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ <span className="text-rose-500">*</span></label>
 
             <div
               className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-white p-4"
@@ -811,30 +811,58 @@ const CreateMessagePage: React.FC = () => {
               onDrop={(e) => {
                 e.preventDefault();
                 const f = e.dataTransfer.files?.[0];
-                if (f) {
+                if (f && f.type.startsWith("image/")) {
                   const evt = { target: { files: [f] } } as unknown as React.ChangeEvent<HTMLInputElement>;
                   handleFilePick(evt);
+                } else {
+                  msgApi.error("กรุณาลากไฟล์รูปภาพเท่านั้น");
                 }
               }}
             >
-              <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={handleFilePick} className="hidden" />
+              {/* รับเฉพาะรูปภาพ */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFilePick}
+                className="hidden"
+              />
 
               <div className="flex min-h-[280px] items-center justify-center" onClick={() => fileInputRef.current?.click()}>
                 {preview ? (
                   <img src={preview} alt="preview" className="max-h-[420px] w-full rounded-xl object-contain" />
-                ) : formData.photo ? (
-                  <div className="text-center text-sm text-slate-500">เลือกไฟล์ PDF แล้ว (ไม่มีตัวอย่างภาพ)</div>
                 ) : (
                   <div className="text-center">
-                    <div className="text-sm text-slate-600">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์ (รองรับรูปภาพ)</div>
+                    <div className="text-sm text-slate-600">ลากรูปมาวางที่นี่ หรือคลิกเพื่อเลือกรูป</div>
+                    <div className="mt-1 text-xs text-slate-500">รองรับไฟล์ภาพเท่านั้น</div>
                   </div>
                 )}
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">เลือกไฟล์</button>
-                <button type="button" onClick={() => setShowPreviewModal(true)} disabled={!preview} className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50">เปิดดูรูปตัวอย่าง</button>
-                <button type="button" onClick={removeFile} disabled={!formData.photo} className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:pointer-events-none disabled:opacity-50">ลบไฟล์</button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  เลือกรูป
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPreviewModal(true)}
+                  disabled={!preview}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  เปิดดูรูปตัวอย่าง
+                </button>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  disabled={!formData.photo}
+                  className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-3 py-1.5 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  ลบรูป
+                </button>
               </div>
             </div>
 
@@ -902,3 +930,4 @@ const CreateMessagePage: React.FC = () => {
 };
 
 export default CreateMessagePage;
+

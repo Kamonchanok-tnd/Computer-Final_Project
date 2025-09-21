@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Button, Input, InputNumber, Spin, Popconfirm, Modal, message } from "antd";
-import { DeleteOutlined, PlusOutlined, SaveOutlined, RollbackOutlined } from "@ant-design/icons";
+import { DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import criteriaIcon from "../../../../assets/criteria.png";
-import { getAllCriteriaByQuestionnaireId, updateCriteriaByQuestionnaireId } from "../../../../services/https/questionnaire";
+import { createCriteria } from "../../../../services/https/questionnaire";
 import { useNavigate, useLocation, useSearchParams, useParams } from "react-router-dom";
 
-/* ชนิดข้อมูล */
+/* Types */
 export interface Criterion {
   id?: number;
   description: string;
@@ -15,16 +15,7 @@ export interface Criterion {
 }
 type NavState = { questionnaireId?: number | string };
 
-/* แปลงฟิลด์จาก API -> รูปแบบที่ UI ใช้ */
-const toUI = (x: any): Criterion => ({
-  id: x?.id ?? x?.ID,
-  description: x?.description ?? x?.Description ?? "",
-  minScore: Number(x?.minScore ?? x?.MinScore ?? x?.min_criteria_score ?? x?.MinCriteriaScore ?? 0),
-  maxScore: Number(x?.maxScore ?? x?.MaxScore ?? x?.max_criteria_score ?? x?.MaxCriteriaScore ?? 0),
-  recommendation: x?.recommendation ?? x?.Recommendation ?? "",
-});
-
-/* คลาสรวมสำหรับ Input/Number*/
+/* UI classes */
 const inputCls =
   "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !h-12 !text-base";
 const numberCls =
@@ -32,16 +23,26 @@ const numberCls =
   "[&_.ant-input-number-input]:!h-12 [&_.ant-input-number-input]:!leading-[48px] [&_.ant-input-number-input]:!py-0 " +
   "[&_.ant-input-number-handler-wrap]:!h-12 [&_.ant-input-number-handler]:!h-6";
 
-const EditCriteriaPage: React.FC = () => {
+/* เรียงจากช่วงคะแนนน้อย→มาก */
+const sortByRange = (list: Criterion[]) =>
+  [...list].sort((a, b) => {
+    const amin = Number(a.minScore ?? Number.POSITIVE_INFINITY);
+    const bmin = Number(b.minScore ?? Number.POSITIVE_INFINITY);
+    if (amin !== bmin) return amin - bmin;
+    const amax = Number(a.maxScore ?? Number.POSITIVE_INFINITY);
+    const bmax = Number(b.maxScore ?? Number.POSITIVE_INFINITY);
+    return amax - bmax;
+  });
+
+const CreateCriteriaPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const params = useParams<{ questionnaireId?: string; id?: string }>();
 
-  /* toast (antd message) */
   const [msg, contextHolder] = message.useMessage();
 
-  /* หา questionnaireId */
+  /* resolve questionnaireId */
   const stateIdRaw = (location.state as NavState | null)?.questionnaireId;
   const queryIdRaw = searchParams.get("questionnaireId");
   const paramIdRaw = params.questionnaireId ?? params.id;
@@ -55,16 +56,13 @@ const EditCriteriaPage: React.FC = () => {
     parseNum(paramIdRaw) ??
     parseNum(sessionStorage.getItem("last_questionnaire_id"));
 
-  /* เก็บล่าสุดใน sessionStorage */
   useEffect(() => {
     if (questionnaireId) sessionStorage.setItem("last_questionnaire_id", String(questionnaireId));
   }, [questionnaireId]);
 
-  /* state */
   const [criteriaList, setCriteriaList] = useState<Criterion[]>([]);
-  const [deletedIds, setDeletedIds] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);         // โหลดข้อมูลจากเซิร์ฟเวอร์
-  const [submitting, setSubmitting] = useState(false);  // สปิน fullscreen ตอนกดบันทึกเท่านั้น
+  const [submitting, setSubmitting] = useState(false);
+  const [loading] = useState(false);
 
   const [description, setDescription] = useState("");
   const [recommendation, setRecommendation] = useState("");
@@ -92,44 +90,40 @@ const EditCriteriaPage: React.FC = () => {
 
   useEffect(() => {
     updateFormMaxHeight();
-  }, [criteriaList, loading]);
+  }, [criteriaList]);
 
-  /* โหลดข้อมูล */
   useEffect(() => {
     if (!questionnaireId) {
       Modal.warning({
         title: "ไม่พบแบบทดสอบ",
-        content: "ไม่มี questionnaireId ถูกส่งมา กรุณากลับไปยังหน้าก่อนหน้า",
+        content: "ไม่มี questionnaireId ถูกส่งมา",
         onOk: () => navigate(-1),
       });
-      return;
     }
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const data = await getAllCriteriaByQuestionnaireId(questionnaireId);
-        const list = Array.isArray(data) ? data.map(toUI) : [];
-        setCriteriaList(list);
-        setDeletedIds([]);
-      } catch (e: any) {
-        Modal.error({ title: "ดึงข้อมูลไม่สำเร็จ", content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
   }, [questionnaireId, navigate]);
 
-  /* ตรวจสอบข้อมูล */
-  const validateNoOverlap = (list: Criterion[]): string | null => {
+  /* ตรวจครบ + บังคับ recommendation */
+  const validateAll = (list: Criterion[]): string | null => {
     const descSet = new Set<string>();
-    for (const [i, c] of list.entries()) {
+    for (const [i, raw] of list.entries()) {
+      const c = {
+        ...raw,
+        description: (raw.description ?? "").trim(),
+        recommendation: (raw.recommendation ?? "").trim(),
+      };
       if (!c.description) return `รายการที่ ${i + 1}: กรุณากรอกคำอธิบาย`;
-      if (descSet.has(c.description.trim())) return `รายการที่ ${i + 1}: คำอธิบายซ้ำกัน`;
-      descSet.add(c.description.trim());
-      if (c.minScore > c.maxScore) return `รายการที่ ${i + 1}: ขั้นต่ำต้อง ≤ สูงสุด`;
+      if (!c.recommendation) return `รายการที่ ${i + 1}: กรุณากรอกคำแนะนำ`;
+      const key = c.description;
+      if (descSet.has(key)) return `รายการที่ ${i + 1}: คำอธิบายซ้ำกัน`;
+      descSet.add(key);
+      if (c.minScore === undefined || c.maxScore === undefined)
+        return `รายการที่ ${i + 1}: โปรดกรอกคะแนนขั้นต่ำและสูงสุดให้ครบ`;
+      if (Number.isNaN(Number(c.minScore)) || Number.isNaN(Number(c.maxScore)))
+        return `รายการที่ ${i + 1}: คะแนนต้องเป็นตัวเลข`;
+      if (Number(c.minScore) > Number(c.maxScore))
+        return `รายการที่ ${i + 1}: ขั้นต่ำต้อง ≤ สูงสุด`;
     }
-    const sorted = [...list].sort((a, b) => a.minScore - b.minScore);
+    const sorted = sortByRange(list);
     for (let i = 1; i < sorted.length; i++) {
       const prev = sorted[i - 1];
       const curr = sorted[i];
@@ -146,6 +140,10 @@ const EditCriteriaPage: React.FC = () => {
       Modal.warning({ title: "กรุณากรอกข้อมูลให้ครบ", content: "ใส่คำอธิบายและช่วงคะแนนให้ครบถ้วน" });
       return;
     }
+    if (!String(recommendation).trim()) {
+      Modal.warning({ title: "คำแนะนำว่าง", content: "กรุณากรอกคำแนะนำสำหรับเกณฑ์นี้" });
+      return;
+    }
     const minN = Number(minScore);
     const maxN = Number(maxScore);
     if (Number.isNaN(minN) || Number.isNaN(maxN)) {
@@ -156,13 +154,16 @@ const EditCriteriaPage: React.FC = () => {
       Modal.warning({ title: "ช่วงคะแนนไม่ถูกต้อง", content: "ขั้นต่ำต้อง ≤ สูงสุด" });
       return;
     }
-    const next = [...criteriaList, { description, recommendation, minScore: minN, maxScore: maxN }];
-    const v = validateNoOverlap(next);
+    const next = [
+      ...criteriaList,
+      { description: description.trim(), recommendation: recommendation.trim(), minScore: minN, maxScore: maxN },
+    ];
+    const v = validateAll(next);
     if (v) {
-      Modal.warning({ title: "ช่วงคะแนนซ้อนทับ", content: v });
+      Modal.warning({ title: "ตรวจสอบข้อมูล", content: v });
       return;
     }
-    setCriteriaList(next);
+    setCriteriaList(sortByRange(next)); // เรียงก่อนใส่
     setDescription("");
     setRecommendation("");
     setMinScore("");
@@ -175,75 +176,58 @@ const EditCriteriaPage: React.FC = () => {
     });
   };
 
-  /* อัปเดต/ลบ */
+  /* อัปเดต/ลบแถว */
   const updateRow = (idx: number, patch: Partial<Criterion>) =>
     setCriteriaList(prev => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
   const removeRow = (idx: number) =>
     setCriteriaList(prev => {
       const next = [...prev];
-      const removed = next.splice(idx, 1)[0];
-      if (removed?.id) setDeletedIds(d => [...d, removed.id!]);
+      next.splice(idx, 1);
       return next;
     });
 
   /* บันทึกทั้งหมด */
   const handleSaveAll = async () => {
     if (!questionnaireId) return;
-    const v = validateNoOverlap(criteriaList);
+    if (criteriaList.length === 0) {
+      Modal.warning({ title: "ยังไม่มีเกณฑ์", content: "กรุณาเพิ่มเกณฑ์อย่างน้อย 1 รายการ" });
+      return;
+    }
+    const sorted = sortByRange(criteriaList);
+    const v = validateAll(sorted);
     if (v) {
       Modal.warning({ title: "ตรวจสอบข้อมูล", content: v });
       return;
     }
     let didNavigate = false;
     try {
-      setSubmitting(true); // แสดงสปิน fullscreen ตอนบันทึก
-      const updated = criteriaList.map(c => ({
-        id: c.id,
-        description: c.description.trim(),
+      setSubmitting(true);
+      const created = sorted.map(c => ({
+        description: (c.description ?? "").trim(),
         minScore: Number(c.minScore),
         maxScore: Number(c.maxScore),
-        recommendation: c.recommendation?.trim() ?? "",
+        recommendation: (c.recommendation ?? "").trim(),
       }));
-      await updateCriteriaByQuestionnaireId(questionnaireId, { updated, deleted: deletedIds });
-      setDeletedIds([]);
-
-      await new Promise<void>(resolve => {
-        msg.success({ content: "แก้ไขเกณฑ์การประเมินสำเร็จ!", duration: 1.2, onClose: resolve });
-      });
-
+      await createCriteria(created, questionnaireId!);
+      await new Promise<void>(resolve =>
+        msg.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
+      );
       didNavigate = true;
       navigate("/admin/questionnairePage", {
         replace: true,
-        state: {
-          flash: {
-            type: "success",
-            content: "บันทึกการแก้ไขข้อมูลแบบทดสอบเเละเกณฑ์การประเมินลงฐานข้อมูลเรียบร้อยแล้ว!",
-          },
-        },
+        state: { flash: { type: "success", content: "เพิ่มข้อมูลสำเร็จ" } },
       });
     } catch (e: any) {
-      Modal.error({ title: "บันทึกไม่สำเร็จ", content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" });
+      Modal.error({ title: "เพิ่มข้อมูลไม่สำเร็จ", content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" });
     } finally {
       if (!didNavigate) setSubmitting(false);
-    }
-  };
-
-  /* กลับไปหน้า Q&A */
-  const goBackToQnA = () => {
-    if (questionnaireId) {
-      navigate(`/admin/editQuestionAndAnswerPage?questionnaireId=${questionnaireId}`, {
-        state: { questionnaireId },
-        replace: true,
-      });
     }
   };
 
   return (
     <div className="min-h-screen w-full bg-slate-100">
       {contextHolder}
-
-      {/* สปิน fullscreen เฉพาะตอนบันทึก (สไตล์เดียวกับหน้า create) */}
       <Spin spinning={submitting} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
       {/* Header */}
@@ -252,19 +236,11 @@ const EditCriteriaPage: React.FC = () => {
           <div className="flex min-w-0 items-center gap-3">
             <img src={criteriaIcon} alt="criteria" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
             <div className="min-w-0">
-              <h1 className="truncate text-xl font-bold text-slate-800 sm:text-2xl">แก้ไขเกณฑ์การประเมิน</h1>
+              <h1 className="truncate text-xl font-bold text-slate-800 sm:text-2xl">สร้างเกณฑ์การประเมิน</h1>
               {questionnaireId && <p className="text-sm text-slate-500">แบบทดสอบ ID: {questionnaireId}</p>}
             </div>
           </div>
-
           <div className="hidden items-center gap-2 md:flex">
-            <Button
-              icon={<RollbackOutlined />}
-              onClick={goBackToQnA}
-              className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm hover:!border-black hover:!bg-gray-700"
-            >
-              กลับ
-            </Button>
             <Button
               type="primary"
               icon={<SaveOutlined />}
@@ -272,7 +248,7 @@ const EditCriteriaPage: React.FC = () => {
               loading={submitting}
               className="!bg-[#5DE2FF] hover:!bg-cyan-500"
             >
-              บันทึกการแก้ไข
+              บันทึกเกณฑ์การประเมิน
             </Button>
           </div>
         </div>
@@ -282,129 +258,71 @@ const EditCriteriaPage: React.FC = () => {
       <div className="w-full px-4 pb-6 sm:px-6">
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 pb-16 md:pb-6">
           <Spin spinning={loading} tip="กำลังโหลดข้อมูล...">
-            {/* ── ตัวอย่าง (อยู่บนสุดของการ์ด, นอกพื้นที่สกรอลล์) ── */}
+            {/* ตัวอย่าง */}
             <div className="mb-4 sm:mb-6">
               <h3 className="mb-2 text-sm font-semibold text-slate-700 sm:text-base">ตัวอย่างการวัดระดับความสุข</h3>
               <div className="grid gap-2 text-sm text-slate-700 md:grid-cols-2">
                 <ul className="list-disc pl-6">
-                  <li>0 = ไม่มีความสุขเลย</li>
-                  <li>1–2 = ความสุขน้อยที่สุด</li>
-                  <li>3–4 = ความสุขน้อย</li>
-                  <li>5–6 = ความสุขปานกลาง</li>
-                  <li>7–8 = ความสุขมาก</li>
-                  <li>9–10 = ความสุขมากที่สุด</li>
+                  <li>0 = ไม่มีความสุขเลย</li><li>1–2 = ความสุขน้อยที่สุด</li><li>3–4 = ความสุขน้อย</li>
+                  <li>5–6 = ความสุขปานกลาง</li><li>7–8 = ความสุขมาก</li><li>9–10 = ความสุขมากที่สุด</li>
                 </ul>
                 <ul className="list-disc pl-6 text-red-500">
-                  <li>“ไม่มีความสุขเลย” → ต่ำสุด 0 สูงสุด 0</li>
-                  <li>“ความสุขน้อยที่สุด” → ต่ำสุด 1 สูงสุด 2</li>
-                  <li>“ความสุขน้อย” → ต่ำสุด 3 สูงสุด 4</li>
-                  <li>“ความสุขปานกลาง” → ต่ำสุด 5 สูงสุด 6</li>
-                  <li>“ความสุขมาก” → ต่ำสุด 7 สูงสุด 8</li>
-                  <li>“ความสุขมากที่สุด” → ต่ำสุด 9 สูงสุด 10</li>
+                  <li>“ไม่มีความสุขเลย” → 0–0</li><li>“ความสุขน้อยที่สุด” → 1–2</li><li>“ความสุขน้อย” → 3–4</li>
+                  <li>“ความสุขปานกลาง” → 5–6</li><li>“ความสุขมาก” → 7–8</li><li>“ความสุขมากที่สุด” → 9–10</li>
                 </ul>
               </div>
             </div>
 
-            {/* เนื้อหาที่สกรอลล์ได้ (ฟอร์ม + รายการ) */}
+            {/* Form + List (scroll) */}
             <div ref={formScrollRef} className="space-y-6 pr-1 overflow-y-auto hide-scrollbar">
-              {/* ฟอร์มเพิ่มเกณฑ์ */}
+              {/* Form */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                {/* Desktop / Tablet */}
+                {/* Desktop */}
                 <div className="hidden md:grid md:grid-cols-12 md:gap-4">
                   <div className="md:col-span-6">
-                    <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
-                    <Input
-                      size="large"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="กรอกคำอธิบายเกณฑ์"
-                      className={inputCls}
-                    />
+                    <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
+                    <Input size="large" value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="กรอกคำอธิบายเกณฑ์" className={inputCls}/>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="mb-1 block text_sm text-slate-700">คะแนนขั้นต่ำ</label>
-                    <InputNumber
-                      size="large"
-                      min={0}
-                      max={10000}
-                      value={minScore === "" ? undefined : minScore}
-                      onChange={(v) => setMinScore(v === undefined || v === null ? "" : v)}
-                      placeholder="ขั้นต่ำ"
-                      className={numberCls}
-                    />
+                    <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ <span className="text-rose-600">*</span></label>
+                    <InputNumber size="large" min={0} max={10000} value={minScore===""?undefined:minScore}
+                      onChange={(v)=>setMinScore(v==null?"":v)} placeholder="ขั้นต่ำ" className={numberCls}/>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="mb-1 block text_sm text-slate-700">คะแนนสูงสุด</label>
-                    <InputNumber
-                      size="large"
-                      min={0}
-                      max={10000}
-                      value={maxScore === "" ? undefined : maxScore}
-                      onChange={(v) => setMaxScore(v === undefined || v === null ? "" : v)}
-                      placeholder="สูงสุด"
-                      className={numberCls}
-                    />
+                    <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด <span className="text-rose-600">*</span></label>
+                    <InputNumber size="large" min={0} max={10000} value={maxScore===""?undefined:maxScore}
+                      onChange={(v)=>setMaxScore(v==null?"":v)} placeholder="สูงสุด" className={numberCls}/>
                   </div>
 
                   <div className="md:col-span-12">
-                    <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์</label>
-                    <Input.TextArea
-                      rows={3}
-                      value={recommendation}
-                      onChange={(e) => setRecommendation(e.target.value)}
-                      placeholder="กรอกคำแนะนำเพิ่มเติมสำหรับเกณฑ์"
-                      className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !text-base"
-                    />
+                    <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์ <span className="text-rose-600">*</span></label>
+                    <Input.TextArea rows={3} value={recommendation} onChange={(e)=>setRecommendation(e.target.value)}
+                      placeholder="กรอกคำแนะนำเพิ่มเติมสำหรับเกณฑ์" className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !text-base"/>
                   </div>
                 </div>
 
                 {/* Mobile */}
                 <div className="grid gap-3 md:hidden">
                   <div>
-                    <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
-                    <Input
-                      size="large"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="กรอกคำอธิบายเกณฑ์"
-                      className={inputCls}
-                    />
+                    <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
+                    <Input size="large" value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="กรอกคำอธิบายเกณฑ์" className={inputCls}/>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
-                      <InputNumber
-                        size="large"
-                        min={0}
-                        max={10000}
-                        value={minScore === "" ? undefined : minScore}
-                        onChange={(v) => setMinScore(v === undefined || v === null ? "" : v)}
-                        placeholder="ขั้นต่ำ"
-                        className={numberCls}
-                      />
+                      <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ <span className="text-rose-600">*</span></label>
+                      <InputNumber size="large" min={0} max={10000} value={minScore===""?undefined:minScore}
+                        onChange={(v)=>setMinScore(v==null?"":v)} placeholder="ขั้นต่ำ" className={numberCls}/>
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
-                      <InputNumber
-                        size="large"
-                        min={0}
-                        max={10000}
-                        value={maxScore === "" ? undefined : maxScore}
-                        onChange={(v) => setMaxScore(v === undefined || v === null ? "" : v)}
-                        placeholder="สูงสุด"
-                        className={numberCls}
-                      />
+                      <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด <span className="text-rose-600">*</span></label>
+                      <InputNumber size="large" min={0} max={10000} value={maxScore===""?undefined:maxScore}
+                        onChange={(v)=>setMaxScore(v==null?"":v)} placeholder="สูงสุด" className={numberCls}/>
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์</label>
-                    <Input.TextArea
-                      rows={3}
-                      value={recommendation}
-                      onChange={(e) => setRecommendation(e.target.value)}
-                      placeholder="กรอกคำแนะนำเพิ่มเติมสำหรับเกณฑ์"
-                      className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !text-base"
-                    />
+                    <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์ <span className="text-rose-600">*</span></label>
+                    <Input.TextArea rows={3} value={recommendation} onChange={(e)=>setRecommendation(e.target.value)}
+                      placeholder="กรอกคำแนะนำเพิ่มเติมสำหรับเกณฑ์" className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !text-base"/>
                   </div>
                 </div>
 
@@ -415,123 +333,73 @@ const EditCriteriaPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* รายการเกณฑ์ */}
+              {/* List */}
               {criteriaList.length === 0 ? (
                 <div className="text-slate-500">ยังไม่มีเกณฑ์การประเมิน</div>
               ) : (
                 <div className="space-y-3">
                   {criteriaList.map((c, idx) => (
-                    <div
-                      key={c.id ?? idx}
-                      className="rounded-xl border border-slate-200 p-3 transition-colors hover:border-black focus-within:border-black"
-                    >
-                      {/* Header: ชื่อเกณฑ์ + ปุ่มลบ อยู่บรรทัดเดียวกัน */}
+                    <div key={c.id ?? idx} className="rounded-xl border border-slate-200 p-3 transition-colors hover:border-black focus-within:border-black">
                       <div className="mb-2 flex items-center justify-between">
                         <p className="m-0 font-semibold text-slate-700">เกณฑ์ที่ {idx + 1}</p>
                         <Popconfirm title="ลบรายการนี้?" okText="ลบ" cancelText="ยกเลิก" onConfirm={() => removeRow(idx)}>
-                          <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            className="!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"
-                          />
+                          <Button danger icon={<DeleteOutlined />} className="!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"/>
                         </Popconfirm>
                       </div>
 
-                      {/* Desktop/Tablet layout */}
+                      {/* Desktop */}
                       <div className="hidden md:grid md:grid-cols-12 md:gap-4">
                         <div className="md:col-span-6">
-                          <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
-                          <Input
-                            size="large"
-                            value={c.description}
-                            onChange={(e) => updateRow(idx, { description: e.target.value })}
-                            placeholder="คำอธิบายเกณฑ์"
-                            className={inputCls}
-                          />
+                          <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
+                          <Input size="large" value={c.description} onChange={(e)=>updateRow(idx,{description:e.target.value})} placeholder="คำอธิบายเกณฑ์" className={inputCls}/>
                         </div>
                         <div className="md:col-span-3">
-                          <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
-                          <InputNumber
-                            size="large"
-                            min={0}
-                            max={10000}
-                            value={c.minScore}
-                            onChange={(v) => updateRow(idx, { minScore: (v ?? 0) as number })}
-                            placeholder="ขั้นต่ำ"
-                            className={numberCls}
-                          />
+                          <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ <span className="text-rose-600">*</span></label>
+                          <InputNumber size="large" min={0} max={10000} value={c.minScore}
+                            onChange={(v)=>updateRow(idx,{minScore:(v ?? 0) as number})}
+                            onBlur={()=>setCriteriaList(p=>sortByRange(p))}
+                            placeholder="ขั้นต่ำ" className={numberCls}/>
                         </div>
                         <div className="md:col-span-3">
-                          <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
-                          <InputNumber
-                            size="large"
-                            min={0}
-                            max={10000}
-                            value={c.maxScore}
-                            onChange={(v) => updateRow(idx, { maxScore: (v ?? 0) as number })}
-                            placeholder="สูงสุด"
-                            className={numberCls}
-                          />
+                          <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด <span className="text-rose-600">*</span></label>
+                          <InputNumber size="large" min={0} max={10000} value={c.maxScore}
+                            onChange={(v)=>updateRow(idx,{maxScore:(v ?? 0) as number})}
+                            onBlur={()=>setCriteriaList(p=>sortByRange(p))}
+                            placeholder="สูงสุด" className={numberCls}/>
                         </div>
                         <div className="md:col-span-12">
-                          <label className="mb-1 block text_sm text-slate-700">คำแนะนำเกณฑ์</label>
-                          <Input.TextArea
-                            rows={2}
-                            value={c.recommendation}
-                            onChange={(e) => updateRow(idx, { recommendation: e.target.value })}
-                            placeholder="คำแนะนำเกณฑ์"
-                            className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black"
-                          />
+                          <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์ <span className="text-rose-600">*</span></label>
+                          <Input.TextArea rows={2} value={c.recommendation} onChange={(e)=>updateRow(idx,{recommendation:e.target.value})}
+                            placeholder="คำแนะนำเกณฑ์" className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black"/>
                         </div>
                       </div>
 
-                      {/* Mobile layout */}
+                      {/* Mobile */}
                       <div className="grid gap-3 md:hidden">
                         <div>
-                          <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
-                          <Input
-                            size="large"
-                            value={c.description}
-                            onChange={(e) => updateRow(idx, { description: e.target.value })}
-                            placeholder="คำอธิบายเกณฑ์"
-                            className={inputCls}
-                          />
+                          <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
+                          <Input size="large" value={c.description} onChange={(e)=>updateRow(idx,{description:e.target.value})} placeholder="คำอธิบายเกณฑ์" className={inputCls}/>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
-                            <InputNumber
-                              size="large"
-                              min={0}
-                              max={10000}
-                              value={c.minScore}
-                              onChange={(v) => updateRow(idx, { minScore: (v ?? 0) as number })}
-                              placeholder="ขั้นต่ำ"
-                              className={numberCls}
-                            />
+                            <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ <span className="text-rose-600">*</span></label>
+                            <InputNumber size="large" min={0} max={10000} value={c.minScore}
+                              onChange={(v)=>updateRow(idx,{minScore:(v ?? 0) as number})}
+                              onBlur={()=>setCriteriaList(p=>sortByRange(p))}
+                              placeholder="ขั้นต่ำ" className={numberCls}/>
                           </div>
                           <div>
-                            <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
-                            <InputNumber
-                              size="large"
-                              min={0}
-                              max={10000}
-                              value={c.maxScore}
-                              onChange={(v) => updateRow(idx, { maxScore: (v ?? 0) as number })}
-                              placeholder="สูงสุด"
-                              className={numberCls}
-                            />
+                            <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด <span className="text-rose-600">*</span></label>
+                            <InputNumber size="large" min={0} max={10000} value={c.maxScore}
+                              onChange={(v)=>updateRow(idx,{maxScore:(v ?? 0) as number})}
+                              onBlur={()=>setCriteriaList(p=>sortByRange(p))}
+                              placeholder="สูงสุด" className={numberCls}/>
                           </div>
                         </div>
                         <div>
-                          <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์</label>
-                          <Input.TextArea
-                            rows={2}
-                            value={c.recommendation}
-                            onChange={(e) => updateRow(idx, { recommendation: e.target.value })}
-                            placeholder="คำแนะนำเกณฑ์"
-                            className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black"
-                          />
+                          <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์ <span className="text-rose-600">*</span></label>
+                          <Input.TextArea rows={2} value={c.recommendation} onChange={(e)=>updateRow(idx,{recommendation:e.target.value})}
+                            placeholder="คำแนะนำเกณฑ์" className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black"/>
                         </div>
                       </div>
                     </div>
@@ -546,28 +414,12 @@ const EditCriteriaPage: React.FC = () => {
       {/* ปุ่มล่าง (มือถือ) */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2">
-          <Button
-            icon={<RollbackOutlined />}
-            onClick={goBackToQnA}
-            className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
-            block
-          >
-            กลับ
-          </Button>
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            onClick={handleSaveAll}
-            loading={submitting}
-            className="!bg-[#5DE2FF] hover:!bg-cyan-500"
-            block
-          >
-            บันทึกการแก้ไข
+          <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveAll} loading={submitting} className="!bg-[#5DE2FF] hover:!bg-cyan-500" block>
+            บันทึกเกณฑ์การประเมิน
           </Button>
         </div>
       </div>
 
-      {/* ซ่อน scrollbar */}
       <style>{`
         .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -576,4 +428,4 @@ const EditCriteriaPage: React.FC = () => {
   );
 };
 
-export default EditCriteriaPage;
+export default CreateCriteriaPage;

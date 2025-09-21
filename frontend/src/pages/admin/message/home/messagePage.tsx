@@ -48,7 +48,7 @@ const MessagePage: React.FC = () => {
       setDeleteModalVisible(false);
       setIsDeleteSuccessModalVisible(true);
       await loadMessages();
-      message.success("ลบข้อมูลบทความในฐานข้อมูลสำเร็จ!");
+      message.success("ลบข้อมูลสำเร็จ");
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการลบ");
     }
@@ -258,7 +258,7 @@ const MessagePage: React.FC = () => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <img src={emailIcon} alt="manage icon" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">จัดการบทความให้กำลังใจ</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">จัดการข้อความให้กำลังใจ</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -340,10 +340,28 @@ const MessagePage: React.FC = () => {
         okText="ยืนยัน"
         cancelText="ยกเลิก"
         centered
+        
+        okButtonProps={{
+          danger: true,
+          disabled: !selectedToDelete, 
+          className:
+            "!rounded-xl !border-none !shadow-none " +
+            "!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 " +
+            "disabled:!bg-rose-300 disabled:cursor-not-allowed",
+        }}
+        cancelButtonProps={{
+          className:
+            "!rounded-xl !border-none !shadow-none " +
+            "!bg-black !text-white hover:!bg-gray-700 active:!bg-gray-800",
+        }}
+        rootClassName="font-sans"
       >
         <p>คุณแน่ใจหรือไม่ว่าต้องการลบบทความนี้?</p>
-        <p className="text-center font-semibold text-lg text-red-600">{selectedToDelete?.name}</p>
+        <p className="text-center font-semibold text-lg text-red-600">
+          {selectedToDelete?.name}
+        </p>
       </Modal>
+
 
       {/* Preview image modal */}
       <Modal open={previewVisible} footer={null} onCancel={() => setPreviewVisible(false)} centered>
