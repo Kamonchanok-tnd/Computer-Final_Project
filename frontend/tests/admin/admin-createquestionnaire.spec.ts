@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Admin CreateQuestionnaire — UAT', () => {
-  test('สร้างเเบบทดสอบสำเร็จ!"', async ({ page }) => {
+  test('สร้างเเบบทดสอบ"', async ({ page }) => {
     // กันเวลาให้พอ
     test.setTimeout(180_000);
     page.setDefaultTimeout(60_000);
