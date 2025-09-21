@@ -128,7 +128,7 @@ export async function getPlaylistsByUserAndType(uid: number, stid: number): Prom
     }
 
     const data = await response.json();
-    console.log("🎧 Loaded playlists:", data);
+    //console.log("🎧 Loaded playlists:", data);
     return data;
   } catch (error) {
     console.error("❌ Error fetching playlists:", error);

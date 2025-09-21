@@ -12,8 +12,8 @@ function ConfigRoutes() {
   const isLoggedIn = localStorage.getItem("isLogin") === "true";  // ตรวจสอบสถานะการล็อกอิน
   const role = localStorage.getItem("role");  // ตรวจสอบบทบาทของผู้ใช้ (admin, user, superadmin)
 
-  console.log("isLoggedIn:", isLoggedIn);  // ตรวจสอบว่า isLoggedIn เป็น true หรือ false
-  console.log("role:", role);  // ตรวจสอบว่า role เป็น admin, user หรือ superadmin
+  //console.log("isLoggedIn:", isLoggedIn);  // ตรวจสอบว่า isLoggedIn เป็น true หรือ false
+  //console.log("role:", role);  // ตรวจสอบว่า role เป็น admin, user หรือ superadmin
   
   let routes: RouteObject[] = [];
 
@@ -31,7 +31,7 @@ function ConfigRoutes() {
     routes = LoginRoutes();  // หากไม่ได้ล็อกอิน ให้ไปที่หน้า Login
   }
 
-  console.log("Routes:", routes);  // ตรวจสอบค่าของ routes
+  //console.log("Routes:", routes);  // ตรวจสอบค่าของ routes
   return useRoutes(routes);  // ใช้เส้นทางที่กำหนดให้กับ useRoutes
 }
 
