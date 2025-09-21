@@ -569,7 +569,7 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 
 			// ✅ NEW: afterChat กันไม่ให้ทำซ้ำ “ภายในหน้าต่างเวลาเดียวกัน” (เหมือน interval)
 			if trigger == "afterChat" && g.FrequencyDays != nil {
-				windowStart := time.Now().Add(-time.Duration(*g.FrequencyDays) * time.Minute)
+				windowStart := time.Now().Add(-time.Duration(*g.FrequencyDays) * time.Hour)
 
 				var doneInWindow int64
 				if err := config.DB().Model(&entity.Transaction{}).
@@ -811,24 +811,23 @@ func GetAvailableGroupsAndNextQuestionnaire(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
-
 func GetTransactions(c *gin.Context) {
-    userID := c.Query("user_id")
+	userID := c.Query("user_id")
 
-    var tx []entity.Transaction
-    db := config.DB()
+	var tx []entity.Transaction
+	db := config.DB()
 
-    if userID != "" {
-        // JOIN กับ assessment_results เพื่อกรองตาม user
-        db = db.Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
-            Where("ar.uid = ?", userID)
-    }
+	if userID != "" {
+		// JOIN กับ assessment_results เพื่อกรองตาม user
+		db = db.Joins("JOIN assessment_results ar ON ar.id = transactions.ar_id").
+			Where("ar.uid = ?", userID)
+	}
 
-    if err := db.Order("transactions.created_at ASC").Find(&tx).Error; err != nil {
-        util.HandleError(c, http.StatusInternalServerError, "โหลดธุรกรรมไม่สำเร็จ", "FETCH_FAILED")
-        return
-    }
-    c.JSON(http.StatusOK, tx)
+	if err := db.Order("transactions.created_at ASC").Find(&tx).Error; err != nil {
+		util.HandleError(c, http.StatusInternalServerError, "โหลดธุรกรรมไม่สำเร็จ", "FETCH_FAILED")
+		return
+	}
+	c.JSON(http.StatusOK, tx)
 }
 
 //////////////////////////////////////////////////////////////// ADMIN //////////////////////////////////////////////////////////////////////
@@ -960,8 +959,7 @@ func ReorderQuestionnairesInGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "reordered"})
 }
 
-// เพิ่มแบบทดสอบสุขภาพจิตเข้าไปในกลุ่ม
-// เพิ่มแบบทดสอบสุขภาพจิตเข้าไปในกลุ่ม (อัปเดตใหม่: ถ้าเป็นลูก จะเพิ่มแม่ให้อัตโนมัติพร้อมแจ้งข้อความ)
+// เพิ่มแบบทดสอบสุขภาพจิตเข้าไปในกลุ่ม (อัปเดตใหม่: ถ้าเป็นลูก → แทรกต่อท้ายบล็อกแม่)
 type addQuestionnaireToGroupReq struct {
 	QuestionnaireID uint `json:"questionnaire_id"`
 }
@@ -976,7 +974,7 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 
 	db := config.DB()
 
-	// โหลดข้อมูลแบบทดสอบสุขภาพจิตที่ถูกขอเพิ่ม (child candidate)
+	// โหลดข้อมูลแบบทดสอบที่ขอเพิ่ม (อาจเป็นลูก)
 	var child entity.Questionnaire
 	if err := db.First(&child, body.QuestionnaireID).Error; err != nil {
 		util.HandleError(c, http.StatusNotFound, "ไม่พบแบบทดสอบสุขภาพจิต", "QUESTIONNAIRE_NOT_FOUND")
@@ -985,13 +983,13 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 
 	type addedInfo struct {
 		ID   uint   `json:"id"`
-		Role string `json:"role"` // "parent" หรือ "child"
+		Role string `json:"role"` // "parent" / "child"
 	}
 	var added []addedInfo
 	var note string
 
 	err := db.Transaction(func(tx *gorm.DB) error {
-		// helper: เช็คว่ามี (qid) อยู่ในกลุ่มนี้แล้วหรือยัง
+		// helper: ตรวจว่ามี qid ในกลุ่มนี้หรือยัง
 		existsInGroup := func(qid uint) (bool, error) {
 			var cnt int64
 			if err := tx.Model(&entity.QuestionnaireGroupQuestionnaire{}).
@@ -1002,7 +1000,7 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 			return cnt > 0, nil
 		}
 
-		// helper: คืนค่า order สูงสุดในกลุ่ม
+		// helper: order ถัดไป (ท้ายสุด)
 		nextOrder := func() (uint, error) {
 			var maxOrder uint
 			if err := tx.Model(&entity.QuestionnaireGroupQuestionnaire{}).
@@ -1013,21 +1011,34 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 			return maxOrder + 1, nil
 		}
 
-		// ถ้า child มีแม่ → ตรวจว่ามีแม่ในกลุ่มหรือยัง
-		if child.ConditionOnID != nil {
-			parentID := *child.ConditionOnID
+		// โหลดลิสต์ปัจจุบัน (เรียงแล้ว + มี Questionnaire ให้รู้ว่าใครเป็นลูกของใคร)
+		loadLinks := func() ([]entity.QuestionnaireGroupQuestionnaire, error) {
+			var links []entity.QuestionnaireGroupQuestionnaire
+			if err := tx.
+				Preload("Questionnaire").
+				Where("questionnaire_group_id = ?", groupID).
+				Order("order_in_group ASC").
+				Find(&links).Error; err != nil {
+				return nil, err
+			}
+			return links, nil
+		}
 
-			// โหลดข้อมูลแม่เพื่อยืนยันว่ามีจริง
+		// เพิ่มแม่ถ้ายังไม่มี (กรณี child)
+		var parentID *uint
+		if child.ConditionOnID != nil {
+			parentID = child.ConditionOnID
+
+			// ยืนยันว่ามีแม่
 			var parent entity.Questionnaire
-			if err := tx.First(&parent, parentID).Error; err != nil {
+			if err := tx.First(&parent, *parentID).Error; err != nil {
 				return fmt.Errorf("parent questionnaire not found: %w", err)
 			}
 
-			hasParent, err := existsInGroup(parentID)
+			hasParent, err := existsInGroup(*parentID)
 			if err != nil {
 				return err
 			}
-			// ถ้ายังไม่มีแม่ → เพิ่มแม่ก่อน
 			if !hasParent {
 				order, err := nextOrder()
 				if err != nil {
@@ -1035,56 +1046,116 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 				}
 				linkParent := entity.QuestionnaireGroupQuestionnaire{
 					QuestionnaireGroupID: uint(groupID),
-					QuestionnaireID:      parentID,
+					QuestionnaireID:      *parentID,
 					OrderInGroup:         order,
 				}
 				if err := tx.Create(&linkParent).Error; err != nil {
 					return err
 				}
-				added = append(added, addedInfo{ID: parentID, Role: "parent"})
+				added = append(added, addedInfo{ID: *parentID, Role: "parent"})
 				note = "มีการเพิ่มแบบทดสอบสุขภาพจิตแม่ให้อัตโนมัติ เนื่องจากรายการที่เพิ่มเป็นแบบทดสอบสุขภาพจิตลูก"
 			}
 		}
 
-		// สุดท้าย เพิ่ม child (ถ้ายังไม่มี)
+		// ห้ามซ้ำ
 		hasChild, err := existsInGroup(child.ID)
 		if err != nil {
 			return err
 		}
 		if hasChild {
-			// มีอยู่แล้ว → ตอบ conflict
 			return fmt.Errorf("แบบทดสอบสุขภาพจิตนี้อยู่ในกลุ่มแล้ว")
 		}
 
-		order, err := nextOrder()
-		if err != nil {
-			return err
+		// หา order ที่จะวาง
+		var insertOrder uint
+
+		if parentID == nil {
+			// ไม่ใช่ลูก → วางท้ายสุดเหมือนเดิม
+			insertOrder, err = nextOrder()
+			if err != nil {
+				return err
+			}
+		} else {
+			// เป็นลูก → วางต่อท้าย "บล็อกแม่" (แม่ + ลูกของแม่ทั้งหมด)
+			links, err := loadLinks()
+			if err != nil {
+				return err
+			}
+
+			// หา index ของแม่ในลิสต์
+			parentIdx := -1
+			for i, l := range links {
+				if l.QuestionnaireID == *parentID {
+					parentIdx = i
+					break
+				}
+			}
+			if parentIdx == -1 {
+				// เคสหายาก: เพิ่งเพิ่มแม่ด้านบน แต่ยังไม่ได้ reload → ใส่ท้ายสุดของปัจจุบัน (ก็คือถัดจากแม่อยู่ดี)
+				insertOrder, err = nextOrder()
+				if err != nil {
+					return err
+				}
+			} else {
+				// เดินต่อจากแม่เพื่อข้ามลูกที่มีอยู่แล้วของแม่
+				lastBlockIdx := parentIdx
+				for i := parentIdx + 1; i < len(links); i++ {
+					// ✅ เช็คจากค่าใน struct แทน
+					if links[i].Questionnaire.ID != 0 &&
+						links[i].Questionnaire.ConditionOnID != nil &&
+						*links[i].Questionnaire.ConditionOnID == *parentID {
+						lastBlockIdx = i
+					} else {
+						break
+					}
+				}
+				// จุดที่จะแทรก = order ของรายการ "ถัดจากบล็อก" (หรือท้ายสุดถ้าแม่อยู่ท้ายอยู่แล้ว)
+				if lastBlockIdx == len(links)-1 {
+					// บล็อกแม่อยู่ท้ายสุด
+					insertOrder, err = nextOrder()
+					if err != nil {
+						return err
+					}
+				} else {
+					// มีรายการถัดไป → ใช้ order ของมันเป็นตำแหน่งแทรก แล้ว shift รายการตั้งแต่จุดนี้ลง 1
+					insertOrder = links[lastBlockIdx+1].OrderInGroup
+
+					if err := tx.Model(&entity.QuestionnaireGroupQuestionnaire{}).
+						Where("questionnaire_group_id = ? AND order_in_group >= ?", groupID, insertOrder).
+						Update("order_in_group", gorm.Expr("order_in_group + 1")).Error; err != nil {
+						return err
+					}
+				}
+			}
 		}
+
+		// แทรกลูก/หรือรายการเดี่ยว
 		linkChild := entity.QuestionnaireGroupQuestionnaire{
 			QuestionnaireGroupID: uint(groupID),
 			QuestionnaireID:      child.ID,
-			OrderInGroup:         order,
+			OrderInGroup:         insertOrder,
 		}
 		if err := tx.Create(&linkChild).Error; err != nil {
 			return err
 		}
-		added = append(added, addedInfo{ID: child.ID, Role: "child"})
+		added = append(added, addedInfo{ID: child.ID, Role: func() string {
+			if parentID != nil {
+				return "child"
+			}
+			return "single"
+		}()})
 
 		return nil
 	})
 
-	// ตรวจสอบ error ที่เกิดขึ้น
 	if err != nil {
+		// ถ้าอยากแยก 409 สำหรับซ้ำ: ตรวจข้อความจาก err แล้ว map เป็น 409 ได้
 		util.HandleError(c, http.StatusInternalServerError, "ไม่สามารถเพิ่มแบบทดสอบสุขภาพจิตได้", "CREATE_FAILED")
 		return
 	}
 
-	// ✅ ส่งข้อความแจ้งเตือนกลับไปให้ frontend ใช้แสดงทันที
-	// - message: สั้นๆ
-	// - message_th: ข้อความไทยอ่านง่าย
-	// - added_ids: รายการที่ถูกเพิ่มจริง (เรียงตามลำดับที่เพิ่ม)
 	c.JSON(http.StatusCreated, gin.H{
-		"message":    "เพิ่มแบบทดสอบสุขภาพจิตสำเร็จ",
+		"message": "เพิ่มแบบทดสอบสุขภาพจิตสำเร็จ",
 		"message_th": strings.TrimSpace(fmt.Sprintf("เพิ่มแบบทดสอบสุขภาพจิตสำเร็จ%s", func() string {
 			if note != "" {
 				return " (" + note + ")"
@@ -1094,7 +1165,6 @@ func AddQuestionnaireToGroup(c *gin.Context) {
 		"added_ids": added,
 	})
 }
-
 
 // ลบแบบทดสอบสุขภาพจิตออกจากกลุ่ม
 func RemoveQuestionnaireFromGroup(c *gin.Context) {
