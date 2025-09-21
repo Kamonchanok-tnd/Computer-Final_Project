@@ -7,8 +7,6 @@ import (
 	"sukjai_project/config"
 	"sukjai_project/entity"
 	"time"
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -105,8 +103,6 @@ func CreateWordHealingMessages(c *gin.Context) {
 	// รับข้อมูล Base64 ของรูปภาพ
 	base64Photo := c.PostForm("photo")
 	if base64Photo != "" {
-		// Log ข้อมูล Base64 ที่รับมา
-		fmt.Println(" รูปที่ส่ง Received Base64 photo:", base64Photo)
 		input.Photo = &base64Photo
 	}
 

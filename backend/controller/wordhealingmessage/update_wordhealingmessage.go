@@ -7,8 +7,6 @@ import (
 	"time"
 	"github.com/gin-gonic/gin"
     "strconv"
-    "log"
-
 )
 
 // ฟังก์ชันบริการเพื่อดึงข้อมูลบทความตาม ID
@@ -96,7 +94,6 @@ func UpdateWordHealingMessage(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-    log.Println("Received update payload:", req)
 
     // หา record เดิม
     var existing entity.WordHealingContent
@@ -104,7 +101,6 @@ func UpdateWordHealingMessage(c *gin.Context) {
         c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
         return
     }
-    log.Println("Existing content before update:", existing)
 
     // อัปเดตฟิลด์
     existing.Name        = req.Name
@@ -121,16 +117,11 @@ func UpdateWordHealingMessage(c *gin.Context) {
         existing.Photo = nil
     }
 
-    log.Println("Updated content before saving:", existing)
 
     if err := config.DB().Save(&existing).Error; err != nil {
-        log.Println("Error saving updated record:", err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update record"})
         return
     }
-
-    log.Println("Updated content after saving:", existing)
-
     c.JSON(http.StatusOK, gin.H{
         "message": "Record updated successfully",
         "data":    existing,

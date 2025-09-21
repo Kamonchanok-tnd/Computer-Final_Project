@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react"; 
 import { Modal } from "antd";
 import { AiOutlineArrowLeft, AiOutlineEye, AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { BookOpen } from "lucide-react";
@@ -50,6 +50,25 @@ const estimateRequiredMs = (text: string, imageCount = 0) => {
   const imgMs  = Math.min(imageCount, 10) * 3000;
   const total  = base + textMs + imgMs;
   return Math.max(8000, Math.min(total * 0.7, 300_000));
+};
+
+/* helper ตรวจจับ iPad/Tablet */
+const isTabletDevice = () => {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  const maxTouch = (navigator as any).maxTouchPoints || 0;
+
+  // iPadOS 13+ รายงานเป็น Macintosh แต่มี touch
+  const isIPad =
+    /iPad/.test(ua) || (/\bMacintosh\b/.test(ua) && maxTouch > 1);
+
+  // Android tablet = มี Android แต่ไม่มี Mobile
+  const isAndroidTablet = /Android/.test(ua) && !/Mobile/.test(ua);
+
+  // ผู้ผลิตบางรายใส่คำว่า Tablet ตรงๆ
+  const isGenericTablet = /\bTablet\b/i.test(ua);
+
+  return isIPad || isAndroidTablet || isGenericTablet;
 };
 
 /* ShortBubble */
@@ -159,11 +178,6 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                   </div>
 
                   <div className={`mt-2 flex items-center justify-center gap-4 text-[12px] ${isRight ? "text-white" : ""}`}>
-                    <span className="inline-flex items-center gap-1">
-                      <AiOutlineEye className={`${isRight ? "text-white" : "text-[#5DE2FF]"} w-5 h-5 sm:w-6 sm:h-6`} />
-                      <span className={isRight ? "text-white tabular-nums" : "text-slate-700 dark:text-slate-300 tabular-nums"}>{viewCount}</span>
-                    </span>
-
                     <button
                       onClick={(e) => { e.stopPropagation(); onLike?.(); }}
                       className="inline-flex items-center gap-1"
@@ -177,6 +191,12 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                       )}
                       <span className={isRight ? "text-white text-[12px]" : "text-slate-700 dark:text-slate-300 text-[12px]"}>{likeCount}</span>
                     </button>
+
+                    
+                    <span className="inline-flex items-center gap-1">
+                      <AiOutlineEye className={`${isRight ? "text-white" : "text-[#5DE2FF]"} w-6 h-6 sm:w-6 sm:h-6`} />
+                      <span className={isRight ? "text-white tabular-nums" : "text-slate-700 dark:text-slate-300 tabular-nums"}>{viewCount}</span>
+                    </span>
 
                     <button className={READ_BTN} onClick={(e) => { e.stopPropagation(); onOpen?.(); }}>
                       <BookOpen className="w-3.5 h-3.5" />
@@ -292,6 +312,9 @@ export default function UserMessagePage() {
   const [messages, setMessages] = useState<WordHealingContent[]>([]);
   const [liked, setLiked] = useState<Record<number, boolean>>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // ---------- ใช้ memo เพื่อตรวจแค่ครั้งเดียว ----------
+  const IS_TABLET = useMemo(() => isTabletDevice(), []);
 
   // pagination
   const [shortPage, setShortPage] = useState(1);
@@ -448,15 +471,27 @@ export default function UserMessagePage() {
     return Math.max(0, Math.min(99, Math.floor(ratio * 100)));
   };
 
+  // ---------- แทนที่ฟังก์ชัน evalPass เดิมด้วยเวอร์ชันนี้ ----------
   const evalPass = (msg: WordHealingContent | null, pctNow: number, ms: number) => {
     if (!msg) return false;
+
+    // iPad/แท็บเล็ต: ต้องอ่านครบ 100% และเวลา >= requiredMs
+    if (IS_TABLET) {
+      const timeOkTablet = ms >= requiredMs;   // เวลาอย่างน้อยเท่าที่แนะนำ
+      const contentOkTablet = pctNow >= 100;   // เปอร์เซ็นต์เนื้อหาแตะ 100%
+      return timeOkTablet && contentOkTablet;
+    }
+
+    // อุปกรณ์อื่น: ใช้กติกาเดิม
     const contentLen = (msg.content || "").trim().length;
     const isVeryShort = contentLen <= 60;
     const scrollable = scrollBodyRef.current
       ? scrollBodyRef.current.scrollHeight > scrollBodyRef.current.clientHeight + 2
       : false;
+
     const timeOk = isVeryShort ? true : ms >= requiredMs * 0.7;
     const contentOk = scrollable ? pctNow >= 90 : true;
+
     return timeOk && contentOk;
   };
 
@@ -489,7 +524,7 @@ export default function UserMessagePage() {
       window.removeEventListener("wheel", onAct);
       window.removeEventListener("touchmove", onAct);
     };
-  }, [isModalVisible, selectedMessage, requiredMs]);
+  }, [isModalVisible, selectedMessage, requiredMs, readMs, evalPass]);
 
   const onModalBodyScroll: React.UIEventHandler<HTMLDivElement> = () => {
     lastActivityRef.current = Date.now();
@@ -619,7 +654,7 @@ export default function UserMessagePage() {
             <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ข้อความหรือบทความสั้น ({shortsAll.length})</h3>
 
             {shortsPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความสั้น</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีข้อความให้กำลัง</div>
             ) : (
               groupByDay(shortsPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
@@ -672,7 +707,7 @@ export default function UserMessagePage() {
             <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">บทความ ({articlesAll.length})</h3>
 
             {articlesPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความตามเงื่อนไข</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความ</div>
             ) : (
               groupByDay(articlesPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);

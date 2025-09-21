@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test.describe('Admin DeleteQuestionnaire — UAT', () => {
-  test('ลบเเบบทดสอบสำเร็จ!"', async ({ page }) => {
+  test('ลบเเบบทดสอบ"', async ({ page }) => {
    
   await page.goto('http://localhost:5173/admin/questionnairePage');
   await page.waitForTimeout(1000);  
