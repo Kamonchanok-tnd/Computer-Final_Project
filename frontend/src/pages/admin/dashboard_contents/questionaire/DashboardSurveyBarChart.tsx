@@ -26,7 +26,7 @@ const DashboardSurveyBarChart = () => {
   useEffect(() => {
     const loadData = async () => {
       const data = await getSurveyVisualization(withResults);
-      console.log("data is : ",data);
+     
       setChartData(data);
 
       if (withResults) {

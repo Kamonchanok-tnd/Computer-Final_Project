@@ -460,7 +460,10 @@ const EditQuestionnaire: React.FC = () => {
       });
 
       didNavigate = true;
-      navigate("/admin/editQuestionAndAnswerPage", {
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+      navigate(`/${rolePrefix}/editQuestionAndAnswerPage`, {
         state: { questionnaireId: qid, quantity },
       });
     } catch (err) {

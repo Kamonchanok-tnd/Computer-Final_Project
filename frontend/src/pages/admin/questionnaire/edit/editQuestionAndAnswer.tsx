@@ -59,7 +59,10 @@ const EditQuestionAndAnswer: React.FC = () => {
   useEffect(() => {
     if (!questionnaireId) {
       msg.warning("ไม่พบข้อมูลแบบทดสอบ");
-      navigate("/admin/forminfo", { replace: true });
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+      navigate(`/${rolePrefix}/forminfo`, { replace: true });
       return;
     }
     (async () => {
@@ -269,11 +272,18 @@ const EditQuestionAndAnswer: React.FC = () => {
     return null;
   };
 
-  const goEditCriteria = (qid: number) =>
-    navigate(`/admin/editCriteriaPage?questionnaireId=${qid}`, {
+  
+
+  const goEditCriteria = (qid: number) => {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+    navigate(`/${rolePrefix}/editCriteriaPage?questionnaireId=${qid}`, {
       state: { questionnaireId: qid },
       replace: true,
     });
+  }
+    
 
   const handleSave = async () => {
     const err = validateBeforeSave();

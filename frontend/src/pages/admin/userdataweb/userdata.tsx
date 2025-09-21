@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
   getVisitFrequency,
   getRetentionRate,
@@ -28,7 +28,7 @@ import thTH from "antd/lib/locale/th_TH";
 import admin from "../../../assets/analysis.png";
 import dayjs, { Dayjs } from "dayjs";
 import { UserAddOutlined, UserSwitchOutlined, TeamOutlined, MoreOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Tooltip as AntdTooltip, Button} from "antd";
 
 const COLORS = ["#3b82f6", "#10b981"]; // ฟ้า = ผู้ใช้ใหม่, เขียว = ผู้ใช้เดิม
@@ -48,6 +48,15 @@ export default function AdminDashboardContent() {
 
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null);
+
+  const navigate = useNavigate();
+
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -254,9 +263,10 @@ export default function AdminDashboardContent() {
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-xl font-semibold">ความถี่การเข้าชมเว็บไซต์</h2>
             <AntdTooltip title="ดูเพิ่มเติม">
-              <Link to="/admin/visit-frequency">
-                <Button type="text" shape="circle" icon={<MoreOutlined />} />
-              </Link>
+          
+                <Button type="text" shape="circle" icon={<MoreOutlined />}
+                onClick={() => getRolePath('visit-frequency')} />
+             
             </AntdTooltip>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center">
@@ -274,9 +284,11 @@ export default function AdminDashboardContent() {
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-xl font-semibold">อัตราการกลับมาใช้ซ้ำ (%)</h2>
             <AntdTooltip title="ดูเพิ่มเติม">
-              <Link to="/admin/retention-rate">
-                <Button type="text" shape="circle" icon={<MoreOutlined />} />
-              </Link>
+             
+                <Button type="text" shape="circle" 
+                onClick={() => getRolePath('retention-rate')}
+                icon={<MoreOutlined />} />
+           
             </AntdTooltip>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center">

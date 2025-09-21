@@ -1,7 +1,7 @@
 import { Plus, Search } from "lucide-react";
 import { useDarkMode } from "../../../components/Darkmode/toggleDarkmode";
 import { getSoundsByTypeID } from "../../../services/https/sounds";
-import { useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { Sound } from "../../../interfaces/ISound";
 import ChantingContent from "./components/chantingContent";
 import ModalPlaylist from "./components/modalPlaylist";
@@ -12,6 +12,7 @@ import { CustomPlaylist } from "../Playlist/Playlist";
 import { useNavigate } from "react-router-dom";
 import { GetTopSoundPlaylist } from "../../../services/https/soundplaylist";
 import { message } from "antd";
+
 
 function ChantingMain() {
   const { isDarkMode } = useDarkMode();
@@ -26,37 +27,45 @@ function ChantingMain() {
   const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(true);
 
   async function fetchPlaylist() {
-    setIsLoadingPlaylist(true); // เริ่มโหลด
-
+    setIsLoadingPlaylist(true);
+  
     try {
       const res = await GetPlaylistByUID(Number(uid), 3);
-      if (Array.isArray(res)) {
+  
+      if (!res) {
+        console.warn("Playlist response is null or undefined");
+        setPlaylists([]);
+      } else if (Array.isArray(res)) {
+        // ถ้า API ส่ง array โดยตรง
         setPlaylists(res);
       } else if (Array.isArray(res.data)) {
+        // ถ้า API ส่ง { data: [...] }
         setPlaylists(res.data);
       } else {
-        console.warn("unexpected response:", res);
+        console.warn("Unexpected playlist response:", res);
         setPlaylists([]);
       }
     } catch (error) {
       console.error("Error fetching playlist:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setIsLoadingPlaylist(false); // โหลดเสร็จแล้ว
+      setIsLoadingPlaylist(false);
     }
   }
-
+  
   async function fetchChanting() {
     try {
       const res = await getSoundsByTypeID(3);
       setChantingSounds(res.sounds); // สำคัญ! ต้องใช้ res.sounds ตามโครงสร้าง
     } catch (error) {
       console.error("Error fetching chanting sounds:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
   function openModalPlaylist() {
     setOpenModal(true);
-    console.log(openModal);
+  
   }
 
   const filteredSounds = chantingSounds.filter((sound) =>
@@ -82,7 +91,7 @@ function ChantingMain() {
   };
 
   useEffect(() => {
-    console.log(chantingSounds);
+ 
   }, [chantingSounds, playlists]);
 
   useEffect(() => {
@@ -91,22 +100,22 @@ function ChantingMain() {
   }, []);
 
   function gotoplaylist(id: number) {
-    console.log("id is: ", id);
+
     setTimeout(() => {
       navigate(`/audiohome/Playlist/${id}`);
     });
   }
   function gotoSound(id: number) {
-    console.log("id is: ", id);
+ 
     setTimeout(() => {
       navigate(`/audiohome/chanting/play/${id}`);
     });
   }
   async function gotoPlaylistmedia(id: number) {
-    console.log("id is: ", id);
+
     const res = await GetTopSoundPlaylist(id);
     if (res === false) {
-      console.error("Error fetching playlist");
+  
       message.error("เกิดข้อผิดพลาด");
       return;
     }
@@ -127,7 +136,7 @@ function ChantingMain() {
     }, 1000);
   }
   function gotoPlaylist(id: number) {
-    console.log("id is: ", id);
+  
     setTimeout(() => {
       if (!id){
         message.error("เกิดข้อผิดพลาด");
@@ -149,6 +158,7 @@ function ChantingMain() {
 
   
   return (
+
     <div
       className={`flex flex-col  duration-300 items-center  min-h-full max-h-fit font-ibmthai  
          ${isDarkMode ? "bg-background-dark" : "bg-background-blue"}`}
@@ -235,18 +245,22 @@ function ChantingMain() {
 
         {/* playlist */}
         {showPlaylist &&
-          (isLoadingPlaylist ? (
-            <div className="text-center text-subtitle">
-              กำลังโหลดเพลย์ลิสต์...
-            </div>
-          ) : (
-            <PlaylistContent
-              Playlist={playlists}
-              GotoPlaylist={gotoplaylist}
-              gotoPlaylistmedia={gotoPlaylistmedia}
-              setPlaylists={setPlaylists}
-            />
-          ))}
+  (isLoadingPlaylist ? (
+    <div className="text-center text-subtitle">
+      กำลังโหลดเพลย์ลิสต์...
+    </div>
+  ) : playlists.length === 0 ? (
+    <div className="text-center text-subtitle dark:text-text-dark">
+      ยังไม่มีเพลย์ลิสต์ที่สร้าง
+    </div>
+  ) : (
+    <PlaylistContent
+      Playlist={playlists}
+      GotoPlaylist={gotoplaylist}
+      gotoPlaylistmedia={gotoPlaylistmedia}
+      setPlaylists={setPlaylists}
+    />
+  ))}
 
         {/* chatinting content */}
         {chanting && (
@@ -258,6 +272,7 @@ function ChantingMain() {
         )}
       </div>
     </div>
+    
   );
 }
 export default ChantingMain;
