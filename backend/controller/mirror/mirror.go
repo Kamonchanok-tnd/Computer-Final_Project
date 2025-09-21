@@ -1,6 +1,7 @@
 package mirror
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -38,35 +39,60 @@ func CreateMirror(c *gin.Context) {
 }
 
 // GetMirrorByDate - ดึง mirror ตามวันที่และ user
+// พฤติกรรม:
+//   - พบข้อมูล            -> 200 OK + body = mirror
+//   - ไม่พบและเป็น "วันนี้" -> 204 No Content (ไม่ต้องโชว์ error ที่หน้าเว็บ)
+//   - ไม่พบและเป็น "วันเก่า" -> 404 Not Found + code MIRROR_NOT_FOUND
 func GetMirrorByDate(c *gin.Context) {
 	dateParam := c.Param("date") // format: YYYY-MM-DD
+
 	userID, exists := c.Get("userID")
 	if !exists {
 		util.HandleError(c, http.StatusUnauthorized, "ไม่ได้เข้าสู่ระบบ", "UNAUTHORIZED")
 		return
 	}
 
-	parsedDate, err := time.Parse("2006-01-02", dateParam)
+	// ใช้โซนเวลาไทยให้ตรงกับ UI
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+
+	parsedDate, err := time.ParseInLocation("2006-01-02", dateParam, loc)
 	if err != nil {
 		util.HandleError(c, http.StatusBadRequest, "รูปแบบวันที่ไม่ถูกต้อง (ต้องใช้ YYYY-MM-DD)", "INVALID_DATE")
 		return
 	}
 
-	startOfDay := parsedDate
-	endOfDay := parsedDate.Add(24 * time.Hour)
+	// ช่วงวันแบบ [start, end) ในโซนไทย
+	startOfDay := time.Date(parsedDate.Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, loc)
+	endOfDay := startOfDay.AddDate(0, 0, 1)
+
+	nowTH := time.Now().In(loc)
+	isToday := nowTH.Year() == parsedDate.Year() &&
+		nowTH.Month() == parsedDate.Month() &&
+		nowTH.Day() == parsedDate.Day()
 
 	var mirror entity.Mirror
-	if err := config.DB().Where("uid = ? AND date >= ? AND date < ?", userID, startOfDay, endOfDay).
-		First(&mirror).Error; err != nil {
+	err = config.DB().
+		Where("uid = ? AND date >= ? AND date < ?", userID, startOfDay, endOfDay).
+		First(&mirror).Error
 
-		if err == gorm.ErrRecordNotFound {
-			util.HandleError(c, http.StatusNotFound, "ไม่พบ Mirror ของวันนี้", "MIRROR_NOT_FOUND")
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if isToday {
+				// วันนี้แต่ยังไม่ได้เขียน -> ไม่ใช่ error
+				// ส่ง 204 No Content + header บอกสถานะ เผื่อ frontend อยากแยก logic
+				c.Header("X-Mirror-Empty-Today", "1")
+				c.Status(http.StatusNoContent)
+				return
+			}
+			// วันเก่าที่ไม่มีบันทึก -> แจ้งไม่พบ
+			util.HandleError(c, http.StatusNotFound, "ไม่พบบันทึกในวันที่เลือก", "MIRROR_NOT_FOUND")
 			return
 		}
 		util.HandleError(c, http.StatusInternalServerError, "เกิดข้อผิดพลาดในการดึงข้อมูล", "FETCH_FAILED")
 		return
 	}
 
+	// มีข้อมูล -> ส่งรายการ Mirror ตรง ๆ (เข้ากับโค้ดเดิมของ frontend)
 	c.JSON(http.StatusOK, mirror)
 }
 
@@ -88,7 +114,7 @@ func UpdateMirror(c *gin.Context) {
 	// เช็กว่ามี record นี้และเป็นของ user นี้หรือไม่
 	var existing entity.Mirror
 	if err := config.DB().Where("id = ? AND uid = ?", id, userID).First(&existing).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			util.HandleError(c, http.StatusNotFound, "ไม่พบ Mirror", "MIRROR_NOT_FOUND")
 			return
 		}

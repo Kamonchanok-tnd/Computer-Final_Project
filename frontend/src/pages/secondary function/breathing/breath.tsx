@@ -67,14 +67,24 @@ function BreathingExercise() {
     }
   };
 
-  const speak = (text: string, rate: number = 1) => {
-    if ("speechSynthesis" in window) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "th-TH";
-      utter.rate = rate;
-      window.speechSynthesis.speak(utter);
-    }
-  };
+  const speak = (text: string, rate: number = 0.8, pitch: number = 1.2) => {
+  if ("speechSynthesis" in window) {
+    const voices = window.speechSynthesis.getVoices();
+
+    // เลือกเสียงผู้หญิงภาษาไทย ถ้าไม่มี fallback เป็นเสียงตัวแรก
+    const femaleVoice = voices.find(
+      (v) => v.lang === "th-TH" && v.name.toLowerCase().includes("female")
+    ) || voices.find((v) => v.lang === "th-TH") || voices[0];
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "th-TH";
+    utter.voice = femaleVoice;
+    utter.rate = rate;   // ช้าลง = 0.8
+    utter.pitch = pitch; // เพิ่มความนุ่ม = 1.2
+    window.speechSynthesis.speak(utter);
+  }
+};
+
 
   useEffect(() => {
     if (!isVoiceOn) return;

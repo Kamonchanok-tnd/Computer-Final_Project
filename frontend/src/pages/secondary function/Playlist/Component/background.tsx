@@ -17,14 +17,14 @@ interface BackgroundPlaylistProps{
 
 function BackgroundPlaylist({currentBackgrounds, showPreview, AllPicture, selectedPicture, handlePictureSelect}: BackgroundPlaylistProps){
   useEffect(() => {
-    console.log(selectedPicture);
+  
   }, [selectedPicture]); 
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
 
   useEffect(() => {
-    console.log(selectedPicture);
+  
   }, [selectedPicture]);
 
   // Calculate responsive items per view

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRecorder } from "../Voice-Chat/Record/useRecorder";
-import { Mic, MicOff, Square } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import AudioVisualizer from "../../components/Voice-visualizer/VolumeVisualizer"; // 👈 นำเข้า visualizer
 import { useVolumeVisualizer } from "../../components/Voice-visualizer/useVolumeVisualizer";
 import { useParams } from "react-router-dom";

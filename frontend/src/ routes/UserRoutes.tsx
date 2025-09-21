@@ -3,43 +3,43 @@ import { RouteObject } from "react-router-dom";
 import Loadable from "../components/loading/Loadable";
 import { Navigate } from "react-router-dom";
 
-import BreathingPage from "../pages/secondary function/breathing/breath";
-import MeditationMain from "../pages/secondary function/meditation/meditation";
+const BreathingPage = Loadable(lazy(() => import("../pages/secondary function/breathing/breath"))); 
+const MeditationMain =  Loadable(lazy(() => import("../pages/secondary function/meditation/meditation"))); 
 
-import ChatSpace from "../pages/Chat-space/chat";
+const ChatSpace = Loadable(lazy(() => import("../pages/Chat-space/chat")));
 
-import MirrorPage from "../pages/mirror/MirrorPage";
-import MonthlyOverviewPage from "../pages/mirror/MonthlyOverviewPage";
+const  MirrorPage = Loadable(lazy(() => import("../pages/mirror/MirrorPage"))); 
+const MonthlyOverviewPage = Loadable(lazy(() => import("../pages/mirror/MonthlyOverviewPage")));
 import Headers from "../layout/HeaderLayout/Header";
-import RelaxActivities from "../pages/secondary function/audio content home/RelaxActivities";
+const RelaxActivities = Loadable(lazy(() => import("../pages/secondary function/audio content home/RelaxActivities"))); 
+const  Assessments = Loadable(lazy(() => import("../pages/assessment/assessments")));
+const MoodPopup = Loadable(lazy(() => import("../components/assessment/MoodPopup")));
+const  AssessmentLists = Loadable(lazy(() => import("../components/assessment/AssessmentLists")));
+const Result = Loadable(lazy(() => import("../pages/assessment/result"))); 
+const AssessmentDashboard = Loadable(lazy(() => import("../pages/assessment/AssessmentDashboard")));
+const ASMRApp = Loadable(lazy(() => import("../pages/secondary function/ASMR/ASMRApp"))); 
 
-import Assessments from "../pages/assessment/assessments";
-import MoodPopup from "../components/assessment/MoodPopup.tsx";
-import AssessmentLists from "../components/assessment/AssessmentLists.tsx";
-import Result from "../pages/assessment/result.tsx";
-import AssessmentDashboard from "../pages/assessment/AssessmentDashboard.tsx";
-import ASMRApp from "../pages/secondary function/ASMR/ASMRApp.tsx";
 
-
-import VoiceChat from "../pages/Voice-Chat/VoiceChat";
-import ChatRedirector from "../components/Chat.tsx/ChatRedirector";
-import AddSoundPlaylist from "../pages/secondary function/Playlist/Playlist";
-import MeditationPage from "../pages/secondary function/meditation/meditation";
+const VoiceChat = Loadable(lazy(() => import("../pages/Voice-Chat/VoiceChat")));
+const ChatRedirector = Loadable(lazy(() => import("../components/Chat.tsx/ChatRedirector")));
+const AddSoundPlaylist = Loadable(lazy(() => import("../pages/secondary function/Playlist/Playlist")))
+const MeditationPage = Loadable(lazy(() => import("../pages/secondary function/meditation/meditation"))); 
 // import Playermediameditation from "../pages/secondary function/meditation/playermedia/playmedia";
-import Player from "../pages/secondary function/playermedia/player";
-import PlayerPlaylist from "../pages/secondary function/playermedia/playerPlaylist";
-import ChantingMain from "../pages/secondary function/chanting/chatingMain";
-import Playermediameditation from "../pages/secondary function/meditation/playermeditation/playmedia";
-import AddSoundPlaylistMeditation from "../pages/secondary function/meditation/editplaylistmeditation/editplaylistmeditation";
-import DoctorRecommendPage from "../pages/doctor/DoctorRecommendPage.tsx";
+const PlayerPlaylist = Loadable(lazy(() => import("../pages/secondary function/playermedia/playerPlaylist"))); 
+const Playermediameditation = Loadable(lazy(() => import("../pages/secondary function/meditation/playermeditation/playmedia"))); // "../pages/secondary function/meditation/playermeditation/playmedia";
+const AddSoundPlaylistMeditation = Loadable(lazy(() => import("../pages/secondary function/meditation/editplaylistmeditation/editplaylistmeditation")));
+const DoctorRecommendPage = Loadable(lazy(() => import("../pages/doctor/DoctorRecommendPage.tsx")))
 
-import UserMessagePage from "../pages/secondary function/message/userMessagePage";
-import PlayerPlaylistMeditation from "../pages/secondary function/meditation/playermeditation/playerplaylistmeditation.tsx";
+const UserMessagePage = Loadable(lazy(() => import("../pages/secondary function/message/userMessagePage"))); 
+const PlayerPlaylistMeditation = Loadable(lazy(() => import("../pages/secondary function/meditation/playermeditation/playerplaylistmeditation"))); // "../pages/secondary function/meditation/playermeditation/playerplaylistmeditation.tsx";
 // Lazy load หน้า EditProfile และ Home
 const EditProfile = Loadable(
   lazy(() => import("../pages/users/edit_user/edituser"))
 );
 const Home = Loadable(lazy(() => import("../pages/homeuser/homeuser")));
+const ChantingMain = Loadable(lazy(() => import("../pages/secondary function/chanting/chatingMain")))
+const Player = Loadable(lazy(() => import("../pages/secondary function/playermedia/player")))
+
 
 const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
   return [

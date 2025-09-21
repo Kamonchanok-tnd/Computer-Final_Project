@@ -46,7 +46,8 @@ function TableSoundPlaylist({
       
         }
       } catch (error) {
-        console.error('Error sending rating:', error);
+      
+        message.error('เกิดข้อผิดพลาดในการส่งคะแนน กรุณาลองอีกครั้ง');
     }
   }
 
@@ -56,7 +57,7 @@ function TableSoundPlaylist({
       await UpdateReview(review);
       message.success(`แก้ไขคะแนน "${selectedSong?.name}" ${currentRating} ดาว`);
   }catch (error) {
-      console.error('Error sending rating:', error);
+   
       message.error('เกิดข้อผิดพลาดในการส่งคะแนน กรุณาลองอีกครั้ง');
   }
   }
@@ -85,13 +86,13 @@ function TableSoundPlaylist({
             updateReview(data)
             setEditRating(false);
           }else{
-             const res = await CreateReview(data)
-          console.log(res);
+             await CreateReview(data)
+       
           message.success(`ให้คะแนน "${selectedSong?.name}" ${currentRating} ดาว`);
           }
          
     } catch (error) {
-      console.error('Error sending rating:', error);
+     
       message.error('เกิดข้อผิดพลาดในการส่งคะแนน');
     }
     // ส่งคะแนนไปยัง API หรือ function ที่ต้องการ
@@ -104,7 +105,7 @@ function TableSoundPlaylist({
 
   const openRatingModal = (song: CustomSoundPlaylist) => {
     setSelectedSong(song);
-    console.log("selectedSong:", selectedSong);
+ 
 
       checkReview(song);
     
@@ -119,8 +120,7 @@ function TableSoundPlaylist({
   };
   
   useEffect(() => {
-    console.log("select row IDs:", selectedSong);
-    console.log("extractYouTubeID:", extractYouTubeID(selectedSong?.sound || ""));
+  
   }
 
   , [selectedSong]);

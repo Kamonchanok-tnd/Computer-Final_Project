@@ -14,7 +14,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { IChatRoom } from "../../interfaces/IChatRoom";
 import ChatHeader from "../../components/Chat.tsx/ChatHeader";
 import ChatInput from "../../components/Chat.tsx/ChatInput";
-import { message, Modal, Spin } from "antd";
+import { message, Modal } from "antd";
 import { useDarkMode } from "../../components/Darkmode/toggleDarkmode";
 import { logActivity } from "../../services/https/activity";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment/index";

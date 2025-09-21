@@ -78,7 +78,8 @@ function AddSoundPlaylist() {
       setDeletedRowIds((prev) => [...prev, id]);
       fetchSoundPlaylist();
     } catch (error) {
-      console.error("Error deleting playlist:", error);
+      
+      message.error("ลบออกจากเพลย์ลิสต์ไม่สําเร็จ กรุณาลองใหม่อีกครั้ง");
     }
   }
   useEffect(() => {
@@ -98,9 +99,10 @@ function AddSoundPlaylist() {
     try {
       const res = await GetSoundPlaylistByPID(Number(p_id));
       setSoundPlaylist(res);
-      console.log("sound playlist is: ", res);
+      
     } catch (error) {
-      console.error("Error fetching playlist:", error);
+     
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
@@ -110,9 +112,10 @@ function AddSoundPlaylist() {
       setPlaylists(res);
       setCurrentBackgrounds(res.picture);
       setSelectedPicture(res.picture);
-      // console.log("playlist is: ", res);
+     
     } catch (error) {
-      console.error("Error fetching playlist:", error);
+     
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
   async function fetchChanting() {
@@ -121,7 +124,8 @@ function AddSoundPlaylist() {
 
       setChantingSounds(res.sounds); // สำคัญ! ต้องใช้ res.sounds ตามโครงสร้าง
     } catch (error) {
-      console.error("Error fetching chanting sounds:", error);
+   
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
@@ -161,6 +165,7 @@ function AddSoundPlaylist() {
       }
     } catch (error) {
       console.error("Error fetching playlist:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
       // message.error();
     }
   }
@@ -169,7 +174,7 @@ function AddSoundPlaylist() {
     try {
       const updated: IPlaylist = { name: newName };
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
-      console.log("Playlist updated:", updated);
+    
       setEditMode(false);
       message.success("เปลี่ยนชื่อเพลย์ลิสต์แล้ว");
       fetchPlaylist();
@@ -201,6 +206,7 @@ function AddSoundPlaylist() {
       fetchSoundPlaylist();
     } catch (error) {
       console.error("Error deleting playlist:", error);
+      message.error("เกิดข้อผิดพลาดในการลบเพลย์ลิสต์");
     }
   }
 
@@ -211,6 +217,7 @@ function AddSoundPlaylist() {
      
     } catch (error) {
       console.error("Error fetching backgrounds:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
@@ -223,7 +230,7 @@ function AddSoundPlaylist() {
     try {
       const updated: IPlaylist = { bid: b_id };
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
-      console.log("Playlist updated:", updated);
+  
       setEditMode(false);
       message.success("เปลี่ยนพื้นหลังเพลย์ลิสต์แล้ว");
 
