@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Admin EditQuestionnaire — UAT', () => {
-  test('เเก้ไขเเบบทดสอบสำเร็จ!"', async ({ page }) => {
+  test('เเก้ไขเเบบทดสอบ"', async ({ page }) => {
     
     // ไปหน้า Admin EditQuestionnaire
     await page.goto('http://localhost:5173/admin/questionnairePage');

@@ -233,13 +233,13 @@ const FormStepQuestion: React.FC = () => {
       }));
       await createQuestions(cleaned);
       await new Promise<void>((resolve) =>
-        msg.success({ content: "สร้างคำถามเเละคำตอบสำเร็จ", duration: 1.2, onClose: resolve })
+        msg.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
       );
       didNavigate = true;
       goCreateCriteria(questionnaireId!);
     } catch (error: any) {
       console.error(error);
-      msg.error(error?.message || "บันทึกไม่สำเร็จ กรุณาลองใหม่");
+      msg.error(error?.message || "เพิ่มข้อมูลไม่สำเร็จ");
     } finally {
       if (!didNavigate) setSubmitting(false);
     }
@@ -279,7 +279,7 @@ const FormStepQuestion: React.FC = () => {
         <div className="flex items-center gap-3">
           <img src={manageQuestionAndAnswerIcon} alt="manage" className="h-12 w-12 sm:h-16 sm:w-16 object-contain" />
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">สร้างคำถามและคำตอบ</h2>
+            <h2 className="text-2xl sm:text-2xl font-bold text-gray-800">สร้างคำถามและคำตอบ</h2>
             <div className="text-sm text-gray-500">
               แบบทดสอบ ID: {questionnaireId}
               {typeof quantity === "number" && (

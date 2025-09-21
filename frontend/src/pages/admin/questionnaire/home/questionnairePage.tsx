@@ -146,7 +146,11 @@ const QuestionnairePage: React.FC = () => {
   };
 
   const handleEdit = (questionnaire: Questionnaire) => {
-    navigate("/admin/editQuestionnaire", {
+    
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+    navigate(`/${rolePrefix}/editQuestionnaire`, {
       state: { questionnaireId: questionnaire.id },
     });
   };
@@ -158,7 +162,7 @@ const QuestionnairePage: React.FC = () => {
       await deleteQuestionnaire(selectedToDelete.id!);
       setDeleteModalVisible(false);
       setDeleteConfirmText("");
-      msgApi.success("ลบแบบทดสอบเรียบร้อยแล้ว!");
+      msgApi.success("ลบข้อมูลสำเร็จ");
       await loadQuestionnaires();
       await loadOrderBoard();
     } catch (error) {
@@ -341,7 +345,7 @@ const QuestionnairePage: React.FC = () => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <img src={manageIcon} alt="manage icon" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">จัดการแบบทดสอบ</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">จัดการแบบทดสอบสุขภาพจิต</h2>
         </div>
 
         {/* Actions */}

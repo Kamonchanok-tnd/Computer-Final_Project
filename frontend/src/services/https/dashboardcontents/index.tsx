@@ -9,7 +9,7 @@ const getAuthHeader = () => ({
   },
   
 });
-(console.log(localStorage.getItem("token")))
+//(console.log(localStorage.getItem("token")))
 
 export interface DailySoundUsage {
   date: string;
@@ -21,7 +21,7 @@ export interface DailySoundUsage {
 export const getDailyMeditationUsage = async (): Promise<DailySoundUsage[]> => {
   try {
     const res = await axios.get(`${apiUrl}/sounds/daily-usage`, getAuthHeader());
-    console.log("Raw data from API (service):", res.data);
+    //console.log("Raw data from API (service):", res.data);
 
     return Array.isArray(res.data.results) ? res.data.results : [];
   } catch (error) {
@@ -34,7 +34,7 @@ export const getDailyMeditationUsage = async (): Promise<DailySoundUsage[]> => {
 export const getDailyChantingUsage = async (): Promise<DailySoundUsage[]> => {
   try {
     const res = await axios.get(`${apiUrl}/sounds/chanting`, getAuthHeader());
-    console.log("Raw data from API (service):", res.data);
+    //console.log("Raw data from API (service):", res.data);
 
     return Array.isArray(res.data.results) ? res.data.results : [];
   } catch (error) {
@@ -83,7 +83,7 @@ export interface MonthlyMirrorUsage {
 export const getMonthlyMirrorUsage = async (): Promise<MonthlyMirrorUsage[]> => {
   try {
     const res = await axios.get(`${apiUrl}/mirror`, getAuthHeader());
-    console.log("Raw data from API (mirror monthly):", res.data);
+    //console.log("Raw data from API (mirror monthly):", res.data);
 
     return Array.isArray(res.data.results) ? res.data.results : [];
   } catch (error) {

@@ -319,7 +319,7 @@ export default function SignInPages() {
     const res = await SignIn(values);
 
     if (res.status === 200) {
-      messageApi.success("เข้าสู่ระบบ สำเร็จ!");
+      messageApi.success("เข้าสู่ระบบสำเร็จ");
       localStorage.setItem("isLogin", "true");
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("page", "dashboard");

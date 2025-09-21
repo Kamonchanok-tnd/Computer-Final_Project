@@ -453,14 +453,17 @@ const EditQuestionnaire: React.FC = () => {
       // Toast สำเร็จ แล้วค่อยนำทาง
       await new Promise<void>((resolve) => {
         msg.success({
-          content: "แก้ไขแบบทดสอบสำเร็จ!",
+          content: "แก้ไขข้อมูลสำเร็จ",
           duration: 1.2,
           onClose: resolve,
         });
       });
 
       didNavigate = true;
-      navigate("/admin/editQuestionAndAnswerPage", {
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+      navigate(`/${rolePrefix}/editQuestionAndAnswerPage`, {
         state: { questionnaireId: qid, quantity },
       });
     } catch (err) {
@@ -496,7 +499,7 @@ const EditQuestionnaire: React.FC = () => {
       <div className="w-full px-6">
         <div className="mb-6 flex items-center gap-3">
           <img src={createQuestionIcon} alt="icon" className="h-12 w-12 object-contain" />
-          <h1 className="text-2xl font-bold text-slate-800">แก้ไขแบบทดสอบ</h1>
+          <h1 className="text-2xl font-bold text-slate-800">แก้ไขแบบทดสอบสุขภาพจิต</h1>
         </div>
 
         <div ref={cardRef} className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

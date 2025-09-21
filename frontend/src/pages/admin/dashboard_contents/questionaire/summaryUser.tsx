@@ -46,21 +46,19 @@ function SummaryUser() {
         try {
             const res = await GetUserKPI(id);
             setKpidata(res);
-            // console.log("ข้อมูลผู้ใช้ kpi", res);
+        
         } catch (err: any) {
             console.error("Cannot fetch latest respondents:", err);
             message.error("เกิดข้อผิดพลาดในการดึงข้อมูล");
         }
     }
 
-
-    
     useEffect(() => {
         if (userId) {
             GetUsersById(userId.toString()).then(res => {
               if (res.status === 200) {
                 setUser(res.data);
-                // console.log("ข้อมูลผู้ใช้", res);
+            
                 if (res.data.ProfileAvatar) {
                   setAvatarUrl(`${PROFILE_BASE_URL}${res.data.ProfileAvatar.avatar}`);
                 }
@@ -79,58 +77,84 @@ function SummaryUser() {
 
     
     return (
-        <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C]  py-8 px-16 space-y-4 ">
-                {/* profile user */}
-                <div>
-                    <div className="flex flex-col items-center  space-y-2">
+        <div className="min-h-screen bg-[#F5F2EC] text-[#3D2C2C] py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8 xl:px-16 space-y-6">
+                {/* Profile User */}
+                <div className="w-full flex justify-center">
+                    <div className="flex flex-col items-center space-y-2 sm:space-y-3 lg:space-y-4">
                         <img
                             src={avatarUrl}
                             alt="Profile"
-                            className="w-20 h-20 rounded-full object-cover"
+                            className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full object-cover border-4 border-white shadow-lg"
                         />
-                          <p className="text-lg font-bold">{user?.username}</p>
-                          <p className="text-gray-600">{user?.email}</p>
+                        <p className="text-base sm:text-lg lg:text-xl font-bold text-center">
+                            {user?.username}
+                        </p>
+                        <p className="text-sm sm:text-base text-gray-600 text-center break-all">
+                            {user?.email}
+                        </p>
                     </div>
                 </div>
-                {/* card */}
-     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        
-        {/* Card 1 - Chat Rooms */}
-        <div className="h-30 bg-gradient-to-br from-[#98e0f4] to-[#d3f0f8] rounded-2xl p-4 sm:p-6 text-center flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-8">
-          <div className="bg-white text-[#39a6c3] p-3 sm:p-4 rounded-full shadow-lg shadow-[#39a6c3]/20 flex-shrink-0">
-            <FolderPen size={24} className="sm:w-[30px] sm:h-[30px]" />
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="text-gray-600 text-sm sm:text-base">จำนวนแบบสอบถามที่ทำไปทั้งหมด</p>
-            <p className="text-xl sm:text-2xl font-bold">{kpidata?.total_taken}</p>
-          </div>
-        </div>
 
-        {/* Card 2 - Messages */}
-        <div className="h-30 bg-gradient-to-br from-[#c6c2f7] to-[#ece9fc] rounded-2xl p-4 sm:p-6 text-center flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-8">
-          <div className="bg-white text-[#6c5dd3] p-3 sm:p-4 rounded-full shadow-lg shadow-[#6c5dd3]/20 flex-shrink-0">
-            <ListChecks size={24} className="sm:w-[30px] sm:h-[30px]" />
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="text-gray-600 text-sm sm:text-base">จำนวนแบบสอบถามที่ทำแล้ว</p>
-            <p className="text-xl sm:text-2xl font-bold">{kpidata?.total_taken}</p>
-          </div>
-        </div>
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+                    
+                    {/* Card 1 - Total Surveys Taken */}
+                    <div className="bg-gradient-to-br from-[#98e0f4] to-[#d3f0f8] rounded-2xl p-4 sm:p-5 lg:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 min-h-[120px] sm:min-h-[130px] lg:min-h-[140px] hover:shadow-lg transition-shadow duration-200">
+                        <div className="bg-white text-[#39a6c3] p-3 sm:p-4 rounded-full shadow-lg shadow-[#39a6c3]/20 flex-shrink-0 order-1 sm:order-none">
+                            <FolderPen size={20} className="sm:w-[24px] sm:h-[24px] lg:w-[28px] lg:h-[28px]" />
+                        </div>
+                        <div className="text-center sm:text-right flex-1 order-2 sm:order-none">
+                            <p className="text-gray-600 text-xs sm:text-sm lg:text-base mb-1 sm:mb-2">
+                                จำนวนแบบสอบถามที่ทำไปทั้งหมด
+                            </p>
+                            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-[#39a6c3]">
+                                {kpidata?.total_taken || 0}
+                            </p>
+                        </div>
+                    </div>
 
-        {/* Card 3 - Active Users */}
-        <div className=" h-30 bg-gradient-to-br from-[#a1d5c4] to-[#e3faf2] rounded-2xl p-4 sm:p-6 text-center flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-8">
-          <div className="bg-white text-[#1f8a70] p-3 sm:p-4 rounded-full shadow-lg shadow-[#1f8a70]/20 flex-shrink-0">
-            <CalendarCheck size={24} className="sm:w-[30px] sm:h-[30px]" />
-          </div>
-          <div className="text-center sm:text-left">
-            <p className="text-gray-600 text-sm sm:text-base">วันที่ทำแบบสอบถามล่าสุด</p>
-            <p className="text-xl sm:text-2xl font-bold">{formatThaiDateTime(kpidata?.last_taken_date ?? '') }</p>
-          </div>
-        </div>
-      </div>
-      <BarTransaction uid={Number(userId)}/>
-      <BarchartCompare uid={Number(userId)}/>
+                    {/* Card 2 - Completed Surveys */}
+                    <div className="bg-gradient-to-br from-[#c6c2f7] to-[#ece9fc] rounded-2xl p-4 sm:p-5 lg:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 min-h-[120px] sm:min-h-[130px] lg:min-h-[140px] hover:shadow-lg transition-shadow duration-200">
+                        <div className="bg-white text-[#6c5dd3] p-3 sm:p-4 rounded-full shadow-lg shadow-[#6c5dd3]/20 flex-shrink-0 order-1 sm:order-none">
+                            <ListChecks size={20} className="sm:w-[24px] sm:h-[24px] lg:w-[28px] lg:h-[28px]" />
+                        </div>
+                        <div className="text-center sm:text-right flex-1 order-2 sm:order-none">
+                            <p className="text-gray-600 text-xs sm:text-sm lg:text-base mb-1 sm:mb-2">
+                                จำนวนแบบสอบถามที่ทำแล้ว
+                            </p>
+                            <p className="text-lg sm:text-xl lg:text-2xl font-bold text-[#6c5dd3]">
+                                {kpidata?.total_taken || 0}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Card 3 - Last Survey Date */}
+                    <div className="bg-gradient-to-br from-[#a1d5c4] to-[#e3faf2] rounded-2xl p-4 sm:p-5 lg:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 min-h-[120px] sm:min-h-[130px] lg:min-h-[140px] hover:shadow-lg transition-shadow duration-200 sm:col-span-2 xl:col-span-1">
+                        <div className="bg-white text-[#1f8a70] p-3 sm:p-4 rounded-full shadow-lg shadow-[#1f8a70]/20 flex-shrink-0 order-1 sm:order-none">
+                            <CalendarCheck size={20} className="sm:w-[24px] sm:h-[24px] lg:w-[28px] lg:h-[28px]" />
+                        </div>
+                        <div className="text-center sm:text-right flex-1 order-2 sm:order-none">
+                            <p className="text-gray-600 text-xs sm:text-sm lg:text-base mb-1 sm:mb-2">
+                                วันที่ทำแบบสอบถามล่าสุด
+                            </p>
+                            <p className="text-sm sm:text-base lg:text-lg font-bold text-[#1f8a70] break-words">
+                                {formatThaiDateTime(kpidata?.last_taken_date ?? '') || '-'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Charts Section */}
+                <div className="space-y-6">
+                    <div className="w-full overflow-hidden">
+                        <BarTransaction uid={Number(userId)}/>
+                    </div>
+                    <div className="w-full overflow-hidden">
+                        <BarchartCompare uid={Number(userId)}/>
+                    </div>
+                </div>
         </div>
     )
 }
+
 export default SummaryUser;

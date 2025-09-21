@@ -214,7 +214,7 @@ function ListSound() {
     setLoading(true);
     try {
       const res = await getAllSounds();
-      console.log("Response from getAllSounds:", res.sounds);
+    
       setAllSounds(res.sounds);
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการโหลดข้อมูลเสียง");

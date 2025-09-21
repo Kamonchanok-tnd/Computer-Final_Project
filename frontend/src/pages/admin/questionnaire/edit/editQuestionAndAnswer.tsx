@@ -59,7 +59,10 @@ const EditQuestionAndAnswer: React.FC = () => {
   useEffect(() => {
     if (!questionnaireId) {
       msg.warning("ไม่พบข้อมูลแบบทดสอบ");
-      navigate("/admin/forminfo", { replace: true });
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+      navigate(`/${rolePrefix}/forminfo`, { replace: true });
       return;
     }
     (async () => {
@@ -269,17 +272,24 @@ const EditQuestionAndAnswer: React.FC = () => {
     return null;
   };
 
-  const goEditCriteria = (qid: number) =>
-    navigate(`/admin/editCriteriaPage?questionnaireId=${qid}`, {
+  
+
+  const goEditCriteria = (qid: number) => {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+    navigate(`/${rolePrefix}/editCriteriaPage?questionnaireId=${qid}`, {
       state: { questionnaireId: qid },
       replace: true,
     });
+  }
+    
 
   const handleSave = async () => {
     const err = validateBeforeSave();
     if (err) return msg.warning(err);
 
-    let didNavigate = false; // ✅ กันกะพริบ spinner เมื่อนำทางสำเร็จ
+    let didNavigate = false; // กันกะพริบ spinner เมื่อนำทางสำเร็จ
     try {
       setSaving(true);
       const payload = questions.map((q) => ({
@@ -289,14 +299,14 @@ const EditQuestionAndAnswer: React.FC = () => {
       await updateQuestionAndAnswer(questionnaireId!, payload);
 
       await new Promise<void>((r) =>
-        msg.success({ content: "แก้ไขคำถามและคำตอบสำเร็จ!", duration: 1.2, onClose: r })
+        msg.success({ content: "แก้ไขข้อมูลสำเร็จ", duration: 1.2, onClose: r })
       );
 
       didNavigate = true;
       goEditCriteria(questionnaireId!);
     } catch (e: any) {
       console.error(e);
-      msg.error(e?.message || "บันทึกไม่สำเร็จ กรุณาลองใหม่");
+      msg.error(e?.message || "เเก้ไขข้อมูลไม่สำเร็จ");
     } finally {
       if (!didNavigate) setSaving(false);
     }
@@ -344,7 +354,7 @@ const EditQuestionAndAnswer: React.FC = () => {
             className="h-12 w-12 sm:h-16 sm:w-16 object-contain"
           />
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">แก้ไขคำถามและคำตอบ</h2>
+            <h2 className="text-2xl sm:text-2xl font-bold text-gray-800">แก้ไขคำถามและคำตอบ</h2>
             <div className="text-sm text-gray-500">
               แบบทดสอบ ID: {questionnaireId}
               {typeof quantity === "number" && (

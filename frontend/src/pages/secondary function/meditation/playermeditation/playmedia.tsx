@@ -758,7 +758,7 @@ function Playermediameditation() {
         setShowRating(false);
       }else{
           const res = await CreateReview(data)
-          console.log(res);
+          //console.log(res);
           message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
           setShowRating(false);
       }

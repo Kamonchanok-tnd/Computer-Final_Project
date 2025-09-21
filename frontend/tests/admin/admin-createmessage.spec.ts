@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test.describe('Admin CreateMessage — UAT', () => {
-  test('สร้างบทความสำเร็จ!"', async ({ page }) => {
+  test('สร้างบทความ"', async ({ page }) => {
    
   await page.goto('http://localhost:5173/admin/createMessagePage');
   await page.waitForTimeout(1000);  

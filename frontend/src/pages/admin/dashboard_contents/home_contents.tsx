@@ -231,14 +231,13 @@ import {
 
 // Components
 import MusicCard from "./meditation/meditationgard";
-import ChantingCard from "./chanting/chantinggard";
+
 import WordHealingCard from "./word-healing/wordgard";
 import MirrorCard from "./mirror/mirrorgard";
-import ASMRCard from "./asmr/asmrgard";
-import BreathingCard from "./breathing/breatinggard";
+
 import ChatTrendCardRecharts from "./chat/ChatTrendCardRecharts";
 import QuestionnaireTrendChart from "./questionaire/QuestionnaireTrendChart";
-import { useUser } from "../../../layout/HeaderLayout/UserContext";
+
 
 // DashboardCard component
 const DashboardCard: React.FC<{ title: string; className?: string; children: React.ReactNode }> = ({

@@ -24,7 +24,7 @@ test('user edit profile', async ({ page }) => {
   await page.getByRole('button', { name: 'save บันทึกข้อมูล' }).click();
 
   // ตรวจสอบข้อความสำเร็จ
-  await expect(page.getByText('แก้ไขข้อมูลสำเร็จ!')).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText('แก้ไขข้อมูลสำเร็จ')).toBeVisible({ timeout: 5000 });
 
   // รอให้ข้อความแสดงสักพัก (ป้องกันหายก่อน)
   await page.waitForTimeout(2000);

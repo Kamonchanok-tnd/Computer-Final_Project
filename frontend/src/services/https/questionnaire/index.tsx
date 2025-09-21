@@ -138,9 +138,6 @@ export const createQuestions = async (input: QuestionWithAnswers[]) => {
       })),
   }));
 
-  console.log("createQuestions payload =", payload);
-  console.log("JSON =", JSON.stringify(payload, null, 2));
-
   const res = await fetch(`${apiUrl}/createQuestions`, {
     method: "POST",
     headers: {

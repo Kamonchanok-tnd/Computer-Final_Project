@@ -213,7 +213,7 @@ function MeditationMain() {
   isModalOpen={openModal}
   onClose={() => setOpenModal(false)}
   onSuccess={() => {
-    message.success("สร้างเพลย์ลิสต์สำเร็จ!");
+    message.success("สร้างเพลย์ลิสต์สำเร็จ");
     if (uid) {
       fetchUserMeditationPlaylists(uid);
       fetchUserBreathingPlaylists(uid);

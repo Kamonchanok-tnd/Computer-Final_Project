@@ -62,7 +62,7 @@ function UserEdit() {
 
   const getUserById = async (id: string) => {
     const res = await GetUsersById(id);
-    console.log("ข้อมูลผู้ใช้", res);
+    // console.log("ข้อมูลผู้ใช้", res);
     if (res?.status === 200) {
       form.setFieldsValue({
         username: res.data.username,
@@ -95,7 +95,7 @@ function UserEdit() {
   async function fetchALlAvatar() {
     try {
       const res = await GetALllAvatar();
-      console.log("รูปโปรไฟล์",res);
+      // console.log("รูปโปรไฟล์",res);
       setAllAvatar(res.data);
     } catch (e) {
       message.error("โหลดข้อมูลไม่สําเร็จ");
@@ -126,13 +126,13 @@ function UserEdit() {
       gender: values.Gender,
       pfid: form.getFieldValue('pfid') || (values as any).pfid,
     };
-    console.log("payload is : ",payload);
+    // console.log("payload is : ",payload);
 
     const res = await UpdateUsersById(userId as string, payload);
     if (res.status === 200) {
       messageApi.open({
         type: "success",
-        content: res.data.message || "แก้ไขข้อมูลสำเร็จ!",
+        content: res.data.message || "แก้ไขข้อมูลสำเร็จ",
       });
 
       // อัปเดตรูปใน context + localStorage

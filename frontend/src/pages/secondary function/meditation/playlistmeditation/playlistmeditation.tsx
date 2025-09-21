@@ -40,7 +40,7 @@ function PlaylistMeditation({ isModalOpen, onClose, onSuccess }: Playermediamedi
       }
 
       // สำเร็จ
-      message.success("สร้างเพลย์ลิสต์สำเร็จ!");
+      message.success("สร้างเพลย์ลิสต์สำเร็จ");
       //onSuccess?.();
       gotoPlaylist(res.ID); // redirect ไป edit playlist
       form.resetFields();

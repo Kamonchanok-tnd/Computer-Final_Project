@@ -23,7 +23,7 @@ function TableUseAsses() {
   async function fetchDataUser() {
     const res = await GetUserassessment();
     setUsers(res);
-    console.log("user data is: ", res);
+
   }
 
   useEffect(() => {

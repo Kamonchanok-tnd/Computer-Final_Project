@@ -21,8 +21,7 @@ export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]>
     }
 
     const rawData = await response.json();
-    console.log("Raw Data from API:", rawData);
-
+    
     const data: WordHealingContent[] = rawData.map((message: any) => {
       const id = message.ID ?? message.id ?? 0;
       const dateIso = message.date
@@ -44,7 +43,6 @@ export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]>
       };
     });
 
-    console.log("Formatted Data:", data);
     return data;
   } catch (error) {
     console.error("Error fetching word healing messages:", error);
@@ -69,8 +67,7 @@ export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingCon
     if (!response.ok) throw new Error(`Error: ${response.status}`);
 
     const rawData = await response.json();
-    console.log("Raw Data from API:", rawData);
-
+    
     const data: WordHealingContent[] = rawData.map((m: any) => {
       // id จาก GORM อาจเป็น ID หรือ id
       const id = m.ID ?? m.id ?? 0;
@@ -101,7 +98,6 @@ export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingCon
       };
     });
 
-    console.log("Formatted Data:", data);
     return data;
   } catch (error) {
     console.error("Error fetching word healing messages:", error);
@@ -192,7 +188,6 @@ export const createWordHealingMessage = async (formData: FormData): Promise<bool
         const data = await response.json();  // รับข้อมูลตอบกลับจาก API
 
         if (data.message) {
-            console.log(data.message);  // แสดงข้อความที่ตอบกลับจาก backend
             return true;  // คืนค่าผลลัพธ์เป็น true หากการบันทึกสำเร็จ
         }
 
@@ -218,14 +213,11 @@ export const deleteWordHealingMessage = async (id: string): Promise<boolean> => 
         });
 
         if (response.ok) {
-            console.log("Word healing message deleted successfully.");
             return true;
         } else {
-            console.error("Failed to delete word healing message.");
             return false;
         }
     } catch (error) {
-        console.error("Error deleting word healing message:", error);
         return false;
     }
 };
@@ -279,8 +271,6 @@ export const getWordHealingMessageById = async (id: string): Promise<WordHealing
     if (!response.ok) throw new Error(`Error: ${response.status}`);
 
     const rawData = await response.json();
-    console.log("Response data from backend:", rawData);
-
     const dateIso = rawData.date ? new Date(rawData.date).toISOString().slice(0, 10) : ""; // yyyy-mm-dd for input[type=date]
 
     const data: WordHealingContent = {

@@ -31,7 +31,7 @@ function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProp
       onClose();
       return
     }
-    message.success("สร้างเพลย์ลิสต์สำเร็จ!");
+    message.success("สร้างเพลย์ลิสต์สำเร็จ");
     gotoPlaylist(res.ID);
     form.resetFields();
     onClose();

@@ -367,7 +367,7 @@ const FormStepInfo: React.FC = () => {
         const data = await getAllQuestionnaires();
         setQuestionnaires(Array.isArray(data) ? data : []);
       } catch {
-        messageApi.error("โหลดรายการแบบทดสอบไม่สำเร็จ");
+        messageApi.error("โหลดรายการข้อมูลไม่สำเร็จ");
       } finally {
         setLoadingQs(false);
       }
@@ -430,7 +430,7 @@ const FormStepInfo: React.FC = () => {
 
       await new Promise<void>((resolve) => {
         messageApi.success({
-          content: "สร้างแบบทดสอบสำเร็จ!",
+          content: "เพิ่มข้อมูลสำเร็จ",
           duration: 1.2,
           onClose: resolve,
         });
@@ -441,7 +441,7 @@ const FormStepInfo: React.FC = () => {
       navigate(`/${rolePrefix}/createquestion`, { state: { questionnaireId, quantity } });
     } catch (err) {
       console.error(err);
-      messageApi.error("ไม่สามารถบันทึกแบบทดสอบได้ กรุณาลองใหม่");
+      messageApi.error("ไม่สามารถเพิ่มข้อมูลได้");
     } finally {
       if (!didNavigate) setSubmitting(false);
     }
@@ -456,7 +456,7 @@ const FormStepInfo: React.FC = () => {
         <div className="w-full px-6">
           <div className="mb-6 flex items-center gap-3">
             <img src={createQuestionIcon} alt="icon" className="h-12 w-12 object-contain" />
-            <h1 className="text-2xl font-bold text-slate-800">สร้างแบบทดสอบ</h1>
+            <h1 className="text-2xl font-bold text-slate-800">สร้างแบบทดสอบสุขภาพจิต</h1>
           </div>
 
           <div ref={cardRef} className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

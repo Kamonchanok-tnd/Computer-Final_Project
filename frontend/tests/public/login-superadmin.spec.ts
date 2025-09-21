@@ -9,5 +9,5 @@ test('test', async ({ page }) => {
   await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
 
   const successMessage = page.locator('.ant-message-notice-content');
-await expect(successMessage).toHaveText('เข้าสู่ระบบ สำเร็จ!', { timeout: 5000 });
+await expect(successMessage).toHaveText('เข้าสู่ระบบสำเร็จ', { timeout: 5000 });
 });

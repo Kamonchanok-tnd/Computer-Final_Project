@@ -129,6 +129,15 @@ const AdminLayout = () => {
             <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
               <Link to="/admin/sounds">Sounds</Link>
             </Menu.Item>
+            <Menu.Item key="/admin/messagePage" icon={<MailOutlined />}> 
+              <Link to="/admin/messagePage">Message</Link> 
+            </Menu.Item>
+            <Menu.Item key="/admin/dashboard/contents" icon={<ScheduleOutlined/>}> 
+              <Link to="/admin/dashboard/contents">Contents</Link> 
+            </Menu.Item>
+            <Menu.Item key="/admin/activity" icon={<FundOutlined/>}> 
+              <Link to="/admin/activity">Visitor Data</Link> 
+            </Menu.Item>
           </Menu>
         </Drawer>
 

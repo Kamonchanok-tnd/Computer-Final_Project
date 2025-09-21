@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test.describe('Admin DeleteMessage — UAT', () => {
-  test('ลบบทความสำเร็จ!"', async ({ page }) => {
+  test('ลบบทความ"', async ({ page }) => {
    
   await page.goto('http://localhost:5173/admin/messagePage');
   await page.waitForTimeout(1000);  

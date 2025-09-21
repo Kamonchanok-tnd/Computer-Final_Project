@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Input, Button, Select, Form, message } from 'antd';
+import { Input, Button, Select, Form, message, Tooltip } from 'antd';
 import { getSoundTypes, createVideo } from '../../../services/https/meditation';
 import './meditation.css'; // import CSS ที่แยกออกมา
 import { useNavigate } from "react-router-dom";
-import { Check, CheckCircle, X, Play, Music } from 'lucide-react';
+import {  Play } from 'lucide-react';
 const { Option } = Select;
 
 
@@ -36,6 +36,7 @@ const VideoForm: React.FC = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const navigate = useNavigate();
   const previewRef = useRef<HTMLDivElement>(null);
+  const [submitting, setSubmitting] = useState(false);
  
   const playerRef = useRef<any>(null);
 
@@ -71,6 +72,8 @@ const VideoForm: React.FC = () => {
   }
 
   const handleSubmit = async (values: any) => {
+    if (submitting) return; // ป้องกัน submit ซ้ำ
+    setSubmitting(true);
     if (userId) {
       values.uid = Number(userId);
     }
@@ -86,7 +89,7 @@ const VideoForm: React.FC = () => {
   
     try {
       await createVideo(values);
-      message.success('เพิ่มข้อมูลสำเร็จ!');
+      message.success('เพิ่มข้อมูลสำเร็จ');
       form.resetFields();
       setStid(undefined);
       form.setFieldsValue({ uid: Number(userId) });
@@ -265,6 +268,7 @@ const VideoForm: React.FC = () => {
                       className="h-10 rounded-lg border-gray-300 focus:border-indigo-500" 
                       placeholder=""
                     />
+                     <Tooltip title="พรีวิว" color="#5DE2FF">
                     <button
                       type='button'
                       className="cursor-pointer h-10 w-10 bg-background-button border-none rounded-lg flex items-center justify-center"
@@ -272,13 +276,14 @@ const VideoForm: React.FC = () => {
                     >
                       <Play className="w-4 h-4 text-blue-word" />
                     </button>
+                    </Tooltip>
                   </div>
                 </Form.Item>
                 <div className="grid grid-cols-2 gap-4">
                 <Form.Item
   label="ความยาว"
   name="duration"
-  rules={[{ required: true, message: 'กรุณากรอกความยาว' }]}
+  rules={[{ required: true, message: 'กรุณากดปุ่มพรีวิวเพื่อดึงค่าเวลา' }]}
 >
 <Input placeholder="h:mm:ss" disabled  />
 </Form.Item>
@@ -291,10 +296,14 @@ const VideoForm: React.FC = () => {
                   className=" bg-background-button/20 border-dashed border-2 border-blue-word rounded-lg flex items-center justify-center min-h-[400px]"
                   ref={previewRef}
                 >
-                  <div className="text-center text-blue-word ">
+                 
+                    <div className="text-center text-blue-word ">
+
                     <Play className="w-12 h-12 mx-auto mb-2 text-blue-word" />
-                    <p>ใส่ลิงก์ YouTube และกดดูตัวอย่าง</p>
+                    <p>ใส่ลิงก์ YouTube และกดปุ่มพรีวิวเพื่อดูตัวอย่าง</p>
                   </div>
+                 
+                  
                 </div>
 
                 <div className="flex justify-end gap-3 mt-8">

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"sukjai_project/config"
 	"sukjai_project/entity"
-	"fmt"
 	"github.com/gin-gonic/gin"
     "strconv"
 
@@ -14,7 +13,6 @@ import (
 func DeleteWordHealingContent(c *gin.Context) {
     // รับ id จาก URL
     contentId := c.Param("id")
-    fmt.Println("ID ที่ต้องการลบ:", contentId)
 
     // แปลงเป็น int
     id, err := strconv.Atoi(contentId)

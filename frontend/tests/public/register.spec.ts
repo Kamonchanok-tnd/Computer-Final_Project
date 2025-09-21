@@ -41,7 +41,7 @@ test('test', async ({ page }) => {
 //   await expect(page.locator('.ant-message')).toContainText('ลงทะเบียนสำเร็จ!', { timeout: 5000 });
 
 const successMessage = page.locator('.ant-message-notice-content');
-await expect(successMessage).toHaveText('ลงทะเบียนสำเร็จ!');
+await expect(successMessage).toHaveText('ลงทะเบียนสำเร็จ');
 
 await page.waitForTimeout(1000);
 

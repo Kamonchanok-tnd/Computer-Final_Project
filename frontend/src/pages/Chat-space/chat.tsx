@@ -88,7 +88,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
       promptingRef.current = true;
 
       const groups = await getAvailableGroupsAndNext(uid, "afterChat");
-      console.log("💤 groups (afterChat):", groups);
+      // console.log("💤 groups (afterChat):", groups);
 
       const found = Array.isArray(groups)
         ? groups.find((g: any) => g?.available && g?.next)
@@ -144,7 +144,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
       const message = await GetChat(id, navigate);
      
       setMessages(message);
-    
+      // console.log("new chat: ", message);
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
@@ -232,7 +232,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     if (!chatRoomID) {
       const data: IChatRoom = { uid: Number(Uid) };
       const res = await NewChat(data);
-      console.log("chatroom: ", res.id);
+      // console.log("chatroom: ", res.id);
       currentRoomID = res.id;
       setChatRoomID(res.id);
       setIsNewChat(false);
@@ -351,7 +351,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
     const data: IChatRoom = { uid: Number(Uid) };
     try {
       const res = await NewChat(data);
-      console.log(" chatroom send: ", res.id);
+      // console.log(" chatroom send: ", res.id);
       setChatRoomID(res.id);
       navigate(`/chat/voice-chat/${res.id}`);
       /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */

@@ -4,6 +4,7 @@ import ChatTrendChart from "./ChatTrendChart";
 import { Clock10, MessageSquare, User, UsersRound } from "lucide-react";
 import DashboardSessionsStatus from "./Piestatus";
 import ActiveUsersChart from "./ActiveUsersChart";
+import { message } from "antd";
 
 
 
@@ -16,20 +17,17 @@ interface OverviewData {
 
 function ChatSpaceDetail() {
   const [data, setData] = useState<OverviewData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
 
   const fetchOverview = async () => {
-    setLoading(true);
+  
     try {
       const res = await GetQverview();
-      console.log("overview: ", res);
+     
       setData(res);
     } catch (err) {
-      setError("ไม่สามารถโหลดข้อมูล Overview ได้");
-    } finally {
-      setLoading(false);
-    }
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
+    } 
   };
 
   useEffect(() => {

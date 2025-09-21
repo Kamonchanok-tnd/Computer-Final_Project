@@ -19,7 +19,7 @@ function Home() {
     groupId: number;
     quid: number;
   } | null>(null);
-  const [checking, setChecking] = useState(false);
+  const [_checking, setChecking] = useState(false);
   const [didFinishOnLogin, setDidFinishOnLogin] = useState(false);
 
   const checkOnLoginGroup = useCallback(async () => {
@@ -39,19 +39,19 @@ function Home() {
 
       // ✅ ขอเฉพาะกลุ่ม onLogin
       const groups = await getAvailableGroupsAndNext(uid, "onLogin");
-      console.log("📦 groups (onLogin):", groups);
+      // console.log("📦 groups (onLogin):", groups);
 
       // ถ้า backend ฟิลเตอร์แล้ว จะเหลือแต่ onLogin; เผื่อไว้หาอีกรอบ
       const found = groups.find((g: any) => g.available && g.next);
 
       if (found && found.next) {
         // ⏳ ยัง “available” แปลว่ายังไม่ได้ทำ → ต้องแสดง popup
-        console.log("🟢 onLogin ยังไม่ทำ → เตรียมนำทางไป popup", found);
+        // console.log("🟢 onLogin ยังไม่ทำ → เตรียมนำทางไป popup", found);
         setPopupData({ groupId: found.id, quid: found.next.id });
         setShowPopup(true);
       } else {
         // ✅ ไม่ available แล้ว (หรือไม่มี next) → ถือว่าทำไปแล้ว → ซ่อน popup
-        console.log("✅ onLogin ทำไปแล้ว/ไม่มี next → ซ่อน popup");
+        // console.log("✅ onLogin ทำไปแล้ว/ไม่มี next → ซ่อน popup");
         setShowPopup(false);
         setPopupData(null);
         setDidFinishOnLogin(true); // ⬅️ เพิ่มบรรทัดนี้
@@ -110,12 +110,12 @@ function Home() {
 
     try {
       const groups = await getAvailableGroupsAndNext(uid, "interval");
-      console.log("⏱️ groups (interval):", groups);
+      // console.log("⏱️ groups (interval):", groups);
 
       if (Array.isArray(groups)) {
         const found = groups.find((g: any) => g?.available && g?.next);
         if (found?.id && found?.next?.id) {
-          console.log("🟢 interval พบงานให้ทำ → ไป assessment", found);
+          // console.log("🟢 interval พบงานให้ทำ → ไป assessment", found);
           navigate(`/assessment/${found.id}/${found.next.id}`, {
             replace: false,
           });

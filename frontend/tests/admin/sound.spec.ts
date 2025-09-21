@@ -45,7 +45,7 @@ test('visit audiohome as user', async ({ page }) => {
 await page.getByRole('button', { name: 'บันทึก' }).click();
 
 const message = page.locator('.ant-message-notice-content');
-await expect(message.first()).toHaveText('เพิ่มข้อมูลสำเร็จ!', { timeout: 5000 });
+await expect(message.first()).toHaveText('เพิ่มข้อมูลสำเร็จ', { timeout: 5000 });
 
 //   await page.getByText('เพิ่มข้อมูลสำเร็จ!').click();
 //   await expect(page.locator('body')).toContainText('เพิ่มข้อมูลสำเร็จ!');

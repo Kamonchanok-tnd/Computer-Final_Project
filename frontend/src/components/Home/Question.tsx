@@ -94,7 +94,7 @@ function Question() {
   // แก้ฟังก์ชันให้รับได้ทั้ง number | undefined แล้วเช็คก่อน
   const handleStartAssessment = async (quid?: number) => {
     if (typeof quid !== "number") {
-      alert("ไม่พบรหัสแบบสอบถาม");
+      alert("ไม่พบรหัสแบบทดสอบสุขภาพจิต");
       return;
     }
 
@@ -102,7 +102,7 @@ function Question() {
     const uid = Number(user?.id || localStorage.getItem("id"));
 
     if (!uid) {
-      alert("กรุณาเข้าสู่ระบบก่อนทำแบบสอบถาม");
+      alert("กรุณาเข้าสู่ระบบก่อนทำแบบทดสอบสุขภาพจิต");
       return;
     }
 
@@ -117,8 +117,8 @@ function Question() {
 
       navigate("/assessments");
     } catch (err) {
-      console.error("เริ่มทำแบบทดสอบไม่สำเร็จ:", err);
-      alert("เริ่มทำแบบทดสอบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+      console.error("เริ่มทำแบบทดสอบสุขภาพจิตไม่สำเร็จ:", err);
+      alert("เริ่มทำแบบทดสอบสุขภาพจิตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
     }
   };
 
@@ -136,7 +136,7 @@ const toImgSrc = (s?: string) => {
       {/* Header */}
       <div className="flex items-center justify-between xl:px-0 px-2">
         <p className="font-ibmthai text-2xl text-basic-text dark:text-text-dark">
-          แบบสอบถามทั้งหมด
+          แบบทดสอบสุขภาพจิตทั้งหมด
         </p>
       </div>
 
