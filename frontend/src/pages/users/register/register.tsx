@@ -398,13 +398,13 @@ const yearOptions = [
     label="เบอร์โทรศัพท์"
     name="phone_number"
     rules={[
-      { required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" },
       { pattern: /^[0-9]{9,10}$/, message: "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก" },
     ]}
   >
     <Input placeholder="เบอร์โทรศัพท์" maxLength={10} />
   </Form.Item>
 </Col>
+
 
                 <Col xs={24} md={12}>
                   <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
