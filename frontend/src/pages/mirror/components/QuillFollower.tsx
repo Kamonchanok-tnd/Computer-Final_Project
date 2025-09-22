@@ -102,7 +102,7 @@ export default function QuillFollower({
       document.removeEventListener("selectionchange", onSel);
       window.removeEventListener("resize", onResize);
     };
-  }, [updateTarget]);
+  }, [editorRef, updateTarget]);
 
   // ฟิสิกส์สปริง + เอียงตามความเร็ว (ทำใน rAF → ไม่ re-render)
   useEffect(() => {
