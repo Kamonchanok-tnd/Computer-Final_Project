@@ -918,7 +918,7 @@ export default function UserMessagePage() {
           destroyOnClose
           styles={{
             mask: { backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(1px)" },
-            content: { padding: 0, background: "transparent", boxShadow: "none", border: "none", overflow: "hidden" },
+            content: { padding: 0, background: "transparent", boxShadow: "none", border: "none", overflow: "auto" },
             body: { padding: 0, paddingRight: 0, paddingBottom: 0 },
             header: { display: "none" },
             footer: { display: "none" },
@@ -1006,7 +1006,7 @@ function ArticleReader({
       >
         {/* summary bar */}
         <div className="sticky top-0 z-20 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
-          <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2">
+          <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2 ">
             <div className="flex items-center justify-between text-[12px] sm:text-[13px]">
               <div className="flex items-center gap-2">
                 <span className="font-medium">อ่านแล้ว {Math.floor(scrollProgress)}%</span>
@@ -1036,13 +1036,13 @@ function ArticleReader({
               <img
                 src={message.photo!}
                 alt=""
-                className="w-full sm:w-[520px] h-auto rounded-xl object-cover shadow"
+                className=" sm:w-[520px] h-auto rounded-xl object-cover shadow"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
               />
             </div>
           )}
 
-          <article className="prose prose-slate dark:prose-invert max-w-none mt-3 sm:mt-4">
+          <article className="prose prose-slate dark:prose-invert max-w-none px-2 mt-3 sm:mt-4">
             <p className={`whitespace-pre-wrap break-words ${contentTextSize} ${contentAlignClass}`}>{message.content || "-"}</p>
           </article>
 
