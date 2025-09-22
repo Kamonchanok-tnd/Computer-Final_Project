@@ -19,10 +19,6 @@ function EditAdmin() {
     { ID: 4, gender: "ไม่ระบุ" },
   ]);
 
-  useEffect(() => {
-    if (id) fetchAdminData(id);
-  }, [id]);
-
   const fetchAdminData = async (id: string) => {
     setFormLoading(true);
     try {
@@ -40,6 +36,11 @@ function EditAdmin() {
       setFormLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (id) fetchAdminData(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleSubmit = async (values: AdminInterface) => {
     if (!admin) return message.error("ข้อมูลผู้ดูแลระบบไม่พร้อมใช้งาน.");
