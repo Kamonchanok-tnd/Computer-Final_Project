@@ -91,6 +91,76 @@
   }
 } */
 
+/* Responsive สำหรับมือถือ */
+@media (max-width: 991px) {
+  .layout .layout-sider {
+    display: none; /* ซ่อน Sider */
+  }
+
+  .layout-hamburger-button {
+    display: inline-flex; /* แสดงปุ่ม Hamburger */
+  }
+
+  .layout-header {
+    justify-content: center; /* โลโก้อยู่กลาง */
+  }
+
+  .layout-header .layout-logo {
+    margin: 0 auto;
+  }
+
+  .layout-header .layout-logout-button1 {
+    position: absolute;
+    right: 16px;
+    top: 10px;
+  }
+}
+
+/* ปุ่ม Hamburger */
+.layout-hamburger-button {
+  display: none;
+  background-color: transparent;
+  border: none;
+  color: white;
+}
+
+/* Responsive สำหรับมือถือ (<= 430px) */
+@media (max-width: 430px) {
+  .layout .layout-sider {
+    display: none; /* ซ่อน Sider */
+  }
+
+  .layout-hamburger-button {
+    display: inline-flex; /* แสดงปุ่ม Hamburger */
+    align-items: center;
+    justify-content: center;
+    margin-right: auto; /* ดันไปซ้าย */
+  }
+
+  .layout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+  }
+
+  .layout-header .layout-logo {
+    flex: 1;
+    text-align: center !important; 
+  }
+
+  .layout-header .layout-logo img {
+    max-height: 32px; /* ลดขนาด logo */
+    text-align: center !important; 
+  }
+
+  .layout-header .layout-logout-button1 {
+    margin-left: auto; /* ดันไปขวาสุด */
+    font-size: 12px; /* ลดขนาดตัวอักษร */
+    padding: 4px 8px; /* ลดขนาดปุ่ม */
+  }
+}
+
 
 /* ใช้ฟอนต์ IBM Plex Thai สำหรับทั้ง layout */
 .layout,

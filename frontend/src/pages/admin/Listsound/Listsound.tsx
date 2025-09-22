@@ -299,7 +299,7 @@ function ListSound() {
         <div className="flex justify-between items-center mb-4 flex-wrap">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-700 flex items-center gap-2">
   <img src={music} alt="Admin" className="w-15 h-15" />
-  การจัดการเสียง
+  การจัดการวิดีโอ
 </h2>
           <button className="bg-button-blue text-white py-1 px-2 rounded mr-2"
             onClick={() => getRolePath("meditation")}
