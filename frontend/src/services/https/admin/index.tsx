@@ -1,6 +1,6 @@
 import { AdminInterface } from "../../../interfaces/IAdmin";
-
-import { UsersInterface } from "../../../interfaces/IUser"; // ปรับ path ตามที่คุณจัดโฟลเดอร์
+import { AdminResponse } from "../../../interfaces/IAdmin";
+//import { UsersInterface } from "../../../interfaces/IUser"; // ปรับ path ตามที่คุณจัดโฟลเดอร์  
 import { message } from "antd"; // นำเข้า message จาก antd
 
 const apiUrl = "http://localhost:8000";
@@ -62,7 +62,7 @@ export const getAllAdmins = async (): Promise<AdminInterface[]> => {
 
 // Function to fetch admin data by ID using fetch
 // Updated function to return AdminInterface
-export const getAdminById = async (id: string): Promise<AdminInterface> => {
+export const getAdminById = async (id: string): Promise<AdminResponse> => {
     try {
         const response = await fetch(`${apiUrl}/admin/${id}`, {
             method: "GET",
@@ -76,13 +76,14 @@ export const getAdminById = async (id: string): Promise<AdminInterface> => {
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
 
-        const data: AdminInterface = await response.json();
-        return data; // Return AdminInterface directly
+        const data: AdminResponse = await response.json();
+        return data; // Return ทั้ง object ที่มี status, message, data
     } catch (error) {
         console.error("Error fetching admin:", error);
         throw error;
     }
 };
+
 
 // Function to update admin data by ID using fetch
 // Function to update admin data by ID using fetch
