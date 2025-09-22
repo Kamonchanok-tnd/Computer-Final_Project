@@ -94,6 +94,7 @@ const CreateCriteriaPage: React.FC = () => {
 
   useEffect(() => {
     if (!questionnaireId) {
+      
       Modal.warning({
         title: "ไม่พบแบบทดสอบ",
         content: "ไม่มี questionnaireId ถูกส่งมา",
@@ -214,7 +215,10 @@ const CreateCriteriaPage: React.FC = () => {
         msg.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
       );
       didNavigate = true;
-      navigate("/admin/questionnairePage", {
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+      navigate(`/${rolePrefix}/questionnairePage`, {
         replace: true,
         state: { flash: { type: "success", content: "เพิ่มข้อมูลสำเร็จ" } },
       });

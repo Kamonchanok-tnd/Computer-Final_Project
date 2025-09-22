@@ -44,7 +44,7 @@ const ChatTrendChart: React.FC<{ title?: string; className?: string }> = ({
     setLoading(true);
     try {
       const res = await GetChatUsage(granularity, filter, startDate, endDate);
-      console.log("Response from GetChatUsage:", res);
+  
       setData(res);
     } catch (err) {
       console.error(err);

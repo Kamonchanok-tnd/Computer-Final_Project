@@ -16,6 +16,8 @@ type OrderBoardCol = {
 // ID ของกลุ่มในหน้าจัดการลำดับ (ปรับให้ตรง backend)
 const ORDER_GROUP_IDS = [1, 2, 3];
 
+
+
 const QuestionnairePage: React.FC = () => {
   // toast ของ antd
   const [msgApi, contextHolder] = message.useMessage();
@@ -44,6 +46,15 @@ const QuestionnairePage: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation() as any;
+
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
+   
+ 
 
   /* ===== รับ flash จากหน้าอื่นแล้วแสดงครั้งเดียว ===== */
   useEffect(() => {
@@ -135,7 +146,11 @@ const QuestionnairePage: React.FC = () => {
   };
 
   const handleEdit = (questionnaire: Questionnaire) => {
-    navigate("/admin/editQuestionnaire", {
+    
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+    navigate(`/${rolePrefix}/editQuestionnaire`, {
       state: { questionnaireId: questionnaire.id },
     });
   };
@@ -337,7 +352,9 @@ const QuestionnairePage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm ring-1 ring-slate-300 bg-[#5DE2FF] hover:bg-cyan-500 transition"
-            onClick={() => navigate("/admin/manageTestOrder")}
+            onClick={() =>
+              getRolePath("manageTestOrder")
+              }
           >
             <TableOutlined />
             <span>จัดการลำดับ</span>
@@ -345,7 +362,7 @@ const QuestionnairePage: React.FC = () => {
 
           <button
             className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm text-black bg-[#5DE2FF] hover:bg-cyan-500 transition"
-            onClick={() => navigate("/admin/createQuestionnaire")}
+            onClick={() => getRolePath("createQuestionnaire")}
           >
             <PlusOutlined />
             <span>สร้าง</span>

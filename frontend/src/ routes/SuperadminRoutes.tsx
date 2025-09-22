@@ -31,6 +31,8 @@ import ChatSpaceDetail from "../pages/admin/dashboard_contents/chat/ChatSpaceDet
 import EditCriteriaPage from "../pages/admin/questionnaire/edit/editCriteriaPage";
 import EditQuestionAndAnswerPage from "../pages/admin/questionnaire/edit/editQuestionAndAnswer";
 import Quetionairedetail from "../pages/admin/dashboard_contents/questionaire/quetionairedetail";
+import VisitFrequencyPage from "../pages/admin/userdataweb/VisitFrequencyPage";
+import RetentionRatePage from "../pages/admin/userdataweb/RetentionRatePage";
 // import CreateAdmin from "../pages/superadmin/create_admin/createadmin";
 // import DashboardAdmin from "../pages/superadmin/dashboard_admin/dashboard";
 // import EditAdmin from "../pages/superadmin/edit_admin/EditAdmin";
@@ -42,6 +44,7 @@ const EditAdmin = Loadable(lazy(() => import("../pages/superadmin/edit_admin/Edi
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
 
 const SuperadminRoutes = (isLoggedIn: boolean): RouteObject[] => {
+
   return [
     {
       path: "/superadmin",  // เส้นทางของ Admin
@@ -113,11 +116,19 @@ const SuperadminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                           element: <WebData />, // หน้า Settings ของ Admin DashboardChanting
                         },
                         {
+                          path: "/superadmin/visit-frequency",  
+                          element: <VisitFrequencyPage/>,
+                        },
+                        {
+                          path: "/superadmin/retention-rate",  
+                          element: <RetentionRatePage/>,
+                        },
+                        {
                             path: "/superadmin/questionnairePage",        // หน้าจัดการเเบบทดสอบ
                             element: <QuestionnairePage />,
                         },
                         {
-                            path: "/superadmin/createQuestionnaire",     // หน้าสร้างเเบบทดสอบ
+                            path: "/superadmin/questionnairePage/createQuestionnaire",     // หน้าสร้างเเบบทดสอบ
                             element: <FormStepInfo />,
                         },
                         {
@@ -145,7 +156,6 @@ const SuperadminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                             path: "/superadmin/sounds", //ดูรายการเสียง
                             element: <ListSound/>,
                         },
-                        
                         {
                             path :"/superadmin/listsound",
                             element: <ListSound/>
@@ -177,7 +187,25 @@ const SuperadminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                         {
                             path: "/superadmin/editQuestionAndAnswerPage", // เเก้ไขคำถามเเละคำตอบ
                             element: <EditQuestionAndAnswerPage/>,
-                        }
+                        },
+                        {
+                            path: "/superadmin/manageTestOrder",     // หน้าสร้างเเบบทดสอบ
+                            element: <ManageTestOrder/>,
+                       },
+                       {
+                        path: "/superadmin/createQuestionnaire",     // หน้าสร้างเเบบทดสอบ
+                        element: <FormStepInfo />,
+                    },
+                    {
+                      path: "/superadmin/createQuestion",         // หน้าสร้างคำถาม
+                      element: <FormStepQuestion />,
+                  },
+                  {
+                    path: "/superadmin/createCriteriaPage", // สร้างเกณฑ์
+                    element: <CreateCriteriaPage/>,
+                },
+
+
       ],
     },
   ];

@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { GetQverview } from "../../../../services/https/Chat";
-import { Select, DatePicker } from "antd";
 
-import { Clock10, Folder, ListTodo, MessageSquare, User, UsersRound } from "lucide-react";
+
+import {  Folder, ListTodo, User } from "lucide-react";
 import { GetQuestionaireOverview, QuestionaireOverview } from "../../../../services/https/dashboardcontents";
-import DashboardQuestionnaire from "./barchartquestionaire";
+
 import SurveyVisualization from "./DashboardSurveyBarChart";
 import AverageScoreChart from "./AvgScore";
-import RecentUseQu from "./RecentUseQu";
+
 import TableUseAsses from "./tableuseasses";
 
-const { Option } = Select;
-const { RangePicker } = DatePicker;
+
 
 
 
@@ -19,22 +17,19 @@ const { RangePicker } = DatePicker;
 
 function Quetionairedetail() {
   const [data, setData] = useState<QuestionaireOverview | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+ 
   // เพิ่ม "today" เข้ามา
  
 
   const fetchOverview = async () => {
-    setLoading(true);
+
     try {
       const res = await GetQuestionaireOverview();
-      console.log("overview: ",res);
+
       setData(res);
     } catch (err) {
-      setError("ไม่สามารถโหลดข้อมูล Overview ได้");
-    } finally {
-      setLoading(false);
+      console.error(err);
     }
   };
   

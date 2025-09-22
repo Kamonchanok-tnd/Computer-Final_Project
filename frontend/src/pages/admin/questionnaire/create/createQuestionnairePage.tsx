@@ -358,6 +358,8 @@ const FormStepInfo: React.FC = () => {
   // การ์ดหลัก (ส่งให้ dropdown เพื่อคุมพื้นที่ popup)
   const cardRef = useRef<HTMLDivElement>(null);
 
+
+
   // โหลดรายการแบบทดสอบเพื่อให้เลือกเป็นเงื่อนไข
   useEffect(() => {
     (async () => {
@@ -433,9 +435,10 @@ const FormStepInfo: React.FC = () => {
           onClose: resolve,
         });
       });
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
 
-      didNavigate = true;
-      navigate("/admin/createquestion", { state: { questionnaireId, quantity } });
+      navigate(`/${rolePrefix}/createquestion`, { state: { questionnaireId, quantity } });
     } catch (err) {
       console.error(err);
       messageApi.error("ไม่สามารถเพิ่มข้อมูลได้");

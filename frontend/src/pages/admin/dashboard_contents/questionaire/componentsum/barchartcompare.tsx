@@ -55,11 +55,10 @@ function BarchartCompare({ uid }: barProps) {
     }
   }
 
-
   async function fetchDetailQuestionnaire(uid: number, description: string) {
     try {
       const res = await GetDetailQuestionnaire(uid, description);
-      console.log("detail show", res);
+   
       setDetailQu(res) ;
     } catch (err: any) {
       console.error(err);
@@ -67,14 +66,12 @@ function BarchartCompare({ uid }: barProps) {
     }
   }
 
-
-
   // ดึงข้อมูล Pre/Post
   async function fetchTransactions(questionnaireName: string) {
     try {
       setLoading(true);
       const res = await getPrePostTransactionsCompare(uid, questionnaireName);
-      console.log(res);
+   
       setTransactions(res ?? []); 
     } catch (err: any) {
       console.error(err);
@@ -151,135 +148,245 @@ function BarchartCompare({ uid }: barProps) {
   }));
 
   return (
-    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 font-ibmthai
-    grid grid-cols-1 md:grid-cols-4 gap-4 min-h-70">
-      <div className="col-span-3" >
+    <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-2xl shadow-sm border border-gray-200 font-ibmthai">
+      {/* Mobile Layout - Stack vertically */}
+      <div className="block lg:hidden space-y-4">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <h3 className="text-lg font-semibold">วิเคราะห์การทำแบบสอบถาม</h3>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+        </div>
 
-      <div className="flex justify-between">
-      <h3 className="text-lg font-semibold mb-3">วิเคราะห์การทำแบบสอบถาม</h3>
+        {/* Selectors */}
+        <div className="flex flex-col space-y-3 gap-2">
+          <Select
+            className="custom-select w-full mb-4"
+            value={selectedGroupId ?? undefined}
+            onChange={(value) => setSelectedGroupId(value)}
+            placeholder="เลือกกลุ่มแบบสอบถาม"
+          >
+            <Option value="Pre/Post">ก่อนและหลัง</Option>
+            <Option value="Personal">ทั่วไป</Option>
+          </Select>
 
-      {error && <p className="text-red-500">{error}</p>}
+          <Select
+            className="custom-select w-full"
+            value={selectedId ?? undefined}
+            onChange={(value) => setSelectedId(value)}
+            placeholder="เลือกแบบสอบถาม"
+          >
+            {questionnaires.map((q) => (
+              <Option key={q.id} value={q.id}>
+                {q.nameQuestionnaire}
+              </Option>
+            ))}
+          </Select>
+        </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        {/* Selector Group */}
-        <Select
-          className="custom-select"
-          value={selectedGroupId ?? undefined}
-          onChange={(value) => setSelectedGroupId(value)}
-          style={{ width: "100%", maxWidth: "200px" }}
-          placeholder="เลือกกลุ่มแบบสอบถาม"
-        >
-          <Option value="Pre/Post">ก่อนและหลัง</Option>
-          <Option value="Personal">ทั่วไป</Option>
-        </Select>
-
-        {/* Selector Questionnaire */}
-        <Select
-         className="custom-select"
-          value={selectedId ?? undefined}
-          onChange={(value) => setSelectedId(value)}
-          style={{ width: "100%", maxWidth: "300px" }}
-          placeholder="เลือกแบบสอบถาม"
-        >
-          {questionnaires.map((q) => (
-            <Option key={q.id} value={q.id}>
-              {q.nameQuestionnaire}
-            </Option>
-          ))}
-        </Select>
-      </div>   
-      </div>
-     
-
-      {loading ? (
-        <Spin tip="Loading..." />
-      ) : selectedGroupId === "Pre/Post" ? (
-        chartDataBar.length > 0 ? (
-       
-         
-                <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={chartDataBar}
+        {/* Chart Section */}
+        <div className="min-h-[300px]">
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <Spin tip="Loading..." />
+            </div>
+          ) : selectedGroupId === "Pre/Post" ? (
+            chartDataBar.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart
+                  data={chartDataBar}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="Pre" fill="#BBF0FC" />
+                  <Bar dataKey="Post" fill="#5DE2FF" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center py-8">ไม่มีข้อมูลสำหรับแบบสอบถามนี้</p>
+            )
+          ) : chartDataLine.length > 0 ? (
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart
+                data={chartDataLine}
                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
               >
-                <XAxis dataKey="name" />
+                <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="Pre" fill="#BBF0FC" />
-                <Bar dataKey="Post" fill="#5DE2FF" />
-              </BarChart>
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#5DE2FF"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
+              </LineChart>
             </ResponsiveContainer>
-          
-         
-        ) : (
-          <p>ไม่มีข้อมูลสำหรับแบบสอบถามนี้</p>
-        )
-      ) : chartDataLine.length > 0 ? (
-        <div>
-           <ResponsiveContainer width="100%" height={400}>
-          <LineChart
-            data={chartDataLine}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-          >
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="score"
-              stroke="#5DE2FF"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+          ) : (
+            <NoData message="ไม่มีข้อมูลสำหรับแบบสอบถามนี้" />
+          )}
         </div>
-       
-      ) : (
-        <NoData message="ไม่มีข้อมูลสำหรับแบบสอบถามนี้" />
-      )}
-           
+
+        {/* Info Cards - Stack on mobile */}
+        <div className="space-y-4">
+          <div className="bg-gradient-to-tl from-[#C8F3FD] to-[#5DE2FF] text-basic-text p-4 rounded-xl">
+            <p className="text-base sm:text-lg font-semibold mb-2">เกณฑ์การวัดล่าสุด</p>
+            <p className="text-sm sm:text-md font-semibold">
+              {detailQu?.latest_result || "ไม่มีข้อมูลสำหรับแบบสอบถามนี้"}
+            </p>
           </div>
-          <div className="flex flex-col justify-between py-8">
-            <div className="bg-gradient-to-tl from-[#C8F3FD] to-[#5DE2FF] text-basic-text p-4 rounded-xl space-y-4">
-                <p className="text-lg font-semibold">เกณฑ์การวัดล่าสุด</p>
-                <p className="text-md font-semibold">{detailQu?.latest_result || "ไม่มีข้อมูลสำหรับแบบสอบถามนี้"}</p> 
-            </div>
-            <div className="flex justify-center  ">
-              <div className="flex space-x-2  w-full py-8 rounded-xl justify-center ">
-                  {
-                      detailQu?.previous_score === null ? 
-                      <p></p>
-                      :
-                      <div className="flex space-x-2 text-3xl  text-basic-text"> 
-                        <div>
-                           <p className="font-semibold">{detailQu?.previous_score } </p>
-                           <p className="text-sm">ก่อน</p>
-                        </div>
-                       
-                        <p>{">"}</p>
-                      </div>
-                    }
-                    <div>
-                        <p className="font-bold text-basic-text text-3xl">{detailQu?.latest_score }</p>
-                        {
-                          detailQu?.previous_score !== null &&
-                          <p className="text-sm">หลัง</p>
-                        }
-                      
-                    </div>
-                  
+
+          {/* Score Comparison */}
+          <div className="flex justify-center py-4">
+            <div className="flex items-center space-x-3 text-basic-text">
+              {detailQu?.previous_score !== null && (
+                <>
+                  <div className="text-center">
+                    <p className="font-semibold text-2xl sm:text-3xl">{detailQu?.previous_score}</p>
+                    <p className="text-xs sm:text-sm">ก่อน</p>
+                  </div>
+                  <p className="text-xl sm:text-2xl">{">"}</p>
+                </>
+              )}
+              <div className="text-center">
+                <p className="font-bold text-2xl sm:text-3xl">{detailQu?.latest_score}</p>
+                {detailQu?.previous_score !== null && (
+                  <p className="text-xs sm:text-sm">หลัง</p>
+                )}
               </div>
-             
             </div>
-           <div  className="bg-gradient-to-tl from-[#C8F3FD] to-[#5DE2FF] text-basic-text p-4 rounded-xl space-y-4
-           text-xl font-bold flex flex-col items-center">
-             <p>คะแนนเฉลี่ย</p>
-             <p>{detailQu?.average_score}</p>
-           </div>
           </div>
+
+          <div className="bg-gradient-to-tl from-[#C8F3FD] to-[#5DE2FF] text-basic-text p-4 rounded-xl text-center">
+            <p className="text-lg sm:text-xl font-bold mb-2">คะแนนเฉลี่ย</p>
+            <p className="text-lg sm:text-xl font-bold">{detailQu?.average_score}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout - Side by side */}
+      <div className="hidden lg:grid lg:grid-cols-4 gap-6 min-h-[500px]">
+        {/* Chart Section - Takes 3 columns */}
+        <div className="col-span-3">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-lg font-semibold">วิเคราะห์การทำแบบสอบถาม</h3>
+            {error && <p className="text-red-500">{error}</p>}
+          </div>
+
+          {/* Selectors */}
+          <div className="flex gap-4 mb-6">
+            <Select
+              className="custom-select"
+              value={selectedGroupId ?? undefined}
+              onChange={(value) => setSelectedGroupId(value)}
+              style={{ width: "200px" }}
+              placeholder="เลือกกลุ่มแบบสอบถาม"
+            >
+              <Option value="Pre/Post">ก่อนและหลัง</Option>
+              <Option value="Personal">ทั่วไป</Option>
+            </Select>
+
+            <Select
+              className="custom-select"
+              value={selectedId ?? undefined}
+              onChange={(value) => setSelectedId(value)}
+              style={{ width: "300px" }}
+              placeholder="เลือกแบบสอบถาม"
+            >
+              {questionnaires.map((q) => (
+                <Option key={q.id} value={q.id}>
+                  {q.nameQuestionnaire}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+          {/* Chart */}
+          {loading ? (
+            <div className="flex justify-center items-center h-96">
+              <Spin tip="Loading..." />
+            </div>
+          ) : selectedGroupId === "Pre/Post" ? (
+            chartDataBar.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart
+                  data={chartDataBar}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="Pre" fill="#BBF0FC" />
+                  <Bar dataKey="Post" fill="#5DE2FF" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center py-20">ไม่มีข้อมูลสำหรับแบบสอบถามนี้</p>
+            )
+          ) : chartDataLine.length > 0 ? (
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart
+                data={chartDataLine}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#5DE2FF"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <NoData message="ไม่มีข้อมูลสำหรับแบบสอบถามนี้" />
+          )}
+        </div>
+
+        {/* Info Panel - Takes 1 column */}
+        <div className="flex flex-col justify-between py-8 space-y-4">
+          <div className="bg-gradient-to-tl from-[#C8F3FD] to-[#5DE2FF] text-basic-text p-4 rounded-xl">
+            <p className="text-lg font-semibold mb-2">เกณฑ์การวัดล่าสุด</p>
+            <p className="text-md font-semibold">
+              {detailQu?.latest_result || "ไม่มีข้อมูลสำหรับแบบสอบถามนี้"}
+            </p>
+          </div>
+
+          <div className="flex justify-center py-8">
+            <div className="flex items-center space-x-3 text-basic-text">
+              {detailQu?.previous_score !== null && (
+                <>
+                  <div className="text-center">
+                    <p className="font-semibold text-3xl">{detailQu?.previous_score}</p>
+                    <p className="text-sm">ก่อน</p>
+                  </div>
+                  <p className="text-2xl">{">"}</p>
+                </>
+              )}
+              <div className="text-center">
+                <p className="font-bold text-3xl">{detailQu?.latest_score}</p>
+                {detailQu?.previous_score !== null && (
+                  <p className="text-sm">หลัง</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-tl from-[#C8F3FD] to-[#5DE2FF] text-basic-text p-4 rounded-xl text-center">
+            <p className="text-xl font-bold mb-2">คะแนนเฉลี่ย</p>
+            <p className="text-xl font-bold">{detailQu?.average_score}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -232,8 +232,11 @@ const EditCriteriaPage: React.FC = () => {
         msg.success({ content: "แก้ไขข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
       );
 
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
       didNavigate = true;
-      navigate("/admin/questionnairePage", {
+      navigate(`/${rolePrefix}/questionnairePage`, {
         replace: true,
         state: { flash: { type: "success", content: "แก้ไขข้อมูลสำเร็จ" } },
       });

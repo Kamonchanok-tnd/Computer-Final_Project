@@ -1,5 +1,5 @@
 
-import { Plus, Trash2 } from 'lucide-react';
+import {  Trash2 } from 'lucide-react';
 import './custom.css';
 import headbot from '../../assets/logo/header1.png';
 
@@ -55,7 +55,7 @@ function ChatHeader({ isDarkMode, onClearChat }: ChatHeaderProps) {
                 ? 'bg-red-600/20 hover:bg-red-600/30 text-red-400'
                 : 'bg-red-50 hover:bg-red-100 text-red-600'
             }`}
-            title="ปิดห้องแชท"
+            title="ล้างข้อความ"
           >
             <Trash2 className="w-5 h-5" />
           </button>

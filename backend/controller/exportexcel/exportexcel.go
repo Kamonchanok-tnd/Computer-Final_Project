@@ -1,11 +1,11 @@
 package exportexcel
 
 import (
-	"encoding/csv"
+
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+
 	"strings"
 	"sukjai_project/config"
 
@@ -14,16 +14,15 @@ import (
 )
 
 type ExportRow struct {
-	UserID             uint
-	Username           string
-	AssessmentResultID uint
-	AssessmentDate     string
-	QuestionnaireID    uint
-	QuestionnaireName  string
-	QuestionID         uint
-	QuestionText       string
-	AnswerText         string
-	AnswerScore        int
+	Username           string `db:"username"`
+	PersonType         string `db:"persontype"`  // เพิ่ม db tag
+	Year               int    `db:"year"`
+	Faculty            string `db:"faculty"`
+	AssessmentDate     string `db:"assessment_date"`
+	QuestionnaireName  string `db:"questionnaire_name"`
+	QuestionText       string `db:"question_text"`
+	AnswerText         string `db:"answer_text"`
+	AnswerScore        int    `db:"answer_score"`
 }
 
 // sanitizeSheetName ทำความสะอาดชื่อ sheet ให้เป็นไปตามกฎของ Excel
@@ -93,16 +92,17 @@ func ExportExcel(c *gin.Context) {
 	var rows []ExportRow
 	result := db.Raw(`
 		SELECT
-			u.id                AS user_id,
+		
 			u.username          AS username,
-			ar.id               AS assessment_result_id,
+			u.person_type       AS person_type,
+			u.year              AS Year,
+			u.faculty           AS Faculty,
 			ar.date             AS assessment_date,
-			qn.id               AS questionnaire_id,
+			
 			qn.name_questionnaire AS questionnaire_name,
-			q.id                AS question_id,
+		
 			q.name_question     AS question_text,
-			aa.id               AS assessment_answer_id,
-			ao.id               AS answer_option_id,
+			
 			ao.description      AS answer_text,
 			aa.point            AS answer_score
 		FROM assessment_answers aa
@@ -113,6 +113,8 @@ func ExportExcel(c *gin.Context) {
 		LEFT JOIN answer_options ao  ON aa.ao_id = ao.id
 		ORDER BY u.id, ar.id, q.priority;
 	`).Scan(&rows)
+	log.Printf("First row: %+v", rows[0])
+
 
 	if result.Error != nil {
 		log.Printf("Database query error: %v", result.Error)
@@ -188,8 +190,8 @@ func ExportExcel(c *gin.Context) {
 
 		// Header
         headers := []string{
-			"รหัสผู้ใช้", "ชื่อผู้ใช้", "รหัสผลการประเมิน", "วันที่ประเมิน",
-			"รหัสคำถาม", "คำถาม", "คำตอบ", "คะแนน",
+			 "ชื่อผู้ใช้", "ประเภทผู้ใช้","ชั้นปี","สำนักวิชา","วันที่ประเมิน",
+			 "คำถาม", "คำตอบ", "คะแนน",
 		}
 		
 		// เขียน header
@@ -208,11 +210,12 @@ func ExportExcel(c *gin.Context) {
 			
 			// ใช้ array เพื่อให้ code สั้นลง
 			values := []interface{}{
-				row.UserID,
+			
 				row.Username,
-				row.AssessmentResultID,
+				row.PersonType,
+				row.Year,
+				row.Faculty,
 				row.AssessmentDate,
-				row.QuestionID,
 				row.QuestionText,
 				row.AnswerText,
 				row.AnswerScore,
@@ -273,126 +276,3 @@ func ExportExcel(c *gin.Context) {
 }
 
 
-func ExportCSV(c *gin.Context) {
-	// 1. Connect DB
-	db := config.DB()
-	if db == nil {
-		log.Printf("Database connection failed")
-		c.String(http.StatusInternalServerError, "Database connection error")
-		return
-	}
-
-	// 2. Query ข้อมูลแบบ Long Format
-	var rows []ExportRow
-	result := db.Raw(`
-		SELECT
-			u.id                AS user_id,
-			u.username          AS username,
-			ar.id               AS assessment_result_id,
-			ar.date             AS assessment_date,
-			qn.id               AS questionnaire_id,
-			qn.name_questionnaire AS questionnaire_name,
-			q.id                AS question_id,
-			q.name_question     AS question_text,
-			aa.id               AS assessment_answer_id,
-			ao.id               AS answer_option_id,
-			ao.description      AS answer_text,
-			aa.point            AS answer_score
-		FROM assessment_answers aa
-		JOIN assessment_results ar   ON aa.ar_id = ar.id
-		JOIN users u                 ON ar.uid = u.id
-		JOIN questionnaires qn       ON ar.qu_id = qn.id
-		JOIN questions q             ON aa.q_id = q.id
-		LEFT JOIN answer_options ao  ON aa.ao_id = ao.id
-		ORDER BY u.id, ar.id, q.priority;
-	`).Scan(&rows)
-
-	if result.Error != nil {
-		log.Printf("Database query error: %v", result.Error)
-		c.String(http.StatusInternalServerError, "Database query error")
-		return
-	}
-
-	if len(rows) == 0 {
-		log.Printf("No data found")
-		c.String(http.StatusNotFound, "No data found to export")
-		return
-	}
-
-	log.Printf("Total rows retrieved: %d", len(rows))
-
-	// 3. ตั้งค่า HTTP headers สำหรับ CSV
-	c.Header("Content-Type", "text/csv; charset=utf-8")
-	c.Header("Content-Disposition", `attachment; filename="assessment_export.csv"`)
-	c.Header("Cache-Control", "no-cache")
-	
-	// เพิ่ม BOM (Byte Order Mark) สำหรับ UTF-8 เพื่อให้ Excel เปิดภาษาไทยได้ถูกต้อง
-	c.Writer.Write([]byte{0xEF, 0xBB, 0xBF})
-
-	// 4. สร้าง CSV writer
-	writer := csv.NewWriter(c.Writer)
-	defer writer.Flush()
-
-	// 5. เขียน header
-    headers := []string{
-		"รหัสผู้ใช้",
-		"ชื่อผู้ใช้", 
-		"รหัสผลการประเมิน",
-		"วันที่ประเมิน",
-		"รหัสแบบสอบถาม",
-		"ชื่อแบบสอบถาม",
-		"รหัสคำถาม",
-		"คำถาม",
-		"คำตอบ",
-		"คะแนน",
-	}
-
-	err := writer.Write(headers)
-	if err != nil {
-		log.Printf("Error writing CSV header: %v", err)
-		return
-	}
-
-	// 6. เขียนข้อมูล
-	successCount := 0
-	for _, row := range rows {
-		record := []string{
-			strconv.Itoa(int(row.UserID)),
-			row.Username,
-			strconv.Itoa(int(row.AssessmentResultID)),
-			row.AssessmentDate,
-			strconv.Itoa(int(row.QuestionnaireID)),
-			row.QuestionnaireName,
-			strconv.Itoa(int(row.QuestionID)),
-			row.QuestionText,
-			row.AnswerText,
-			strconv.Itoa(row.AnswerScore),
-		}
-
-		err := writer.Write(record)
-		if err != nil {
-			log.Printf("Error writing CSV record: %v", err)
-			continue
-		}
-		successCount++
-	}
-
-	// Force flush ก่อนจบ
-	writer.Flush()
-	
-	if err := writer.Error(); err != nil {
-		log.Printf("CSV writer error: %v", err)
-		return
-	}
-
-	log.Printf("CSV export completed successfully. %d rows written", successCount)
-}
-
-// ExportCSVByQuestionnaire - แยกไฟล์ตาม questionnaire (ส่งเป็น ZIP)
-func ExportCSVByQuestionnaire(c *gin.Context) {
-	// สำหรับกรณีที่ต้องการแยกไฟล์ CSV ตาม questionnaire
-	// จะต้องใช้ ZIP เพื่อส่งหลายไฟล์
-	// (Implementation นี้ซับซ้อนกว่า ถ้าต้องการจะทำให้ดู)
-	
-	c.String(http.StatusNotImplemented, "CSV by questionnaire export not implemented yet")
-}

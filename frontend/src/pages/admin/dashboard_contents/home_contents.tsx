@@ -212,7 +212,7 @@
 
 
 
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -231,13 +231,13 @@ import {
 
 // Components
 import MusicCard from "./meditation/meditationgard";
-import ChantingCard from "./chanting/chantinggard";
+
 import WordHealingCard from "./word-healing/wordgard";
 import MirrorCard from "./mirror/mirrorgard";
-import ASMRCard from "./asmr/asmrgard";
-import BreathingCard from "./breathing/breatinggard";
+
 import ChatTrendCardRecharts from "./chat/ChatTrendCardRecharts";
 import QuestionnaireTrendChart from "./questionaire/QuestionnaireTrendChart";
+
 
 // DashboardCard component
 const DashboardCard: React.FC<{ title: string; className?: string; children: React.ReactNode }> = ({
@@ -258,6 +258,13 @@ const HomeContents: React.FC = () => {
   const [topContentData, setTopContentData] = useState<TopContent[]>([]);
   const [loadingTopContent, setLoadingTopContent] = useState(true);
   const [topContentError, setTopContentError] = useState<string | null>(null);
+ 
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
 
   // Fetch Top Content Comparison
   useEffect(() => {
@@ -389,19 +396,20 @@ const HomeContents: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="col-span-2">
             <ChatTrendCardRecharts
-              onViewMore={() => navigate("/admin/dashboard/contents/chat")}
+           
+              onViewMore={() =>  getRolePath("dashboard/contents/chat")}
             />
           </div>
           <div className="col-span-2">
             <QuestionnaireTrendChart
-              onViewMore={() => navigate("/admin/dashboard/contents/questionnaire")}
+              onViewMore={() => getRolePath("dashboard/contents/questionnaire")}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <MusicCard onViewMore={() => navigate("/admin/dashboard/contents/sound")} />
-          <WordHealingCard onViewMore={() => navigate("/admin/wordhealing-details")} />
+          <MusicCard onViewMore={() => getRolePath("dashboard/contents/sound")} />
+          <WordHealingCard onViewMore={() => getRolePath("wordhealing-details")} />
           <MirrorCard/>
         </div>
       </main>

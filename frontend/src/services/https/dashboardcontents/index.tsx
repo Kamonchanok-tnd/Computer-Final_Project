@@ -294,33 +294,6 @@ interface Transaction {
 }
 
 // เรียก Pre/Post
-export const getPrePostTransactions = async (uid: number, description: string,tid: number): Promise<Transaction[]> => {
-  //อาจจะยัง
-  try {
-    const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/prepost`, {
-      params: { uid, description,tid },
-      ...getAuthHeader(), // spread object headers เข้า config ของ axios
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching pre/post transactions:", error);
-    return [];
-  }
-};
-
-// เรียก Standalone (3 ครั้งล่าสุด)
-export const getStandaloneTransactions = async (uid: number, description: string,tid:number): Promise<Transaction[]> => {
- //อาจจะยัง
-  try {
-    const response = await axios.get<Transaction[]>(`${apiUrl}/dashboard/questionnaire/standalone`, {
-      params: { uid, description,tid }, ...getAuthHeader(),
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching standalone transactions:", error);
-    return [];
-  }
-};
 
 // start dashboard แบบรายคน
 export interface UserSummary {
@@ -423,5 +396,36 @@ export const GetDetailQuestionnaire = async (
   } catch (err: any) {
     console.error("Cannot fetch latest respondents:", err);
     throw new Error(err.message || "Cannot fetch latest respondents");
+  }
+};
+
+// ฟังก์ชันสำหรับเรียก API เพื่อดาวน์โหลด Excel
+export const downloadExcelFile = async (): Promise<void> => {
+  try {
+    const response = await fetch(`${apiUrl}/excel`, {
+      method: "GET",
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Download failed");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "export.xlsx"; // ตั้งชื่อไฟล์
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading file:", error);
   }
 };

@@ -16,11 +16,13 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [avatarUrl, setAvatarUrlState] = useState<string>("");
   const [username, setUsernameState] = useState<string>("");
+ 
 
   // โหลดค่าจาก localStorage หรือ API
   useEffect(() => {
     const storedAvatar = localStorage.getItem("avatarUrl");
     const storedUsername = localStorage.getItem("username");
+    
 
     if (storedAvatar) {
       setAvatarUrlState(storedAvatar);

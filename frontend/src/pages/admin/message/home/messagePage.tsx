@@ -20,6 +20,13 @@ const MessagePage: React.FC = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>("");
 
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
+
   useEffect(() => {
     loadMessages();
   }, []);
@@ -243,7 +250,11 @@ const MessagePage: React.FC = () => {
       align: 'center',
       render: (_: any, record: WordHealingContent) => (
         <Space>
-          <AntButton icon={<SettingOutlined />} onClick={() => navigate('/admin/editMessagePage', { state: { id: record.id } })} className="!bg-black !text-white hover:!bg-gray-700 active:!bg-indigo-800 !border-none !shadow-none focus:!shadow-none"/>
+          <AntButton icon={<SettingOutlined />} onClick={() => {
+            const role = localStorage.getItem("role");
+            const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+
+            navigate(`/${rolePrefix}/editMessagePage`, { state: { id: record.id } })}} className="!bg-black !text-white hover:!bg-gray-700 active:!bg-indigo-800 !border-none !shadow-none focus:!shadow-none"/>
           <AntButton danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)}  className="!w-8 !h-8 !p-0 !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"/>
         </Space>
       ),
@@ -263,7 +274,7 @@ const MessagePage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm text-black bg-[#5DE2FF] hover:bg-cyan-500 transition"
-            onClick={() => navigate("/admin/createMessagePage")}
+            onClick={() => getRolePath("createMessagePage")}
           >
             <PlusOutlined />
             <span>สร้าง</span>

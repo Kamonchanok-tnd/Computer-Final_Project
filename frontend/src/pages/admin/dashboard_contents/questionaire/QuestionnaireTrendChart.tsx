@@ -64,7 +64,7 @@ const QuestionnaireTrendChart: React.FC<QuestionnaireTrendChartProps> = ({
       setError(null);
       try {
         const res: AverageScoreData = await getAverageScore(id);
-        console.log("Response from getAverageScore:", res);
+       
 
         if (!res || !res.trend || res.trend.length === 0) {
           setData([]);
@@ -95,7 +95,7 @@ const QuestionnaireTrendChart: React.FC<QuestionnaireTrendChartProps> = ({
   }, [selectedId]);
 
   // Custom Tooltip Component
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -141,7 +141,7 @@ const QuestionnaireTrendChart: React.FC<QuestionnaireTrendChartProps> = ({
         {onViewMore && (
           <button
             onClick={onViewMore}
-            className="p-2 rounded-full bg-gray-100 hover:bg-background-button hover:text-blue-word transition flex justify-center items-center"
+            className="p-2 rounded-full  hover:bg-background-button hover:text-blue-word transition flex justify-center items-center"
             title="ดูข้อมูลเพิ่มเติม"
           >
             <EllipsisOutlined className="text-lg" />

@@ -86,7 +86,8 @@ func main() {
 	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
 	r.GET("/recent", controller.GetRecentChat)
 	r.GET("/excel", exportexcel.ExportExcel)
-	r.GET("/csv", exportexcel.ExportCSV)
+
+	r.POST("/gemini", controller.GeminiHistory)
 
 	
 
@@ -224,9 +225,8 @@ func main() {
 		router.GET("/dashboard/questionaire/resultsoverview",dashboardcontents.GetSurveyVisualization )
 		router.GET("/dashboard/questionaire/resultsoverview/:id",dashboardcontents.GetSurveyVisualizationByID )
 		router.GET("/dashboard/questionnaire/:id/average-score", dashboardcontents.GetAverageScoreCard)
-		router.GET("/dashboard/questionnaire/recent/use", dashboardcontents.GetLatestRespondents)
-		router.GET("/dashboard/questionnaire/prepost", dashboardcontents.GetPrePostTransactions)
-		router.GET("/dashboard/questionnaire/standalone", dashboardcontents.GetStandaloneTransactions)
+		
+	
 
 		
 		router.GET("/dashboard/questionnaire/user", dashboardcontents.GetRespondents)
@@ -318,7 +318,7 @@ func main() {
 		userRouter.GET("/assessments/transactions", assessment.GetTransactions)
 
 		//chat space
-		userRouter.POST("/gemini", controller.GeminiHistory)
+		// userRouter.POST("/gemini", controller.GeminiHistory)
 		userRouter.GET("/conversation/:id", controller.GetConversationHistory)
 		userRouter.POST("/new-chat", controller.CreateChatRoom)
 		userRouter.PATCH("/end-chat/:id", controller.EndChatRoom)

@@ -23,8 +23,7 @@ export async function CreateSoundPlaylist(data: ISoundPlaylist) {
     );
     const result = await response.json();
 
-    
-    console.log(result);
+ 
     return { status: response.status, result };
   } catch (error) {
     console.error(error);

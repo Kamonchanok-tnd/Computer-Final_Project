@@ -399,7 +399,7 @@ export default function SignInPages() {
           </div>
 
           <h2 className="font-ibmthai text-xl md:text-2xl font-bold mb-2 text-blue-300">
-            ยินดีต้อนรับสู่ SUT HEALJAI! 👋
+            ยินดีต้อนรับสู่ SUT HEAL JAI! 👋
           </h2>
           <p className="font-ibmthai text-gray-500 max-w-md mx-auto text-sm md:text-base">
             เราให้บริการด้านสุขภาพจิตอย่างครบวงจร ทั้งการสนับสนุนด้านอารมณ์
@@ -413,9 +413,9 @@ export default function SignInPages() {
       <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 relative order-1 lg:order-2">
         {/* โลโก้และชื่ออยู่นอกการ์ด */}
         <div className="absolute top-6 right-6 flex items-center gap-2 md:gap-3">
-          <img src={logo} alt="SUT HEALJAI" className="w-10 h-10 md:w-12 md:h-12" />
+          <img src={logo} alt="SUT HEAL JAI" className="w-10 h-10 md:w-12 md:h-12" />
           <span className="font-ibmthai text-xl md:text-2xl font-bold text-blue-300">
-            SUT HEALAI
+            SUT HEAL JAI
           </span>
         </div>
 
@@ -423,7 +423,7 @@ export default function SignInPages() {
         <div className="bg-gradient-to-t from-blue-200 to-white p-8 md:p-12 rounded-2xl shadow-2xl w-full max-w-md md:max-w-lg mt-20 h-auto md:h-[600px]">
           <p className="text-center text-gray-700 mb-2 text-lg">
             <span className="font-ibmthai text-3xl md:text-4xl font-bold mb-4 text-center text-blue-300">
-              SUT HEALJAI
+              SUT HEAL JAI
             </span>
           </p>
 

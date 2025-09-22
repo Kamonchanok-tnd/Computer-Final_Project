@@ -625,7 +625,7 @@ export default function Homemessage() {
 
               {/* ปุ่มเพิ่มเติม */}
               <button
-                onClick={() => navigate("/message")}
+                onClick={() => navigate("/audiohome/message")}
                 className="px-4 py-1.5 md:px-5 md:py-2 rounded-full text-white
                           bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] hover:to-[#2BD9FF] shadow-md"
               >

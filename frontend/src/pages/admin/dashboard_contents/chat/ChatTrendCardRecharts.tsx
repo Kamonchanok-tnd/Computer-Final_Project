@@ -41,7 +41,7 @@ const ChatTrendMessagesFilter: React.FC<ChatTrendMessagesFilterProps> = ({
       try {
         // ดึงข้อมูลรายชั่วโมงวันนี้จาก backend
         const res = await GetChatUsage("today", "user");
-        console.log("Response from GetChatUsage:", res);
+   
 
         if (!res || res.length === 0) {
           setData([]);
@@ -79,7 +79,7 @@ const ChatTrendMessagesFilter: React.FC<ChatTrendMessagesFilterProps> = ({
         {onViewMore && (
           <button
             onClick={onViewMore}
-            className="p-2 rounded-full bg-white/50 hover:bg-regal-blue transition flex justify-center items-center"
+            className="p-2 rounded-full hover:bg-background-button hover:text-blue-word transition flex justify-center items-center"
             title="ดูข้อมูลเพิ่มเติม"
           >
             <EllipsisOutlined className="text-white text-lg" />

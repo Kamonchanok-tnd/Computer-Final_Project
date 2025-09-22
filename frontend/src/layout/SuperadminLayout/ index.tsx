@@ -113,6 +113,24 @@ const FullLayout = () => {
             <Menu.Item key="/superadmin/settings" icon={<SettingOutlined />}>
               <Link to="/superadmin/settings">Settings</Link>
             </Menu.Item>
+            <Menu.Item key="/superadmin/questionnairePage" icon={<QuestionOutlined/>}>
+              <Link to="/superadmin/questionnairePage">Questionnaire</Link>
+            </Menu.Item>
+            <Menu.Item key="/superadmin/prompt" icon={<CommentOutlined />}>
+              <Link to="/superadmin/prompt">Prompt AI</Link>
+            </Menu.Item>
+            <Menu.Item key="/superadmin/sounds" icon={<CustomerServiceOutlined/>}> 
+              <Link to="/superadmin/sounds">Sounds</Link>
+            </Menu.Item>
+            <Menu.Item key="/superadmin/messagePage" icon={<MailOutlined />}> 
+              <Link to="/superadmin/messagePage">Message</Link> 
+            </Menu.Item>
+            <Menu.Item key="/superadmin/dashboard/contents" icon={<ScheduleOutlined/>}> 
+              <Link to="/superadmin/dashboard/contents">Contents</Link> 
+            </Menu.Item>
+            <Menu.Item key="/superadmin/activity" icon={<FundOutlined/>}> 
+              <Link to="/superadmin/activity">Visitor Data</Link> 
+            </Menu.Item>
           </Menu>
         </Drawer>
 

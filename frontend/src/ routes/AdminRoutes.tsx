@@ -6,7 +6,7 @@ import Loadable from "../components/loading/Loadable";
 import { lazy } from "react";
 // import EditYourself from "../pages/admin/edit_yourself/edit";
 const AdminDashboard = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard_admin")));
-const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsetting")));
+// const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsetting")));
 // const CreateAdmin = Loadable(lazy(() => import("../pages/admin/create_admin/createadmin")));
 // const DashboardAdmin = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard")));
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
