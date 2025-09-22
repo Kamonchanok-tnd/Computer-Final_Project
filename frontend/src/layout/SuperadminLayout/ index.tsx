@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { LogoutOutlined ,MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
-const { Header, Content, Footer, Sider } = Layout;
+import { LogoutOutlined ,MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
+const { Header, Content, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 import './FullLayout.css'; // นำเข้าไฟล์ CSS
 import lightlogo from "../../assets/logo/lightlogo.png";

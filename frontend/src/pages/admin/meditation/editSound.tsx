@@ -5,7 +5,7 @@ import "./meditation.css"; // import CSS ที่แยกออกมา
 import { useNavigate, useParams } from "react-router-dom";
 import { Play } from "lucide-react";
 import { getSoundByID, updateSoundByID } from "../../../services/https/sounds";
-import { get } from "http";
+
 const { Option } = Select;
 
 export const formatDurationHMS = (seconds: number) => {
@@ -41,13 +41,13 @@ const EditSound: React.FC = () => {
   const previewRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const { id } = useParams();
-  const [originalURL, setOriginalURL] = useState<string>("");
+  const [_originalURL, setOriginalURL] = useState<string>("");
 
   const fetchVideo = async () => {
     try {
       const res = await getSoundByID(Number(id));
       const videoData = res.data;
-      console.log("Video data:", res.data);
+      // console.log("Video data:", res.data);
       form.setFieldsValue({
         name: videoData.name,
         Owner: videoData.owner,
@@ -60,7 +60,7 @@ const EditSound: React.FC = () => {
       });
       setOriginalURL(videoData.sound);
       setStid(videoData.STID); // set select
-      console.log("Form values after set:", form.getFieldsValue());
+      // console.log("Form values after set:", form.getFieldsValue());
     } catch (error) {
       message.error("โหลดข้อมูลวิดีโอไม่สำเร็จ");
     }
@@ -106,7 +106,7 @@ const EditSound: React.FC = () => {
     }
     values.stid = Number(values.stid);
     values.duration = parseDurationHMS(values.duration);
-    console.log(values);
+    // console.log(values);
     try {
       await updateSoundByID(Number(id),values);
       message.success("แก้ไขข้อมูลสําเร็จ!");

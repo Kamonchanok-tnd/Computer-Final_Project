@@ -55,7 +55,7 @@ function Question() {
   async function fetchQuestions() {
     const res: Questionnaire[] = await getAllQuestionnaires();
     setQuestionNaire(res);
-    console.log(res);
+   
   }
 
   useEffect(() => {

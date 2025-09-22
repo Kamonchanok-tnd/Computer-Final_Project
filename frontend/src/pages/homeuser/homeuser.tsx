@@ -11,6 +11,7 @@ import Homemessage from "../../components/Home/Homemessage";
 import Homedoctor from "../../components/Home/Homedoctor";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment";
 import { logActivity } from "../../services/https/activity";
+import QrSurvey from "../../components/Home/qrservey";
 function Home() {
   const navigate = useNavigate();
 
@@ -176,7 +177,7 @@ function Home() {
   
       <Homemessage />
       <Homedoctor />
-
+      <QrSurvey/>
       <Footer />
     </div>
   );

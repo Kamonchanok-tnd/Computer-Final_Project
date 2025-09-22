@@ -105,14 +105,14 @@ const DotsIndicator: React.FC<{ filled: number }> = ({ filled }) => {
 
 const FloatingClock: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [_isRunning, setIsRunning] = useState<boolean>(false);
   const [pomProgress, setPomProgress] = useState<number>(0);
   const [soundOn, setSoundOn] = useState<boolean>(true);
   const [displayMode, setDisplayMode] = useState<Mode>("pomodoro"); // ใช้ phase เป็นหลัก
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
   const alarmRef = useRef<HTMLAudioElement | null>(null);
 
-  console.log("FloatingClock rendered" + (isRunning ? " (running)" : ""));
+  // console.log("FloatingClock rendered" + (isRunning ? " (running)" : ""));
   // sync panelOpen
   useEffect(() => {
     const handler = (e: any) => setPanelOpen(!!e?.detail?.open);

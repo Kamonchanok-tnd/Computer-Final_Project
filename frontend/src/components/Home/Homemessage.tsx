@@ -425,7 +425,7 @@ export default function Homemessage() {
           </p>
 
           <button
-            onClick={() => navigate("/message")}
+            onClick={() => navigate("/audiohome/message")}
             className="mt-4 mx-auto px-4 py-2 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] text-white rounded-full hover:to-[#2BD9FF] transition"
           >
             ดูเพิ่มเติม

@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
 
@@ -21,9 +21,9 @@ const AdminSettings = () => {
   const goToDashboardAdmin = () => {
     navigate("/superadmin/dashboard"); // Change the route to your create admin page
   };
-  const goToEditAdmin = () => {
-    navigate("super/admin/edit/:id"); // Change the route to your create admin page
-  };
+  // const goToEditAdmin = () => {
+  //   navigate("super/admin/edit/:id"); // Change the route to your create admin page
+  // };
 
   return (
     <div>

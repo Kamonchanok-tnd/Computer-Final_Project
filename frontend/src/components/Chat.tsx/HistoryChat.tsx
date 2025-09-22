@@ -60,7 +60,7 @@ function HistoryChat({
         <div className="h-full py-6 sm:px-4 duration-300">
           {messages.map((message) => {
             const cleanMessage = formatMessage(message.message || "");
-            console.log("formatted message:", cleanMessage);
+            // console.log("formatted message:", cleanMessage);
 
             return (
               <div

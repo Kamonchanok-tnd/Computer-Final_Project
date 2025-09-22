@@ -1,9 +1,9 @@
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { GetUsersById } from "../../../../services/https/login";
 import { useParams } from "react-router-dom";
-import { UsersInterface } from "../../../../interfaces/IUser";
+
 import { GetUserKPI, UserKPI, UserSummary } from "../../../../services/https/dashboardcontents";
-import { BookCheck, CalendarCheck, Clock10, FolderPen, ListChecks, MessageSquare, User, UsersRound } from "lucide-react";
+import {  CalendarCheck,  FolderPen, ListChecks } from "lucide-react";
 import { message } from "antd";
 import BarTransaction from "./componentsum/barTransaction";
 import BarchartCompare from "./componentsum/barchartcompare";

@@ -3,14 +3,14 @@ import { Sound } from "../../interfaces/ISound";
 import { getMeditationSounds } from "../../services/https/meditation";
 import { getBreathingSounds } from "../../services/https/breathing";
 import BreathingCard from "../../pages/secondary function/breathing/components/breathingcontent";
-import MeditationContent from "../../pages/secondary function/meditation/components/MeditationContent";
+// import MeditationContent from "../../pages/secondary function/meditation/components/MeditationContent";
 import { Eye, Heart, Play } from "lucide-react";
 import { formatDurationHMS } from "../../pages/admin/meditation/editSound";
 import { useNavigate } from "react-router-dom";
 import { checkLikedSound, likeSound } from "../../services/https/sounds";
 
 function HomeMeditation() {
-  const storedUid = localStorage.getItem("id");
+  // const storedUid = localStorage.getItem("id");
   const [meditationSound, setMeditationSound] = useState<Sound[]>([]);
   const [breathingSounds, setBreathingSounds] = useState<Sound[]>([]);
   const uid = Number(localStorage.getItem("id"));
@@ -21,7 +21,7 @@ function HomeMeditation() {
       const res = await getMeditationSounds(userId);
       const firstSound = res.sounds?.slice(0, 3) || null; // เอาแค่ตัวแรก
       setMeditationSound(firstSound);
-      console.log("meditationSounds:", res.sounds);
+      // console.log("meditationSounds:", res.sounds);
     } catch (error) {
       console.error("Error fetching meditation sounds:", error);
     }

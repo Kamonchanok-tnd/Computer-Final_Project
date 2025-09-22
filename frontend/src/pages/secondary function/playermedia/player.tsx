@@ -17,7 +17,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  addSoundView,
+  
   addSoundViewBlock,
   checkLikedSound,
   getSoundsByTypeID,
@@ -143,7 +143,7 @@ function Player() {
               updateReview()
               setShowRating(false);
             }else{
-                const res = await CreateReview(data)
+                 await CreateReview(data)
                 //console.log(res);
                 message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
                 setShowRating(false);
@@ -400,7 +400,7 @@ function Player() {
     } else {
       const nextIndex = (currentIndex + 1) % chantingSounds.length; // <-- วนกลับไปแรก
       const nextSound = chantingSounds[nextIndex];
-      console.log("next sound is : ", nextSound);
+      // console.log("next sound is : ", nextSound);
       if (nextSound) {
         navigate(`/audiohome/chanting/play/${nextSound.ID}`);
       }

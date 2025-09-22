@@ -37,7 +37,7 @@ export async function CreatePlaylist(data: IPlaylist) {
       requestOptions
     );
     const result = await response.json();
-    console.log(result);
+    // console.log(result);
     return result;
   } catch (error) {
     console.error(error);
@@ -104,7 +104,7 @@ export async function UpdatePlaylist(data: IPlaylist, id: number) {
       throw new Error(result.message || "Failed to update playlist");
     }
 
-    console.log(result);
+    // console.log(result);
     return result;
   } catch (error) {
     console.error(error);

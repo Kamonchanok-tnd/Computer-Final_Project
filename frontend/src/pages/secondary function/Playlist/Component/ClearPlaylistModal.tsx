@@ -10,7 +10,7 @@ interface ClearPlaylistModalProps {
   onConfirm: () => void;
 }
 
-const ClearPlaylistModal: React.FC<ClearPlaylistModalProps> = ({ pid, onConfirm }) => {
+const ClearPlaylistModal: React.FC<ClearPlaylistModalProps> = ({  onConfirm }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
 
