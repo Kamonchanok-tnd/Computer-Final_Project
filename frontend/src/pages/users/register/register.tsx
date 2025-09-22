@@ -22,7 +22,6 @@ import "./register.css";
 const { Title, Text } = Typography;
 import dayjs from "dayjs";
 import "dayjs/locale/th";
-
 import thTH from 'antd/es/date-picker/locale/th_TH';
 
 
@@ -392,16 +391,26 @@ const yearOptions = [
                     </Select>
                   </Form.Item>
                 </Col>
-
-                <Col span={24}>
+  <Col span={24}>
   <Form.Item
     label="เบอร์โทรศัพท์"
     name="phone_number"
     rules={[
-      { pattern: /^[0-9]{9,10}$/, message: "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก" },
+      { 
+        required: true, 
+        message: "กรุณากรอกเบอร์โทรศัพท์ !" 
+      },
+      { 
+        pattern: /^0[0-9]{9}$/, 
+        message: "เบอร์โทรศัพท์ต้องขึ้นต้นด้วย 0 และมี 10 หลัก" 
+      },
     ]}
   >
-    <Input placeholder="เบอร์โทรศัพท์" maxLength={10} />
+    <Input 
+      placeholder="เช่น 0812345678" 
+      maxLength={10} 
+      type="tel"
+    />
   </Form.Item>
 </Col>
 

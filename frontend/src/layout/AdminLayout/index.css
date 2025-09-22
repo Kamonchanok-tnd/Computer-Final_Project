@@ -138,6 +138,15 @@
   font-family: var(--font-ibmthai) !important;
 }
 
+:where(.css-dev-only-do-not-override-ut69n1).ant-menu-inline.ant-menu-root 
+  .ant-menu-item > .ant-menu-title-content,
+:where(.css-dev-only-do-not-override-ut69n1).ant-menu-inline.ant-menu-root 
+  .ant-menu-submenu-title > .ant-menu-title-content {
+    font-family: var(--font-ibmthai) !important;
+    font-weight: 500; /* ถ้าต้องการน้ำหนักกลาง */
+}
+
+
 /* ถ้าอยากให้มีน้ำหนักปานกลาง */
 .admin-layout .ant-dropdown-menu-item {
   font-weight: 500;

@@ -91,7 +91,7 @@ const FullLayout = () => {
 </Menu.Item>
 
 <Menu.Item key="/superadmin/messagePage" icon={<MailOutlined />}> 
-  <Link to="/superadmin/messagePage">ข้อความ</Link> 
+  <Link to="/superadmin/messagePage">ข้อความให้กำลังใจ</Link> 
 </Menu.Item>
 
 <Menu.Item key="/superadmin/dashboard/contents" icon={<ScheduleOutlined/>}> 
