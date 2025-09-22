@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import PlaylistMeditation from "./playlistmeditation/playlistmeditation";
 import { IPlaylist } from "../../../interfaces/IPlaylist";
 import { DeletePlaylistByID, getPlaylistsByUserAndType, IMG_URL } from "../../../services/https/playlist";
-import { IBackground } from "../../../interfaces/IBackground";
+// import { IBackground } from "../../../interfaces/IBackground";
 import { Dropdown, MenuProps, message } from "antd";
 import DeleteConfirmModal from "../Playlist/Component/DeleteConfirmModal";
 import { GetSoundPlaylistByPID } from "../../../services/https/soundplaylist";
@@ -26,8 +26,8 @@ function MeditationMain() {
   const [playlist, setPlaylist] = useState(true);
   const [breathing, setBreathing] = useState(true);
   const [meditationPlaylists, setMeditationPlaylists] = useState<IPlaylist[]>([]);
-  const [breathingPlaylists, setBreathingPlaylists] = useState<IPlaylist[]>([]); // ✅ เพิ่ม breathing playlist
-  const [backgrounds, setBackgrounds] = useState<IBackground[]>([]);
+  const [_breathingPlaylists, setBreathingPlaylists] = useState<IPlaylist[]>([]); // ✅ เพิ่ม breathing playlist
+  // const [backgrounds, setBackgrounds] = useState<IBackground[]>([]);
   const [openDeletePlaylist, setOpenDeletePlaylist] = useState(false);
   const [loading, setLoading] = useState(false);
 

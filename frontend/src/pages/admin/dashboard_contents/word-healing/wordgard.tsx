@@ -18,7 +18,7 @@ const WordHealingCard: React.FC<WordHealingCardProps> = ({
   className = "bg-white",
   onViewMore,
 }) => {
-  const [data, setData] = useState<ViewsByTitle[]>([]);
+  const [_data, setData] = useState<ViewsByTitle[]>([]);
   const [todayData, setTodayData] = useState<ViewsByTitle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

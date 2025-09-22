@@ -1,5 +1,5 @@
 
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import {
   getVisitFrequency,
   getRetentionRate,
@@ -28,7 +28,7 @@ import thTH from "antd/lib/locale/th_TH";
 import admin from "../../../assets/analysis.png";
 import dayjs, { Dayjs } from "dayjs";
 import { UserAddOutlined, UserSwitchOutlined, TeamOutlined, MoreOutlined } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import { Tooltip as AntdTooltip, Button} from "antd";
 
 const COLORS = ["#3b82f6", "#10b981"]; // ฟ้า = ผู้ใช้ใหม่, เขียว = ผู้ใช้เดิม

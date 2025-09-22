@@ -39,7 +39,7 @@ const BreathingCard: React.FC<BreathingCardProps> = ({
       setError("ไม่สามารถโหลดข้อมูลการฝึกหายใจได้");
     } finally {
       setLoading(false);
-      console.log("Finished fetching Breathing data"); // โหลดเสร็จ
+      // console.log("Finished fetching Breathing data"); // โหลดเสร็จ
     }
   };
   fetchData();

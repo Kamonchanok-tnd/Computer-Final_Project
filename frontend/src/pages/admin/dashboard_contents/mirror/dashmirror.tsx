@@ -5,8 +5,8 @@ import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } f
 import { getMonthlyMirrorUsage, MonthlyMirrorUsage } from "../../../../services/https/dashboardcontents";
 const DashboardMirror: React.FC = () => {
   const [mirrorData, setMirrorData] = useState<MonthlyMirrorUsage []>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_loading, setLoading] = useState(true);
+  const [_error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {

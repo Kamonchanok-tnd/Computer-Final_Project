@@ -647,7 +647,7 @@ import { useEffect, useRef, useState } from "react";
 import { Sound } from "../../../../interfaces/ISound";
 import {
   getSoundsByTypeID,
-  addSoundView,
+  
   checkLikedSound,
   likeSound,
   addSoundViewBlock,
@@ -684,7 +684,7 @@ function Playermediameditation() {
   const [isRepeat, setIsRepeat] = useState(false);
 
   const [volume, setVolume] = useState(100);
-  const [quality, setQuality] = useState("default");
+  const [_quality, setQuality] = useState("default");
 
   const playerRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -757,7 +757,7 @@ function Playermediameditation() {
         updateReview()
         setShowRating(false);
       }else{
-          const res = await CreateReview(data)
+           await CreateReview(data)
           //console.log(res);
           message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
           setShowRating(false);
@@ -818,7 +818,7 @@ function Playermediameditation() {
     : null;
 
   // โหลด Player
-  const hasCountedViewRef = useRef<{ [key: string]: boolean }>({}); // เก็บตาม videoId
+  // const hasCountedViewRef = useRef<{ [key: string]: boolean }>({}); // เก็บตาม videoId
 
 useEffect(() => {
   if (!window.YT) {

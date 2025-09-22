@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Select, Spin } from "antd";
+import {  Select, Spin } from "antd";
 import {
   LineChart,
   Line,

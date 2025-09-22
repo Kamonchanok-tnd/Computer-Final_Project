@@ -76,7 +76,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({ doctor }) => {
 function Homedoctor() {
     const navigate = useNavigate();
   return (
-    <div className=" bg-gradient-to-b from-background-blue to-button-blue/50 dark:from-transparent py-8 mt-4 font-ibmthai 
+    <div className="  py-8 mt-4 font-ibmthai 
     text-basic-text dark:text-text-dark">
         <div>
             <p className='text-2xl font-bold text-center '>Frinds Corner SUT</p>

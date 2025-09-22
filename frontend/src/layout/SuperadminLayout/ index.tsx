@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { LogoutOutlined ,MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
-const { Header, Content, Footer, Sider } = Layout;
+import { LogoutOutlined ,MenuOutlined, DashboardOutlined, CommentOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
+const { Header, Content, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 import './FullLayout.css'; // นำเข้าไฟล์ CSS
 import lightlogo from "../../assets/logo/lightlogo.png";
@@ -70,27 +70,38 @@ const FullLayout = () => {
             selectedKeys={[selectedKey]}
             className="layout-menu"
           >
-            <Menu.Item key="/admin" icon={<DashboardOutlined />}>
-              <Link to="/superadmin">Dashboard</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/questionnairePage" icon={<QuestionOutlined/>}>
-              <Link to="/superadmin/questionnairePage">Questionnaire</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/prompt" icon={<CommentOutlined />}>
-              <Link to="/superadmin/prompt">Prompt AI</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/sounds" icon={<CustomerServiceOutlined/>}> 
-              <Link to="/superadmin/sounds">Sounds</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/messagePage" icon={<MailOutlined />}> 
-              <Link to="/superadmin/messagePage">Message</Link> 
-            </Menu.Item>
-            <Menu.Item key="/superadmin/dashboard/contents" icon={<ScheduleOutlined/>}> 
-              <Link to="/superadmin/dashboard/contents">Contents</Link> 
-            </Menu.Item>
-            <Menu.Item key="/superadmin/activity" icon={<FundOutlined/>}> 
-              <Link to="/superadmin/activity">Visitor Data</Link> 
-            </Menu.Item>
+           <Menu.Item key="/superadmin" icon={<DashboardOutlined />}>
+  <Link to="/superadmin/dashboard">แดชบอร์ด</Link>
+</Menu.Item>
+
+{/* <Menu.Item key="/superadmin/settings" icon={<SettingOutlined />}>
+  <Link to="/superadmin/settings">การตั้งค่า</Link>
+</Menu.Item> */}
+
+<Menu.Item key="/superadmin/questionnairePage" icon={<QuestionOutlined/>}>
+  <Link to="/superadmin/questionnairePage">แบบสอบถาม</Link>
+</Menu.Item>
+
+<Menu.Item key="/superadmin/prompt" icon={<CommentOutlined />}>
+  <Link to="/superadmin/prompt">การจัดการ Prompt AI</Link>
+</Menu.Item>
+
+<Menu.Item key="/superadmin/sounds" icon={<CustomerServiceOutlined/>}> 
+  <Link to="/superadmin/sounds">การจัดการวิดีโอ</Link>
+</Menu.Item>
+
+<Menu.Item key="/superadmin/messagePage" icon={<MailOutlined />}> 
+  <Link to="/superadmin/messagePage">ข้อความ</Link> 
+</Menu.Item>
+
+<Menu.Item key="/superadmin/dashboard/contents" icon={<ScheduleOutlined/>}> 
+  <Link to="/superadmin/dashboard/contents">ข้อมูลคอนเทนต์</Link> 
+</Menu.Item>
+
+<Menu.Item key="/superadmin/activity" icon={<FundOutlined/>}> 
+  <Link to="/superadmin/activity">ข้อมูลผู้เข้าชม</Link> 
+</Menu.Item>
+
           </Menu>
         </Sider>
 
@@ -107,30 +118,37 @@ const FullLayout = () => {
             selectedKeys={[selectedKey]} // เลือกเมนูตามเส้นทางปัจจุบัน
             className="layout-menu"
           >
-            <Menu.Item key="/superadmin" icon={<DashboardOutlined />}>
-              <Link to="/superadmin/dashboard">Dashboard</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/settings" icon={<SettingOutlined />}>
-              <Link to="/superadmin/settings">Settings</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/questionnairePage" icon={<QuestionOutlined/>}>
-              <Link to="/superadmin/questionnairePage">Questionnaire</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/prompt" icon={<CommentOutlined />}>
-              <Link to="/superadmin/prompt">Prompt AI</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/sounds" icon={<CustomerServiceOutlined/>}> 
-              <Link to="/superadmin/sounds">Sounds</Link>
-            </Menu.Item>
-            <Menu.Item key="/superadmin/messagePage" icon={<MailOutlined />}> 
-              <Link to="/superadmin/messagePage">Message</Link> 
-            </Menu.Item>
-            <Menu.Item key="/superadmin/dashboard/contents" icon={<ScheduleOutlined/>}> 
-              <Link to="/superadmin/dashboard/contents">Contents</Link> 
-            </Menu.Item>
-            <Menu.Item key="/superadmin/activity" icon={<FundOutlined/>}> 
-              <Link to="/superadmin/activity">Visitor Data</Link> 
-            </Menu.Item>
+             <Menu.Item key="/superadmin" icon={<DashboardOutlined />}>
+  <Link to="/superadmin/dashboard">แดชบอร์ด</Link>
+</Menu.Item>
+
+{/* <Menu.Item key="/superadmin/settings" icon={<SettingOutlined />}>
+  <Link to="/superadmin/settings">การตั้งค่า</Link>
+</Menu.Item> */}
+
+<Menu.Item key="/superadmin/questionnairePage" icon={<QuestionOutlined/>}>
+  <Link to="/superadmin/questionnairePage">แบบสอบถาม</Link>
+</Menu.Item>
+
+<Menu.Item key="/superadmin/prompt" icon={<CommentOutlined />}>
+  <Link to="/superadmin/prompt">การจัดการ Prompt AI</Link>
+</Menu.Item>
+
+<Menu.Item key="/superadmin/sounds" icon={<CustomerServiceOutlined/>}> 
+  <Link to="/superadmin/sounds">การจัดการวิดีโอ</Link>
+</Menu.Item>
+
+<Menu.Item key="/superadmin/messagePage" icon={<MailOutlined />}> 
+  <Link to="/superadmin/messagePage">ข้อความให้กำลังใจ</Link> 
+</Menu.Item>
+
+<Menu.Item key="/superadmin/dashboard/contents" icon={<ScheduleOutlined/>}> 
+  <Link to="/superadmin/dashboard/contents">ข้อมูลคอนเทนต์</Link> 
+</Menu.Item>
+
+<Menu.Item key="/superadmin/activity" icon={<FundOutlined/>}> 
+  <Link to="/superadmin/activity">ข้อมูลผู้เข้าชม</Link> 
+</Menu.Item>
           </Menu>
         </Drawer>
 

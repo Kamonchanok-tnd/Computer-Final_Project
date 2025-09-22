@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Form, Input, Button, message, Spin, Select, Divider, Row, Col, Space, InputNumber } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin";
+import { AdminInterface } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminById } from "../../../services/https/admin";
 import "./EditAdmin.css";
 function EditAdmin() {
@@ -15,17 +15,14 @@ function EditAdmin() {
   const [gender] = useState([
     { ID: 1, gender: "ชาย" },
     { ID: 2, gender: "หญิง" },
-    { ID: 3, gender: "อื่นๆ" },
+    { ID: 3, gender: "LGBTQ+" },
+    { ID: 4, gender: "ไม่ระบุ" },
   ]);
-
-  useEffect(() => {
-    if (id) fetchAdminData(id);
-  }, [id]);
 
   const fetchAdminData = async (id: string) => {
     setFormLoading(true);
     try {
-      const response: AdminResponse = await getAdminById(id);
+      const response: { data: AdminInterface } = await getAdminById(id);
       if (response.data) {
         setAdmin(response.data);
         form.setFieldsValue(response.data);
@@ -39,6 +36,11 @@ function EditAdmin() {
       setFormLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (id) fetchAdminData(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const handleSubmit = async (values: AdminInterface) => {
     if (!admin) return message.error("ข้อมูลผู้ดูแลระบบไม่พร้อมใช้งาน.");

@@ -17,8 +17,8 @@ const ValidateUuidPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState<string | null>(null);
-  console.log("location.state", location.state);
-  console.log("email หน้าตรวจสอบรหัสผ่าน",email)
+  // console.log("location.state", location.state);
+  // console.log("email หน้าตรวจสอบรหัสผ่าน",email)
   
 
 useEffect(() => {
@@ -85,7 +85,7 @@ useEffect(() => {
   };
 
   const handleResendToken = async () => {
-     console.log("email ใน handleResendToken =", email);
+    //  console.log("email ใน handleResendToken =", email);
     if (!email) {
       
       return messageApi.error("ไม่พบอีเมลสำหรับส่งรหัสใหม่");

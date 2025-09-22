@@ -9,7 +9,7 @@ interface PlayermediameditationProps {
   onSuccess?: () => void; // callback สำหรับ refresh & message
 }
 
-function PlaylistMeditation({ isModalOpen, onClose, onSuccess }: PlayermediameditationProps) {
+function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ function PlaylistMeditation({ isModalOpen, onClose, onSuccess }: Playermediamedi
       values.stid = 2; // สมาธิ
       values.bid = 2;
 
-      console.log("Submitted Playlist:", values);
+      // console.log("Submitted Playlist:", values);
 
       const res = await CreatePlaylist(values);
 

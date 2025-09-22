@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import  { ReactNode, useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, LabelList, Cell, ResponsiveContainer } from "recharts";
 import { getSurveyVisualization, SurveyVisualizationData } from "../../../../services/https/dashboardcontents";
 

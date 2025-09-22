@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Layout, Menu, Button, Drawer, Dropdown, Avatar } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined, UserOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined } from '@ant-design/icons';
+import { Layout, Menu, Button, Drawer, Dropdown } from "antd";
+import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined } from '@ant-design/icons';
 const { Header, Content, Sider } = Layout;
 import './index.css';
 import { useUser } from "../HeaderLayout/UserContext";
@@ -82,25 +82,25 @@ const AdminLayout = () => {
             className="layout-menu"
           >
             <Menu.Item key="/admin" icon={<DashboardOutlined />}>
-              <Link to="/admin">Dashboard</Link>
+              <Link to="/admin">แดชบอร์ด</Link>
             </Menu.Item>
             <Menu.Item key="/admin/questionnairePage" icon={<QuestionOutlined/>}>
-              <Link to="/admin/questionnairePage">Questionnaire</Link>
+              <Link to="/admin/questionnairePage">แบบสอบถาม</Link>
             </Menu.Item>
             <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
-              <Link to="/admin/prompt">Prompt AI</Link>
+              <Link to="/admin/prompt">การจัดการ Prompt AI</Link>
             </Menu.Item>
             <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
-              <Link to="/admin/sounds">Sounds</Link>
+              <Link to="/admin/sounds">การจัดการวิดีโอ</Link>
             </Menu.Item>
             <Menu.Item key="/admin/messagePage" icon={<MailOutlined />}> 
-              <Link to="/admin/messagePage">Message</Link> 
+              <Link to="/admin/messagePage">ข้อความให้กำลังใจ</Link> 
             </Menu.Item>
             <Menu.Item key="/admin/dashboard/contents" icon={<ScheduleOutlined/>}> 
-              <Link to="/admin/dashboard/contents">Contents</Link> 
+              <Link to="/admin/dashboard/contents">ข้อมูลคอนเทนต์</Link> 
             </Menu.Item>
             <Menu.Item key="/admin/activity" icon={<FundOutlined/>}> 
-              <Link to="/admin/activity">Visitor Data</Link> 
+              <Link to="/admin/activity">ข้อมูลผู้เข้าใช้</Link> 
             </Menu.Item>
           </Menu>
         </Sider>

@@ -32,7 +32,7 @@ const VoiceChat: React.FC = () => {
     ws.onopen = () => {
       setWsStatus("Connected");
       addLog("WebSocket connected");
-      console.log("We send chatRoomID : ", RoomID);
+      // console.log("We send chatRoomID : ", RoomID);
       ws.send(JSON.stringify({ chatRoomID: RoomID ,token: `Bearer ${token}`}));
     };
 
@@ -82,7 +82,7 @@ const VoiceChat: React.FC = () => {
 
   useEffect(() => {
     connectWebSocket();
-    console.log("chatRoomID:", RoomID);
+    // console.log("chatRoomID:", RoomID);
     return () => {
       wsRef.current?.close();
     };

@@ -4,7 +4,7 @@ import { Drawer, Dropdown, Layout, type MenuProps } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 const { Header, Content } = Layout;
 import {
-  Book,
+  
   ChartNoAxesCombined,
   Cross,
   House,

@@ -30,7 +30,7 @@ const DashboardASMR: React.FC = () => {
     const fetchData = async () => {
       try {
         const res = await getDailyASMRUsage();
-        console.log("Raw ASMR data from API:", res);
+        // console.log("Raw ASMR data from API:", res);
 
         const formattedData: ASMRData[] = Array.isArray(res)
           ? res.map((item: any) => ({

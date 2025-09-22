@@ -28,7 +28,7 @@ async function validateApi(payload: ValidatePayload) {
   try {
     const response = await fetch(`${apiUrl}/validate-reset-token`, requestOptions);
     const data = await response.json();
-    console.log("Backend response:", data);
+    // console.log("Backend response:", data);
 
     // ถ้าสถานะเป็น 200, รหัสยืนยันถูกต้อง
     if (response.status === 200) {

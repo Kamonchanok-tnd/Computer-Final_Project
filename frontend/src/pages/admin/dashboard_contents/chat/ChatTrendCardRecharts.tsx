@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Spin } from "antd";
+import {  Spin } from "antd";
 import { EllipsisOutlined } from "@ant-design/icons";
 import {
   LineChart,

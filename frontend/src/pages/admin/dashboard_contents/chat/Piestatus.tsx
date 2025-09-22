@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Spin } from "antd";
+import {  Spin } from "antd";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 import { Getstatus } from "../../../../services/https/Chat";
@@ -86,7 +86,7 @@ const DashboardSessionsStatus: React.FC = () => {
         return `${name}: ${percent}%`;
       }}
     >
-      {pieData.map((entry, index) => (
+      {pieData.map((_entry, index) => (
         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
       ))}
     </Pie>

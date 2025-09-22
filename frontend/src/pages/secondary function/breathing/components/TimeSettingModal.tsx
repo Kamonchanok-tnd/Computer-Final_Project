@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "antd";
-import { ChevronUp, ChevronDown, Clock, RotateCcw, Play } from "lucide-react";
+import { ChevronUp, ChevronDown,  RotateCcw, Play } from "lucide-react";
 
 interface TimeSettingModalProps {
   open: boolean;
