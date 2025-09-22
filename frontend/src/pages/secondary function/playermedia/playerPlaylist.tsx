@@ -333,10 +333,10 @@ function PlayerPlaylist() {
     } else {
       const nextSound = soundPlaylist[currentIndex + 1];
       if (nextSound) {
-        console.log("next sound is : ", nextSound.sid);
+        // console.log("next sound is : ", nextSound.sid);
         navigate(`/audiohome/chanting/playlist/play/${pid}/${nextSound.sid}`);
       } else {
-        console.log("next sound is : ", nextSound);
+        // console.log("next sound is : ", nextSound);
         const firstSound = soundPlaylist[0];
         if (firstSound) {
           navigate(`/audiohome/chanting/playlist/play/${pid}/${firstSound.sid}`);

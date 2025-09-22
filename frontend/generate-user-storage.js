@@ -29,5 +29,5 @@ const STORAGE_FILE = './storage/user.json';
   // เปิดหน้า meditation
   await page.goto(`${BASE}/audiohome/meditation`);
 
-  console.log('✅ Browser พร้อม session! ใช้ Playwright Inspector สำหรับ codegen action');
+  // console.log('✅ Browser พร้อม session! ใช้ Playwright Inspector สำหรับ codegen action');
 })();

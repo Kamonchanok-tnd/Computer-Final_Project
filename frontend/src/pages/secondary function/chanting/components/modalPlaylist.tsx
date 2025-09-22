@@ -24,7 +24,7 @@ function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProp
     if (selectedStid) {
       values.stid = selectedStid;
     }
-    console.log("Submitted Playlist Name:", values);
+    // console.log("Submitted Playlist Name:", values);
     const res = await CreatePlaylist(values);
     if (!res.ID){
       message.error("เกิดข้อผิดพลาดในการสร้างเพลย์ลิสต์ กรุณาลองใหม่อีกครั้ง");

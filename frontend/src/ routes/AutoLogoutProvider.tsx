@@ -28,12 +28,12 @@ const AutoLogoutProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setShowWarning(false);
 
     timeoutRef.current = setTimeout(() => {
-      console.log("🕒 ไม่มีการเคลื่อนไหวนาน -> logout");
+      // console.log("🕒 ไม่มีการเคลื่อนไหวนาน -> logout");
       logout();
     }, TIMEOUT_DURATION);
 
     warningRef.current = setTimeout(() => {
-      console.log("⚠️ เตือนก่อน logout 5 นาที");
+      // console.log("⚠️ เตือนก่อน logout 5 นาที");
       setShowWarning(true);
     }, TIMEOUT_DURATION - WARNING_DURATION);
   };
@@ -46,7 +46,7 @@ const AutoLogoutProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const payload: JwtPayload = jwtModule.jwtDecode(token); 
       const exp = payload.exp * 1000;
       if (Date.now() > exp) {
-        console.log("⏳ Token หมดอายุ -> logout");
+        // console.log("⏳ Token หมดอายุ -> logout");
         logout();
       }
     } catch (err) {

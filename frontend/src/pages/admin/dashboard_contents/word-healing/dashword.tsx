@@ -26,7 +26,7 @@ dayjs.locale("th");
 const DashboardWordHealingViews: React.FC = () => {
   const [data, setData] = useState<ViewsByTitle[]>([]);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-  const [period, setPeriod] = useState<"daily" | "weekly" | "yearly">("daily");
+  const [period, _setPeriod] = useState<"daily" | "weekly" | "yearly">("daily");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,7 +38,7 @@ const DashboardWordHealingViews: React.FC = () => {
           if (period === "daily") {
             label = dayjs(item.date).format("D MMM");
           } else if (period === "weekly") {
-            label = `สัปดาห์ที่ ${dayjs(item.date).week()}`;
+              label = `สัปดาห์ที่ ${dayjs(item.date).week()}`;
           } else if (period === "yearly") {
             label = dayjs(item.date).format("YYYY");
           }

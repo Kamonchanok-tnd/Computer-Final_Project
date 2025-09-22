@@ -56,7 +56,7 @@ function PlayerPlaylistMeditation() {
   const [isRepeat, setIsRepeat] = useState(false);
 
   const [volume, setVolume] = useState(100);
-  const [quality, setQuality] = useState("default");
+  const [_quality, setQuality] = useState("default");
 
   const playerRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -303,10 +303,10 @@ function PlayerPlaylistMeditation() {
     } else {
       const nextSound = soundPlaylist[currentIndex + 1];
       if (nextSound) {
-        console.log("next sound is : ", nextSound.sid);
+        // console.log("next sound is : ", nextSound.sid);
         navigate(`/audiohome/meditation/playlist/play/${pid}/${nextSound.sid}`);
       } else {
-        console.log("next sound is : ", nextSound);
+        // console.log("next sound is : ", nextSound);
         const firstSound = soundPlaylist[0];
         if (firstSound) {
           navigate(`/audiohome/meditation/playlist/play/${pid}/${firstSound.sid}`);

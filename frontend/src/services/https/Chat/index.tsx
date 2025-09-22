@@ -30,7 +30,7 @@ export async function ChatGemini(data: IConversation) {
     });
 
     const result = await response.json();
-    console.log(result);
+ 
     return result;
   } catch (error) {
     console.error(error);
@@ -82,7 +82,7 @@ export async function NewChat(data: IChatRoom) {
     });
 
     const result = await response.json();
-    console.log(result);
+
     return result;
   } catch (error) {
     console.error(error);
@@ -104,7 +104,7 @@ export async function CloseChat(id: number) {
     });
 
     const result = await response.json();
-    console.log(result);
+ 
     return result;
   } catch (error) {
     console.error(error);
@@ -126,7 +126,7 @@ export async function RecentChat(id: number) {
     });
 
     const result = await response.json();
-    console.log(result);
+ 
     return result;
   } catch (error) {
     console.error(error);
@@ -148,7 +148,7 @@ export async function ClearChat(id: number) {
     });
 
     const result = await response.json();
-    console.log(result);
+ 
     return result;
   } catch (error) {
     console.error(error);

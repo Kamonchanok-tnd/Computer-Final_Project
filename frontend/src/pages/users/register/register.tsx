@@ -78,7 +78,7 @@ function SignUpPages() {
   };
 
   let res = await CreateUser(payload);
-    console.log("ข้อมูลผู้ใช้",res);
+    // console.log("ข้อมูลผู้ใช้",res);
 
     if (res.status === 201) {
       messageApi.success("ลงทะเบียนสำเร็จ");

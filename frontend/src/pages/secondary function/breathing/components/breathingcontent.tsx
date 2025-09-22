@@ -1,4 +1,4 @@
-import { Play, Heart, Eye, Clock } from "lucide-react";
+import { Play, Heart, Clock } from "lucide-react";
 import { Sound } from "../../../../interfaces/ISound";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +21,7 @@ function BreathingCard({ sound }: BreathingCardProps) {
     parseInt(minutes) === 0 &&
     parseInt(seconds) === 0;
 
-  const [likes, setLikes] = useState(sound.like_sound || 0);
+  const [_likes, setLikes] = useState(sound.like_sound || 0);
   const [isLiked, setIsLiked] = useState(false);
 
   const realId = sound.ID ?? (sound as any).ID;

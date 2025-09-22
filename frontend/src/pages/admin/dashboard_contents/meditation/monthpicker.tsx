@@ -13,7 +13,9 @@ interface MonthPickerProps {
   label?: string;
 }
 
-const MonthPickerMed: React.FC<MonthPickerProps> = ({ value, onChange, label = "เลือกเดือน" }) => {
+const MonthPickerMed: React.FC<MonthPickerProps> = ({ value, onChange, 
+  // label = "เลือกเดือน" 
+}) => {
   const dayjsValue = value ? dayjs(value) : null;
 
   const handleChange: DatePickerProps["onChange"] = (date) => {

@@ -1,4 +1,3 @@
-import { IPlaylist } from "../../../../interfaces/IPlaylist"
 import { IMG_URL } from "../../../../services/https/playlist"
 import { CustomPlaylist } from "../../Playlist/Playlist"
 

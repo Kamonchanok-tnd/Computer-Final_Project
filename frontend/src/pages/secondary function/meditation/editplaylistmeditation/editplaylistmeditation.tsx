@@ -281,7 +281,7 @@ import {  useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   
-  DeletePlaylistByID,
+  
   GetPlaylistByID,
   UpdatePlaylist,
 } from "../../../../services/https/playlist";
@@ -292,7 +292,7 @@ import {
   PenLine,
   Play,
   Search,
-  Trash2,
+ 
   X,
 } from "lucide-react";
 import { IPlaylist } from "../../../../interfaces/IPlaylist";
@@ -319,7 +319,7 @@ import { GetBackground } from "../../../../services/https/background";
 import BackgroundPlaylist from "../../Playlist/Component/background";
 import { IBackground } from "../../../../interfaces/IBackground";
 // import DeleteConfirmModal from "./Component/DeleteConfirmModal";
-import DeleteConfirmModal from "../../Playlist/Component/DeleteConfirmModal";
+// import DeleteConfirmModal from "../../Playlist/Component/DeleteConfirmModal";
 
 export interface CustomPlaylist extends IPlaylist {
   picture: string;
@@ -352,8 +352,8 @@ function AddSoundPlaylistMeditation() {
   const [selectedID , setSelectedID] = useState<number | null>(null);
   const [allPicture, setAllPicture] = useState<IBackground[]>([]);
 
-  const [openDeletePlaylist, setOpenDeletePlaylist] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // const [openDeletePlaylist, setOpenDeletePlaylist] = useState(false);
+  // const [loading, setLoading] = useState(false);
  
   async function DeleteSoundPlaylist(id: number) {
     try {
@@ -468,7 +468,7 @@ function AddSoundPlaylistMeditation() {
     try {
       const updated: IPlaylist = { name: newName };
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
-      console.log("Playlist updated:", updated);
+      // console.log("Playlist updated:", updated);
       setEditMode(false);
       message.success("เปลี่ยนชื่อเพลย์ลิสต์แล้ว");
       fetchPlaylist();
@@ -522,7 +522,7 @@ function AddSoundPlaylistMeditation() {
     try {
       const updated: IPlaylist = { bid: b_id };
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
-      console.log("Playlist updated:", updated);
+      // console.log("Playlist updated:", updated);
       setEditMode(false);
       message.success("เปลี่ยนพื้นหลังเพลย์ลิสต์แล้ว");
       fetchPlaylist();

@@ -8,7 +8,7 @@ import {
   CheckOutlined,
 } from '@ant-design/icons';
 import { IPrompt } from '../../../interfaces/IPrompt';
-import React from 'react';
+
 
 interface PromptCardProps {
   prompt: IPrompt;

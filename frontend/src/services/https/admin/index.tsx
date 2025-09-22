@@ -1,6 +1,6 @@
 import { AdminInterface } from "../../../interfaces/IAdmin";
 
-import { UsersInterface } from "../../../interfaces/IUser"; // ปรับ path ตามที่คุณจัดโฟลเดอร์
+
 import { message } from "antd"; // นำเข้า message จาก antd
 
 const apiUrl = "http://localhost:8000";
@@ -109,11 +109,11 @@ export const updateAdminById = async (id: string, updatedData: AdminInterface) =
             console.error(`Error: ${response.status} - ${response.statusText}`);
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
-        console.log("Response Status:", response.status);
-        console.log("Response Text:", response.statusText);
+        // console.log("Response Status:", response.status);
+        // console.log("Response Text:", response.statusText);
 
         const data = await response.json(); // Parse the response JSON data
-        console.log("Response Data:", data);
+        // console.log("Response Data:", data);
         return data; // Return the updated data
     } catch (error) {
         console.error("Error updating admin:", error);
@@ -163,7 +163,7 @@ export const updateAdminYourselfById = async (id: string, updatedData: AdminInte
         }
 
         // Log the token for debugging
-        console.log("Authorization token:", token);
+        // console.log("Authorization token:", token);
 
         const response = await fetch(`${apiUrl}/adminyourself/${id}`, {
             method: "PUT",
@@ -181,7 +181,7 @@ export const updateAdminYourselfById = async (id: string, updatedData: AdminInte
         }
 
         const data = await response.json(); // Parse the response JSON data
-        console.log("API response:", data);
+        // console.log("API response:", data);
 
         // If successful, return the updated data and show success message
         message.success("แก้ไขข้อมูลสําเร็จ!");
