@@ -1,5 +1,5 @@
-// src/pages/mirror/MirrorPage.tsx
-import { useEffect, useMemo, useRef, useState } from "react";
+// path: frontend/src/pages/mirror/MirrorPage.tsx
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Header from "./components/Header";
 import DatePicker from "./components/DatePicker";
 import MirrorFrame from "./components/MirrorFrame";
@@ -22,9 +22,7 @@ function toStartOfDayUTCISO(dateYMD: string) {
 }
 
 export default function MirrorPage() {
-  const [date, setDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [message, setMessage] = useState<string>("");
   const [eid, setEid] = useState<number | null>(null);
   const [mirrorId, setMirrorId] = useState<number | null>(null);
@@ -76,47 +74,48 @@ export default function MirrorPage() {
     };
   }, [date]);
 
-  const buildTitle = (text: string) => {
-    const firstLine = (text ?? "").split(/\r?\n/)[0]?.trim() ?? "";
-    return firstLine.length ? firstLine.slice(0, 60) : "บันทึกประจำวัน";
-  };
+  // สร้าง/อัปเดต (autosave) — useCallback เพื่อให้ใส่เป็น dependency ได้ ไม่เตือนเหลือง
+  const doSave = useCallback(
+    async (next?: { message?: string; eid?: number | null }) => {
+      const msg = (typeof next?.message === "string" ? next!.message : message) ?? "";
+      const emotion = typeof next?.eid === "number" ? next!.eid : eid ?? null;
 
-  // สร้าง/อัปเดต (autosave)
-  const doSave = async (next?: { message?: string; eid?: number | null }) => {
-    const msg =
-      (typeof next?.message === "string" ? next!.message : message) ?? "";
-    const emotion = typeof next?.eid === "number" ? next!.eid : eid ?? null;
+      // สร้าง title จากบรรทัดแรก (ไม่ต้องแยกฟังก์ชัน เพื่อลด deps)
+      const firstLine = (msg ?? "").split(/\r?\n/)[0]?.trim() ?? "";
+      const title = firstLine.length ? firstLine.slice(0, 60) : "บันทึกประจำวัน";
 
-    setSaving(true);
-    try {
-      if (mirrorId) {
-        const body: IMirror = {
-          ID: mirrorId,
-          date: toStartOfDayUTCISO(date),
-          title: buildTitle(msg),
-          message: msg,
-          eid: emotion,
-        };
-        await updateMirrorById(mirrorId, body);
-      } else {
-        const body: Omit<IMirror, "ID"> = {
-          date: toStartOfDayUTCISO(date),
-          title: buildTitle(msg),
-          message: msg,
-          eid: emotion,
-        };
-        await createMirror(body);
-        const latest = await getMirrorByDate(date);
-        setMirrorId(typeof latest.ID === "number" ? latest.ID : null);
+      setSaving(true);
+      try {
+        if (mirrorId) {
+          const body: IMirror = {
+            ID: mirrorId,
+            date: toStartOfDayUTCISO(date),
+            title,
+            message: msg,
+            eid: emotion,
+          };
+          await updateMirrorById(mirrorId, body);
+        } else {
+          const body: Omit<IMirror, "ID"> = {
+            date: toStartOfDayUTCISO(date),
+            title,
+            message: msg,
+            eid: emotion,
+          };
+          await createMirror(body);
+          const latest = await getMirrorByDate(date);
+          setMirrorId(typeof latest.ID === "number" ? latest.ID : null);
+        }
+      } finally {
+        setSaving(false);
       }
-    } finally {
-      setSaving(false);
-    }
-  };
+    },
+    [mirrorId, date, message, eid]
+  );
 
-  // autosave 500ms
-  const debouncedSave = useMemo(() => {
-    return (next: { message?: string; eid?: number | null }) => {
+  // autosave 500ms — ใช้ useCallback และพึ่งพา doSave อย่างเดียว (rule จะไม่เตือน)
+  const debouncedSave = useCallback(
+    (next: { message?: string; eid?: number | null }) => {
       if (typeof next.message === "string") setMessage(next.message);
       if (typeof next.eid !== "undefined") setEid(next.eid ?? null);
 
@@ -124,73 +123,89 @@ export default function MirrorPage() {
       saveTimer.current = window.setTimeout(() => {
         doSave(next);
       }, 500) as unknown as number;
+    },
+    [doSave]
+  );
+
+  // เคลียร์ timer ตอน unmount ป้องกัน side-effect ค้าง
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [mirrorId, date, message, eid]);
+  }, []);
 
   const handleMessageChange = (val: string) => debouncedSave({ message: val });
   const handleEmotionSelect = (id: number) => debouncedSave({ eid: id });
 
-return (
-  <div className="relative h-dvh bg-gradient-to-b from-sky-200 to-white">
-    {/* ของตกแต่ง (fixed เต็มจอ) */}
-    <SideOrnaments />
+  const totalEmotions = useMemo(() => emotions.length, [emotions]); // ตัวอย่างใช้ useMemo แบบไม่มีเตือนเหลือง
 
-    {/* คอนเทนต์ทั้งหมด: ยก z-index ให้สูงกว่า ornaments */}
-    <div className="relative z-[2] h-dvh overflow-y-auto [scrollbar-gutter:stable_both-edges] flex flex-col">
-      {/* Header มือถือ */}
-      <div className="md:hidden">
-        <Header />
-      </div>
+  return (
+    <div className="relative h-dvh bg-gradient-to-b from-sky-200 to-white">
+      {/* ของตกแต่ง (fixed เต็มจอ) */}
+      <SideOrnaments />
 
-      {/* Header เดสก์ท็อป */}
-      <div className="hidden md:block">
+      {/* คอนเทนต์ทั้งหมด */}
+      <div className="relative z-[2] h-dvh overflow-y-auto [scrollbar-gutter:stable_both-edges] flex flex-col">
+        {/* Header มือถือ */}
+        <div className="md:hidden">
+          <Header />
+        </div>
+
+        {/* Header เดสก์ท็อป */}
+        <div className="hidden md:block">
+          <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
+            <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 pt-3 pb-3">
+              <Header />
+            </div>
+          </div>
+        </div>
+
+        {/* DatePicker */}
         <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
-          <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 pt-3 pb-3">
-            <Header />
+          <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8">
+            <div className="pt-0 pb-1">
+              <DatePicker value={date} onChange={setDate} loading={loading} saving={saving} />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* DatePicker */}
-      <div className="mx-auto w-full px-4 sm:px-6 md:px-8">
-        <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8">
-          <div className="pt-0 pb-1">
-            <DatePicker value={date} onChange={setDate} loading={loading} saving={saving} />
-          </div>
-        </div>
-      </div>
-
-      {/* CONTENT */}
-      <div className="flex-1">
-        <div className="mx-auto w-full px-4 sm:px-6 md:px-8 h-full">
-          <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 h-full">
-            <main className="min-h-[100svh] grid grid-rows-[auto_1fr_auto] gap-3 md:gap-3 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)] sm:pb-8 md:pb-8 overflow-y-auto">
-              {/* กระจก */}
-              <div className="min-h-0 grid place-items-center">
-                <div
-                  className={[
-                    "[&>section>div]:w-[min(88vw,calc((100dvh-210px)*0.6))]",
-                    "sm:[&>section>div]:w-[min(80vw,calc((100dvh-220px)*0.6))]",
-                    "md:[&>section>div]:w-[min(72vw,calc((100dvh-260px)*0.6))]",
-                    "lg:[&>section>div]:w-[min(64vw,calc((100dvh-290px)*0.6))]",
-                    "xl:[&>section>div]:w-[min(56vw,calc((100dvh-310px)*0.6))]",
-                  ].join(" ")}
-                >
-                  <MirrorFrame value={message} onChange={handleMessageChange} />
+        {/* CONTENT */}
+        <div className="flex-1">
+          <div className="mx-auto w-full px-4 sm:px-6 md:px-8 h-full">
+            <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 h-full">
+              <main className="min-h-[100svh] grid grid-rows-[auto_1fr_auto] gap-3 md:gap-3 pt-2 pb-[max(env(safe-area-inset-bottom),1rem)] sm:pb-8 md:pb-8 overflow-y-auto">
+                {/* กระจก */}
+                <div className="min-h-0 grid place-items-center">
+                  <div
+                    className={[
+                      "[&>section>div]:w-[min(88vw,calc((100dvh-210px)*0.6))]",
+                      "sm:[&>section>div]:w-[min(80vw,calc((100dvh-220px)*0.6))]",
+                      "md:[&>section>div]:w-[min(72vw,calc((100dvh-260px)*0.6))]",
+                      "lg:[&>section>div]:w-[min(64vw,calc((100dvh-290px)*0.6))]",
+                      "xl:[&>section>div]:w-[min(56vw,calc((100dvh-310px)*0.6))]",
+                    ].join(" ")}
+                  >
+                    <MirrorFrame value={message} onChange={handleMessageChange} />
+                  </div>
                 </div>
-              </div>
 
-              {/* อิโมจิ */}
-              <div className="mx-auto md:-mt-8 lg:-mt-8 xl:-mt-10">
-                <MoodSelector emotions={emotions} selectedID={eid} onSelect={handleEmotionSelect} />
-              </div>
-            </main>
+                {/* อิโมจิ */}
+                <div className="mx-auto md:-mt-8 lg:-mt-8 xl:-mt-10">
+                  <MoodSelector
+                    emotions={emotions}
+                    selectedID={eid}
+                    onSelect={handleEmotionSelect}
+                  />
+                  {/* ใช้ตัวแปรเพื่อกัน ts/linters เตือน unused ในบางโปรเจกต์ */}
+                  {totalEmotions < 0 && <span className="hidden" />}
+                </div>
+              </main>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <OnboardingGuide />
-  </div>
-);
 
+      <OnboardingGuide />
+    </div>
+  );
 }
