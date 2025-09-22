@@ -9,7 +9,6 @@ import {
   Input,
   Card,
   message,
-  InputNumber,
   Select,
   Avatar,
   Modal,
@@ -24,6 +23,39 @@ import { GetALllAvatar } from "../../../services/https/PF";
 import { IPF } from "../../../interfaces/IPF";
 import { useUser } from "../../../layout/HeaderLayout/UserContext";
 //import { resetPassword } from "../../../services/https/resetpassword";
+
+import 'dayjs/locale/th'; // นำเข้า locale ภาษาไทย
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
+
+import { DatePicker } from "antd";
+dayjs.extend(customParseFormat);
+
+dayjs.locale('th'); // ตั้งค่า locale เป็นไทย
+
+import thTH from 'antd/es/date-picker/locale/th_TH';
+
+const facultyOptions = [
+  "สำนักวิชาสาธารณสุขศาสตร์",
+  "สำนักวิชาทันตแพทยศาสตร์",
+  "สำนักวิชาพยาบาลศาสตร์",
+  "สำนักวิชาวิศวกรรมศาสตร์",
+  "สำนักวิชาแพทยศาสตร์",
+  "สำนักวิชาเทคโนโลยีการเกษตร",
+  "สำนักวิชาเทคโนโลยีสังคม",
+  "สำนักวิชาวิทยาศาสตร์",
+  "สำนักวิชาศาสตร์และศิลป์ดิจิทัล",
+];
+
+const yearOptions = [
+  { value: 1, label: "ชั้นปี 1" },
+  { value: 2, label: "ชั้นปี 2" },
+  { value: 3, label: "ชั้นปี 3" },
+  { value: 4, label: "ชั้นปี 4" },
+  { value: 5, label: "ชั้นปี 5" },
+  { value: 6, label: "ชั้นปี 6" },
+  { value: "6 ปีขึ้นไป", label: "6 ปีขึ้นไป" },
+];
 
 // Env variables
 const PROFILE_BASE_URL = import.meta.env.VITE_PF_URL;
@@ -68,7 +100,9 @@ function UserEdit() {
         username: res.data.username,
         email: res.data.email,
         phone_number: res.data.phone_number,
-        birth_date: res.data.birth_date ? dayjs(res.data.birth_date).format("YYYY-MM-DD") : null,
+      birth_date: res.data.birth_date 
+        ? dayjs(res.data.birth_date) // <-- ส่งเป็น dayjs object
+        : null,
         age: res.data.age,
         Gender: res.data.gender,
         facebook: res.data.facebook,
@@ -318,35 +352,74 @@ return (
 
           {/* Year & Faculty เฉพาะนักศึกษามทส */}
           {personType === "นักศึกษามทส" && (
-            <>
-              <Col xs={24} md={12}>
-                <Form.Item label="ชั้นปี" name="year" rules={[{ required: true, message: "กรุณากรอกชั้นปี !" }]}>
-                  <InputNumber min={1} max={8} style={{ width: "100%" }} placeholder="เช่น 1, 2, 3, 4" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item label="คณะ" name="faculty" rules={[{ required: true, message: "กรุณาระบุคณะ !" }]}>
-                  <Input placeholder="เช่น คณะวิศวกรรมศาสตร์" />
-                </Form.Item>
-              </Col>
-            </>
-          )}
+  <>
+    <Col xs={24} md={12}>
+      <Form.Item
+        label="ชั้นปี"
+        name="year"
+        rules={[{ required: true, message: "กรุณาเลือกชั้นปี !" }]}
+      >
+        <Select placeholder="เลือกชั้นปี">
+          {yearOptions.map((year) => (
+            <Select.Option key={year.value} value={year.value}>
+              {year.label}
+            </Select.Option>
+          ))}
+        </Select>
+      </Form.Item>
+    </Col>
+    <Col xs={24} md={12}>
+      <Form.Item
+        label="คณะ"
+        name="faculty"
+        rules={[{ required: true, message: "กรุณาเลือกคณะ !" }]}
+      >
+        <Select placeholder="เลือกคณะ">
+          {facultyOptions.map((fac) => (
+            <Select.Option key={fac} value={fac}>
+              {fac}
+            </Select.Option>
+          ))}
+        </Select>
+      </Form.Item>
+    </Col>
+  </>
+)}
+
 
           <Col xs={24} md={12}>
-            <Form.Item label="เบอร์โทรศัพท์" name="phone_number" rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" }]}>
-              <Input placeholder="0812345678" />
-            </Form.Item>
-          </Col>
-          {/* <Col xs={24} md={12}>
-            <Form.Item label="อายุ" name="age" rules={[{ required: true, message: "กรุณากรอกอายุ !" }]}>
-              <InputNumber min={0} max={120} style={{ width: "100%" }} placeholder="ระบุอายุ" />
-            </Form.Item>
-          </Col> */}
+  <Form.Item
+    label="เบอร์โทรศัพท์"
+    name="phone_number"
+    rules={[
+      {message: "กรุณากรอกเบอร์โทรศัพท์ !" },
+      {
+        pattern: /^0[0-9]{9}$/, // ต้องขึ้นต้นด้วย 0 และตามด้วยตัวเลขอีก 9 ตัว (รวม 10 หลัก)
+        message: "กรุณากรอกเบอร์โทรศัพท์ที่ถูกต้อง (10 หลัก เริ่มต้นด้วย 0)",
+      },
+    ]}
+  >
+    <Input placeholder="0812345678" maxLength={10} />
+  </Form.Item>
+</Col>
+
           <Col xs={24} md={12}>
-            <Form.Item label="วันเกิด" name="birth_date" rules={[{ required: true, message: "กรุณากรอกวันเกิด !" }]}>
-              <Input placeholder="YYYY-MM-DD" />
-            </Form.Item>
-          </Col>
+  <Form.Item
+    label="เดือนและปีเกิด"
+    name="birth_date"
+    rules={[{ required: true, message: "กรุณาเลือกเดือนและปีเกิด !" }]}
+  >
+    <DatePicker
+      picker="month"
+      format="MMMM YYYY"       // แสดงเป็น เดือน-ปี ภาษาไทย
+      locale={thTH}           // ใส่ locale เป็น object
+      placeholder="เลือกเดือนและปีเกิด"
+      style={{ width: "100%" }}
+      disabledDate={(current) => current && current > dayjs().endOf("month")} // ไม่เลือกวันในอนาคต
+    />
+  </Form.Item>
+</Col>
+
           <Col xs={24} md={12}>
             <Form.Item label="เพศ" name="Gender" rules={[{ required: true, message: "กรุณาเลือกเพศ !" }]}>
               <Select placeholder="เลือกเพศ">

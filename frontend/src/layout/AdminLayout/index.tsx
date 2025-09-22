@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Button, Drawer, Dropdown } from "antd";
-import { MenuOutlined, DashboardOutlined, SettingOutlined, CommentOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined } from '@ant-design/icons';
+import {
+  MenuOutlined,
+  DashboardOutlined,
+  CommentOutlined,
+  CustomerServiceOutlined,
+  QuestionOutlined,
+  MailOutlined,
+  ScheduleOutlined,
+  FundOutlined,
+} from "@ant-design/icons";
 const { Header, Content, Sider } = Layout;
-import './index.css';
+import "./index.css";
 import { useUser } from "../HeaderLayout/UserContext";
 import lightlogo from "../../assets/logo/lightlogo.png";
+
 const AdminLayout = () => {
   const location = useLocation();
   const selectedKey = location.pathname;
@@ -27,120 +37,138 @@ const AdminLayout = () => {
   const showDrawer = () => setDrawerVisible(true);
   const onClose = () => setDrawerVisible(false);
 
+  // เมนูหลัก
+  const menuItems = [
+    {
+      key: "/admin",
+      icon: <DashboardOutlined />,
+      label: <Link to="/admin">แดชบอร์ด</Link>,
+    },
+    {
+      key: "/admin/questionnairePage",
+      icon: <QuestionOutlined />,
+      label: <Link to="/admin/questionnairePage">แบบสอบถาม</Link>,
+    },
+    {
+      key: "/admin/prompt",
+      icon: <CommentOutlined />,
+      label: <Link to="/admin/prompt">การจัดการ Prompt AI</Link>,
+    },
+    {
+      key: "/admin/sounds",
+      icon: <CustomerServiceOutlined />,
+      label: <Link to="/admin/sounds">การจัดการวิดีโอ</Link>,
+    },
+    {
+      key: "/admin/messagePage",
+      icon: <MailOutlined />,
+      label: <Link to="/admin/messagePage">ข้อความให้กำลังใจ</Link>,
+    },
+    {
+      key: "/admin/dashboard/contents",
+      icon: <ScheduleOutlined />,
+      label: <Link to="/admin/dashboard/contents">ข้อมูลคอนเทนต์</Link>,
+    },
+    {
+      key: "/admin/activity",
+      icon: <FundOutlined />,
+      label: <Link to="/admin/activity">ข้อมูลผู้เข้าใช้</Link>,
+    },
+  ];
+
   // เมนู Dropdown สำหรับ Avatar
-  const userMenu = (
-    <Menu>
-      <Menu.Item key="editProfile" onClick={handleEditProfile} >
-        <Link to="/admin/edityourself">แก้ไขข้อมูลส่วนตัว</Link>
-      </Menu.Item>
-      <Menu.Item key="logout" onClick={handleLogout} danger >
-        ออกจากระบบ
-      </Menu.Item>
-    </Menu>
-  );
+  const userMenu = {
+  items: [
+    {
+      key: "editProfile",
+      label: <Link to="/admin/edityourself">แก้ไขข้อมูลส่วนตัว</Link>,
+      onClick: handleEditProfile,
+    },
+    {
+      key: "logout",
+      label: <span style={{ color: "red" }}>ออกจากระบบ</span>,
+      onClick: handleLogout,
+    },
+  ],
+};
+
 
   return (
-    <Layout className="layout admin-layout" style={{ minHeight: "100vh" }}>
-      <Header className="layout-header">
-  <div className="layout-header-left">
-  <Button 
-    type="primary" 
-    icon={<MenuOutlined />}  
-    onClick={showDrawer} 
-    className="layout-hamburger-button"
-  />
-   <img
-                src={lightlogo}
-                alt="Logo"
-                className="w-18 "
-              />
-</div>
+    <Layout className="layout admin-layout !font-ibmthai" style={{ minHeight: "100vh" }}>
+      <Header className="layout-header flex justify-between items-center">
+  <div className="layout-header-left flex items-center gap-3">
+    {/* ปุ่มแฮมเบอร์เกอร์ (มือถือ) */}
+    <Button
+  type="primary"
+  icon={<MenuOutlined />}
+  onClick={showDrawer}
+  className="layout-hamburger-button lg:hidden hover:!bg-transparent hover:!text-white"
+/>
 
+    {/* โลโก้: แสดงเฉพาะ Desktop (lg ขึ้นไป) */}
+    <div className="flex-1 flex justify-start">
+      <img
+        src={lightlogo}
+        alt="Logo"
+        className="h-10 object-contain hidden lg:block"
+      />
+    </div>
+  </div>
 
-  <Dropdown overlay={userMenu} trigger={['click']}>
+  {/* Avatar Dropdown */}
+  {/* Avatar Dropdown */}
+<Dropdown
+  menu={{
+    ...userMenu,
+    className: "!font-ibmthai", // ✅ บังคับฟอนต์เฉพาะ Dropdown
+  }}
+  trigger={["click"]}
+>
   <img
-                  src={avatarUrl}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-  </Dropdown>
+    src={avatarUrl}
+    alt="Profile"
+    className="w-10 h-10 rounded-full object-cover cursor-pointer"
+  />
+</Dropdown>
+
 </Header>
 
 
       <Layout>
-        <Sider 
-          width={200} 
-          className="layout-sider" 
-          collapsible 
-          collapsed={collapsed} 
-          onCollapse={(value) => setCollapsed(value)} 
+        {/* Sidebar (Desktop) */}
+        <Sider
+          width={200}
+          className="layout-sider"
+          collapsible
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
           breakpoint="lg"
         >
           <Menu
             mode="inline"
             selectedKeys={[selectedKey]}
+            items={menuItems}
             className="layout-menu"
-          >
-            <Menu.Item key="/admin" icon={<DashboardOutlined />}>
-              <Link to="/admin">แดชบอร์ด</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/questionnairePage" icon={<QuestionOutlined/>}>
-              <Link to="/admin/questionnairePage">แบบสอบถาม</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
-              <Link to="/admin/prompt">การจัดการ Prompt AI</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
-              <Link to="/admin/sounds">การจัดการวิดีโอ</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/messagePage" icon={<MailOutlined />}> 
-              <Link to="/admin/messagePage">ข้อความให้กำลังใจ</Link> 
-            </Menu.Item>
-            <Menu.Item key="/admin/dashboard/contents" icon={<ScheduleOutlined/>}> 
-              <Link to="/admin/dashboard/contents">ข้อมูลคอนเทนต์</Link> 
-            </Menu.Item>
-            <Menu.Item key="/admin/activity" icon={<FundOutlined/>}> 
-              <Link to="/admin/activity">ข้อมูลผู้เข้าใช้</Link> 
-            </Menu.Item>
-          </Menu>
+          />
         </Sider>
 
+        {/* Drawer (Mobile) */}
         <Drawer
           title="Menu"
           placement="left"
           closable={true}
           onClose={onClose}
-          visible={drawerVisible}
+          open={drawerVisible} // ✅ ใช้ open แทน visible
         >
           <Menu
             mode="inline"
             selectedKeys={[selectedKey]}
+            items={menuItems}
             className="layout-menu"
-          >
-            <Menu.Item key="/admin" icon={<DashboardOutlined />}>
-              <Link to="/admin">Dashboard</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/questionnairePage" icon={<SettingOutlined />}>
-              <Link to="/admin/questionnairePage">Questionnaire</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/prompt" icon={<CommentOutlined />}>
-              <Link to="/admin/prompt">Prompt AI</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/sounds" icon={<CustomerServiceOutlined/>}> 
-              <Link to="/admin/sounds">Sounds</Link>
-            </Menu.Item>
-            <Menu.Item key="/admin/messagePage" icon={<MailOutlined />}> 
-              <Link to="/admin/messagePage">Message</Link> 
-            </Menu.Item>
-            <Menu.Item key="/admin/dashboard/contents" icon={<ScheduleOutlined/>}> 
-              <Link to="/admin/dashboard/contents">Contents</Link> 
-            </Menu.Item>
-            <Menu.Item key="/admin/activity" icon={<FundOutlined/>}> 
-              <Link to="/admin/activity">Visitor Data</Link> 
-            </Menu.Item>
-          </Menu>
+          />
         </Drawer>
 
+        {/* Content */}
         <Layout className="layout-content-layout">
           <Content className="layout-content">
             <Outlet />
