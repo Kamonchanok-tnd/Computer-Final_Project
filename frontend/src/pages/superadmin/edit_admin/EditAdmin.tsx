@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Form, Input, Button, message, Spin, Select, Divider, Row, Col, Space, InputNumber } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin";
+import { AdminInterface } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminById } from "../../../services/https/admin";
 import "./EditAdmin.css";
 function EditAdmin() {
@@ -25,7 +25,7 @@ function EditAdmin() {
   const fetchAdminData = async (id: string) => {
     setFormLoading(true);
     try {
-      const response: any = await getAdminById(id);
+      const response: { data: AdminInterface } = await getAdminById(id);
       if (response.data) {
         setAdmin(response.data);
         form.setFieldsValue(response.data);
