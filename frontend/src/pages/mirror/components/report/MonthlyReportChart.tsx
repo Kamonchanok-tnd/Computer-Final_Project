@@ -14,14 +14,12 @@ type ChartDatumEx = ChartDatum & { pct: number; labelTop: string };
 
 /* ===== สีตรึงตามอารมณ์ (4 แบบในระบบ) ===== */
 type Mood4 = "มีความสุข" | "เฉย ๆ" | "เศร้า" | "โกรธ";
-// พาสเทลแต่เข้มขึ้น (อ่านชัดขึ้น)
 const MOOD_COLOR: Readonly<Record<Mood4, string>> = {
-  "มีความสุข": "#4ADE80", // เขียวพาสเทลเข้ม (green-400)
-  "เฉย ๆ":     "#94A3B8", // เทาพาสเทลเข้ม (slate-400)
-  "เศร้า":     "#60A5FA", // ฟ้าพาสเทลเข้ม (blue-400)
-  "โกรธ":      "#F87171", // แดงพาสเทลเข้ม (red-400)
+  "มีความสุข": "#4ADE80",
+  "เฉย ๆ":     "#94A3B8",
+  "เศร้า":     "#60A5FA",
+  "โกรธ":      "#F87171",
 };
-
 
 /** normalize ชื่อแล้วคืนสี; ถ้าไม่ตรง 4 แบบ ใช้ฟ้าอ่อน */
 function getMoodColor(name: string): string {
@@ -52,7 +50,7 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
   const isMobile = useIsMobile();
   const [mode, setMode] = useState<"pie" | "bar">("bar");
 
-  // ===== เตรียมข้อมูลแบบเดียว ใช้ทั้งสองกราฟ =====
+  // ===== เตรียมข้อมูล =====
   const total: number = rows.reduce((sum, r) => sum + (r.count ?? 0), 0);
 
   const dataEx: ChartDatumEx[] = useMemo(() => {
@@ -69,7 +67,6 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
     });
   }, [rows]);
 
-  // ใช้ก้อนที่ sort แล้วสำหรับ Bar ทั้ง data และ map สี
   const dataSorted: ChartDatumEx[] = useMemo(
     () => [...dataEx].sort((a, b) => b.value - a.value),
     [dataEx]
@@ -89,7 +86,7 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
     return `${name ?? ""} (${p}%)`;
   };
 
-  // ===== states เตรียมเสร็จแล้วค่อยตัดสินใจ render =====
+  // ===== Loading / Empty =====
   if (loading) {
     return (
       <div className="h-60 grid place-items-center rounded-2xl ring-1 ring-white/60 bg-white/60">
@@ -154,7 +151,7 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
           ) : (
             <BarChart
               data={dataSorted}
-              margin={{ top: 28, right: 12, left: 12, bottom: 6 }} // headroom ให้ label
+              margin={{ top: 28, right: 12, left: 12, bottom: 6 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -180,7 +177,7 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
         </ResponsiveContainer>
       </div>
 
-      {/* สวิตช์ชนิดกราฟ — ด้านล่าง */}
+      {/* สวิตช์ชนิดกราฟ */}
       <div className="mt-3 flex justify-center">
         <div className="inline-flex rounded-xl ring-1 ring-slate-200 bg-white overflow-hidden">
           <button
@@ -200,7 +197,39 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
         </div>
       </div>
 
+      {/* รวมทั้งหมด */}
       <div className="text-center text-sm text-slate-700 mt-2">รวมทั้งหมด {total} ครั้ง</div>
+
+      {/* ===== Mobile Legend (แก้ปัญหาข้อความ bullet หายบนมือถือ) ===== */}
+  {isMobile && mode === "pie" && (
+  <ul
+    className={[
+      "mt-3 grid gap-x-4 gap-y-1 text-sm",
+      dataSorted.length <= 2 ? "grid-cols-1" : "grid-cols-2",
+    ].join(" ")}
+  >
+    {dataSorted.map((d, i) => (
+      <li key={`m-${i}`} className="flex items-start justify-between gap-2">
+        {/* ซ้าย: จุดสี + ชื่อ */}
+        <div className={["flex items-center gap-2", dataSorted.length <= 2 ? "" : "min-w-0"].join(" ")}>
+          <span
+            aria-hidden
+            className="inline-block w-3 h-3 rounded-full flex-shrink-0"
+            style={{ backgroundColor: getMoodColor(d.name) }}
+          />
+          <span className={dataSorted.length <= 2 ? "" : "truncate"}>
+            {d.name}
+          </span>
+        </div>
+        {/* ขวา: จำนวน(เปอร์เซ็นต์) ชิดขวา ตัดบรรทัดไม่ได้ */}
+        <span className="ml-2 text-slate-600 whitespace-nowrap">
+          {d.value} ({d.pct}%)
+        </span>
+      </li>
+    ))}
+  </ul>
+)}
+
     </div>
   );
 }

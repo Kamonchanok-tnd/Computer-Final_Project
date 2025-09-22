@@ -149,7 +149,7 @@ function ArticleReader({
           {hasImage(message.photo) && (
             <div className="mt-3 sm:mt-4 flex justify-center">
               {/* Modal แสดงรูปไม่ให้ขาด */}
-              <div className="w-full max-w-[680px] max-h-[46vh] overflow-hidden rounded-2xl">
+              <div className=" max-w-[680px] max-h-[46vh] overflow-hidden rounded-2xl">
                 <img
                   src={message.photo!}
                   alt=""
@@ -160,7 +160,7 @@ function ArticleReader({
             </div>
           )}
 
-          <article className="prose prose-slate dark:prose-invert max-w-none mt-3 sm:mt-4">
+          <article className="prose prose-slate dark:prose-invert max-w-none px-2 mt-3 sm:mt-4">
             <p className={`whitespace-pre-wrap break-words ${contentTextSize} ${contentAlignClass}`}>{message.content || "-"}</p>
           </article>
 
