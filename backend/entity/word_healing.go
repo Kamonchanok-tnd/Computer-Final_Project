@@ -12,7 +12,7 @@ type WordHealingContent struct {
 	gorm.Model
 	Name        string     `json:"name"         valid:"required~Name is required"`
 	Author      string     `json:"author"       valid:"required~Author is required"`
-	Photo       *string    `json:"photo"        gorm:"type:text;null"` // optional
+	Photo       *string    `json:"photo"        gorm:"type:text;null"`
 	NoOfLike    int        `json:"no_of_like"`
 	Date        time.Time  `json:"date"`
 	Content     string     `json:"content"      valid:"required~Content is required"`
