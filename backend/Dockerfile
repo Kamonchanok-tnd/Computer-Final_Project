@@ -1,31 +1,34 @@
 # Step 1: Build stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.21-alpine AS builder
+
+# Install build tools
+RUN apk add --no-cache git
 
 # Set working directory
-WORKDIR /go/src/example
+WORKDIR /app
 
-# Copy the backend code
+# Copy go.mod and go.sum first to cache deps
+COPY backend/go.mod backend/go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy rest of the backend source
 COPY backend .
 
-# Install necessary build dependencies
-RUN apk add --no-cache build-base
-
-# Install Go dependencies
-RUN go mod tidy
-
-# Build the Go application
+# Build the Go app
 RUN go build -o main .
 
 # Step 2: Final stage
 FROM alpine:latest
 
 # Set working directory
-WORKDIR /go/src/example
+WORKDIR /app
 
-# Copy the built binary from the builder stage
-COPY --from=builder /go/src/example/main .
+# Copy binary from build stage
+COPY --from=builder /app/main .
 
-# Expose port
+# Expose port (update if your backend uses a different port)
 EXPOSE 8080
 
 # Command to run the app
