@@ -4,22 +4,19 @@ import { Navigate } from "react-router-dom";
 import AdminLayout from "../layout/AdminLayout";
 import Loadable from "../components/loading/Loadable";
 import { lazy } from "react";
-// import EditYourself from "../pages/admin/edit_yourself/edit";
 const AdminDashboard = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard_admin")));
-// const AdminSettings = Loadable(lazy(() => import("../pages/dashboard/adminsetting")));
-// const CreateAdmin = Loadable(lazy(() => import("../pages/admin/create_admin/createadmin")));
-// const DashboardAdmin = Loadable(lazy(() => import("../pages/admin/dashboard_admin/dashboard")));
 const EditYourself = Loadable(lazy(() => import("../pages/admin/edit_yourself/edit")));
 const PromptAdminPage = Loadable(lazy(() => import("../pages/prompt/index")));
-import DashboardMeditation from "../pages/admin/dashboard_contents/meditation/dashmed";
+const DashboardMeditation = Loadable(lazy(() => import("../pages/admin/dashboard_contents/meditation/dashmed")));
+//import DashboardMeditation from "../pages/admin/dashboard_contents/meditation/dashmed";
 import DashboardChanting from "../pages/admin/dashboard_contents/chanting/dashchanting";
 import DashboardWordHealing from "../pages/admin/dashboard_contents/word-healing/dashword";
 import DashboardMirror from "../pages/admin/dashboard_contents/mirror/dashmirror";
 import DashboardAsmr from "../pages/admin/dashboard_contents/asmr/dashasmr";
 import DashboardBreathing from "../pages/admin/dashboard_contents/breathing/dashbreathing";
 import VideoForm from "../pages/admin/meditation/meditation";
-import WebData from "../pages/admin/userdataweb/userdata";
-
+const WebData = Loadable(lazy(() => import("../pages/admin/userdataweb/userdata")));
+// import WebData from "../pages/admin/userdataweb/userdata";
 import HomeContents from "../pages/admin/dashboard_contents/home_contents";
 import DashboardContents from "../pages/admin/dashboard_contents/dashboard_contents";
 import QuestionnairePage from "../pages/admin/questionnaire/home/questionnairePage";
@@ -32,19 +29,14 @@ import MessagePage from "../pages/admin/message/home/messagePage";
 import EditMessagePage from "../pages/admin/message/edit/editMesagePage";
 import CreateMessagePage from "../pages/admin/message/create/createMessagePage";
 import EditSound from "../pages/admin/meditation/editSound";
-
 import ChatSpaceDetail from "../pages/admin/dashboard_contents/chat/ChatSpaceDetail";
-
 import EditCriteriaPage from "../pages/admin/questionnaire/edit/editCriteriaPage";
 import EditQuestionAndAnswerPage from "../pages/admin/questionnaire/edit/editQuestionAndAnswer";
 import Quetionairedetail from "../pages/admin/dashboard_contents/questionaire/quetionairedetail";
 import CreateCriteriaPage from "../pages/admin/questionnaire/create/CreateCriteriaPage";
 import SummaryUser from "../pages/admin/dashboard_contents/questionaire/summaryUser";
-
 import RetentionRatePage from "../pages/admin/userdataweb/RetentionRatePage";
 import VisitFrequencyPage from "../pages/admin/userdataweb/VisitFrequencyPage";
-// const QuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/questionnaire"))); // ✅ เพิ่มตรงนี้
-// const CreateQuestionnairePage = Loadable(lazy(() => import("../pages/admin/questionnaire/createquestionnaire"))); // ✅ เพิ่มตรงนี้
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
     return [
