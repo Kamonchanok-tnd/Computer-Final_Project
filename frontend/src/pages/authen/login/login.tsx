@@ -258,23 +258,16 @@ export default function SignInPages() {
     </button>
   </div>
 
-  <div className="flex justify-between items-center text-xs md:text-sm text-gray-500 font-ibmthai">
-    <label className="flex items-center gap-2">
-      <input
-        type="checkbox"
-        checked={staySignedIn}
-        onChange={() => setStaySignedIn(!staySignedIn)}
-      />
-      จำฉันไว้ในระบบ
-    </label>
-    <button
-      type="button"
-      className="text-blue-900 hover:underline"
-      onClick={() => navigate("/forgot-password")}
-    >
-      ลืมรหัสผ่าน?
-    </button>
-  </div>
+  <div className="flex justify-end items-center text-xs md:text-sm text-gray-500 font-ibmthai">
+  <button
+    type="button"
+    className="text-blue-900 hover:underline"
+    onClick={() => navigate("/forgot-password")}
+  >
+    ลืมรหัสผ่าน?
+  </button>
+</div>
+
 
   <button
     type="submit"
