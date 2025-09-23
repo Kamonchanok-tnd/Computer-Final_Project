@@ -3,7 +3,7 @@ import { AdminResponse } from "../../../interfaces/IAdmin";
 //import { UsersInterface } from "../../../interfaces/IUser"; // ปรับ path ตามที่คุณจัดโฟลเดอร์  
 import { message } from "antd"; // นำเข้า message จาก antd
 
-const apiUrl = "http://localhost:8000";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 // Ensure token and Bearer are correctly fetched from localStorage
 const Authorization = localStorage.getItem("token");

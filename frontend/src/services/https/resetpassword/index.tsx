@@ -1,6 +1,6 @@
 import { message } from "antd";
 
-const apiUrl = "http://localhost:8000";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 // ฟังก์ชันสำหรับการเพิ่ม headers สำหรับการตรวจสอบสิทธิ์
 function getAuthHeaders() {

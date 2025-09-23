@@ -2,7 +2,7 @@ import { UsersInterface } from "../../../interfaces/IUser";
 import { SignInInterface } from "../../../interfaces/SignIn";
 import axios from "axios";
 //import AxiosRequest from "./axiosInstance";
-const apiUrl = "http://localhost:8000";
+const apiUrl = import.meta.env.VITE_API_URL;
 const Authorization = localStorage.getItem("token");
 const Bearer = localStorage.getItem("token_type");
 const requestOptions = {
