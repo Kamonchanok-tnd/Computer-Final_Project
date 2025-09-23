@@ -34,7 +34,7 @@ type (
        Gender     string    `json:"gender"`
        PersonType string  `json:"person_type"`
        Faculty    string  `json:"faculty"`
-       Year       *int    `json:"year"`
+       Year       string    `json:"year"`
        ConsentAccepted   bool      `json:"consent_accepted"`
        ConsentAcceptedAt time.Time `json:"consent_accepted_at"`
    }
@@ -105,7 +105,7 @@ func SignUp(c *gin.Context) {
         ConsentAcceptedAt: payload.ConsentAcceptedAt,
         PersonType: payload.PersonType,
         Faculty:    payload.Faculty,
-        Year:       *payload.Year,
+        Year:       payload.Year,
     }
 
     if err := db.Create(&user).Error; err != nil {
