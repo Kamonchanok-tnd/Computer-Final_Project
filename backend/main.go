@@ -16,6 +16,8 @@ import (
 	"sukjai_project/controller/dashboardcontents"
 	"sukjai_project/controller/emotion"
 	"sukjai_project/controller/exportexcel"
+	"sukjai_project/controller/feedback"
+	"sukjai_project/controller/handler"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
@@ -27,7 +29,6 @@ import (
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/useractivity"
 	"sukjai_project/controller/users"
-	"sukjai_project/controller/handler"
 	"sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/middlewares"
 
@@ -96,6 +97,17 @@ func main() {
 	{
 		// Routes for admins only
 		router.Use(middlewares.Authorizes("admin"))
+router.GET("/admin/feedback-form", feedback.AdminGetFeedbackForm)
+router.PUT("/admin/feedback-form", feedback.AdminUpdateFeedbackForm)
+
+		// feedback routes
+		
+		router.POST("/feedback", feedback.CreateFeedback)        // ผู้ใช้สร้าง feedback ใหม่
+		router.GET("/feedback/:id", feedback.GetFeedbackByID)    // ดึง feedback ตาม id
+		router.PUT("/feedback/:id", feedback.UpdateFeedback)     // ผู้ใช้แก้ไข feedback ของตัวเอง
+		router.DELETE("/feedback/:id", feedback.DeleteFeedback)  // ผู้ใช้ลบ feedback ของตัวเอง
+		router.GET("/feedback", feedback.GetAllFeedbacks)        // (admin) ดึง feedback ทั้งหมด
+
 
 		router.GET("/admin", admin.GetAllAdmin)
 		router.GET("/admin/:id", admin.GetAdminById)
