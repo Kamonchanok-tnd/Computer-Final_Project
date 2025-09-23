@@ -5,7 +5,6 @@ import (
 	"strings"
 	"sukjai_project/services"
 	"github.com/gin-gonic/gin"
-	// "strconv"
     "fmt"
 )
 
@@ -46,10 +45,12 @@ func Authorizes(requiredRole string) gin.HandlerFunc {
 		}
 
 		// ตั้งค่า userID และ userRole ใน context
+		c.Set("uid", claims.ID)       // forviewwordhealing   
+        c.Set("role", claims.Role)    // forviewwordhealing
 		c.Set("userID", claims.ID)
 		c.Set("userRole", claims.Role)
        fmt.Println("Claims ID in Middleware: ", claims.ID)
-fmt.Println("Claims Role in Middleware: ", claims.Role)
+		fmt.Println("Claims Role in Middleware: ", claims.Role)
 
 
 		// ให้สามารถเข้าถึงได้ถ้าเป็น admin หรือ superadmin
@@ -57,10 +58,6 @@ fmt.Println("Claims Role in Middleware: ", claims.Role)
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
 			return
 		}
-
-
-
-
 		c.Next()
 	}
 }

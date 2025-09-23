@@ -3,6 +3,7 @@ import { Sound } from "../../../../interfaces/ISound";
 import { useState, useEffect } from "react";
 import { likeSound, checkLikedSound } from "../../../../services/https/sounds"; // ✅ ใช้เหมือน BreathingCard
 import { useNavigate } from "react-router-dom";
+import { formatDurationHMS } from "../../../admin/meditation/editSound";
 interface MeditationContentProps {
   filteredSounds: Sound[];
   extractYouTubeID: (url: string) => string | null;
@@ -91,7 +92,7 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
         {/* ปุ่ม Play */}
         <div
         className="absolute bottom-[-25px] sm:button-[-20]  right-3 w-15 sm:w-12 sm:h-12 h-15 bg-button-blue flex items-center justify-center rounded-full shadow-lg text-white
-             opacity-100 sm:opacity-0 scale-75 translate-y-1
+             opacity-100 lg:opacity-0 scale-75 translate-y-1
              group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0
              transition-all duration-300 ease-out btn-glow-play"
         onClick={handlePlayClick}
@@ -115,8 +116,11 @@ function MeditationCard({ sound, thumbnail, uid }: MeditationCardProps) {
         <div className="text-basic-text dark:text-text-dark  w-[70%] line-clamp-1">
           <h1>{sound.name}</h1>
         </div>
+         {/* <p className="text-sm text-gray-600">
+    คำแนะนำ: {sound.description || "ไม่มีคำแนะนำ"}
+  </p> */}
         <div className="flex justify-between text-subtitle dark:text-text-dark">
-          <p>{sound.duration} min</p>
+          <p>{formatDurationHMS(sound.duration ?? 0)} </p>
           <div className="flex gap-2">
             <div className="flex gap-1 items-center">
               <Eye className="text-subtitle h-4 w-4 dark:text-text-dark " />

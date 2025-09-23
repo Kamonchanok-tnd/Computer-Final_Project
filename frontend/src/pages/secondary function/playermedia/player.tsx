@@ -17,7 +17,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  addSoundView,
+  
+  addSoundViewBlock,
   checkLikedSound,
   getSoundsByTypeID,
   likeSound,
@@ -29,6 +30,7 @@ import { IReview } from "../../../interfaces/IReview";
 import { CheckReview, CreateReview, UpdateReview } from "../../../services/https/review";
 import { CreateHistory } from "../../../services/https/history";
 import { IHistory } from "../../../interfaces/IHistory";
+import { formatDurationHMS } from "../../admin/meditation/editSound";
 
 declare global {
   interface Window {
@@ -43,14 +45,14 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-const qualityLevels = [
-  "small",
-  "medium",
-  "large",
-  "hd720",
-  "hd1080",
-  "highres",
-];
+// const qualityLevels = [
+//   "small",
+//   "medium",
+//   "large",
+//   "hd720",
+//   "hd1080",
+//   "highres",
+// ];
 function Player() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -66,7 +68,7 @@ function Player() {
   const [isRepeat, setIsRepeat] = useState(false);
 
   const [volume, setVolume] = useState(100);
-  const [quality, setQuality] = useState("default");
+  const [_quality, setQuality] = useState("default");
 
   const playerRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -88,13 +90,17 @@ function Player() {
   const [showRating, setShowRating] = useState<boolean>(false);
   const [editRating, setEditRating] = useState<boolean>(false);
   const [exitRating, setExitRating] = useState<number>(0);
+
+  const viewTimer = useRef<NodeJS.Timeout | null>(null);
+  const repeatRef = useRef(isRepeat);
+  
  
   
   
 
-  async function addView(sid:number) {
+  async function addView(sid:number,uid:number) {
     try {
-       await addSoundView(sid)
+       await addSoundViewBlock(sid,uid)
        fetchChanting()
     }catch (error) {
       console.error('Error sending rating:', error);
@@ -137,8 +143,8 @@ function Player() {
               updateReview()
               setShowRating(false);
             }else{
-                const res = await CreateReview(data)
-                console.log(res);
+                 await CreateReview(data)
+                //console.log(res);
                 message.success(`ให้คะแนน "${currentSound?.name}" ${currentRating} ดาว`);
                 setShowRating(false);
             }
@@ -238,21 +244,40 @@ function Player() {
           onStateChange: (event: any) => {
             setIsPlaying(event.data === 1);
           
-            if (event.data === 1 && !hasCountedView) {
-              // เริ่มจับเวลา เมื่อวิดีโอเริ่มเล่น
-              const checkView = setInterval(() => {
+            if (event.data === YT.PlayerState.PLAYING && !hasCountedView) {
+              // เริ่มจับเวลาเพื่อตรวจสอบการนับ View
+              if (viewTimer.current) clearTimeout(viewTimer.current);
+              viewTimer.current = setTimeout(() => {
                 if (playerRef.current) {
                   const watchedTime = playerRef.current.getCurrentTime();
                   const totalTime = playerRef.current.getDuration();
+          
                   if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
-                    // นับ view แล้วส่ง API
-                    addView(realId);
-                    addHistory(realId);
-                    setHasCountedView(true);
-                    clearInterval(checkView);
+                    const lastViewTime = localStorage.getItem(`view_${uid}_${realId}`);
+                    if (!lastViewTime) {
+                      addView(realId, uid);
+                      localStorage.setItem(`view_${uid}_${realId}`, Date.now().toString());
+                      setHasCountedView(true);
+                    }
+          
+                    // ตรวจสอบ History (เว้น 5 นาที)
+                    const lastHistoryTime = localStorage.getItem(`history_${uid}_${realId}`);
+                    const now = Date.now();
+                    if (!lastHistoryTime || now - parseInt(lastHistoryTime) > 5 * 60 * 1000) {
+                      addHistory(realId);
+                      localStorage.setItem(`history_${uid}_${realId}`, now.toString());
+                    }
                   }
                 }
-              }, 1000);
+              }, 30000); // ตรวจหลัง 30 วิ (หรืออาจถึงก่อนด้วย 10%)
+            }
+          
+            if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
+              // หยุดจับเวลาถ้าผู้ใช้หยุดหรือวิดีโอจบ
+              if (viewTimer.current) {
+                clearTimeout(viewTimer.current);
+                viewTimer.current = null;
+              }
             }
           
             handleStateChange(event);
@@ -275,13 +300,18 @@ function Player() {
 
     if (event.data === 0) {
       // วิดีโอจบ
-      if (isRepeat) {
-        playerRef.current.playVideo(); // เล่นซ้ำ
+      if (repeatRef.current) {
+        playerRef.current.seekTo(0); // กลับไปต้น
+        playerRef.current.playVideo(); // เล่นทันที
       } else {
         handleNext();
       }
     }
   }
+  useEffect(() => {
+    repeatRef.current = isRepeat;
+  }, [isRepeat]);
+  
 
   useEffect(() => {
     if (!isReady) return;
@@ -320,16 +350,16 @@ function Player() {
   };
 
   // ปรับ quality player
-  const changeQuality = (q: string) => {
-    if (playerRef.current && playerRef.current.setPlaybackQuality) {
-      playerRef.current.setPlaybackQuality(q);
-      setQuality(q);
-    }
-  };
+  // const changeQuality = (q: string) => {
+  //   if (playerRef.current && playerRef.current.setPlaybackQuality) {
+  //     playerRef.current.setPlaybackQuality(q);
+  //     setQuality(q);
+  //   }
+  // };
 
   const handlePlay = () => playerRef.current?.playVideo();
   const handlePause = () => playerRef.current?.pauseVideo();
-  const handleStop = () => playerRef.current?.stopVideo();
+  // const handleStop = () => playerRef.current?.stopVideo();
 
   const handleSeek = (percent: number) => {
     if (!playerRef.current) return;
@@ -370,7 +400,7 @@ function Player() {
     } else {
       const nextIndex = (currentIndex + 1) % chantingSounds.length; // <-- วนกลับไปแรก
       const nextSound = chantingSounds[nextIndex];
-      console.log("next sound is : ", nextSound);
+      // console.log("next sound is : ", nextSound);
       if (nextSound) {
         navigate(`/audiohome/chanting/play/${nextSound.ID}`);
       }
@@ -420,11 +450,11 @@ function closeReview() {
 
 
   return (
-    <div className="flex flex-col min-h-full h-fit overflow-y-auto scrollbar-hide duration-300 items-center bg-background-blue dark:bg-background-dark ">
-      <div className="sm:mt-4  sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
+    <div className="flex flex-col min-h-full h-fit  duration-300 items-center bg-background-blue dark:bg-background-dark ">
+      <div className="  sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
       dark:bg-box-dark duration-300 bg-transparent md:rounded-xl font-ibmthai">
         {/* Grid Layout - ปรับให้ responsive ดีขึ้น */}
-        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2  h-[88vh]   ">
+        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2  min-h-[calc(100vh-64px)]   ">
           {/* Main Player Section */}
           <div className="sm:col-span-2 sm:rounded-2xl flex flex-col  h-[100%] gap-4 px-4 py-4 bg-white/50 justify-between backdrop-blur-md shadow-md
           dark:bg-box-dark dark:text-text-dark">
@@ -621,7 +651,7 @@ function closeReview() {
     </div>
 
     {/* Content area (list หรือ rating) */}
-    <div className="overflow-y-auto scrollbar-hide p-2 flex-1   rounded-xl">
+    <div className="overflow-y-auto scrollbar-hide p-2 min-h-0    rounded-xl ">
       {!showRating ? (
         <div className="space-y-2">
           {chantingSounds.map((item) => {
@@ -667,7 +697,8 @@ function closeReview() {
                   <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-text-dark">
                     <div className="flex items-center gap-1">
                       <Clock size={12} />
-                      <span className="hidden sm:inline">{item.duration}</span>
+                      
+                      <span className="hidden sm:inline">{formatDurationHMS(item.duration ?? 0)}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Eye size={12} />

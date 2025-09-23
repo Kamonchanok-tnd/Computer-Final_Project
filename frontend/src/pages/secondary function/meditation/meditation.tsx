@@ -10,10 +10,10 @@ import { useNavigate } from "react-router-dom";
 import PlaylistMeditation from "./playlistmeditation/playlistmeditation";
 import { IPlaylist } from "../../../interfaces/IPlaylist";
 import { DeletePlaylistByID, getPlaylistsByUserAndType, IMG_URL } from "../../../services/https/playlist";
-import { IBackground } from "../../../interfaces/IBackground";
+// import { IBackground } from "../../../interfaces/IBackground";
 import { Dropdown, MenuProps, message } from "antd";
 import DeleteConfirmModal from "../Playlist/Component/DeleteConfirmModal";
-
+import { GetSoundPlaylistByPID } from "../../../services/https/soundplaylist";
 
 function MeditationMain() {
   const { isDarkMode } = useDarkMode();
@@ -26,8 +26,8 @@ function MeditationMain() {
   const [playlist, setPlaylist] = useState(true);
   const [breathing, setBreathing] = useState(true);
   const [meditationPlaylists, setMeditationPlaylists] = useState<IPlaylist[]>([]);
-  const [breathingPlaylists, setBreathingPlaylists] = useState<IPlaylist[]>([]); // ✅ เพิ่ม breathing playlist
-  const [backgrounds, setBackgrounds] = useState<IBackground[]>([]);
+  const [_breathingPlaylists, setBreathingPlaylists] = useState<IPlaylist[]>([]); // ✅ เพิ่ม breathing playlist
+  // const [backgrounds, setBackgrounds] = useState<IBackground[]>([]);
   const [openDeletePlaylist, setOpenDeletePlaylist] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -132,8 +132,25 @@ function MeditationMain() {
   };
 
   const GotoEditPlaylist = (id: number) => {
-    navigate(`/editplaylist/${id}`);
+    navigate(`/editplaylist/${id}`); 
   };
+
+  const GotoPlaylistplayer = async (pid: number) => {
+  try {
+    // ดึงเสียงทั้งหมดใน playlist
+    const res = await GetSoundPlaylistByPID(pid);
+    if (res.length > 0) {
+      const firstSoundId = res[0].sid;
+      navigate(`/audiohome/meditation/playlist/play/${pid}/${firstSoundId}`);
+    } else {
+      message.warning("Playlist นี้ไม่มีเสียง");
+    }
+  } catch (error) {
+    console.error("Error fetching playlist sounds:", error);
+  }
+};
+
+
   async function DeletePlaylist(id: number) {
       try {
         await DeletePlaylistByID(Number(id));
@@ -196,7 +213,7 @@ function MeditationMain() {
   isModalOpen={openModal}
   onClose={() => setOpenModal(false)}
   onSuccess={() => {
-    message.success("สร้างเพลย์ลิสต์สำเร็จ!");
+    message.success("สร้างเพลย์ลิสต์สำเร็จ");
     if (uid) {
       fetchUserMeditationPlaylists(uid);
       fetchUserBreathingPlaylists(uid);
@@ -235,7 +252,7 @@ function MeditationMain() {
                         className="flex items-center gap-2 font-ibmthai"
                         onClick={(e) => {
                           e.stopPropagation();
-                          GotoEditPlaylist(Number(pl.ID));
+                          GotoPlaylistplayer(Number(pl.ID)); 
                         }}
                       >
                         <Play size={16} /> เล่น
@@ -258,81 +275,81 @@ function MeditationMain() {
                   },
                 ]
 
-                return(
-                <div
-                  key={pl.ID}
-                  className="group bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
-                dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark"
-                  onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
-                >
-                  <img
-                    className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
-                    src={
-                      pl.Background && pl.Background.Picture
-                        ? `${IMG_URL}${pl.Background.Picture}`
-                        : `${IMG_URL}defaultPlaylist.png`
-                    }
-                    alt={pl.name}
-                  />
-                  <div className="h-full w-full flex items-center justify-start">
-                    <p className="text-basic-text font-bold truncate">{pl.name}</p>
-                  </div>
-                  <Dropdown menu={{ items }} trigger={["click"]}  overlayClassName="custom-dropdown">
-                  <button className="mr-4 cursor-pointer h-full  "
-                   onClick={(e) => {
-                    e.stopPropagation();
-                  }}>
-                    <EllipsisVertical size={20}  />
-                  </button>
-                </Dropdown>
-                <DeleteConfirmModal
-                  open={openDeletePlaylist}
-                  onConfirm={() => DeletePlaylist(Number(pl.ID))}
-                  onCancel={() => setOpenDeletePlaylist(false)}
-                  loading={loading}
-                />
-                </div>
-              )})}
-            </div>
-          </div>
-        )}
+        //         return(
+        //         <div
+        //           key={pl.ID}
+        //           className="group bg-white w-full h-15 rounded-md shadow-sm  flex gap-2  transition-all duration-300
+        //         dark:bg-box-dark dark:border-stoke-dark dark:text-text-dark dark:border dark:shadow-dark"
+        //           onClick={() => pl.ID && GotoEditPlaylist(pl.ID)}
+        //         >
+        //           <img
+        //             className="h-full w-18 rounded-tl-md rounded-bl-md object-cover"
+        //             src={
+        //               pl.Background && pl.Background.Picture
+        //                 ? `${IMG_URL}${pl.Background.Picture}`
+        //                 : `${IMG_URL}defaultPlaylist.png`
+        //             }
+        //             alt={pl.name}
+        //           />
+        //           <div className="h-full w-full flex items-center justify-start">
+        //             <p className="text-basic-text font-bold truncate">{pl.name}</p>
+        //           </div>
+        //           <Dropdown menu={{ items }} trigger={["click"]}  overlayClassName="custom-dropdown">
+        //           <button className="mr-4 cursor-pointer h-full  "
+        //            onClick={(e) => {
+        //             e.stopPropagation();
+        //           }}>
+        //             <EllipsisVertical size={20}  />
+        //           </button>
+        //         </Dropdown>
+        //         <DeleteConfirmModal
+        //           open={openDeletePlaylist}
+        //           onConfirm={() => DeletePlaylist(Number(pl.ID))}
+        //           onCancel={() => setOpenDeletePlaylist(false)}
+        //           loading={loading}
+        //         />
+        //         </div>
+        //       )})}
+        //     </div>
+        //   </div>
+        // )}
 
-        {/* 🎵 Breathing Playlist */}
-        {playlist && breathingPlaylists.length > 0 && (
-          <div className="font-ibmthai">
-            <h1 className="text-xl text-basic-text mb-4 dark:text-text-dark">เพลยลิสต์ฝึกลมหายใจของฉัน</h1>
-            <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
-              {breathingPlaylists.map((pl) => {
-                 const items: MenuProps["items"] = [
-                  {
-                    key: "play",
-                    label: (
-                      <div
-                        className="flex items-center gap-2 font-ibmthai"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          GotoEditPlaylist(Number(pl.ID));
-                        }}
-                      >
-                        <Play size={16} /> เล่น
-                      </div>
-                    ),
-                  },
-                  {
-                    key: "delete",
-                    label: (
-                      <div className="flex items-center gap-2 font-ibmthai"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenDeletePlaylist(true);
-                      }}
-                      >
-                        <Trash2 size={16} /> ลบ
-                      </div>
-                    ),
-                    danger: true,
-                  },
-                ]
+        // 🎵 Breathing Playlist
+        // {playlist && breathingPlaylists.length > 0 && (
+        //   <div className="font-ibmthai">
+        //     <h1 className="text-xl text-basic-text mb-4 dark:text-text-dark">เพลยลิสต์ฝึกลมหายใจของฉัน</h1>
+        //     <div className="grid lg:grid-cols-5 sm:grid-cols-3 md:grid-cols-4 grid-cols-2 sm:gap-2 gap-1">
+        //       {breathingPlaylists.map((pl) => {
+        //          const items: MenuProps["items"] = [
+        //           {
+        //             key: "play",
+        //             label: (
+        //               <div
+        //                 className="flex items-center gap-2 font-ibmthai"
+        //                 onClick={(e) => {
+        //                   e.stopPropagation();
+        //                   GotoEditPlaylist(Number(pl.ID));
+        //                 }}
+        //               >
+        //                 <Play size={16} /> เล่น
+        //               </div>
+        //             ),
+        //           },
+        //           {
+        //             key: "delete",
+        //             label: (
+        //               <div className="flex items-center gap-2 font-ibmthai"
+        //               onClick={(e) => {
+        //                 e.stopPropagation();
+        //                 setOpenDeletePlaylist(true);
+        //               }}
+        //               >
+        //                 <Trash2 size={16} /> ลบ
+        //               </div>
+        //             ),
+        //             danger: true,
+        //           },
+        //         ]
 
                 return  (
                 <div

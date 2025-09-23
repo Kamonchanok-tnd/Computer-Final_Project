@@ -1,18 +1,18 @@
 import React, { useState } from "react";
-import { Modal, Button, Tooltip } from "antd";
+import { Modal, Tooltip } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { Eraser } from "lucide-react";
 import "./customModal.css"
-import { useDarkMode } from "../../../../components/Darkmode/toggleDarkmode";
+
 
 interface ClearPlaylistModalProps {
   pid?: Number;
   onConfirm: () => void;
 }
 
-const ClearPlaylistModal: React.FC<ClearPlaylistModalProps> = ({ pid, onConfirm }) => {
+const ClearPlaylistModal: React.FC<ClearPlaylistModalProps> = ({  onConfirm }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isDarkMode } = useDarkMode();
+
 
   const showModal = () => {
     setIsModalOpen(true);

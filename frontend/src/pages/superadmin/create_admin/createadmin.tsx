@@ -12,7 +12,6 @@ import {
   Select,
 } from "antd";
 import { useState } from "react";
-import { PlusOutlined } from "@ant-design/icons";
 import { UsersInterface } from "../../../interfaces/IUser";
 import { CreateUser } from "../../../services/https/login";
 import { useNavigate, Link } from "react-router-dom";
@@ -24,7 +23,8 @@ function CreateAdmin() {
   const [gender] = useState([
     { ID: 1, gender: "ชาย" },
     { ID: 2, gender: "หญิง" },
-    { ID: 3, gender: "อื่นๆ" },
+    { ID: 3, gender: "LGBTQ+" },
+    { ID: 4, gender: "ไม่ระบุ" },
   ]);
 
   const onFinish = async (values: UsersInterface) => {

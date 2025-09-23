@@ -3,10 +3,26 @@ import { apiUrl } from "../Chat";
 
 const Authorization = localStorage.getItem("token");
 export const IMG_URL = import.meta.env.VITE_IMG_URL;
+
+
+
+function getAuthHeader() {
+  const token = localStorage.getItem("token");
+  const tokenType = localStorage.getItem("token_type") || "Bearer";
+  if (!token) {
+    console.error("Missing token in localStorage");
+    return null;
+  }
+  return `${tokenType} ${token}`;
+}
+
+
 export async function CreatePlaylist(data: IPlaylist) {
+  const authHeader = getAuthHeader();
+  if (!authHeader) return;
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `Bearer ${Authorization}`);
+  myHeaders.append("Authorization", authHeader);
   const raw = JSON.stringify(data);
 
   const requestOptions = {
@@ -21,7 +37,7 @@ export async function CreatePlaylist(data: IPlaylist) {
       requestOptions
     );
     const result = await response.json();
-    console.log(result);
+    // console.log(result);
     return result;
   } catch (error) {
     console.error(error);
@@ -30,7 +46,7 @@ export async function CreatePlaylist(data: IPlaylist) {
 }
 
 
-export async function GetPlaylistByUID(id: number) {
+export async function GetPlaylistByUID(id: number ,stid: number) {
   const requestOptions = {
     method: "GET",
     headers: {
@@ -40,7 +56,7 @@ export async function GetPlaylistByUID(id: number) {
   };
 
   try {
-    const response = await fetch(`${apiUrl}/Playlist/${id}`, requestOptions);
+    const response = await fetch(`${apiUrl}/Playlist/${id}/${stid}`, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {
@@ -58,7 +74,7 @@ export async function GetPlaylistByID(id: number) {
   };
 
   try {
-    const response = await fetch(`${apiUrl}/PlaylistByID/${id}`, requestOptions);
+    const response = await fetch(`${apiUrl}/PlaylistByID/${id} `, requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {
@@ -88,7 +104,7 @@ export async function UpdatePlaylist(data: IPlaylist, id: number) {
       throw new Error(result.message || "Failed to update playlist");
     }
 
-    console.log(result);
+    // console.log(result);
     return result;
   } catch (error) {
     console.error(error);
@@ -112,7 +128,7 @@ export async function getPlaylistsByUserAndType(uid: number, stid: number): Prom
     }
 
     const data = await response.json();
-    console.log("🎧 Loaded playlists:", data);
+    //console.log("🎧 Loaded playlists:", data);
     return data;
   } catch (error) {
     console.error("❌ Error fetching playlists:", error);

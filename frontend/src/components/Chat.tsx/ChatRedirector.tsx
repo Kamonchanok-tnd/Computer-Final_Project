@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RecentChat } from '../../services/https/Chat';
+import { Spin } from 'antd';
 
 function ChatRedirector() {
   const navigate = useNavigate();
@@ -24,7 +25,9 @@ function ChatRedirector() {
     checkRecentChat();
   }, []);
 
-  return <div className="text-center p-4 text-gray-400">กำลังโหลดห้องแชท...</div>;
+  return  <div className="fixed inset-0 flex items-center justify-center  z-50">
+  <Spin size="large" tip="กำลังโหลด..." />
+</div>
 }
 
 export default ChatRedirector;

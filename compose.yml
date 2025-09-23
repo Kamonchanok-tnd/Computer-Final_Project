@@ -35,11 +35,51 @@
 #   db_data:
 
 
+# version: '3.8'
+
+# services:
+#   postgres:
+#     image: postgres:latest
+#     container_name: postgres
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: 12345
+#       POSTGRES_DB: sukjai
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     ports:
+#       - "5432:5432"
+#     restart: unless-stopped
+
+#   pgadmin:
+#     image: dpage/pgadmin4:latest
+#     container_name: pgadmin
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: admin@admin.com
+#       PGADMIN_DEFAULT_PASSWORD: admin
+#     ports:
+#       - "5050:80"
+#     depends_on:
+#       - postgres
+#     restart: unless-stopped
+
+#   vbackend:
+#     build: ./VBackend
+#     container_name: VoiceChatBackend
+#     restart: always
+#     ports:
+#         - "8001:8000"
+# volumes:
+#   postgres_data: 
+
+
+
+
 version: '3.8'
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:17
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
@@ -49,10 +89,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sukjai"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     restart: unless-stopped
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:8
     container_name: pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
@@ -60,15 +105,39 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
     restart: unless-stopped
 
-  # vbackend:
-  #   build: ./VBackend
-  #   container_name: VoiceChatBackend
-  #   restart: always
-  #   ports:
-  #       - "8001:8000"
+  backend:
+    build:
+      context: .                      # รากโปรเจกต์ (มีโฟลเดอร์ backend/)
+      dockerfile: ./backend/Dockerfile
+    container_name: Backend
+    env_file:
+      - ./backend/.env                # อัด ENV เข้า container
+    volumes:
+      - ./backend/.env:/app/.env:ro 
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8082:8080"                   # เปิดที่ http://localhost:8082
+    restart: unless-stopped
 
+
+  # docker-compose.yml (เฉพาะส่วน frontend)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "/api"
+        VITE_IMG_URL: "/BgImage/"
+        VITE_PF_URL: "/images/profile/"
+    container_name: Frontend
+    ports:
+      - "5173:80"      # เข้าที่ http://localhost:5173
+    restart: unless-stopped
 volumes:
-  postgres_data: 
+  postgres_data:

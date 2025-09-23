@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Form, Input, Button, message, Spin, Select, Divider, Row, Col, Space, InputNumber } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { AdminInterface, AdminResponse } from "../../../interfaces/IAdmin";
+import { AdminInterface } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminById } from "../../../services/https/admin";
 import "./EditAdmin.css";
 function EditAdmin() {
@@ -15,17 +15,14 @@ function EditAdmin() {
   const [gender] = useState([
     { ID: 1, gender: "ชาย" },
     { ID: 2, gender: "หญิง" },
-    { ID: 3, gender: "อื่นๆ" },
+    { ID: 3, gender: "LGBTQ+" },
+    { ID: 4, gender: "ไม่ระบุ" },
   ]);
-
-  useEffect(() => {
-    if (id) fetchAdminData(id);
-  }, [id]);
 
   const fetchAdminData = async (id: string) => {
     setFormLoading(true);
     try {
-      const response: AdminResponse = await getAdminById(id);
+      const response: { data: AdminInterface } = await getAdminById(id);
       if (response.data) {
         setAdmin(response.data);
         form.setFieldsValue(response.data);
@@ -40,21 +37,26 @@ function EditAdmin() {
     }
   };
 
+  useEffect(() => {
+    if (id) fetchAdminData(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
   const handleSubmit = async (values: AdminInterface) => {
-    if (!admin) return message.error("ข้อมูลแอดมินไม่พร้อมใช้งาน.");
+    if (!admin) return message.error("ข้อมูลผู้ดูแลระบบไม่พร้อมใช้งาน.");
     setLoading(true);
     const updatedAdmin = { ...admin, ...values, age: parseInt(values.age.toString(), 10) };
     try {
       const response = await updateAdminById(admin.ID, updatedAdmin);
       if (response && response.status === "success") {
-        messageApi.success("อัปเดตข้อมูลแอดมินสำเร็จ");
+        messageApi.success("อัปเดตข้อมูลผู้ดูแลระบบสำเร็จ");
         setTimeout(() => navigate("/superadmin"), 1500);
       } else {
-        messageApi.error("ไม่สามารถอัปเดตข้อมูลแอดมินได้");
+        messageApi.error("ไม่สามารถอัปเดตข้อมูลผู้ดูแลระบบได้");
       }
     } catch (error) {
       console.error(error);
-      message.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลแอดมิน.");
+      message.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูลผู้ดูแลระบบ.");
     } finally {
       setLoading(false);
     }

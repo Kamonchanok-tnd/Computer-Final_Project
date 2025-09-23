@@ -1,7 +1,8 @@
 import { UsersInterface } from "../../../interfaces/IUser";
 import { SignInInterface } from "../../../interfaces/SignIn";
 import axios from "axios";
-const apiUrl = "http://localhost:8000";
+//import AxiosRequest from "./axiosInstance";
+const apiUrl = import.meta.env.VITE_API_URL;
 const Authorization = localStorage.getItem("token");
 const Bearer = localStorage.getItem("token_type");
 const requestOptions = {
@@ -30,7 +31,7 @@ async function GetUsers() {
 }
 const GetUsersById = async (id: string) => {
   const token = localStorage.getItem("token");  // ดึง token จาก localStorage
-  console.log("Token:", token); // เพิ่ม log เพื่อตรวจสอบว่า token มาไหม
+  //console.log("Token:", token); // เพิ่ม log เพื่อตรวจสอบว่า token มาไหม
 
   if (!token) {
     console.error("Token not found");
@@ -104,6 +105,8 @@ async function ResetPassword(token: string, newPassword: string) {
     .then((res) => res)
     .catch((e) => e.response);
 }
+
+
 export {
   SignIn,
   GetGender,

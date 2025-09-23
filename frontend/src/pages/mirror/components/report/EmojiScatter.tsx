@@ -3,79 +3,103 @@ import { useMemo } from "react";
 type Props = {
   count: number;
   src: string;
-  seed?: string;
   className?: string;
-  /** เพดานจำนวนคอลัมน์ต่อแถว (ค่าเริ่มต้น 6 ตามที่ต้องการ 5–6 ต่อแถว) */
-  maxPerRow?: number;
+  /** รัศมีสูงสุดของฝูง (สัดส่วนของกล่อง 0–0.5) */
+  maxRadius?: number;
 };
 
 export default function EmojiScatter({
   count,
   src,
-  seed = "seed",
   className = "",
-  maxPerRow = 6,
+  maxRadius = 0.45,
 }: Props) {
-  const cells = useMemo(() => {
-    const n = Math.max(0, Math.floor(count || 0));
-    if (n === 0) return [];
-
-    // 1) หา cols ที่บาลานซ์ที่สุด ภายใต้เพดาน maxPerRow
-    let bestCols = 1;
-    let bestScore = Number.POSITIVE_INFINITY;
-
-    for (let cols = 1; cols <= Math.min(maxPerRow, n); cols++) {
-      const rows = Math.ceil(n / cols);
-      const totalCells = rows * cols;
-      const balance = Math.abs(rows - cols);   // ใกล้จัตุรัสยิ่งดี
-      const waste = totalCells - n;            // ช่องว่างเหลือน้อยยิ่งดี
-      const score = balance * 100 + waste;     // ให้ balance สำคัญกว่า waste
-
-      if (score < bestScore) {
-        bestScore = score;
-        bestCols = cols;
-      } else if (score === bestScore) {
-        // ถ้าเท่ากัน เอนเอียงไปทาง 5 หรือ 6 คอลัมน์ก่อน
-        const preferA = cols === 5 || cols === 6;
-        const preferB = bestCols === 5 || bestCols === 6;
-        if (preferA && !preferB) bestCols = cols;
-      }
-    }
-
-    const cols = bestCols;
-    const rows = Math.ceil(n / cols);
-
-    // 2) สร้างกริดและจัดอันดับ cell ตามระยะจากกึ่งกลาง (ใกล้ก่อน)
-    type P = { x: number; y: number; r: number; c: number; d2: number };
-    const all: P[] = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const x = (c + 0.5) / cols;
-        const y = (r + 0.5) / rows;
-        const d2 = (x - 0.5) ** 2 + (y - 0.5) ** 2;
-        all.push({ x, y, r, c, d2 });
-      }
-    }
-
-    all.sort((a, b) => a.d2 - b.d2 || a.r - b.r || a.c - b.c);
-    const chosen = all.slice(0, n);
-
-    // เรียงเพื่อให้ render คงที่ (ไม่กระทบตำแหน่งที่เลือกแล้ว)
-    chosen.sort((a, b) => a.y - b.y || a.x - b.x);
-
-    return chosen.map((p) => ({
-      left: `${p.x * 100}%`,
-      top: `${p.y * 100}%`,
-    }));
-  }, [count, seed, maxPerRow]);
-
-  if (cells.length === 0) {
-    return <div className={`relative ${className}`} />;
+  // PRNG deterministic (ไว้สำหรับ jitter ให้ดูธรรมชาติ)
+  function mulberry32(seed: number) {
+    return function () {
+      let t = (seed += 0x6D2B79F5);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
   }
+  const rand = mulberry32(20250819);
+
+  const positions = useMemo(() => {
+    const n = Math.max(0, Math.floor(count || 0));
+    if (n === 0) return [] as { x: number; y: number }[];
+
+    const phi = Math.PI * (3 - Math.sqrt(5)); // golden angle
+    const R = maxRadius * 0.98;
+
+    // ↓↓↓ สำคัญ: ทำให้ “จำนวนน้อย” เกาะกลางมากขึ้น
+    // shrink: n เล็ก → บีบรัศมีรวมเข้าศูนย์กลาง (เช่น n<=3 ~ 0.55R)
+    const shrink = n <= 1 ? 0 : 0.55 + Math.min(1, (n - 3) / 15) * 0.45;
+    // สเกลรัศมีพื้นฐาน
+    const c = (R * shrink) / (Math.sqrt(n) + 0.5);
+
+    // ระยะกันชนขั้นต่ำ (หน่วยเป็นสัดส่วนกล่อง) — จำกัดช่วงไม่ให้ใหญ่เกินสำหรับ n น้อย
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+    const minDist = clamp(c * 1.2, 0.06, 0.095);
+    const minDist2 = minDist * minDist;
+
+    // ดึงเข้าศูนย์กลาง (soft pull) มากเมื่อน้อย น้อยเมื่อเยอะ
+    const pullCenter = 0.12 * (1 - Math.min(n / 12, 1)); // n<12 จะดึงมากกว่า
+
+    // 1) sunflower layout + jitter เล็กน้อย
+    const pts: { x: number; y: number }[] = [];
+    for (let k = 0; k < n; k++) {
+      const theta = k * phi;
+      const baseR = c * Math.sqrt(k + 0.8);
+      const jitter = (rand() - 0.5) * 0.08 * c; // เล็กพอให้ดูธรรมชาติ
+      const r = Math.min(R, baseR + jitter);
+
+      // จุดเริ่ม
+      let x = 0.5 + r * Math.cos(theta);
+      let y = 0.5 + r * Math.sin(theta);
+
+      // ดึงเข้าศูนย์กลางตามสัดส่วน (ช่วยให้ n น้อยไม่เวิ้ง)
+      const dx0 = x - 0.5, dy0 = y - 0.5;
+      x -= dx0 * pullCenter;
+      y -= dy0 * pullCenter;
+
+      pts.push({ x, y });
+    }
+
+    // 2) repulsion เบา ๆ เพื่อไม่ให้ชนกันจริง ๆ
+    const ITER = Math.min(6, 2 + Math.floor(n / 10));
+    for (let it = 0; it < ITER; it++) {
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const dx = pts[j].x - pts[i].x;
+          const dy = pts[j].y - pts[i].y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < minDist2 && d2 > 1e-6) {
+            const d = Math.sqrt(d2);
+            const push = (minDist - d) * 0.5;
+            const ux = dx / d, uy = dy / d;
+            pts[i].x -= ux * push; pts[i].y -= uy * push;
+            pts[j].x += ux * push; pts[j].y += uy * push;
+          }
+        }
+        // clamp กลับเข้าในวงกลม R
+        const cx = pts[i].x - 0.5, cy = pts[i].y - 0.5;
+        const rr = Math.hypot(cx, cy);
+        if (rr > R) {
+          pts[i].x = 0.5 + (cx / rr) * R;
+          pts[i].y = 0.5 + (cy / rr) * R;
+        }
+      }
+    }
+
+    return pts;
+  }, [count, maxRadius, rand]);
+
+  if (count <= 0) return <div className={`relative ${className}`} />;
 
   return (
     <div className={`relative ${className}`}>
-      {cells.map((pos, i) => (
+      {positions.map((p, i) => (
         <img
           key={`emo-${i}`}
           src={src}
@@ -83,9 +107,11 @@ export default function EmojiScatter({
           draggable={false}
           className="absolute w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9"
           style={{
-            left: pos.left,
-            top: pos.top,
+            left: `${p.x * 100}%`,
+            top: `${p.y * 100}%`,
             transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+            userSelect: "none",
           }}
         />
       ))}

@@ -1,0 +1,41 @@
+/* ตัวอย่างในไฟล์ CSS */
+.custom-delete-modal .ant-modal-content {
+    background-color: "white"; /* พื้นหลัง modal */
+             /* สีตัวหนังสือ */
+    border-radius: 12px;
+    font-family:var(--font-ibmthai) ;
+  }
+  
+  .custom-delete-modal .ant-modal-header {
+    font-family:var(--font-ibmthai) ;
+    color: #38bdf8;      /* สี title */
+  }
+  
+  .custom-delete-modal .ant-modal-footer {
+    border-top: none; /* ตัดเส้น divider */
+  }
+  /* ใช้กับ modal ที่มี className="custom-delete-modal" */
+.custom-delete-modal .ant-btn-default {
+    background-color: #f1f5f9; /* สีพื้นหลังปุ่ม */
+    color: #334155;           /* สีตัวหนังสือ */
+    border: none;             /* เอาเส้นขอบออก */
+    border-radius: 8px;       /* มุมโค้ง */
+    transition: all 0.3s ease;
+  }
+  
+  .custom-delete-modal .ant-btn-default:hover {
+    background-color: #e2e8f0; /* สี hover */
+    color: #0f172a !important;           /* สีตัวหนังสือเวลา hover */
+  }
+
+  .custom-delete-modal .ant-btn-primary {
+    background-color: #5DE2FF !important; /* สีแดงหลัก */
+    border: none;
+    border-radius: 8px;
+    color: #fff !important;
+    transition: all 0.3s ease;
+  }
+  
+  .custom-delete-modal .ant-btn-primary:hover {
+    background-color: #dc2626; /* สีแดงเข้มตอน hover */
+  }

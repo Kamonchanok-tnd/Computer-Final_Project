@@ -1,11 +1,36 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Input, Button, Select, Form, message } from "antd";
-import { getSoundTypes, createVideo } from "../../../services/https/meditation";
+import { Input,  Select, Form, message } from "antd";
+import { getSoundTypes } from "../../../services/https/meditation";
 import "./meditation.css"; // import CSS ที่แยกออกมา
 import { useNavigate, useParams } from "react-router-dom";
-import { Check, CheckCircle, X, Play, Music } from "lucide-react";
+import { Play } from "lucide-react";
 import { getSoundByID, updateSoundByID } from "../../../services/https/sounds";
+
 const { Option } = Select;
+
+export const formatDurationHMS = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return h > 0
+    ? `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
+    : `${m}:${s.toString().padStart(2, "0")}`;
+};
+
+// แปลง h:mm:ss -> วินาที
+export const parseDurationHMS = (input: string) => {
+  const parts = input.split(":").map(Number);
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    return h * 3600 + m * 60 + s;
+  } else if (parts.length === 2) {
+    const [m, s] = parts;
+    return m * 60 + s;
+  } else if (parts.length === 1) {
+    return parts[0];
+  }
+  return 0;
+};
 
 const EditSound: React.FC = () => {
   const [form] = Form.useForm();
@@ -14,24 +39,28 @@ const EditSound: React.FC = () => {
   const [userId, setUserId] = useState<number | null>(null);
   const navigate = useNavigate();
   const previewRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
   const { id } = useParams();
+  const [_originalURL, setOriginalURL] = useState<string>("");
+
   const fetchVideo = async () => {
     try {
       const res = await getSoundByID(Number(id));
       const videoData = res.data;
-      console.log("Video data:", res.data);
+      // console.log("Video data:", res.data);
       form.setFieldsValue({
-        name: videoData.Name,
-        Owner: videoData.Owner,
-        sound: videoData.Sound,
-        description: videoData.Description,
-        lyric: videoData.Lyric,
-        duration: videoData.Duration,
-        stid: videoData.STID,
-        uid: videoData.UID,
+        name: videoData.name,
+        Owner: videoData.owner,
+        sound: videoData.sound,
+        description: videoData.description,
+        lyric: videoData.lyric,
+        duration: formatDurationHMS(videoData.duration),
+        stid: videoData.stid,
+        uid: videoData.uid,
       });
+      setOriginalURL(videoData.sound);
       setStid(videoData.STID); // set select
-      console.log("Form values after set:", form.getFieldsValue());
+      // console.log("Form values after set:", form.getFieldsValue());
     } catch (error) {
       message.error("โหลดข้อมูลวิดีโอไม่สำเร็จ");
     }
@@ -71,12 +100,13 @@ const EditSound: React.FC = () => {
   }, [form]);
 
   const handleSubmit = async (values: any) => {
+    
     if (userId) {
       values.uid = Number(userId);
     }
     values.stid = Number(values.stid);
-    values.duration = Number(values.duration);
-    console.log(values);
+    values.duration = parseDurationHMS(values.duration);
+    // console.log(values);
     try {
       await updateSoundByID(Number(id),values);
       message.success("แก้ไขข้อมูลสําเร็จ!");
@@ -84,7 +114,7 @@ const EditSound: React.FC = () => {
       setStid(undefined);
       form.setFieldsValue({ uid: Number(userId) });
       setTimeout(() => {
-           navigate("/admin/sounds");
+           getRolePath("sounds");
       }, 2000);
      
     } catch (err) {
@@ -95,27 +125,57 @@ const EditSound: React.FC = () => {
   const handlePreview = () => {
     const url = form.getFieldValue("sound");
     const videoId = extractYouTubeID(url);
-    if (videoId && previewRef.current) {
-      previewRef.current.innerHTML = `
-        <iframe width="100%" height="400"
-          src="https://www.youtube.com/embed/${videoId}"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-          class="rounded-lg shadow-lg">
-        </iframe>
-      `;
-    } else {
+    if (!videoId) {
       message.error("ลิงก์ไม่ถูกต้อง หรือไม่พบวิดีโอ");
+      return;
     }
+
+    // แสดง iframe
+    if (previewRef.current) {
+      previewRef.current.innerHTML = `<div id="yt-player"></div>`;
+    }
+
+    // โหลด YouTube API
+    if (!(window as any).YT) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.body.appendChild(tag);
+    }
+
+    const waitForYT = () => {
+      if ((window as any).YT && (window as any).YT.Player) {
+        playerRef.current = new (window as any).YT.Player("yt-player", {
+          height: "400",
+          width: "100%",
+          videoId,
+          events: {
+            onReady: (event: any) => {
+              const durationSeconds = event.target.getDuration();
+              const formatted = formatDurationHMS(durationSeconds);
+              form.setFieldsValue({ duration: formatted });
+            
+            },
+          },
+        });
+      } else {
+        setTimeout(waitForYT, 300);
+      }
+    };
+    waitForYT();
   };
 
-  // ดึง video ID จาก youtube link
   const extractYouTubeID = (url: string): string | null => {
     const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
+
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-6">
@@ -123,7 +183,7 @@ const EditSound: React.FC = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-medium text-gray-800">
-            สร้างคอนเทนต์เสียง
+            แก้ไขเสียง
           </h1>
         </div>
 
@@ -267,27 +327,11 @@ const EditSound: React.FC = () => {
                   </Form.Item>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <Form.Item label="ความยาว" required>
-                      <div className="flex">
-                        <Form.Item
-                          name="duration"
-                          noStyle
-                          rules={[
-                            { required: true, message: "กรุณากรอกความยาว" },
-                          ]}
-                        >
-                          <Input
-                            type="number"
-                            step="0.01"
-                            className="h-10 rounded-l-lg border-gray-300 focus:border-indigo-500"
-                            placeholder=""
-                          />
-                        </Form.Item>
-                        <span className="px-3 h-10 flex items-center text-gray-600 rounded-r-lg text-sm">
-                          นาที
-                        </span>
-                      </div>
-                    </Form.Item>
+                  <Form.Item label="ความยาว" required>
+                  <Form.Item name="duration" noStyle rules={[{ required: true }]}>
+                    <Input placeholder="h:mm:ss"disabled/>
+                  </Form.Item>
+                </Form.Item>
 
                     <div></div>
                   </div>
@@ -307,7 +351,7 @@ const EditSound: React.FC = () => {
 
                 <div className="flex justify-end gap-3 mt-8">
                   <button
-                    onClick={() => navigate("/admin")}
+                    onClick={() => getRolePath("sounds")}
                     className="px-6 py-2 text-red-500 hover:text-red-600 border-none shadow-none bg-transparent"
                   >
                     ยกเลิก

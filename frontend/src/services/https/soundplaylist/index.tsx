@@ -1,4 +1,4 @@
-import { IPlaylist } from "../../../interfaces/IPlaylist";
+
 import { ISoundPlaylist } from "../../../interfaces/ISoundPlaylist";
 import { apiUrl } from "../Chat";
 
@@ -23,8 +23,7 @@ export async function CreateSoundPlaylist(data: ISoundPlaylist) {
     );
     const result = await response.json();
 
-    
-    console.log(result);
+ 
     return { status: response.status, result };
   } catch (error) {
     console.error(error);
@@ -47,6 +46,7 @@ export async function GetSoundPlaylistByPID(id: number) {
     return result;
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }
 

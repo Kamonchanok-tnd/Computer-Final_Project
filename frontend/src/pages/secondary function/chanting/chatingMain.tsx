@@ -1,17 +1,18 @@
-import { Eye, Heart, Play, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useDarkMode } from "../../../components/Darkmode/toggleDarkmode";
 import { getSoundsByTypeID } from "../../../services/https/sounds";
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { Sound } from "../../../interfaces/ISound";
 import ChantingContent from "./components/chantingContent";
 import ModalPlaylist from "./components/modalPlaylist";
 import { GetPlaylistByUID } from "../../../services/https/playlist";
-import { IPlaylist } from "../../../interfaces/IPlaylist";
+
 import PlaylistContent from "./components/PlaylistContent";
 import { CustomPlaylist } from "../Playlist/Playlist";
 import { useNavigate } from "react-router-dom";
 import { GetTopSoundPlaylist } from "../../../services/https/soundplaylist";
 import { message } from "antd";
+
 
 function ChantingMain() {
   const { isDarkMode } = useDarkMode();
@@ -25,42 +26,46 @@ function ChantingMain() {
   const navigate = useNavigate();
   const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(true);
 
-
-
   async function fetchPlaylist() {
-    setIsLoadingPlaylist(true); // เริ่มโหลด
+    setIsLoadingPlaylist(true);
   
     try {
-      const res = await GetPlaylistByUID(Number(uid));
-      if (Array.isArray(res)) {
+      const res = await GetPlaylistByUID(Number(uid), 3);
+  
+      if (!res) {
+        console.warn("Playlist response is null or undefined");
+        setPlaylists([]);
+      } else if (Array.isArray(res)) {
+        // ถ้า API ส่ง array โดยตรง
         setPlaylists(res);
       } else if (Array.isArray(res.data)) {
+        // ถ้า API ส่ง { data: [...] }
         setPlaylists(res.data);
       } else {
-        console.warn("unexpected response:", res);
+        console.warn("Unexpected playlist response:", res);
         setPlaylists([]);
       }
     } catch (error) {
       console.error("Error fetching playlist:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setIsLoadingPlaylist(false); // โหลดเสร็จแล้ว
+      setIsLoadingPlaylist(false);
     }
   }
   
-
   async function fetchChanting() {
     try {
-      const res = await getSoundsByTypeID(3); 
+      const res = await getSoundsByTypeID(3);
       setChantingSounds(res.sounds); // สำคัญ! ต้องใช้ res.sounds ตามโครงสร้าง
-
     } catch (error) {
       console.error("Error fetching chanting sounds:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
   function openModalPlaylist() {
     setOpenModal(true);
-    console.log(openModal);
+  
   }
 
   const filteredSounds = chantingSounds.filter((sound) =>
@@ -86,69 +91,74 @@ function ChantingMain() {
   };
 
   useEffect(() => {
-    console.log(chantingSounds);
-  }, [chantingSounds,playlists]);
+ 
+  }, [chantingSounds, playlists]);
 
   useEffect(() => {
-
     fetchChanting();
     fetchPlaylist();
   }, []);
 
   function gotoplaylist(id: number) {
-    console.log("id is: ",id);
+
     setTimeout(() => {
       navigate(`/audiohome/Playlist/${id}`);
-    })
+    });
   }
   function gotoSound(id: number) {
-    console.log("id is: ",id);
+ 
     setTimeout(() => {
       navigate(`/audiohome/chanting/play/${id}`);
-    })
+    });
   }
   async function gotoPlaylistmedia(id: number) {
-    console.log("id is: ",id);
+
     const res = await GetTopSoundPlaylist(id);
     if (res === false) {
-      console.error("Error fetching playlist");
+  
       message.error("เกิดข้อผิดพลาด");
       return;
     }
-  
+
     if (res.noVdo) {
       message.error("ไม่มี vdo ใน playlist นี้:");
       setTimeout(() => {
         navigate(`/audiohome/Playlist/${id}`);
-      },1000)
-     
+      }, 1000);
+
       return;
     }
-  
+
     // กรณีมีข้อมูล playlist จริง ๆ
-    
+
     setTimeout(() => {
       navigate(`/audiohome/chanting/playlist/play/${id}/${res.data.sid}`);
-    },1000)
+    }, 1000);
   }
   function gotoPlaylist(id: number) {
-    console.log("id is: ",id);
+  
     setTimeout(() => {
+      if (!id){
+        message.error("เกิดข้อผิดพลาด");
+        return
+      }
       navigate(`/audiohome/Playlist/${id}`);
-    })
+    });
   }
   function topPage() {
     window.scrollTo({
       top: 0,
-      behavior: "smooth" // เลื่อนแบบนุ่ม ๆ
+      behavior: "smooth", // เลื่อนแบบนุ่ม ๆ
     });
   }
-  
+
   useEffect(() => {
     topPage();
   }, []);
 
+  
   return (
+
     <div
       className={`flex flex-col  duration-300 items-center  min-h-full max-h-fit font-ibmthai  
          ${isDarkMode ? "bg-background-dark" : "bg-background-blue"}`}
@@ -162,19 +172,24 @@ function ChantingMain() {
       >
         {/* search + create */}
         <div className="flex md:justify-end ">
-        <div className="relative w-[500px] focus-within:outline-regal-blue rounded-lg transition-all duration-300">
-  <Search className="absolute left-3 top-2 transform-translate-y-1/2 h-5 w-5 text-basic-blue 
-  pointer-events-none dark:text-text-dark" />
-  <input
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    placeholder="ค้นหา..."
-    className="pl-10 pr-4  w-full py-2  bg-[#FAFAFA] rounded-md hover:outline-regal-blue hover:outline-1 transition-colors duration-300  
+          <div className="relative w-[500px] focus-within:outline-regal-blue rounded-lg transition-all duration-300">
+            <Search
+              className="absolute left-3 top-2 transform-translate-y-1/2 h-5 w-5 text-basic-blue 
+  pointer-events-none dark:text-text-dark"
+            />
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="ค้นหา..."
+              className="pl-10 pr-4  w-full py-2  bg-[#FAFAFA] rounded-md hover:outline-regal-blue hover:outline-1 transition-colors duration-300  
                focus:border-transparent outline-regal-blue focus:outline-1
                dark:bg-chat-dark  dark:border dark:hover:border-regal-blue dark:text-white dark:hover:outline-regal-blue dark:hover:outline-1"
-  />
-</div>
-          <button className="bg-button-blue text-white px-2 py-1 rounded-md ml-2" onClick={openModalPlaylist}>
+            />
+          </div>
+          <button
+            className="bg-button-blue text-white px-2 py-1 rounded-md ml-2"
+            onClick={openModalPlaylist}
+          >
             <div className="flex items-center space-x-2">
               <Plus className="h-5 w-5 text-white " />
               <span>สร้าง</span>
@@ -182,14 +197,11 @@ function ChantingMain() {
           </button>
         </div>
 
-          
-     
         <ModalPlaylist
           isModalOpen={openModal}
           onClose={() => setOpenModal(false)}
           gotoPlaylist={gotoPlaylist}
         />
-     
 
         {/* filter */}
         <div className="space-x-1">
@@ -232,25 +244,35 @@ function ChantingMain() {
         </div>
 
         {/* playlist */}
-        {showPlaylist && (
-  isLoadingPlaylist ? (
-    <div className="text-center text-subtitle">กำลังโหลดเพลย์ลิสต์...</div>
+        {showPlaylist &&
+  (isLoadingPlaylist ? (
+    <div className="text-center text-subtitle">
+      กำลังโหลดเพลย์ลิสต์...
+    </div>
+  ) : playlists.length === 0 ? (
+    <div className="text-center text-subtitle dark:text-text-dark">
+      ยังไม่มีเพลย์ลิสต์ที่สร้าง
+    </div>
   ) : (
     <PlaylistContent
       Playlist={playlists}
       GotoPlaylist={gotoplaylist}
       gotoPlaylistmedia={gotoPlaylistmedia}
-      fetchPlaylist={fetchPlaylist}
+      setPlaylists={setPlaylists}
     />
-  )
-)}
+  ))}
 
         {/* chatinting content */}
         {chanting && (
-          <ChantingContent filteredSounds={filteredSounds} extractYouTubeID={extractYouTubeID} gotoSound={gotoSound}  />
+          <ChantingContent
+            filteredSounds={filteredSounds}
+            extractYouTubeID={extractYouTubeID}
+            gotoSound={gotoSound}
+          />
         )}
       </div>
     </div>
+    
   );
 }
 export default ChantingMain;

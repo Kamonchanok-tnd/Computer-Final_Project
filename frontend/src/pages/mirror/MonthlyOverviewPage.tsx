@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Header from "./components/Header";
 import SideOrnaments from "./components/SideOrnaments";
-import MonthPicker from "./components/MonthPicker";
+import MonthPicker from "./components/report/MonthPicker";
 import MonthlyReport from "./components/MonthlyReport";
 import { getMirrorSummary } from "../../services/https/mirror";
 import type { IMonthlySummary } from "../../interfaces/IMonthlySummary";
@@ -72,7 +72,7 @@ export default function MonthlyOverviewPage() {
       <div className="flex-1">
         <div className="mx-auto w-full px-4 sm:px-6 md:px-8 h-full">
           <div className="mx-auto max-w-screen-md px-4 sm:px-6 md:px-8 h-full">
-            <main className="w-full h-full py-0 pb-6 md:pb-10 flex flex-col [padding-bottom:max(env(safe-area-inset-bottom),1rem)]">
+            <main className="w-full h-full py-0 pb-6 md:pb-10 flex flex-col">
               {/* ตัวเลือกเดือน */}
               <div className="mt-2">
                 <MonthPicker value={base} onChange={setBase} label={""} />

@@ -6,12 +6,13 @@ import (
 
 type SoundPlaylist struct {
 	gorm.Model
-	SID uint  `json:"sid"`// foreign key ที่เชื่อมโยงกับ Sound
-	PID uint  `json:"pid"`// foreign key ที่เชื่อมโยงกับ Playlist
+	SID uint  `json:"sid" valid:"required~SoundID is required"`
+
+	PID uint `json:"pid" valid:"required~PlaylistID is required"`
 	
 
 	// ความสัมพันธ์
-	Sound    Sound    `gorm:"foreignKey:SID"`  // เชื่อมโยงกับ Sound ผ่าน SID
-	Playlist Playlist `gorm:"foreignKey:PID"`  // เชื่อมโยงกับ Playlist ผ่าน PID
+	Sound    Sound    `gorm:"foreignKey:SID" valid:"-"` // เชื่อมโยงกับ Sound ผ่าน SID
+	Playlist Playlist `gorm:"foreignKey:PID" valid:"-"`  // เชื่อมโยงกับ Playlist ผ่าน PID
 	
 }

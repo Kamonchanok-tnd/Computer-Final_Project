@@ -4,7 +4,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Download, Edit, EllipsisVertical, Play, Share, Trash2 } from "lucide-react";
+import {  EllipsisVertical, Play,  Trash2 } from "lucide-react";
 import { Dropdown, MenuProps, message, Modal } from "antd";
 import { useState } from "react";
 import "./table.css"

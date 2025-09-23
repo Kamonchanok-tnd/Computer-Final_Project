@@ -18,7 +18,7 @@ function EditYourself() {
   const fetchAdminData = async (id: string) => {
     setFormLoading(true);
     try {
-      const response: AdminResponse = await getAdminById(id);
+    const response: AdminResponse = await getAdminById(id);
       if (response.data) setAdmin(response);
       else alert("ไม่สามารถโหลดข้อมูลผู้ดูแลระบบได้");
     } catch (error) {
@@ -139,7 +139,8 @@ function EditYourself() {
                 <option value="">เลือกเพศ</option>
                 <option value="ชาย">ชาย</option>
                 <option value="หญิง">หญิง</option>
-                <option value="อื่นๆ">อื่นๆ</option>
+                <option value="LGBTQ+">LGBTQ+</option>
+                <option value="ไม่ระบุ">ไม่ระบุ</option>
               </select>
             </div>
 

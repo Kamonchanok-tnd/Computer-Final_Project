@@ -57,25 +57,76 @@ func ForgotPasswordController(c *gin.Context) {
 
 
     // ส่งอีเมล
-    subject := "โทเค็นสำหรับการรีเซ็ตรหัสผ่านของคุณ"
-    body := fmt.Sprintf(`
-    <!DOCTYPE html>
-    <html lang="th">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reset Password</title>
-    </head>
-    <body>
-        <h1>รีเซ็ตรหัสผ่านของคุณ</h1>
-        <p>สวัสดีค่ะ/ครับ,</p>
-        <p>นี่คือโทเค็นสำหรับการรีเซ็ตรหัสผ่านของคุณ: %s</p>
-        <p>กรุณาใช้โทเค็นนี้เพื่อรีเซ็ตรหัสผ่านของคุณภายใน 5 นาที</p>
-        <p>หากคุณไม่ได้ร้องขอการรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลนี้</p>
-        <p>ขอบคุณค่ะ/ครับ,<br>ทีมงานของเรา</p>
-    </body>
-    </html>
-    `, user.ResetToken)
+subject := "การรีเซ็ตรหัสผ่าน - ระบบ SUT Healjai"
+body := fmt.Sprintf(`
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        h2 {
+            color: #1976D2;
+            text-align: center;
+        }
+        .token {
+            font-size: 20px;
+            font-weight: bold;
+            color: #d32f2f;
+            background: #fce4ec;
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 15px 0;
+        }
+        p {
+            line-height: 1.6;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>การรีเซ็ตรหัสผ่าน</h2>
+        <p>เรียนผู้ใช้งาน,</p>
+        <p>ตามที่ท่านได้ทำการร้องขอการรีเซ็ตรหัสผ่าน ระบบได้จัดส่งโทเค็นสำหรับการรีเซ็ตรหัสผ่านมาให้ดังนี้:</p>
+
+        <div class="token">%s</div>
+
+        <p>กรุณานำโทเค็นนี้ไปใช้ภายใน <b>5 นาที</b> เพื่อทำการตั้งรหัสผ่านใหม่ หากพ้นเวลาที่กำหนด ท่านจำเป็นต้องทำการขอรีเซ็ตรหัสผ่านใหม่อีกครั้ง</p>
+        <p>หากท่านไม่ได้เป็นผู้ร้องขอการรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลฉบับนี้</p>
+
+        <p>ขอแสดงความนับถือ,<br>
+        ทีมงาน SUT Healjai</p>
+
+        <div class="footer">
+            *** อีเมลฉบับนี้เป็นการแจ้งอัตโนมัติ กรุณาอย่าตอบกลับ ***
+        </div>
+    </div>
+</body>
+</html>
+`, user.ResetToken)
 
     // ฟังก์ชันการส่งอีเมล
     sendEmail := func(to, subject, body string) error {

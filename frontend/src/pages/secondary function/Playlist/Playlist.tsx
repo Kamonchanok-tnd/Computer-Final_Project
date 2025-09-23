@@ -1,29 +1,21 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  CreatePlaylist,
-  DeletePlaylistByID,
+ 
   GetPlaylistByID,
-  GetPlaylistByUID,
-  IMG_URL,
+
   UpdatePlaylist,
 } from "../../../services/https/playlist";
 import {
   Check,
   ChevronLeft,
-  CirclePlus,
-  Clock,
-  Eye,
-  Heart,
+
   Images,
-  MoveLeft,
+
   PenLine,
   Play,
   Search,
-  ShowerHead,
-  SquarePen,
-  Trash,
-  Trash2,
+
   X,
 } from "lucide-react";
 import { IPlaylist } from "../../../interfaces/IPlaylist";
@@ -44,7 +36,7 @@ import ClearPlaylistModal from "./Component/ClearPlaylistModal";
 import { GetBackground } from "../../../services/https/background";
 import BackgroundPlaylist from "./Component/background";
 import { IBackground } from "../../../interfaces/IBackground";
-import DeleteConfirmModal from "./Component/DeleteConfirmModal";
+
 
 export interface CustomPlaylist extends IPlaylist {
   picture: string;
@@ -66,7 +58,7 @@ function AddSoundPlaylist() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredSounds, setFilteredSounds] = useState<Sound[]>([]);
   const [soundPlaylist, setSoundPlaylist] = useState<CustomSoundPlaylist[]>([]);
-  const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
+ 
   const [deletedRowIds, setDeletedRowIds] = useState<number[]>([]);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>("");
@@ -82,11 +74,12 @@ function AddSoundPlaylist() {
   async function DeleteSoundPlaylist(id: number) {
     try {
       await DeleteSoundPlaylistByID(id);
-      message.success("ลบเพลย์ลิสต์แล้ว");
+      message.success("ลบออกจากเพลย์ลิสต์แล้ว");
       setDeletedRowIds((prev) => [...prev, id]);
       fetchSoundPlaylist();
     } catch (error) {
-      console.error("Error deleting playlist:", error);
+      
+      message.error("ลบออกจากเพลย์ลิสต์ไม่สําเร็จ กรุณาลองใหม่อีกครั้ง");
     }
   }
   useEffect(() => {
@@ -106,9 +99,10 @@ function AddSoundPlaylist() {
     try {
       const res = await GetSoundPlaylistByPID(Number(p_id));
       setSoundPlaylist(res);
-      console.log("sound playlist is: ", res);
+      
     } catch (error) {
-      console.error("Error fetching playlist:", error);
+     
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
@@ -118,9 +112,10 @@ function AddSoundPlaylist() {
       setPlaylists(res);
       setCurrentBackgrounds(res.picture);
       setSelectedPicture(res.picture);
-      // console.log("playlist is: ", res);
+     
     } catch (error) {
-      console.error("Error fetching playlist:", error);
+     
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
   async function fetchChanting() {
@@ -129,7 +124,8 @@ function AddSoundPlaylist() {
 
       setChantingSounds(res.sounds); // สำคัญ! ต้องใช้ res.sounds ตามโครงสร้าง
     } catch (error) {
-      console.error("Error fetching chanting sounds:", error);
+   
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
@@ -144,22 +140,7 @@ function AddSoundPlaylist() {
     // console.log("playlists is: ", chantingSounds);
   }, [soundPlaylist]);
 
-  const getYouTubeEmbedUrl = (url?: string): string | null => {
-    if (!url) {
-      console.warn("YouTube URL is undefined or empty");
-      return null;
-    }
-    const regExp =
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
-    const match = url.match(regExp);
 
-    if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}`;
-    } else {
-      console.warn("ไม่สามารถดึง YouTube video ID จาก URL:", url);
-      return null;
-    }
-  };
 
   const extractYouTubeID = (url: string): string | null => {
     const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
@@ -184,6 +165,7 @@ function AddSoundPlaylist() {
       }
     } catch (error) {
       console.error("Error fetching playlist:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
       // message.error();
     }
   }
@@ -192,7 +174,7 @@ function AddSoundPlaylist() {
     try {
       const updated: IPlaylist = { name: newName };
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
-      console.log("Playlist updated:", updated);
+    
       setEditMode(false);
       message.success("เปลี่ยนชื่อเพลย์ลิสต์แล้ว");
       fetchPlaylist();
@@ -224,6 +206,7 @@ function AddSoundPlaylist() {
       fetchSoundPlaylist();
     } catch (error) {
       console.error("Error deleting playlist:", error);
+      message.error("เกิดข้อผิดพลาดในการลบเพลย์ลิสต์");
     }
   }
 
@@ -234,6 +217,7 @@ function AddSoundPlaylist() {
      
     } catch (error) {
       console.error("Error fetching backgrounds:", error);
+      message.error("เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง");
     }
   }
 
@@ -246,13 +230,16 @@ function AddSoundPlaylist() {
     try {
       const updated: IPlaylist = { bid: b_id };
       await UpdatePlaylist(updated, Number(p_id)); // หรือใช้ UpdatePlaylist API แทน
-      console.log("Playlist updated:", updated);
+  
       setEditMode(false);
-      message.success("เปลียนพื้นหลังเพลย์ลิสต์แล้ว");
+      message.success("เปลี่ยนพื้นหลังเพลย์ลิสต์แล้ว");
+
       fetchPlaylist();
     } catch (error) {
       console.error("Error updating name:", error);
       message.error("เกิดข้อผิดพลาดในการเปลี่ยนพื้นหลัง");
+    }finally {
+      setShowPreview(false);
     }
   }
 }

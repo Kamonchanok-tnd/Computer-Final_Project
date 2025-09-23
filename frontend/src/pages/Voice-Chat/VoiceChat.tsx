@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRecorder } from "../Voice-Chat/Record/useRecorder";
-import { Mic, MicOff } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import AudioVisualizer from "../../components/Voice-visualizer/VolumeVisualizer"; // 👈 นำเข้า visualizer
 import { useVolumeVisualizer } from "../../components/Voice-visualizer/useVolumeVisualizer";
 import { useParams } from "react-router-dom";
@@ -10,7 +10,7 @@ const VoiceChat: React.FC = () => {
   const { isRecording, startRecording, stopRecording } = useRecorder();
   const wsRef = useRef<WebSocket | null>(null);
   const [wsStatus, setWsStatus] = useState("🔌 Not connected");
-  const [logs, setLogs] = useState<string[]>([]);
+  const [_logs, setLogs] = useState<string[]>([]);
   // const [isPlaying, setIsPlaying] = useState(false); 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const params = useParams();
@@ -32,7 +32,7 @@ const VoiceChat: React.FC = () => {
     ws.onopen = () => {
       setWsStatus("Connected");
       addLog("WebSocket connected");
-      console.log("We send chatRoomID : ", RoomID);
+      // console.log("We send chatRoomID : ", RoomID);
       ws.send(JSON.stringify({ chatRoomID: RoomID ,token: `Bearer ${token}`}));
     };
 
@@ -82,7 +82,7 @@ const VoiceChat: React.FC = () => {
 
   useEffect(() => {
     connectWebSocket();
-    console.log("chatRoomID:", RoomID);
+    // console.log("chatRoomID:", RoomID);
     return () => {
       wsRef.current?.close();
     };
@@ -113,11 +113,11 @@ const VoiceChat: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center h-full p-4 text-center
+    <div className={`flex flex-col items-center justify-center min-h-[calc(100vh-64px)]  p-4 text-center 
     ${isDarkMode ? "bg-background-dark" : " bg-background-blue "} transition-colors duration-300
    `}>
       {/* box main */}
-      <div className={`border w-[100%] h-full flex justify-between  items-center flex-col p-2 transition-colors duration-300
+      <div className={`border w-[100%] h-[90vh] flex justify-between  items-center flex-col p-2 transition-colors duration-300
        ${isDarkMode ? "bg-background-dark border-stoke-dark" : " bg-white/70 border-gray-200  "} drop-shadow-2xl rounded-2xl gap-8 `}>
         <div className="">
           <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-text-dark' : 'text-black-word'}`}>AI Voice Chat</h1>
@@ -135,12 +135,13 @@ const VoiceChat: React.FC = () => {
       <div className="m-4">
         <button
         className={`p-4 mb-4 text-white font-medium transition-all rounded-full ${
-          isRecording ? "bg-red-500 hover:bg-red-600" : "bg-[#FF3B2F] hover:#FF3B2F]"
+          isRecording ? "bg-gray-500 hover:bg-gray-600" : "bg-[#FF3B2F] hover:#FF3B2F]"
         }`}
         onClick={isRecording ? handleStop : handleStart}
       >
-        {isRecording ? <MicOff size={30} /> : <Mic size={30} />}
+        {isRecording ? <Square size={30} className="fill-white" /> : <Mic size={30} />}
       </button>
+      
       </div>
       
       {/* <p>{isRecording ? "Stop Recording" : "Start Recording"}</p> */}

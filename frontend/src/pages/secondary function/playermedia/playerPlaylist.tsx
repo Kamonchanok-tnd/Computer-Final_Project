@@ -17,17 +17,19 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  addSoundView,
+ 
+  addSoundViewBlock,
   checkLikedSound,
-  getSoundsByTypeID,
+
   likeSound,
 } from "../../../services/https/sounds";
-import { Sound } from "../../../interfaces/ISound";
-import { CustomPlaylist, CustomSoundPlaylist } from "../Playlist/Playlist";
-import { GetPlaylistByID } from "../../../services/https/playlist";
+
+import {  CustomSoundPlaylist } from "../Playlist/Playlist";
+
 import { GetSoundPlaylistByPID } from "../../../services/https/soundplaylist";
 import { IHistory } from "../../../interfaces/IHistory";
 import { CreateHistory } from "../../../services/https/history";
+import { formatDurationHMS } from "../../admin/meditation/editSound";
 
 declare global {
   interface Window {
@@ -58,7 +60,7 @@ function PlayerPlaylist() {
   const [isRepeat, setIsRepeat] = useState(false);
 
   const [volume, setVolume] = useState(100);
-  const [quality, setQuality] = useState("default");
+  // const [quality, setQuality] = useState("default");
 
   const playerRef = useRef<any>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -75,6 +77,9 @@ function PlayerPlaylist() {
   const uid = Number(localStorage.getItem("id"));
   const [hasCountedView, setHasCountedView] = useState(false); //เอาไว้เพิ่ม view
 
+  const viewTimer = useRef<NodeJS.Timeout | null>(null);
+  const repeatRef = useRef(isRepeat);
+
     async function addHistory(sid:number) {
       try {
         const data:IHistory = { sid: sid, uid: Number(uid) }
@@ -86,9 +91,9 @@ function PlayerPlaylist() {
      
     }
   
-  async function addView(sid:number) {
+  async function addView(sid:number,uid:number) {
      try {
-        await addSoundView(sid)
+         await addSoundViewBlock(sid,uid)
      }catch (error) {
        console.error('Error sending rating:', error);
       
@@ -123,7 +128,7 @@ function PlayerPlaylist() {
       try {
         const res = await GetSoundPlaylistByPID(Number(pid));
         setSoundPlaylist(res);
-        console.log("sound playlist is: ", res);
+        //console.log("sound playlist is: ", res);
       } catch (error) {
         console.error("Error fetching playlist:", error);
       }
@@ -177,28 +182,47 @@ function PlayerPlaylist() {
           onStateChange: (event: any) => {
             setIsPlaying(event.data === 1);
           
-            if (event.data === 1 && !hasCountedView) {
-              // เริ่มจับเวลา เมื่อวิดีโอเริ่มเล่น
-              const checkView = setInterval(() => {
+            if (event.data === YT.PlayerState.PLAYING && !hasCountedView) {
+              // เริ่มจับเวลาเพื่อตรวจสอบการนับ View
+              if (viewTimer.current) clearTimeout(viewTimer.current);
+              viewTimer.current = setTimeout(() => {
                 if (playerRef.current) {
                   const watchedTime = playerRef.current.getCurrentTime();
                   const totalTime = playerRef.current.getDuration();
+          
                   if (watchedTime >= 30 || watchedTime >= totalTime * 0.1) {
-                    // นับ view แล้วส่ง API
-                    addView(realId);
-                    addHistory(realId);
-                    setHasCountedView(true);
-                    clearInterval(checkView);
+                    const lastViewTime = localStorage.getItem(`view_${uid}_${realId}`);
+                    if (!lastViewTime) {
+                      addView(realId, uid);
+                      localStorage.setItem(`view_${uid}_${realId}`, Date.now().toString());
+                      setHasCountedView(true);
+                    }
+          
+                    // ตรวจสอบ History (เว้น 5 นาที)
+                    const lastHistoryTime = localStorage.getItem(`history_${uid}_${realId}`);
+                    const now = Date.now();
+                    if (!lastHistoryTime || now - parseInt(lastHistoryTime) > 5 * 60 * 1000) {
+                      addHistory(realId);
+                      localStorage.setItem(`history_${uid}_${realId}`, now.toString());
+                    }
                   }
                 }
-              }, 1000);
+              }, 30000); // ตรวจหลัง 30 วิ (หรืออาจถึงก่อนด้วย 10%)
+            }
+          
+            if (event.data === YT.PlayerState.ENDED || event.data === YT.PlayerState.PAUSED) {
+              // หยุดจับเวลาถ้าผู้ใช้หยุดหรือวิดีโอจบ
+              if (viewTimer.current) {
+                clearTimeout(viewTimer.current);
+                viewTimer.current = null;
+              }
             }
           
             handleStateChange(event);
           },
-          onPlaybackQualityChange: (event: any) => {
-            setQuality(event.data);
-          },
+          // onPlaybackQualityChange: (event: any) => {
+          //   // setQuality(event.data);
+          // },
         },
         playerVars: {
           controls: 1,
@@ -215,14 +239,18 @@ function PlayerPlaylist() {
 
     if (event.data === 0) {
       // วิดีโอจบ
-      if (isRepeat) {
-        playerRef.current.playVideo(); // เล่นซ้ำ
+      if (repeatRef.current) {
+        playerRef.current.seekTo(0); // กลับไปต้น
+        playerRef.current.playVideo(); // เล่นทันที
       } else {
         handleNext();
       }
     }
   }
-
+  useEffect(() => {
+    repeatRef.current = isRepeat;
+  }, [isRepeat]);
+  
   useEffect(() => {
     if (!isReady) return;
     const interval = setInterval(() => {
@@ -305,10 +333,10 @@ function PlayerPlaylist() {
     } else {
       const nextSound = soundPlaylist[currentIndex + 1];
       if (nextSound) {
-        console.log("next sound is : ", nextSound.sid);
+        // console.log("next sound is : ", nextSound.sid);
         navigate(`/audiohome/chanting/playlist/play/${pid}/${nextSound.sid}`);
       } else {
-        console.log("next sound is : ", nextSound);
+        // console.log("next sound is : ", nextSound);
         const firstSound = soundPlaylist[0];
         if (firstSound) {
           navigate(`/audiohome/chanting/playlist/play/${pid}/${firstSound.sid}`);
@@ -325,13 +353,13 @@ function PlayerPlaylist() {
   };
 
   return (
-    <div className="flex flex-col min-h-full overflow-y-auto scrollbar-hide duration-300 items-center bg-background-blue dark:bg-background-dark ">
-      <div className="sm:mt-4   sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
+    <div className="flex flex-col min-h-full h-fit duration-300 items-center bg-background-blue dark:bg-background-dark ">
+      <div className="   sm:w-[100%] lg:w-[95%] w-full flex-1 flex-col gap-6 dark:border-stoke-dark 
       dark:bg-box-dark duration-300 bg-transparent md:rounded-xl font-ibmthai">
         {/* Grid Layout - ปรับให้ responsive ดีขึ้น */}
-        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2   h-[88vh]">
+        <div className="grid grid-cols-1 md:grid-cols-3  w-full lg:gap-8 gap-2   min-h-[calc(100vh-64px)]">
           {/* Main Player Section */}
-          <div className="sm:col-span-2 sm:rounded-2xl flex flex-col h-full gap-4 px-4 py-4 bg-white/50  justify-between backdrop-blur-md shadow-md
+          <div className="sm:col-span-2 sm:rounded-2xl flex flex-col  h-[100%] gap-4 px-4 py-4 bg-white/50  justify-between backdrop-blur-md shadow-md
           dark:bg-box-dark dark:text-text-dark">
             {/* Header */}
             <div className="flex gap-4 items-center">
@@ -568,7 +596,7 @@ function PlayerPlaylist() {
                           <div className="flex items-center gap-1">
                             <Clock size={12} />
                             <span className="hidden sm:inline">
-                              {item.duration}
+                              {formatDurationHMS(item.duration ?? 0)}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">

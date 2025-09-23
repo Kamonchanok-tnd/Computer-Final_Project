@@ -1,4 +1,3 @@
-// ในไฟล์ services/jwt_wrapper.go
 package services
 
 import (
@@ -24,15 +23,17 @@ type JwtClaim struct {
 
 // GenerateToken generates a jwt token
 func (j *JwtWrapper) GenerateToken(email, role string, id uint) (signedToken string, err error) {
-    // พิมพ์ SecretKey ในการเซ็น
+    // ตั้งค่าอายุ token เป็น 2 ชั่วโมง
+    j.ExpirationHours = 2
+
     fmt.Println("Generating token with SecretKey:", j.SecretKey)
     
     claims := &JwtClaim{
         Email: email,
         Role:  role,
-        ID:    id, // เพิ่ม ID ใน claims
+        ID:    id,
         StandardClaims: jwt.StandardClaims{
-            ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(j.ExpirationHours)).Unix(),
+            ExpiresAt: time.Now().Add(time.Duration(j.ExpirationHours) * time.Hour).Unix(),
             Issuer:    j.Issuer,
         },
     }
@@ -48,9 +49,7 @@ func (j *JwtWrapper) GenerateToken(email, role string, id uint) (signedToken str
 
 // ValidateToken validates the jwt token
 func (j *JwtWrapper) ValidateToken(signedToken string) (claims *JwtClaim, err error) {
-    // พิมพ์ SecretKey ในการตรวจสอบ
     fmt.Println("Validating token with SecretKey:", j.SecretKey)
-
     token, err := jwt.ParseWithClaims(
         signedToken,
         &JwtClaim{},
@@ -58,19 +57,26 @@ func (j *JwtWrapper) ValidateToken(signedToken string) (claims *JwtClaim, err er
             return []byte(j.SecretKey), nil
         },
     )
+
+    // 1️⃣ ตรวจสอบ error จาก parsing
     if err != nil {
-        return
+        return nil, fmt.Errorf("invalid token: %w", err)
     }
 
+    // 2️⃣ ตรวจสอบ claims type และ validity
     claims, ok := token.Claims.(*JwtClaim)
     if !ok {
-        err = errors.New("Couldn't parse claims")
-        return
+        return nil, errors.New("couldn't parse claims")
     }
 
-    if claims.ExpiresAt < time.Now().Local().Unix() {
-        err = errors.New("JWT is expired")
-        return
+    if !token.Valid {
+        return nil, errors.New("invalid token")
     }
-    return
+
+    // 3️⃣ ตรวจสอบว่า token หมดอายุหรือยัง
+    if claims.ExpiresAt < time.Now().Unix() {
+        return nil, errors.New("JWT is expired")
+    }
+
+    return claims, nil
 }

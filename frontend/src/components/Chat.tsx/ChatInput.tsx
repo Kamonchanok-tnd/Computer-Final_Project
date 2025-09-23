@@ -1,6 +1,6 @@
 import React, { RefObject } from 'react';
 import { Mic, Send } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
 
 interface ChatInputProps {
   inputText: string;
@@ -14,7 +14,6 @@ interface ChatInputProps {
 }
 
 function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDarkMode, inputRef, gotoVoice }: ChatInputProps) {
-  const navigate =  useNavigate();
   return (
     <div
       className={` sm:rounded-b-2xl sm:px-10 py-4  backdrop-blur-sm transition-colors duration-300 ${
@@ -23,7 +22,7 @@ function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDa
           : 'bg-white'
       }`}
     >
-      <div className="flex  h-full items-center space-x-3 md:justify-center px-4">
+      <div className="flex md:text-xl text-md h-full items-center space-x-3 md:justify-center px-4">
         <input
           ref={inputRef}
           type="text"
@@ -31,7 +30,7 @@ function ChatInput({ inputText, setInputText, onSend, onKeyPress, isTyping, isDa
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={onKeyPress}
           placeholder="พิมพ์ข้อความของคุณ..."
-          className={`md:max-w-4xl flex-1 px-4 py-3 rounded-4xl border focus:outline-none focus:ring-2 transition-colors ${
+          className={`  md:max-w-4xl flex-1 px-4 py-3 rounded-4xl border focus:outline-none focus:ring-2 transition-colors ${
             isDarkMode
               ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-purple-500'
               : 'bg-gray-50 border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-regal-blue focus:border-regal-blue'

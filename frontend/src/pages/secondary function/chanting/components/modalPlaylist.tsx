@@ -1,4 +1,4 @@
-import { Modal, Form, Input, Button, message } from "antd";
+import { Modal, Form, Input, message } from "antd";
 import { useState } from "react";
 import { CreatePlaylist } from "../../../../services/https/playlist";
 
@@ -24,16 +24,18 @@ function ModalPlaylist({ isModalOpen, onClose, gotoPlaylist }: ModalPlaylistProp
     if (selectedStid) {
       values.stid = selectedStid;
     }
-
-    console.log("Submitted Playlist Name:", values);
+    // console.log("Submitted Playlist Name:", values);
     const res = await CreatePlaylist(values);
-    message.success("สร้างเพลย์ลิสต์สำเร็จ!");
-
+    if (!res.ID){
+      message.error("เกิดข้อผิดพลาดในการสร้างเพลย์ลิสต์ กรุณาลองใหม่อีกครั้ง");
+      onClose();
+      return
+    }
+    message.success("สร้างเพลย์ลิสต์สำเร็จ");
     gotoPlaylist(res.ID);
-
-
     form.resetFields();
     onClose();
+    
   } catch (error) {
     console.error("Validation failed", error);
   } finally {

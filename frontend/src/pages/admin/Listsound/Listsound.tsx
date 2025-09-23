@@ -21,6 +21,8 @@ import SearchFilter from "../../../components/Search/SearchFilter";
 import STFilter from "../../../components/Search/Sound_type_filter";
 import { useNavigate } from "react-router-dom";
 // const { Title, Text } = Typography;
+import music from "../../../assets/music.png";
+import ConfirmDeleteModal from "./component/modalcomfirm";
 
 
 
@@ -53,8 +55,11 @@ function ListSound() {
   const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
 
   const [AllSounds, setAllSounds] = useState<SoundList[]>([]);
-  const [deletedRowIds, setDeletedRowIds] = useState<number[]>([]);
+  const [deletedRowIds, _setDeletedRowIds] = useState<number[]>([]);
   const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedSound, setSelectedSound] = useState<SoundList | null>(null);
 
   useEffect(() => {
     fetchSounds();
@@ -72,7 +77,7 @@ function ListSound() {
       cell: ({ row }) => row.index + 1,
     },
     {
-      header: "Preview",
+      header: "ตัวอย่างวิดีโอ",
       accessorKey: "sound",
       cell: (info) => {
   
@@ -94,7 +99,7 @@ function ListSound() {
       )},
     },
     {
-      header: "ชื่อเสียง",
+      header: "ชื่อ",
       accessorKey: "name", // หรือจะไม่ใส่ก็ได้ถ้าจะใช้ข้อมูลหลายฟิลด์ใน cell
       cell: (info) => {
         const name = info.getValue() as string;
@@ -108,9 +113,11 @@ function ListSound() {
               <img src={thumbnail} alt="" className="w-full h-full object-cover rounded-sm " />
             </div>
             <div>
-              <h1 className="text-lg ">{name}</h1>
-              <p className="text-sm text-subtitle">{owner ? owner : "ไม่ระบุ"}</p>
-            </div>
+                <h1 className="text-lg w-[250px] truncate overflow-hidden text-ellipsis">
+                  {name}
+                </h1>
+                <p className="text-sm text-subtitle">{owner ? owner : "ไม่ระบุ"}</p>
+              </div>
           </div>
         );
       },
@@ -165,16 +172,17 @@ function ListSound() {
       },
     },
     {
-      header: "Action",
+      header: "แก้ไข",
+      
       cell: ({ row }) => (
         <div className="flex gap-2">
           <button className="text-gray-400 hover:text-gray-600  transition-all duration-500 bg-gray-100 p-2 rounded-md "
-            onClick={() => navigate(`/admin/sounds/${row.original.ID}`)}>
+            onClick={() => getRolePath(`sounds/${row.original.ID}`)}>
             <SquarePen  size={20}/>
           </button>
   
           <button className="text-gray-400 hover:text-red-600 transition-all duration-500 bg-gray-100 p-2 rounded-md"
-            onClick={() => deleteSound(Number(row.original.ID))}>
+           onClick={() => handleOpen(row.original)}>
             <Trash2 size = {20} />
           </button>
         </div>
@@ -206,7 +214,7 @@ function ListSound() {
     setLoading(true);
     try {
       const res = await getAllSounds();
-      console.log("Response from getAllSounds:", res.sounds);
+    
       setAllSounds(res.sounds);
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการโหลดข้อมูลเสียง");
@@ -234,22 +242,26 @@ function ListSound() {
     }
   };
 
-  async function deleteSound(id: number) {
-    setDeletedRowIds((prev) => [...prev, id]);
+  const handleOpen = (sound: SoundList) => {
+    setSelectedId(sound.ID ?? null);
+    setSelectedSound(sound);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedId) return;
     try {
-      
-      setTimeout(async () => {
-         await deleteSoundByID(id);
-        setAllSounds((prev) => prev.filter((item) => item.ID !== id)); // ลบจาก frontend
-        message.success("ลบเสียงสําเร็จ");
-      }, 300);
-    
-  
+      await deleteSoundByID(selectedId); // เรียก API ลบเสียง
+      setAllSounds(prev => prev.filter(item => item.ID !== selectedId));
+      message.success(`ลบเสียง "${selectedSound?.name}" สำเร็จ`);
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการลบเสียง");
-      console.error(error);
+    } finally {
+      setShowDeleteModal(false);
+      setSelectedSound(null);
+      setSelectedId(null);
     }
-  }
+  };
 
 
 
@@ -271,16 +283,26 @@ function ListSound() {
   }
 
   // ลบเพลง
+
+  function getRolePath( subPath: string) {
+    const role = localStorage.getItem("role");
+    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+    navigate(`/${rolePrefix}/${subPath}`)
+   
+  }
   
 
   return (
     <>
       <div className="min-h-screen  px-8 pt-6">
         {/* header */}
-        <div className="flex justify-between">
-          <h1 className="text-2xl">การจัดการเสียง</h1>
+        <div className="flex justify-between items-center mb-4 flex-wrap">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-700 flex items-center gap-2">
+  <img src={music} alt="Admin" className="w-15 h-15" />
+  การจัดการวิดีโอ
+</h2>
           <button className="bg-button-blue text-white py-1 px-2 rounded mr-2"
-            onClick={() => navigate("/admin/meditation")}
+            onClick={() => getRolePath("meditation")}
           >
             <div className="flex gap-2">
               <Plus />
@@ -369,6 +391,14 @@ function ListSound() {
           </div>
         )}
       </Modal>
+
+      <ConfirmDeleteModal
+  open={showDeleteModal}
+  onCancel={() => setShowDeleteModal(false)}
+  onConfirm={handleDelete}
+  videoName={selectedSound?.name}
+/>
+
 
            {/* no result */}
         {table.getFilteredRowModel().rows.length === 0 && (

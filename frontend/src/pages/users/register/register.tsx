@@ -6,10 +6,11 @@ import {
   message,
   Row,
   Col,
-  InputNumber,
+  //InputNumber,
   Select,
   Typography,
   Divider,
+  DatePicker,
 } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,34 +20,99 @@ import { CreateUser } from "../../../services/https/login";
 import logo from "../../../assets/ยินดีต้อนรับ.png";
 import "./register.css";
 const { Title, Text } = Typography;
+import dayjs from "dayjs";
+import "dayjs/locale/th";
+import thTH from 'antd/es/date-picker/locale/th_TH';
+
 
 function SignUpPages() {
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
 
   const genderOptions = [
-    { value: "Male", label: "ชาย" },
-    { value: "Female", label: "หญิง" },
-    { value: "Other", label: "อื่นๆ" },
+    { value: "ชาย", label: "ชาย" },
+    { value: "หญิง", label: "หญิง" },
+    { value: "LGBTQ+", label: "LGBTQ+" },
+    { value: "ไม่ระบุ", label: "ไม่ระบุ" },
   ];
 
+  // state สำหรับ consent
   const [isConsentVisible, setIsConsentVisible] = useState(true);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [consentAcceptedAt, setConsentAcceptedAt] = useState<Date | null>(null);
 
-  const handleConsentOk = () => setIsConsentVisible(false);
-  const handleConsentCancel = () =>
-    messageApi.warning("คุณต้องยินยอมก่อนสมัครสมาชิก");
+
+
+
+  // ฟังก์ชันกดยอมรับ
+  const handleConsentOk = () => {
+  const now = new Date();
+  setConsentAccepted(true);
+  setConsentAcceptedAt(now);
+  setIsConsentVisible(false);
+  
+};
+
+
+  const handleConsentCancel = () => {
+  message.error("คุณต้องยินยอมก่อนสมัครสมาชิก"); // ✅ แจ้งเตือนเป็น message
+};
 
   const onFinish = async (values: UsersInterface) => {
-    values.Role = "user";
-    let res = await CreateUser(values);
+    if (!consentAccepted || !consentAcceptedAt) {
+      messageApi.error("คุณต้องยินยอมก่อนสมัครสมาชิก");
+      return;
+    }
+
+    // ✅ แปลงวันเกิดเป็น YYYY-MM (string) ก่อนส่ง
+    if (values.birth_date) {
+      values.birth_date = dayjs(values.birth_date).format("YYYY-MM");
+    }
+
+    const payload = {
+    ...values,
+    consent_accepted: consentAccepted,
+    consent_accepted_at: consentAcceptedAt,
+    role: "user"
+  };
+
+  const res = await CreateUser(payload);
+    // console.log("ข้อมูลผู้ใช้",res);
 
     if (res.status === 201) {
-      messageApi.success("ลงทะเบียนสำเร็จ!");
+      messageApi.success("ลงทะเบียนสำเร็จ");
       setTimeout(() => navigate("/"), 2000);
     } else {
       messageApi.error(res.data.error);
     }
   };
+const personTypeOptions = [
+  { value: "นักศึกษามทส", label: "นักศึกษามทส" },
+  { value: "บุคคลภายนอก", label: "บุคคลภายนอก" },
+  { value: "อาจารย์", label: "อาจารย์" },
+];
+
+const facultyOptions = [
+  "สำนักวิชาสาธารณสุขศาสตร์",
+  "สำนักวิชาทันตแพทยศาสตร์",
+  "สำนักวิชาพยาบาลศาสตร์",
+  "สำนักวิชาวิศวกรรมศาสตร์",
+  "สำนักวิชาแพทยศาสตร์",
+  "สำนักวิชาเทคโนโลยีการเกษตร",
+  "สำนักวิชาเทคโนโลยีสังคม",
+  "สำนักวิชาวิทยาศาสตร์",
+  "สำนักวิชาศาสตร์และศิลป์ดิจิทัล",
+];
+
+const yearOptions = [
+  { value: 1, label: "ชั้นปี 1" },
+  { value: 2, label: "ชั้นปี 2" },
+  { value: 3, label: "ชั้นปี 3" },
+  { value: 4, label: "ชั้นปี 4" },
+  { value: 5, label: "ชั้นปี 5" },
+  { value: 6, label: "ชั้นปี 6" },
+  { value: "6 ปีขึ้นไป", label: "6 ปีขึ้นไป" },
+];
 
   return (
     <div
@@ -77,7 +143,6 @@ function SignUpPages() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            // padding: "2rem",
           }}
         >
           <div className="w-full">
@@ -189,9 +254,7 @@ function SignUpPages() {
 
             
           </div>
-
             <Title level={2}>สมัครสมาชิก</Title>
-            
             <Text type="secondary">กรอกข้อมูลเพื่อสร้างบัญชีของคุณ</Text>
             <Divider />
 
@@ -203,7 +266,7 @@ function SignUpPages() {
                     name="username"
                     rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้งาน !" }]}
                   >
-                    <Input placeholder="Username" />
+                    <Input placeholder="ชื่อผู้ใช้" />
                   </Form.Item>
                 </Col>
 
@@ -216,21 +279,74 @@ function SignUpPages() {
                       { required: true, message: "กรุณากรอกอีเมล !" },
                     ]}
                   >
-                    <Input placeholder="Email" />
+                    <Input placeholder="อีเมล" />
                   </Form.Item>
                 </Col>
 
                 <Col span={24}>
-                  <Form.Item
-                    label="รหัสผ่าน"
-                    name="password"
-                    rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน !" }]}
-                  >
-                    <Input.Password placeholder="Password" />
-                  </Form.Item>
-                </Col>
+  <Form.Item
+    label="รหัสผ่าน"
+    name="password"
+    rules={[
+      { required: true, message: "กรุณากรอกรหัสผ่าน !" },
+      { 
+        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        message: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร พร้อมตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ"
+      },
+    ]}
+  >
+    <Input.Password placeholder="รหัสผ่าน" />
+  </Form.Item>
+</Col>
+<Col span={24}>
+  <Form.Item
+    label="ประเภทผู้ใช้งาน"
+    name="person_type"
+    rules={[{ required: true, message: "กรุณาเลือกประเภทผู้ใช้งาน !" }]}
+  >
+    <Select
+      placeholder="เลือกประเภทผู้ใช้งาน"
+      options={personTypeOptions}
+    />
+  </Form.Item>
+</Col>
 
-                <Col xs={24} md={12}>
+{/* ถ้าเลือกเป็นนักศึกษามทส -> แสดงฟอร์มสำนักวิชาและชั้นปี */}
+<Form.Item noStyle shouldUpdate={(prev, curr) => prev.person_type !== curr.person_type}>
+  {({ getFieldValue }) =>
+    getFieldValue("person_type") === "นักศึกษามทส" && (
+      <>
+        <Col span={24}>
+          <Form.Item
+            label="สำนักวิชา"
+            name="faculty"
+            rules={[{ required: true, message: "กรุณาเลือกสำนักวิชา !" }]}
+          >
+            <Select placeholder="เลือกสำนักวิชา">
+              {facultyOptions.map((f) => (
+                <Select.Option key={f} value={f}>
+                  {f}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+
+        <Col span={24}>
+          <Form.Item
+            label="ชั้นปี"
+            name="year"
+            rules={[{ required: true, message: "กรุณาเลือกชั้นปี !" }]}
+          >
+            <Select placeholder="เลือกชั้นปี" options={yearOptions} />
+          </Form.Item>
+        </Col>
+      </>
+    )
+  }
+</Form.Item>
+
+                {/* <Col xs={24} md={12}>
                   <Form.Item
                     label="อายุ"
                     name="age"
@@ -238,7 +354,28 @@ function SignUpPages() {
                   >
                     <InputNumber min={0} max={99} className="!w-full" />
                   </Form.Item>
-                </Col>
+                </Col> */}
+                <Col xs={24} md={12}>
+            <Form.Item
+                    label="เดือนและปีเกิด"
+                    name="birth_date"
+                    rules={[
+                      { required: true, message: "กรุณาเลือกเดือนและปีเกิด !" },
+                    ]}
+                  >
+                    <DatePicker
+  picker="month"
+  format="MMMM YYYY"
+  locale={thTH}   // ✅ ใส่เป็น object ไม่ใช่ string
+  className="!w-full"
+  placeholder="เลือกเดือนและปีเกิด"
+  disabledDate={(current) => current && current > dayjs().endOf("month")} 
+/>
+
+
+                  </Form.Item>
+
+          </Col>
                 <Col xs={24} md={12}>
                   <Form.Item
                     label="เพศ"
@@ -254,25 +391,38 @@ function SignUpPages() {
                     </Select>
                   </Form.Item>
                 </Col>
+  <Col span={24}>
+  <Form.Item
+    label="เบอร์โทรศัพท์"
+    name="phone_number"
+    rules={[
+      { 
+        required: true, 
+        message: "กรุณากรอกเบอร์โทรศัพท์ !" 
+      },
+      { 
+        pattern: /^0[0-9]{9}$/, 
+        message: "เบอร์โทรศัพท์ต้องขึ้นต้นด้วย 0 และมี 10 หลัก" 
+      },
+    ]}
+  >
+    <Input 
+      placeholder="เช่น 0812345678" 
+      maxLength={10} 
+      type="tel"
+    />
+  </Form.Item>
+</Col>
 
-                <Col span={24}>
-                  <Form.Item
-                    label="เบอร์โทรศัพท์"
-                    name="phone_number"
-                    rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์ !" }]}
-                  >
-                    <Input placeholder="Phone Number" />
-                  </Form.Item>
-                </Col>
 
                 <Col xs={24} md={12}>
                   <Form.Item label="Facebook (ไม่จำเป็น)" name="facebook">
-                    <Input placeholder="Facebook" />
+                    <Input placeholder="เฟซบุ๊ก" />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
                   <Form.Item label="Line (ไม่จำเป็น)" name="line">
-                    <Input placeholder="Line ID" />
+                    <Input placeholder="ไลน์ ไอดี" />
                   </Form.Item>
                 </Col>
 
@@ -295,26 +445,71 @@ function SignUpPages() {
         </Card>
       </div>
 
-      {/* Custom Popup */}
       {isConsentVisible && (
-        <div className="fixed inset-0 bg-gray-200/80 flex items-center justify-center z-[9999] animate-fadeIn">
-          <Card className="w-96 rounded-2xl p-6 text-center shadow-2xl animate-scaleUp">
-            <Title level={3}>ขอความยินยอม</Title>
-            <Text>
-              เว็บไซต์เกี่ยวกับสุขภาพจิต ข้อมูลของคุณจะถูกเก็บเป็นความลับ
-              กรุณายืนยันความยินยอมก่อนสมัครสมาชิก
-            </Text>
-            <div className="mt-6 flex justify-around">
-              <Button type="default" onClick={handleConsentCancel}>
-                ปฏิเสธ
-              </Button>
-              <Button type="primary" onClick={handleConsentOk}>
-                ยินยอม
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+  <div className="fixed inset-0 bg-gray-200/90 flex items-center justify-center z-[999] animate-fadeIn overflow-auto p-4">
+    <Card className="max-w-3xl w-full rounded-2xl p-6 shadow-2xl animate-scaleUp leading-relaxed">
+      <Title level={3} className="text-center mb-6">
+        แบบฟอร์มยินยอมการใช้งานแอปพลิเคชัน SUT Healjai
+      </Title>
+
+      <div className="text-justify space-y-5 max-h-[70vh] overflow-y-auto pr-2">
+        <p>
+          ขอเสนอโครงการวิจัยเรื่อง <b>“ผลของแอปพลิเคชัน SUT Healjai ที่มีต่อภาวะซึมเศร้าและการตระหนักรู้ในตนเองของนักศึกษาพยาบาลศาสตร์
+          มหาวิทยาลัยเทคโนโลยีสุรนารี”</b> โดยมีวัตถุประสงค์เพื่อเปรียบเทียบระดับคะแนนเฉลี่ยภาวะซึมเศร้าและการตระหนักรู้ในตนเองก่อนและหลังการใช้แอปพลิเคชัน SUT Healjai
+        </p>
+
+        <p>
+          <b>ประโยชน์โดยตรง:</b> ผู้เข้าร่วมวิจัยจะได้รับการส่งเสริมสุขภาพจิต ลดระดับภาวะซึมเศร้า และพัฒนาความสามารถในการตระหนักรู้ตนเอง
+          ซึ่งเป็นทักษะสำคัญในการจัดการกับอารมณ์ ความเครียด และปัญหาชีวิต
+        </p>
+
+        <p>
+          ท่านมีอิสระที่จะตัดสินใจเข้าร่วมการวิจัยหรือไม่ก็ได้ หากตัดสินใจเข้าร่วม ท่านจะต้องตอบแบบสอบถามผ่านแอปพลิเคชัน SUT Healjai 
+          และสามารถถอนตัวเมื่อใดก็ได้โดยไม่ต้องแจ้งล่วงหน้า การไม่เข้าร่วมหรือถอนตัวจะไม่กระทบต่อการเรียน
+        </p>
+
+        <p>
+          ข้อมูลที่ได้จะถูกเก็บรักษาอย่างปลอดภัย ไม่เปิดเผยต่อสาธารณะเป็นรายบุคคล รายงานผลเฉพาะภาพรวม 
+          อย่างไรก็ตาม อาจมีบางหน่วยงาน เช่น คณะกรรมการจริยธรรมการวิจัยในมนุษย์ หรือเจ้าหน้าที่ตรวจสอบ เข้าดูข้อมูลเพื่อความถูกต้องได้ 
+          ข้อมูลจะถูกทำลายหลังเสร็จสิ้นการวิจัย
+        </p>
+
+        <p>
+          ผู้เข้าร่วมจะไม่ได้รับค่าตอบแทนและไม่เสียค่าใช้จ่ายใด ๆ ทั้งสิ้น
+        </p>
+
+        <p>
+          หากมีข้อสงสัย โปรดติดต่อ <b>ผศ. ดร.ศุภาพิชญ์ มณีสาคร โฟน โบร์แมนน์ <br/>โทรศัพท์: 081-2070788</b>
+        </p>
+
+        <p>
+          หากต้องการทราบสิทธิ โปรดติดต่อ <b>สำนักงานจริยธรรมการวิจัยในมนุษย์ มหาวิทยาลัยเทคโนโลยีสุรนารี <br /> 
+          โทรศัพท์: 044-224757 <br /> E-mail: ecsut@sut.ac.th </b>
+        </p>
+
+        <Divider />
+
+        <p>
+          <b>
+          ข้าพเจ้าได้อ่านหรือรับฟังคำอธิบาย เข้าใจวัตถุประสงค์ ขั้นตอน ประโยชน์ ความเสี่ยง และมาตรการต่าง ๆ แล้ว 
+          ข้อมูลส่วนบุคคลจะถูกเก็บเป็นความลับและใช้เพื่อประโยชน์ทางวิชาการเท่านั้น ข้าพเจ้าสามารถถอนตัวได้ทุกเมื่อโดยไม่เสียสิทธิ์ใด ๆ  
+          ข้าพเจ้าขอแสดงความยินยอมเข้าร่วมการวิจัยครั้งนี้โดยสมัครใจ
+          </b>
+        </p>
+      </div>
+
+      <div className="mt-8 flex justify-around">
+        <Button type="default" danger onClick={handleConsentCancel}>
+          ไม่ยอมรับ
+        </Button>
+        <Button type="primary" onClick={handleConsentOk}>
+          ยอมรับ
+        </Button>
+      </div>
+    </Card>
+  </div>
+)}
+
 
       {/* Animations */}
       <style>{`

@@ -1,38 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { IMonthlySummary } from "../../../../interfaces/IMonthlySummary";
 import {
-  PieChart,
-  Pie,
-  Cell,
   ResponsiveContainer,
   Tooltip,
-  type PieLabelRenderProps,
+  PieChart, Pie, Cell, type PieLabelRenderProps,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
 } from "recharts";
-import type {
-  Formatter,
-  Payload as TooltipPayload,
-} from "recharts/types/component/DefaultTooltipContent";
+import type { Formatter, Payload as TooltipPayload } from "recharts/types/component/DefaultTooltipContent";
 
 type Props = { rows: IMonthlySummary[]; loading: boolean };
 type ChartDatum = { name: string; value: number };
+type ChartDatumEx = ChartDatum & { pct: number; labelTop: string };
 
-const COLORS = [
-  "#A5BFF0", // ฟ้าอ่อนพาสเทล
-  "#A8E6CF", // เขียวมิ้นต์พาสเทล
-  "#FFD3B6", // ส้มอ่อนพาสเทล
-  "#FFAAA5", // ชมพูพาสเทล
-  "#DAB6FC", // ม่วงอ่อนพาสเทล
-  "#FFF5BA", // เหลืองอ่อนพาสเทล
-];
+/* ===== สีตรึงตามอารมณ์ (4 แบบในระบบ) ===== */
+type Mood4 = "มีความสุข" | "เฉย ๆ" | "เศร้า" | "โกรธ";
+const MOOD_COLOR: Readonly<Record<Mood4, string>> = {
+  "มีความสุข": "#4ADE80",
+  "เฉย ๆ":     "#94A3B8",
+  "เศร้า":     "#60A5FA",
+  "โกรธ":      "#F87171",
+};
 
-/** hook เช็คมือถือ (type-safe) */
+/** normalize ชื่อแล้วคืนสี; ถ้าไม่ตรง 4 แบบ ใช้ฟ้าอ่อน */
+function getMoodColor(name: string): string {
+  const key = name.replace(/\s+/g, " ").trim().replace("เฉยๆ", "เฉย ๆ");
+  return (MOOD_COLOR as Record<string, string>)[key] ?? "#5BA6F6";
+}
+
+const SLICE_STROKE = "rgba(255,255,255,0.9)";
+
+/** hook เช็คมือถือ */
 function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     setIsMobile(mq.matches);
-    // รองรับทั้ง API ใหม่/เก่า
     if (typeof mq.addEventListener === "function") {
       mq.addEventListener("change", onChange);
       return () => mq.removeEventListener("change", onChange);
@@ -45,7 +48,45 @@ function useIsMobile(): boolean {
 
 export default function MonthlyReportChart({ rows, loading }: Props) {
   const isMobile = useIsMobile();
+  const [mode, setMode] = useState<"pie" | "bar">("bar");
 
+  // ===== เตรียมข้อมูล =====
+  const total: number = rows.reduce((sum, r) => sum + (r.count ?? 0), 0);
+
+  const dataEx: ChartDatumEx[] = useMemo(() => {
+    const base: ChartDatum[] = rows
+      .filter((r) => (r.count ?? 0) > 0)
+      .map((r) => ({ name: r.mood ?? "ไม่ระบุ", value: r.count ?? 0 }));
+
+    const sum = base.reduce((s, d) => s + d.value, 0);
+    if (sum === 0) return [];
+
+    return base.map((d) => {
+      const pct = Math.round((d.value / sum) * 100);
+      return { ...d, pct, labelTop: `${d.value} (${pct}%)` };
+    });
+  }, [rows]);
+
+  const dataSorted: ChartDatumEx[] = useMemo(
+    () => [...dataEx].sort((a, b) => b.value - a.value),
+    [dataEx]
+  );
+
+  const tooltipFormatter: Formatter<number, string> = (
+    value: number,
+    _name: string,
+    item: TooltipPayload<number, string>
+  ) => {
+    const payload = item?.payload as ChartDatumEx | undefined;
+    return [`${value} ครั้ง (${payload?.pct ?? 0}%)`, payload?.name ?? ""];
+  };
+
+  const renderPieLabel = ({ name, percent }: PieLabelRenderProps): string => {
+    const p: number = typeof percent === "number" ? Math.round(percent * 100) : 0;
+    return `${name ?? ""} (${p}%)`;
+  };
+
+  // ===== Loading / Empty =====
   if (loading) {
     return (
       <div className="h-60 grid place-items-center rounded-2xl ring-1 ring-white/60 bg-white/60">
@@ -53,13 +94,7 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
       </div>
     );
   }
-
-  const total: number = rows.reduce((sum, r) => sum + (r.count ?? 0), 0);
-  const data: ChartDatum[] = rows
-    .filter((r) => (r.count ?? 0) > 0)
-    .map((r) => ({ name: r.mood ?? "ไม่ระบุ", value: r.count ?? 0 }));
-
-  if (data.length === 0) {
+  if (dataEx.length === 0) {
     return (
       <div className="h-60 grid place-items-center rounded-2xl ring-1 ring-white/60 bg-white/60 text-slate-500 italic">
         — ไม่มีข้อมูลเดือนนี้ —
@@ -67,76 +102,134 @@ export default function MonthlyReportChart({ rows, loading }: Props) {
     );
   }
 
-  // ใช้บนเดสก์ท็อปเท่านั้น
-  const renderLabel = ({ name, percent }: PieLabelRenderProps): string =>
-    `${name ?? ""} (${Math.round(((percent ?? 0) as number) * 100)}%)`;
-
-  // ✅ แก้ชนิดให้ตรงกับ Recharts: value เป็น number, name เป็น string
-  const tooltipFormatter: Formatter<number, string> = (
-    value: number,
-    _name: string,
-    item: TooltipPayload<number, string>
-  ) => {
-    const datum = item?.payload as ChartDatum | undefined;
-    return [`${value} ครั้ง`, datum?.name ?? ""];
-  };
-
   return (
-    <div className="rounded-2xl ring-1 ring-white/60 bg-white/40 backdrop-blur-md p-4">
-      <div className={isMobile ? "h-[280px]" : "h-[360px]"}>
+    <div className="mt-4 rounded-2xl ring-1 ring-white/60 bg-white/50 backdrop-blur-md p-3 sm:p-4">
+      {/* พื้นที่กราฟ */}
+      <div className={isMobile ? "h-[300px]" : "h-[380px]"}>
         <ResponsiveContainer width="100%" height="100%">
-          <PieChart
-            margin={{
-              top: isMobile ? 8 : 12,
-              right: isMobile ? 8 : 16,
-              bottom: 0,
-              left: isMobile ? 8 : 16,
-            }}
-          >
-            <Pie
-              dataKey="value"
-              data={data}
-              cx="50%"
-              cy="50%"
-              outerRadius={isMobile ? "68%" : "80%"}
-              label={!isMobile ? renderLabel : false}
-              labelLine={!isMobile}
-              isAnimationActive={false}
+          {mode === "pie" ? (
+            <PieChart
+              margin={{
+                top: isMobile ? 8 : 12,
+                right: isMobile ? 8 : 16,
+                bottom: 0,
+                left: isMobile ? 8 : 16,
+              }}
             >
-              {data.map((_, i) => (
-                <Cell key={String(i)} fill={COLORS[i % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={tooltipFormatter} />
-          </PieChart>
+              <Pie
+                dataKey="value"
+                data={dataEx}
+                cx="50%"
+                cy="50%"
+                innerRadius={isMobile ? "44%" : "50%"}
+                outerRadius={isMobile ? "72%" : "82%"}
+                label={!isMobile ? renderPieLabel : false}
+                labelLine={!isMobile}
+                isAnimationActive={false}
+              >
+                {dataEx.map((d, i) => (
+                  <Cell
+                    key={`p-${i}`}
+                    fill={getMoodColor(d.name)}
+                    stroke={SLICE_STROKE}
+                    strokeWidth={2}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={tooltipFormatter}
+                cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                contentStyle={{
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                  padding: "8px 10px",
+                }}
+                wrapperStyle={{ outline: "none" }}
+              />
+            </PieChart>
+          ) : (
+            <BarChart
+              data={dataSorted}
+              margin={{ top: 28, right: 12, left: 12, bottom: 6 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis domain={[0, "dataMax + 1"]} allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip
+                formatter={tooltipFormatter}
+                contentStyle={{
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                  padding: "8px 10px",
+                }}
+                wrapperStyle={{ outline: "none" }}
+              />
+              <Bar dataKey="value" isAnimationActive={false}>
+                {dataSorted.map((d, i) => (
+                  <Cell key={`b-${i}`} fill={getMoodColor(d.name)} />
+                ))}
+                <LabelList dataKey="labelTop" position="top" offset={8} style={{ fontSize: 12 }} />
+              </Bar>
+            </BarChart>
+          )}
         </ResponsiveContainer>
       </div>
 
-      {/* มือถือ: legend ใต้กราฟเพื่อไม่ให้ label ตกขอบ */}
-      {isMobile && (
-        <ul className="mt-3 grid grid-cols-1 gap-y-1 text-sm">
-          {data.map((d, i) => {
-            const pct: number = total ? Math.round((d.value / total) * 100) : 0;
-            return (
-              <li key={d.name} className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2 min-w-0">
-                  <span
-                    aria-hidden
-                    className="inline-block w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                  />
-                  <span className="truncate">{d.name}</span>
-                </span>
-                <span className="tabular-nums">{pct}%</span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      <div className="text-center text-sm text-slate-600 mt-2">
-        รวมทั้งหมด {total} ครั้ง
+      {/* สวิตช์ชนิดกราฟ */}
+      <div className="mt-3 flex justify-center">
+        <div className="inline-flex rounded-xl ring-1 ring-slate-200 bg-white overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setMode("pie")}
+            className={`px-3 py-1.5 text-sm ${mode === "pie" ? "bg-sky-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+          >
+            โดนัท
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("bar")}
+            className={`px-3 py-1.5 text-sm ${mode === "bar" ? "bg-sky-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+          >
+            แท่ง
+          </button>
+        </div>
       </div>
+
+      {/* รวมทั้งหมด */}
+      <div className="text-center text-sm text-slate-700 mt-2">รวมทั้งหมด {total} ครั้ง</div>
+
+      {/* ===== Mobile Legend (แก้ปัญหาข้อความ bullet หายบนมือถือ) ===== */}
+  {isMobile && mode === "pie" && (
+  <ul
+    className={[
+      "mt-3 grid gap-x-4 gap-y-1 text-sm",
+      dataSorted.length <= 2 ? "grid-cols-1" : "grid-cols-2",
+    ].join(" ")}
+  >
+    {dataSorted.map((d, i) => (
+      <li key={`m-${i}`} className="flex items-start justify-between gap-2">
+        {/* ซ้าย: จุดสี + ชื่อ */}
+        <div className={["flex items-center gap-2", dataSorted.length <= 2 ? "" : "min-w-0"].join(" ")}>
+          <span
+            aria-hidden
+            className="inline-block w-3 h-3 rounded-full flex-shrink-0"
+            style={{ backgroundColor: getMoodColor(d.name) }}
+          />
+          <span className={dataSorted.length <= 2 ? "" : "truncate"}>
+            {d.name}
+          </span>
+        </div>
+        {/* ขวา: จำนวน(เปอร์เซ็นต์) ชิดขวา ตัดบรรทัดไม่ได้ */}
+        <span className="ml-2 text-slate-600 whitespace-nowrap">
+          {d.value} ({d.pct}%)
+        </span>
+      </li>
+    ))}
+  </ul>
+)}
+
     </div>
   );
 }

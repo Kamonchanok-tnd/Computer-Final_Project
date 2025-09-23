@@ -1,9 +1,9 @@
 import { AdminInterface } from "../../../interfaces/IAdmin";
-
-import { UsersInterface } from "../../../interfaces/IUser"; // ปรับ path ตามที่คุณจัดโฟลเดอร์
+import { AdminResponse } from "../../../interfaces/IAdmin";
+//import { UsersInterface } from "../../../interfaces/IUser"; // ปรับ path ตามที่คุณจัดโฟลเดอร์  
 import { message } from "antd"; // นำเข้า message จาก antd
 
-const apiUrl = "http://localhost:8000";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 // Ensure token and Bearer are correctly fetched from localStorage
 const Authorization = localStorage.getItem("token");
@@ -27,14 +27,14 @@ export const getAllAdmins = async (): Promise<AdminInterface[]> => {
         }
 
         // Log the token and Bearer to check if they are correctly retrieved
-        console.log("Token retrieved from localStorage:", Authorization);
-        console.log("Bearer retrieved from localStorage:", Bearer);
+        //console.log("Token retrieved from localStorage:", Authorization);
+        //console.log("Bearer retrieved from localStorage:", Bearer);
 
         // Make the fetch request to get all admins
         const response = await fetch(`${apiUrl}/admin`, requestOptions);
 
         // Log the response to check what is being returned by the API
-        console.log("Response from API:", response);
+        //console.log("Response from API:", response);
 
         // Check if the response status is ok (status code 200-299)
         if (!response.ok) {
@@ -46,7 +46,7 @@ export const getAllAdmins = async (): Promise<AdminInterface[]> => {
         const data: AdminInterface[] = await response.json();
 
         // Log the data to check the contents of the response
-        console.log("Data from API:", data);
+        //console.log("Data from API:", data);
 
         return data;
     } catch (error: unknown) {
@@ -62,7 +62,7 @@ export const getAllAdmins = async (): Promise<AdminInterface[]> => {
 
 // Function to fetch admin data by ID using fetch
 // Updated function to return AdminInterface
-export const getAdminById = async (id: string): Promise<AdminInterface> => {
+export const getAdminById = async (id: string): Promise<AdminResponse> => {
     try {
         const response = await fetch(`${apiUrl}/admin/${id}`, {
             method: "GET",
@@ -76,13 +76,14 @@ export const getAdminById = async (id: string): Promise<AdminInterface> => {
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
 
-        const data: AdminInterface = await response.json();
-        return data; // Return AdminInterface directly
+        const data: AdminResponse = await response.json();
+        return data; // Return ทั้ง object ที่มี status, message, data
     } catch (error) {
         console.error("Error fetching admin:", error);
         throw error;
     }
 };
+
 
 // Function to update admin data by ID using fetch
 // Function to update admin data by ID using fetch
@@ -109,11 +110,11 @@ export const updateAdminById = async (id: string, updatedData: AdminInterface) =
             console.error(`Error: ${response.status} - ${response.statusText}`);
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
-        console.log("Response Status:", response.status);
-        console.log("Response Text:", response.statusText);
+        // console.log("Response Status:", response.status);
+        // console.log("Response Text:", response.statusText);
 
         const data = await response.json(); // Parse the response JSON data
-        console.log("Response Data:", data);
+        // console.log("Response Data:", data);
         return data; // Return the updated data
     } catch (error) {
         console.error("Error updating admin:", error);
@@ -163,7 +164,7 @@ export const updateAdminYourselfById = async (id: string, updatedData: AdminInte
         }
 
         // Log the token for debugging
-        console.log("Authorization token:", token);
+        // console.log("Authorization token:", token);
 
         const response = await fetch(`${apiUrl}/adminyourself/${id}`, {
             method: "PUT",
@@ -181,10 +182,10 @@ export const updateAdminYourselfById = async (id: string, updatedData: AdminInte
         }
 
         const data = await response.json(); // Parse the response JSON data
-        console.log("API response:", data);
+        // console.log("API response:", data);
 
         // If successful, return the updated data and show success message
-        message.success("Admin updated successfully");
+        message.success("แก้ไขข้อมูลสําเร็จ!");
         return data;
     } catch (error) {
         console.error("Error updating admin:", error);

@@ -12,7 +12,7 @@ interface YouTubePlayerProps {
   extractYouTubeID: (url: string) => string | null;
 }
 
-const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoId, extractYouTubeID }) => {
+const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoId }) => {
   const playerRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -49,8 +49,8 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoId, extractYouTubeID
       });
     };
   }, [videoId]);
-  console.log("YT object:", window.YT);
-console.log("Player ref:", playerRef.current);
+//   console.log("YT object:", window.YT);
+// console.log("Player ref:", playerRef.current);
 
 
   const togglePlay = () => {

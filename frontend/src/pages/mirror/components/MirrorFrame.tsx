@@ -138,7 +138,7 @@ export default function MirrorFrame({
   );
 
   return (
-  <section className="mt-6 w-full"> 
+  <section className="mt-6 w-full font-ibmthai font-light"> 
 
       <div
   className={[
@@ -173,6 +173,7 @@ export default function MirrorFrame({
             ref={wrapRef}
             className="absolute"
             style={{ top: SAFE.top, left: SAFE.left, width: SAFE.w, height: SAFE.h }}
+            data-onboard="mirror-editor"
           >
             <div
               className="relative h-full w-full overflow-hidden flex items-start justify-center overscroll-none"
@@ -203,7 +204,7 @@ export default function MirrorFrame({
                 onBlur={() => setFocused(false)}
                  className="relative z-10 w-full max-w-full outline-none bg-transparent text-center leading-relaxed
              text-base sm:text-lg md:text-xl whitespace-pre-wrap break-words [text-wrap:pretty] caret-sky-500
-             font-ibmthai font-light"
+             "
                 style={{
                   paddingLeft: `${PAD_X * 100}%`,
                   paddingRight: `${PAD_X * 100}%`,
