@@ -17,14 +17,6 @@ const LoginRoutes = (): RouteObject[] => {
       path: "/forgot-password",  // เส้นทางสำหรับหน้า สมัครสมาชิก
       element: <ForgotPasswordPage />,  // หน้า Signup 
     },
-    // {
-    //   path: "/reset-password",  // เส้นทางสำหรับหน้า สมัครสมาชิก
-    //   element: <ValidateUuidPage />,  // หน้า Signup /reset-password
-    // },
-    // {
-    //   path: "/update-password",  // เส้นทางสำหรับหน้า สมัครสมาชิก
-    //   element: <ResetPasswordPage/>,  // หน้า Signup /reset-password
-    // },
   ];
 };
 
