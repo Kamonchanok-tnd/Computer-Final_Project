@@ -80,7 +80,7 @@ function PlaylistMeditation({ isModalOpen, onClose }: PlayermediameditationProps
           onClick={handleSubmit}
           className="bg-button-blue duration-300 hover:bg-button-blue-hover text-white px-4 py-2 rounded-lg"
         >
-          บันทึกนะจ้ะ
+          บันทึก
         </button>
       </div>
     </Modal>
