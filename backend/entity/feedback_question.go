@@ -2,15 +2,19 @@ package entity
 
 import "gorm.io/gorm"
 
-// คำถามที่แอดมินกำหนด (เปิด/ปิด/แก้ข้อความ/เรียงลำดับ)
+// คำถามในแบบฟอร์ม (ชุดที่ใช้งานจะมี is_active = true)
 type FeedbackQuestion struct {
 	gorm.Model
-	Key      string `json:"key" gorm:"uniqueIndex"` // ex. "overall","suggestion","ux_ease"
-	Label    string `json:"label"`                  // ข้อความที่แสดงให้ผู้ใช้
-	Type     string `json:"type"`                   // "rating" | "text"
+	Key      string `json:"key"   gorm:"uniqueIndex:idx_feedback_questions_key"` // ใช้ hard delete อยู่แล้ว
+	Label    string `json:"label"`
+	// rating | text | choice_single | choice_multi
+	Type     string `json:"type"`
 	IsActive bool   `json:"is_active" gorm:"default:true"`
-	Sort     int    `json:"sort" gorm:"default:0"`
+	Sort     int    `json:"sort"      gorm:"default:0"`
 
-	// one-to-many: คำถามหนึ่งข้อ -> คำตอบหลายรายการ
-	Answers []FeedbackAnswer `gorm:"foreignKey:QuestionID"`
+	// ตัวเลือกของคำถาม (เฉพาะ choice_*); ลบคำถาม → ลบ options
+	Options []FeedbackOption `json:"options,omitempty" gorm:"foreignKey:QuestionID;references:ID;constraint:OnDelete:CASCADE"`
+	
+	// ป้องกันวนลูปเวลา preload ลึก ๆ
+	// Answers []FeedbackAnswer `json:"-" gorm:"foreignKey:QuestionID"`
 }

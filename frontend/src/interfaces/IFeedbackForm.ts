@@ -1,25 +1,43 @@
-// แบบประเมิน “ชุดเดียว” (Admin form)
+// Question types supported by backend
+export type QuestionType = "rating" | "text" | "choice_single" | "choice_multi";
 
-export interface RatingItem {
+// ---- GET /admin/feedback-form response ----
+export interface IFeedbackOption {
+  id: number;        // <— เพิ่ม
   label: string;
   sort: number;
 }
 
-export interface FinalComment {
-  enabled: boolean;
+export interface IFeedbackQuestion {
+  id: number;        // <— เพิ่ม
   label: string;
+  type: QuestionType;
+  sort: number;
+  options?: IFeedbackOption[]; // only for choice_*
 }
 
 export interface FeedbackFormResponse {
-  ratings: RatingItem[];
-  final_comment?: FinalComment; // ไม่มี -> ไม่เปิดช่องคอมเมนต์
+  questions: IFeedbackQuestion[];
+}
+
+// ---- PUT /admin/feedback-form payload ----
+export interface SaveOptionPayload {
+  label: string;
+  sort?: number;
+}
+
+export interface SaveQuestionPayload {
+  label: string;
+  type: QuestionType;
+  sort?: number;
+  options?: SaveOptionPayload[]; // only for choice_*
 }
 
 export interface SaveFormPayload {
-  ratings: RatingItem[];
-  final_comment?: FinalComment;
+  questions: SaveQuestionPayload[];
 }
 
+// ---- common ----
 export interface MessageOnly {
   message: string;
 }

@@ -1,20 +1,23 @@
 import  { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import ChatBan from "../../components/Home/ChatBan";
-import Question from "../../components/Home/Question";
-
-import Footer from "../../components/Home/Footer";
-
-import Homeasmr from "../../components/Home/Homeasmr";
-
-import Homemessage from "../../components/Home/Homemessage";
-import Homedoctor from "../../components/Home/Homedoctor";
+import UserFeedbackModal from "../feedback/components/UserFeedbackModal";
+import FeedbackCTA from "../feedback/components/FeedbackCTA";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment";
 import { logActivity } from "../../services/https/activity";
 import QrSurvey from "../../components/Home/qrservey";
+import ChatBan from "../../components/Home/ChatBan";
+import Question from "../../components/Home/Question";
+import Homeasmr from "../../components/Home/Homeasmr";
+import Homedoctor from "../../components/Home/Homedoctor";
+import Homemessage from "../../components/Home/Homemessage";
+import Footer from "../../components/Home/Footer";
+
 function Home() {
   const navigate = useNavigate();
-
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+const uidFromStorage = Number(
+  JSON.parse(localStorage.getItem("user") || "{}")?.id || localStorage.getItem("id") || 0
+);
   const [showPopup, setShowPopup] = useState(false);
   const [popupData, setPopupData] = useState<{
     groupId: number;
@@ -177,8 +180,16 @@ function Home() {
   
       <Homemessage />
       <Homedoctor />
-      <QrSurvey/>
-      <Footer />
+<FeedbackCTA onOpen={() => setFeedbackOpen(true)} />
+
+{/* วาง component ป็อปอัปไว้ท้ายหน้า ก่อน <Footer /> */}
+<UserFeedbackModal
+  uid={uidFromStorage}
+  open={feedbackOpen}
+  onClose={() => setFeedbackOpen(false)}
+/>
+ <Footer />
+
     </div>
   );
 }

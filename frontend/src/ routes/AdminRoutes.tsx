@@ -38,6 +38,7 @@ import SummaryUser from "../pages/admin/dashboard_contents/questionaire/summaryU
 import RetentionRatePage from "../pages/admin/userdataweb/RetentionRatePage";
 import VisitFrequencyPage from "../pages/admin/userdataweb/VisitFrequencyPage";
 import AdminFeedbackCreateQuestion from "../pages/feedback/feedback";
+import AdminFeedbackOverview from "../pages/feedback/components/AdminFeedbackOverview";
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
     return [
@@ -186,6 +187,10 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 },{
                     path: "/admin/feedback",  
                     element: <AdminFeedbackCreateQuestion/>,
+                }
+                ,{
+                    path: "/admin/feedback/overview",  
+                    element: <AdminFeedbackOverview/>,
                 }
                
             ],

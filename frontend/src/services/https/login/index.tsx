@@ -17,6 +17,7 @@ async function SignIn(data: SignInInterface) {
     .then((res) => res)
     .catch((e) => e.response);
 }
+
 async function GetGender() {
   return await axios
     .get(`${apiUrl}/genders`, requestOptions)
@@ -31,7 +32,7 @@ async function GetUsers() {
 }
 const GetUsersById = async (id: string) => {
   const token = localStorage.getItem("token");  // ดึง token จาก localStorage
-  //console.log("Token:", token); // เพิ่ม log เพื่อตรวจสอบว่า token มาไหม
+  console.log("Token:", token); // เพิ่ม log เพื่อตรวจสอบว่า token มาไหม
 
   if (!token) {
     console.error("Token not found");

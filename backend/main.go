@@ -97,18 +97,12 @@ func main() {
 	{
 		// Routes for admins only
 		router.Use(middlewares.Authorizes("admin"))
-router.GET("/admin/feedback-form", feedback.AdminGetFeedbackForm)
-router.PUT("/admin/feedback-form", feedback.AdminUpdateFeedbackForm)
-
-		// feedback routes
+		router.GET("/admin/feedback-form", feedback.AdminGetFeedbackForm)
+		router.PUT("/admin/feedback-form", feedback.AdminUpdateFeedbackForm)
+		router.GET("/admin/feedback/overview", feedback.AdminFeedbackOverview)
+		router.GET("/admin/feedback/users/:uid", feedback.AdminFeedbackUserReport)
 		
-		router.POST("/feedback", feedback.CreateFeedback)        // ผู้ใช้สร้าง feedback ใหม่
-		router.GET("/feedback/:id", feedback.GetFeedbackByID)    // ดึง feedback ตาม id
-		router.PUT("/feedback/:id", feedback.UpdateFeedback)     // ผู้ใช้แก้ไข feedback ของตัวเอง
-		router.DELETE("/feedback/:id", feedback.DeleteFeedback)  // ผู้ใช้ลบ feedback ของตัวเอง
-		router.GET("/feedback", feedback.GetAllFeedbacks)        // (admin) ดึง feedback ทั้งหมด
-
-
+		// feedback routes
 		router.GET("/admin", admin.GetAllAdmin)
 		router.GET("/admin/:id", admin.GetAdminById)
 		router.PUT("/adminyourself/:id", admin.EditAdminYourself)
@@ -275,6 +269,7 @@ router.PUT("/admin/feedback-form", feedback.AdminUpdateFeedbackForm)
 		userRouter.Use(middlewares.Authorizes("user"))
 		userRouter.GET("/user/:id", users.Get)
 		userRouter.PUT("/user/:id", users.Update)
+		userRouter.POST("/feedback/submit", feedback.SubmitFeedback)
 
 		userRouter.GET("/emotions", emotion.GetEmotions)
 		userRouter.GET("/emotions/:id", emotion.GetEmotionByID)

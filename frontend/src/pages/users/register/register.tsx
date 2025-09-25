@@ -75,7 +75,7 @@ function SignUpPages() {
     consent_accepted_at: consentAcceptedAt,
     role: "user"
   };
-
+  console.log("payload >>>", payload);
   const res = await CreateUser(payload);
     // console.log("ข้อมูลผู้ใช้",res);
 
@@ -105,14 +105,15 @@ const facultyOptions = [
 ];
 
 const yearOptions = [
-  { value: 1, label: "ชั้นปี 1" },
-  { value: 2, label: "ชั้นปี 2" },
-  { value: 3, label: "ชั้นปี 3" },
-  { value: 4, label: "ชั้นปี 4" },
-  { value: 5, label: "ชั้นปี 5" },
-  { value: 6, label: "ชั้นปี 6" },
+  { value: "ชั้นปี 1", label: "ชั้นปี 1" },
+  { value: "ชั้นปี 2", label: "ชั้นปี 2" },
+  { value: "ชั้นปี 3", label: "ชั้นปี 3" },
+  { value: "ชั้นปี 4", label: "ชั้นปี 4" },
+  { value: "ชั้นปี 5", label: "ชั้นปี 5" },
+  { value: "ชั้นปี 6", label: "ชั้นปี 6" },
   { value: "6 ปีขึ้นไป", label: "6 ปีขึ้นไป" },
 ];
+
 
   return (
     <div
@@ -396,10 +397,6 @@ const yearOptions = [
     label="เบอร์โทรศัพท์"
     name="phone_number"
     rules={[
-      { 
-        required: true, 
-        message: "กรุณากรอกเบอร์โทรศัพท์ !" 
-      },
       { 
         pattern: /^0[0-9]{9}$/, 
         message: "เบอร์โทรศัพท์ต้องขึ้นต้นด้วย 0 และมี 10 หลัก" 

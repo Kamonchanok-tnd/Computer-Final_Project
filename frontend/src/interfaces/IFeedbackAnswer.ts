@@ -1,5 +1,5 @@
 import { IFeedback } from "./IFeedback";
-import { IFeedbackQuestion } from "./IFeedbackQuestion";
+import { IFeedbackQuestion } from "./IFeedbackForm";
 
 export interface IFeedbackAnswer {
   ID: number;
