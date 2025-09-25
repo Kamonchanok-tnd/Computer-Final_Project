@@ -86,11 +86,22 @@ func SetupMockUpData(db *gorm.DB) error {
 		return fmt.Errorf("create/find Bell: %w", err)
 	}
 
-	// 2) seed เฉพาะ 3 UID นี้
-	return seedForUserIDs(db, []uint{u1.ID, u2.ID, u3.ID})
+	// 2) seed เฉพาะ 3 UID นี้ (ของระบบแบบทดสอบ/ธุรกรรม – โค้ดเดิม)
+	if err := seedForUserIDs(db, []uint{u1.ID, u2.ID, u3.ID}); err != nil {
+		return err
+	}
+
+	// 3) SEED เพิ่มเติม: แบบประเมิน (feedback) ให้ผู้ใช้ id = 4, 5, 6
+	//    - ไม่ยุ่งกับผู้ใช้ที่สร้างด้านบน
+	//    - ถ้า user ไม่อยู่ในระบบ จะข้ามเฉย ๆ
+	if err := seedFeedbackForUserIDs(db, []uint{4, 5, 6}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// ---------- helpers ----------
+// ---------- helpers (ของเดิม) ----------
 
 func seedForUserIDs(db *gorm.DB, userIDs []uint) error {
 	// โหลดกลุ่ม + mapping + questionnaire
@@ -394,4 +405,140 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+/* ===================== NEW: Feedback seeding for users 4,5,6 ===================== */
+
+// seedFeedbackForUserIDs จะสร้าง feedback_submissions/answers ให้ user แต่ละคน
+// - ทำ 3 เดือนล่าสุด (เดือนนี้ + ย้อนหลัง 2)
+// - กันซ้ำด้วย uid + period_key
+func seedFeedbackForUserIDs(db *gorm.DB, userIDs []uint) error {
+	// โหลดคำถาม Active พร้อมตัวเลือก
+	var questions []entity.FeedbackQuestion
+	if err := db.
+		Preload("Options", func(tx *gorm.DB) *gorm.DB { return tx.Order("sort ASC, id ASC") }).
+		Where("is_active = ?", true).
+		Order("sort ASC, id ASC").
+		Find(&questions).Error; err != nil {
+		return fmt.Errorf("load active feedback questions failed: %w", err)
+	}
+	if len(questions) == 0 {
+		// ไม่มีแบบประเมิน active → ข้าม
+		return nil
+	}
+
+	// สุ่มข้อความตอบแบบ text
+	textCorpus := []string{
+		"ใช้งานสะดวกมากครับ",
+		"โดยรวมดี มีบางจุดช้า",
+		"อยากได้ธีมมืดเพิ่ม",
+		"ฟังก์ชันครบ ใช้ง่าย",
+	}
+
+	monthsBack := 3
+	now := time.Now()
+
+	for _, uid := range userIDs {
+		// ถ้า user ไม่อยู่ในระบบ ข้าม
+		var cnt int64
+		if err := db.Model(&entity.Users{}).Where("id = ?", uid).Count(&cnt).Error; err != nil {
+			return fmt.Errorf("check user %d failed: %w", uid, err)
+		}
+		if cnt == 0 {
+			continue
+		}
+
+		for m := 0; m < monthsBack; m++ {
+			pk := now.AddDate(0, -m, 0).Format("2006-01")
+
+			// กันซ้ำ uid + period_key
+			var exists int64
+			if err := db.Model(&entity.FeedbackSubmission{}).
+				Where("uid = ? AND period_key = ?", uid, pk).
+				Count(&exists).Error; err != nil {
+				return fmt.Errorf("check duplicate (uid=%d, period=%s) failed: %w", uid, pk, err)
+			}
+			if exists > 0 {
+				continue
+			}
+
+			// ทำงานแบบทรานแซกชัน
+			if err := db.Transaction(func(tx *gorm.DB) error {
+				sub := entity.FeedbackSubmission{
+					UID:       uid,
+					PeriodKey: &pk,
+				}
+				if err := tx.Create(&sub).Error; err != nil {
+					return fmt.Errorf("create submission failed: %w", err)
+				}
+
+				for _, q := range questions {
+					ans := entity.FeedbackAnswer{
+						SubmissionID: sub.ID,
+						QuestionID:   q.ID,
+						UID:          uid,
+					}
+
+					switch q.Type {
+					case "rating":
+						v := 1 + rand.Intn(5) // 1..5
+						ans.Rating = &v
+						if err := tx.Create(&ans).Error; err != nil {
+							return fmt.Errorf("create answer (rating) failed: %w", err)
+						}
+
+					case "text":
+						t := textCorpus[rand.Intn(len(textCorpus))]
+						ans.Text = &t
+						if err := tx.Create(&ans).Error; err != nil {
+							return fmt.Errorf("create answer (text) failed: %w", err)
+						}
+
+					case "choice_single":
+						if len(q.Options) > 0 {
+							oid := q.Options[rand.Intn(len(q.Options))].ID
+							ans.OptionID = &oid
+						}
+						if err := tx.Create(&ans).Error; err != nil {
+							return fmt.Errorf("create answer (single) failed: %w", err)
+						}
+
+					case "choice_multi":
+						// ต้องสร้าง answer ก่อน แล้วค่อยแทรกตารางสะพาน
+						if err := tx.Create(&ans).Error; err != nil {
+							return fmt.Errorf("create answer (multi-step1) failed: %w", err)
+						}
+						if len(q.Options) > 0 {
+							// เลือก 1..min(3,len(options)) แบบไม่ซ้ำ
+							maxPick := 3
+							if maxPick > len(q.Options) {
+								maxPick = len(q.Options)
+							}
+							k := 1 + rand.Intn(maxPick)
+							perm := rand.Perm(len(q.Options))[:k]
+							for _, i := range perm {
+								link := entity.FeedbackAnswerOption{
+									AnswerID: ans.ID,
+									OptionID: q.Options[i].ID,
+								}
+								if err := tx.Create(&link).Error; err != nil {
+									return fmt.Errorf("create answer_option failed: %w", err)
+								}
+							}
+						}
+
+					default:
+						// เผื่อชนิดใหม่
+						if err := tx.Create(&ans).Error; err != nil {
+							return fmt.Errorf("create answer (default) failed: %w", err)
+						}
+					}
+				}
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

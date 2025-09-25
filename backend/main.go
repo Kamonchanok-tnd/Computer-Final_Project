@@ -101,6 +101,8 @@ func main() {
 		router.PUT("/admin/feedback-form", feedback.AdminUpdateFeedbackForm)
 		router.GET("/admin/feedback/overview", feedback.AdminFeedbackOverview)
 		router.GET("/admin/feedback/users/:uid", feedback.AdminFeedbackUserReport)
+		router.GET("/admin/feedback/users", feedback.ListFeedbackUsers)
+		
 		
 		// feedback routes
 		router.GET("/admin", admin.GetAllAdmin)

@@ -52,3 +52,14 @@ export async function getAdminFeedbackUserReport(
   );
   return data;
 }
+
+
+export async function getAdminFeedbackUsers(): Promise<
+  Array<{ uid: string | number; name: string; avatarUrl?: string | null }>
+> {
+  // ปรับ URL/params ให้ตรงกับ backend ของคุณ
+  const { data } = await api.get<
+    Array<{ uid: string | number; name: string; avatarUrl?: string | null }>
+  >("/admin/feedback/users"); // <- สร้าง endpoint นี้ที่ backend
+  return data ?? [];
+}

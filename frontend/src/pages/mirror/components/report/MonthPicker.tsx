@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+// path: src/pages/mirror/components/report/MonthPicker.tsx
+import { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
 
 type Props = {
-  value: Date;                          // เดือน/ปีที่เลือกอยู่
-  onChange: (d: Date) => void;          // ถูกเรียกเมื่อเลือกเดือนใหม่
-  label?: string;                       // ถ้าอยาก override label กลางปุ่ม
+  value: Date;                   // เดือน/ปีที่เลือกอยู่
+  onChange: (d: Date) => void;   // ถูกเรียกเมื่อเลือกเดือนใหม่
+  label?: string;                // override label ตรงปุ่ม
 };
 
 const TH_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
@@ -12,14 +13,86 @@ export default function MonthPicker({ value, onChange, label }: Props) {
   const [open, setOpen] = useState(false);
   const [panelYear, setPanelYear] = useState(value.getFullYear());
 
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  // เก็บตำแหน่ง + สถานะวัดตำแหน่งเสร็จ
+  const [pos, setPos] = useState<{ left: number; top: number }>({ left: -99999, top: -99999 });
+  const [ready, setReady] = useState(false);
+
   useEffect(() => setPanelYear(value.getFullYear()), [value]);
 
+  // ปิดด้วย Esc
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
+
+  // ปิดเมื่อคลิกนอก
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (panelRef.current?.contains(t)) return;
+      if (btnRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  // คำนวณตำแหน่งแบบ layout-safe (ไม่มีเฟรมที่ 0,0)
+  const placePanel = () => {
+    if (!btnRef.current || !panelRef.current) return;
+    const btn = btnRef.current.getBoundingClientRect();
+    const panel = panelRef.current;
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const gap = 8;
+
+    // ทำให้ panel มีขนาดจริง (visibility:hidden ไม่กระทบการวัด)
+    const pw = panel.offsetWidth;
+    const ph = panel.offsetHeight;
+
+    // 1) เริ่มจากกึ่งกลางใต้ปุ่ม
+    let left = btn.left + (btn.width - pw) / 2;
+    let top  = btn.bottom + gap;
+
+    // 2) ถ้าล้นขวา → สแน็ปชิดขวาปุ่ม
+    if (left + pw > vw - gap) left = btn.right - pw;
+
+    // 3) ถ้าล้นซ้าย → สแน็ปชิดซ้ายปุ่ม
+    if (left < gap) left = btn.left;
+
+    // 4) กันขอบจอขั้นสุดท้าย
+    if (left + pw > vw - gap) left = vw - pw - gap;
+    if (left < gap) left = gap;
+
+    // 5) ถ้าล่างชนขอบ → เด้งขึ้นบน
+    if (top + ph > vh - gap) top = btn.top - ph - gap;
+    if (top < gap) top = gap;
+
+    setPos({ left, top });
+    setReady(true);
+  };
+
+  // ใช้ layout effect เพื่อคำนวณก่อน paint (กันแฟลชไปมุมซ้ายบน)
+  useLayoutEffect(() => {
+    if (!open) return;
+    setReady(false);
+    // รอให้ panel mount ก่อน 1 เฟรม แล้ววัด (ใน layout effect ถัดไปยังทันก่อน paint)
+    requestAnimationFrame(() => placePanel());
+    const onWin = () => placePanel();
+    window.addEventListener("resize", onWin);
+    window.addEventListener("scroll", onWin, { passive: true });
+    return () => {
+      window.removeEventListener("resize", onWin);
+      window.removeEventListener("scroll", onWin);
+    };
+  }, [open, panelYear, value]);
 
   const display = useMemo(() => {
     if (label && label.trim()) return label;
@@ -31,9 +104,9 @@ export default function MonthPicker({ value, onChange, label }: Props) {
   }, [value, label]);
 
   return (
-    // ★ ให้คอมโพเนนต์ดูแล layout เอง: เต็มแถว และเป็น anchor ของป๊อปอัป
     <div className="relative w-full">
       <button
+        ref={btnRef}
         type="button"
         onClick={() => setOpen(v => !v)}
         className="w-full h-11 px-3 rounded-xl bg-white/95 ring-1 ring-slate-200 shadow-sm
@@ -53,19 +126,22 @@ export default function MonthPicker({ value, onChange, label }: Props) {
 
       {open && (
         <>
-          {/* backdrop ปิดเมื่อคลิกนอก */}
+          {/* backdrop */}
           <button
             type="button"
             className="fixed inset-0 z-20 cursor-default"
             onClick={() => setOpen(false)}
             aria-label="ปิดตัวเลือกเดือน"
           />
-          {/* ป๊อปอัป: ยึดกับคอมโพเนนต์ (ตำแหน่งแม่น ไม่ดันเลย์เอาต์) */}
+
+          {/* popover: fixed + clamp; มองไม่เห็นจนกว่าคำนวณเสร็จ */}
           <div
+            ref={panelRef}
             role="dialog"
             aria-label="เลือกเดือน"
-            className="absolute z-30 top-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2
-                       w-[280px] sm:w-[320px] rounded-xl bg-white shadow-lg ring-1 ring-slate-200 p-3"
+            className={`fixed z-30 w-[280px] sm:w-[320px] max-w-[min(22rem,calc(100vw-16px))]
+                        rounded-xl bg-white shadow-lg ring-1 ring-slate-200 p-3 ${ready ? "" : "invisible"}`}
+            style={{ left: pos.left, top: pos.top }}
           >
             <div className="flex items-center justify-between mb-2">
               <button

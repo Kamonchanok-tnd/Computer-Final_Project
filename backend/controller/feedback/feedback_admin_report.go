@@ -125,30 +125,29 @@ func AdminFeedbackOverview(c *gin.Context) {
 	avgAll := avgAllRow.Avg
 
 	// Overall Rating: ใช้เฉพาะ "คำถามคีย์" ที่กำหนดไว้เท่านั้น (ไม่มีคีย์ = ไม่คำนวณ)
-var overall *float64
-if key := os.Getenv("OVERALL_RATING_KEY"); key != "" {
-    // ใช้ Find + RowsAffected เพื่อหลีกเลี่ยง log "record not found"
-    var overallQ entity.FeedbackQuestion
-    q := db.Select("id").Where("key = ? AND is_active = true", key).Limit(1).Find(&overallQ)
-    if q.Error != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "load overall key failed"})
-        return
-    }
-    if q.RowsAffected > 0 {
-        type rowOverall struct{ Avg *float64 }
-        var r rowOverall
-        if err := db.
-            Table("feedback_answers AS fa").
-            Joins("JOIN feedback_submissions fs ON fs.id = fa.submission_id").
-            Where("fs.period_key = ? AND fa.rating IS NOT NULL AND fa.question_id = ?", period, overallQ.ID).
-            Select("AVG(fa.rating)::float8 AS avg").
-            Scan(&r).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "compute overall rating failed"})
-            return
-        }
-        overall = r.Avg
-    }
-}
+	var overall *float64
+	if key := os.Getenv("OVERALL_RATING_KEY"); key != "" {
+		var overallQ entity.FeedbackQuestion
+		q := db.Select("id").Where("key = ? AND is_active = true", key).Limit(1).Find(&overallQ)
+		if q.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "load overall key failed"})
+			return
+		}
+		if q.RowsAffected > 0 {
+			type rowOverall struct{ Avg *float64 }
+			var r rowOverall
+			if err := db.
+				Table("feedback_answers AS fa").
+				Joins("JOIN feedback_submissions fs ON fs.id = fa.submission_id").
+				Where("fs.period_key = ? AND fa.rating IS NOT NULL AND fa.question_id = ?", period, overallQ.ID).
+				Select("AVG(fa.rating)::float8 AS avg").
+				Scan(&r).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "compute overall rating failed"})
+				return
+			}
+			overall = r.Avg
+		}
+	}
 
 	// นับ text ทั้งหมดในเดือนนี้
 	var textCount int64
@@ -317,7 +316,8 @@ if key := os.Getenv("OVERALL_RATING_KEY"); key != "" {
 }
 
 // ==== Admin: User Report ====
-// GET /admin/feedback/users/:uid?from=YYYY-MM&to=YYYY-MM
+// GET /admin/feedback/users/:uid
+// (เวอร์ชันนี้ดึง **ทุก submission** ของผู้ใช้ ไม่สน from/to)
 func AdminFeedbackUserReport(c *gin.Context) {
 	db := config.DB()
 
@@ -325,19 +325,6 @@ func AdminFeedbackUserReport(c *gin.Context) {
 	if uid == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "uid required"})
 		return
-	}
-
-	from := c.Query("from")
-	to := c.Query("to")
-	if !isYYYYMM(from) && !isYYYYMM(to) {
-		from = time.Now().Format("2006-01")
-		to = from
-	}
-	if !isYYYYMM(from) && isYYYYMM(to) {
-		from = to
-	}
-	if isYYYYMM(from) && !isYYYYMM(to) {
-		to = from
 	}
 
 	type answerRow struct {
@@ -364,11 +351,11 @@ func AdminFeedbackUserReport(c *gin.Context) {
 		Submissions []submissionItem `json:"submissions"`
 	}{UID: uid}
 
-	// load submissions for user within [from..to]
+	// load **all** submissions for user (latest first)
 	var subs []entity.FeedbackSubmission
 	if err := db.
-		Where("uid = ? AND period_key >= ? AND period_key <= ?", uid, from, to).
-		Order("submitted_at DESC").
+		Where("uid = ?", uid).
+		Order("submitted_at DESC, id DESC").
 		Find(&subs).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "load submissions failed"})
 		return
