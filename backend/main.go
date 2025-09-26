@@ -16,6 +16,8 @@ import (
 	"sukjai_project/controller/dashboardcontents"
 	"sukjai_project/controller/emotion"
 	"sukjai_project/controller/exportexcel"
+	"sukjai_project/controller/feedback"
+	"sukjai_project/controller/handler"
 	"sukjai_project/controller/meditation"
 	"sukjai_project/controller/mirror"
 	"sukjai_project/controller/playlist"
@@ -27,7 +29,6 @@ import (
 	"sukjai_project/controller/sounds"
 	"sukjai_project/controller/useractivity"
 	"sukjai_project/controller/users"
-	"sukjai_project/controller/handler"
 	"sukjai_project/controller/wordhealingmessage"
 	"sukjai_project/middlewares"
 
@@ -96,7 +97,14 @@ func main() {
 	{
 		// Routes for admins only
 		router.Use(middlewares.Authorizes("admin"))
-
+		router.GET("/admin/feedback-form", feedback.AdminGetFeedbackForm)
+		router.PUT("/admin/feedback-form", feedback.AdminUpdateFeedbackForm)
+		router.GET("/admin/feedback/overview", feedback.AdminFeedbackOverview)
+		router.GET("/admin/feedback/users/:uid", feedback.AdminFeedbackUserReport)
+		router.GET("/admin/feedback/users", feedback.ListFeedbackUsers)
+		
+		
+		// feedback routes
 		router.GET("/admin", admin.GetAllAdmin)
 		router.GET("/admin/:id", admin.GetAdminById)
 		router.PUT("/adminyourself/:id", admin.EditAdminYourself)
@@ -263,6 +271,7 @@ func main() {
 		userRouter.Use(middlewares.Authorizes("user"))
 		userRouter.GET("/user/:id", users.Get)
 		userRouter.PUT("/user/:id", users.Update)
+		userRouter.POST("/feedback/submit", feedback.SubmitFeedback)
 
 		userRouter.GET("/emotions", emotion.GetEmotions)
 		userRouter.GET("/emotions/:id", emotion.GetEmotionByID)

@@ -37,6 +37,8 @@ import CreateCriteriaPage from "../pages/admin/questionnaire/create/CreateCriter
 import SummaryUser from "../pages/admin/dashboard_contents/questionaire/summaryUser";
 import RetentionRatePage from "../pages/admin/userdataweb/RetentionRatePage";
 import VisitFrequencyPage from "../pages/admin/userdataweb/VisitFrequencyPage";
+import AdminFeedbackCreateQuestion from "../pages/feedback/feedback";
+import AdminFeedbackUser from "../pages/feedback/components/AdminFeedbackUser";
 
 const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
     return [
@@ -182,6 +184,13 @@ const AdminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                 {
                     path: "/admin/retention-rate",  
                     element: <RetentionRatePage/>,
+                },{
+                    path: "/admin/feedback",  
+                    element: <AdminFeedbackCreateQuestion/>,
+                }
+                ,{
+                    path: "/admin/feedback/overview",  
+                    element: <AdminFeedbackUser users={[]}/>,
                 }
                
             ],

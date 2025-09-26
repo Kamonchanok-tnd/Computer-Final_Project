@@ -46,6 +46,12 @@ func isValidEmail(email string) bool {
     return re.MatchString(email)
 }
 
+// ตรวจสอบรูปแบบเบอร์โทร (ตัวอย่าง regex เบอร์โทรไทย)
+func isValidPhoneNumber(phone string) bool {
+    re := regexp.MustCompile(`^(0[689]{1}[0-9]{8})$`) 
+    return re.MatchString(phone)
+}
+
 func SignUp(c *gin.Context) {
     var payload signUp
     if err := c.ShouldBindJSON(&payload); err != nil {
@@ -55,6 +61,12 @@ func SignUp(c *gin.Context) {
 
     if !isValidEmail(payload.Email) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "รูปแบบอีเมลไม่ถูกต้อง"})
+        return
+    }
+
+    // ✅ ตรวจสอบเบอร์โทร
+    if !isValidPhoneNumber(payload.PhoneNumber) {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "รูปแบบเบอร์โทรไม่ถูกต้อง"})
         return
     }
 
@@ -69,6 +81,19 @@ func SignUp(c *gin.Context) {
         c.JSON(http.StatusConflict, gin.H{"error": "อีเมลนี้ถูกใช้งานแล้ว"})
         return
     }
+
+    // ✅ ตรวจสอบเบอร์โทรซ้ำ
+    var phoneCheck entity.Users
+    result = db.Where("phone_number = ?", payload.PhoneNumber).First(&phoneCheck)
+    if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการตรวจสอบเบอร์โทร"})
+        return
+    }
+    if phoneCheck.ID != 0 {
+        c.JSON(http.StatusConflict, gin.H{"error": "เบอร์โทรนี้ถูกใช้งานแล้ว"})
+        return
+    }
+
 
     if payload.Role != "superadmin" && payload.Role != "user" {
         c.JSON(http.StatusBadRequest, gin.H{"error": "บทบาทไม่ถูกต้อง"})

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 // GET /emotions
 // ดึงรายการอิโมจิ/อารมณ์ทั้งหมด
 func GetEmotions(c *gin.Context) {
