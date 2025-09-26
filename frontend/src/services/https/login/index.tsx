@@ -32,7 +32,7 @@ async function GetUsers() {
 }
 const GetUsersById = async (id: string) => {
   const token = localStorage.getItem("token");  // ดึง token จาก localStorage
-  console.log("Token:", token); // เพิ่ม log เพื่อตรวจสอบว่า token มาไหม
+  //console.log("Token:", token); // เพิ่ม log เพื่อตรวจสอบว่า token มาไหม
 
   if (!token) {
     console.error("Token not found");

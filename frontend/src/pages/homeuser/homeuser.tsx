@@ -4,7 +4,7 @@ import UserFeedbackModal from "../feedback/components/UserFeedbackModal";
 import FeedbackCTA from "../feedback/components/FeedbackCTA";
 import { getAvailableGroupsAndNext } from "../../services/https/assessment";
 import { logActivity } from "../../services/https/activity";
-import QrSurvey from "../../components/Home/qrservey";
+//import QrSurvey from "../../components/Home/qrservey";
 import ChatBan from "../../components/Home/ChatBan";
 import Question from "../../components/Home/Question";
 import Homeasmr from "../../components/Home/Homeasmr";
@@ -157,18 +157,42 @@ const uidFromStorage = Number(
     };
   }, [checkOnLoginGroup, checkIntervalGroup]);
 
-  useEffect(() => {
-    if (hasLoggedRef.current) return; // ถ้าเรียกแล้ว → ข้าม
-    hasLoggedRef.current = true; // บันทึกว่าเรียกแล้ว
+//const hasLoggedRef = useRef(false);
 
+ useEffect(() => {
     const uid = Number(localStorage.getItem("id"));
     if (!uid) return;
 
-    logActivity({
-      uid,
-      action: "visit_page_first",
-      page: "/home",
-    });
+    const handleUserActivity = () => {
+      if (hasLoggedRef.current) return; // กันไม่ให้บันทึกซ้ำ
+
+      logActivity({
+        uid,
+        action: "visit_page_first",
+        page: "/home",
+      });
+
+      hasLoggedRef.current = true;
+
+      // เมื่อบันทึกแล้ว → ถอด event ออก
+      window.removeEventListener("click", handleUserActivity);
+      window.removeEventListener("scroll", handleUserActivity);
+      window.removeEventListener("keydown", handleUserActivity);
+      window.removeEventListener("mousemove", handleUserActivity);
+    };
+
+    // ฟัง action ของผู้ใช้
+    window.addEventListener("click", handleUserActivity);
+    window.addEventListener("scroll", handleUserActivity);
+    window.addEventListener("keydown", handleUserActivity);
+    window.addEventListener("mousemove", handleUserActivity);
+
+    return () => {
+      window.removeEventListener("click", handleUserActivity);
+      window.removeEventListener("scroll", handleUserActivity);
+      window.removeEventListener("keydown", handleUserActivity);
+      window.removeEventListener("mousemove", handleUserActivity);
+    };
   }, []);
 
   return (

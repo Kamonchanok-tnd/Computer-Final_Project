@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Layout, Menu, Button, Drawer } from "antd"; // เพิ่ม Drawer
-import { LogoutOutlined ,MenuOutlined, DashboardOutlined, CommentOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
+import { LogoutOutlined ,MenuOutlined, DashboardOutlined, CommentOutlined,CustomerServiceOutlined,QuestionOutlined,MailOutlined,ScheduleOutlined,FundOutlined,SmileOutlined} from '@ant-design/icons'; // นำเข้าไอคอน Dashboard และ Setting
 const { Header, Content, Sider } = Layout;
 import { useNavigate } from "react-router-dom";
 import './FullLayout.css'; // นำเข้าไฟล์ CSS
@@ -102,6 +102,10 @@ const FullLayout = () => {
   <Link to="/superadmin/activity">ข้อมูลผู้เข้าชม</Link> 
 </Menu.Item>
 
+<Menu.Item key="/superadmin/feedback" icon={<SmileOutlined/>}> 
+  <Link to="/superadmin/feedback">จัดการแบบประเมินความพึงพอใจ</Link> 
+</Menu.Item>
+
           </Menu>
         </Sider>
 
@@ -148,6 +152,10 @@ const FullLayout = () => {
 
 <Menu.Item key="/superadmin/activity" icon={<FundOutlined/>}> 
   <Link to="/superadmin/activity">ข้อมูลผู้เข้าชม</Link> 
+</Menu.Item>
+
+<Menu.Item key="/superadmin/feedback" icon={<SmileOutlined/>}> 
+  <Link to="/superadmin/feedback">จัดการแบบประเมินความพึงพอใจ</Link> 
 </Menu.Item>
           </Menu>
         </Drawer>

@@ -33,6 +33,8 @@ import EditQuestionAndAnswerPage from "../pages/admin/questionnaire/edit/editQue
 import Quetionairedetail from "../pages/admin/dashboard_contents/questionaire/quetionairedetail";
 import VisitFrequencyPage from "../pages/admin/userdataweb/VisitFrequencyPage";
 import RetentionRatePage from "../pages/admin/userdataweb/RetentionRatePage";
+import AdminFeedbackCreateQuestion from "../pages/feedback/feedback";
+import AdminFeedbackUser from "../pages/feedback/components/AdminFeedbackUser";
 // import CreateAdmin from "../pages/superadmin/create_admin/createadmin";
 // import DashboardAdmin from "../pages/superadmin/dashboard_admin/dashboard";
 // import EditAdmin from "../pages/superadmin/edit_admin/EditAdmin";
@@ -204,6 +206,14 @@ const SuperadminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                     path: "/superadmin/createCriteriaPage", // สร้างเกณฑ์
                     element: <CreateCriteriaPage/>,
                 },
+                {
+                                    path: "/superadmin/feedback",  
+                                    element: <AdminFeedbackCreateQuestion/>,
+                                }
+                                ,{
+                                    path: "/superadmin/feedback/overview",  
+                                    element: <AdminFeedbackUser users={[]}/>,
+                                }
 
 
       ],

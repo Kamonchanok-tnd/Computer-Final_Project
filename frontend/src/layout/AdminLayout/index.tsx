@@ -10,6 +10,7 @@ import {
   MailOutlined,
   ScheduleOutlined,
   FundOutlined,
+  SmileOutlined ,
 } from "@ant-design/icons";
 const { Header, Content, Sider } = Layout;
 import "./index.css";
@@ -73,6 +74,11 @@ const AdminLayout = () => {
       key: "/admin/activity",
       icon: <FundOutlined />,
       label: <Link to="/admin/activity">ข้อมูลผู้เข้าใช้</Link>,
+    },
+    {
+      key: "/admin/feedback",
+      icon: <SmileOutlined  />,
+      label: <Link to="/admin/feedback">การจัดการแบบประเมินความพึงพอใจ</Link>,
     },
   ];
 
