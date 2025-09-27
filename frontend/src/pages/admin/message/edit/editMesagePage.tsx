@@ -1,28 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { message } from "antd";
-import { FileText, MessageSquare } from "lucide-react";
-import {
-  getWordHealingMessageById,
-  updateWordHealingMessage,
-  getArticleTypeOptionsDetailed,
-} from "../../../../services/https/message";
-import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
+import { message, Spin } from "antd";
+import { FileText, MessageSquare, Pencil, Trash2, Plus } from "lucide-react";
+import {getWordHealingMessageById,updateWordHealingMessage,} from "../../../../services/https/message";
+import {getAllArticleTypes,createArticleType,updateArticleType as apiUpdateArticleType,deleteArticleType as apiDeleteArticleType,} from "../../../../services/https/articletype";
+import type { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
+import type { ArticleType } from "../../../../interfaces/IArticleType";
 import editMessageIcon from "../../../../assets/editMessageIcon.png";
 
-/* Types & Utils */
-type ArticleTypeOption = { value: string; label: string; description?: string };
+/* Utils */
+type ArticleTypeOption = { id: number; label: string; description?: string };
 
-interface FormDataType extends Omit<WordHealingContent, "photo" | "article_type"> {
-  photo: string | null;
-  error: (message: string) => unknown;
-  idts?: number;
-  content: string;
-  articleType: string;
-  viewCount: number;
-}
-
-type ContentKind = "long" | "short";
+const SHORT_FALLBACK_ID = 29;
+const SHORT_FALLBACK_NAME = "ข้อความ";
 
 const fmtYMD = (d: Date) => {
   const y = d.getFullYear();
@@ -35,10 +25,32 @@ const isTouchDevice = () =>
     (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
   false;
 
-/** ให้รองรับทั้ง RefObject และ MutableRefObject */
-type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
+function resolveShortTypeId(options: ArticleTypeOption[]) {
+  const byId = options.find((o) => o.id === SHORT_FALLBACK_ID);
+  if (byId) return byId.id;
+  const byName = options.find((o) => o.label === SHORT_FALLBACK_NAME);
+  if (byName) return byName.id;
+  return undefined;
+}
+
+/*  Types */
+type ContentKind = "long" | "short";
+
+/*form state สำหรับแก้ไข */
+interface FormDataType
+  extends Omit<
+    WordHealingContent,
+    "photo" | "article_type_id" | "date" | "error"
+  > {
+  photo: string | null;                // เก็บ base64 / URL
+  date: string;                        // yyyy-mm-dd
+  article_type_id: number | null;      // ใช้ id จาก dropdown
+  error: (message: string) => unknown;
+}
 
 /* Mobile DatePicker (smart drop-up) */
+type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
+
 const MobileDateField: React.FC<{
   value: string;
   max: string;
@@ -185,8 +197,8 @@ const MobileDateField: React.FC<{
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-200 px-3 py-2 text-sm">
-            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(""); setViewMonth(new Date(today)); setOpen(false); }}>Clear</button>
-            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(fmtYMD(today)); setViewMonth(new Date(today)); setOpen(false); }}>Today</button>
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(""); setViewMonth(new Date(today)); }}>Clear</button>
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(fmtYMD(today)); setViewMonth(new Date(today)); }}>Today</button>
           </div>
         </div>
       )}
@@ -204,6 +216,7 @@ const EditMessagePage: React.FC = () => {
   const [msgApi, msgCtx] = message.useMessage();
 
   const todayStr = fmtYMD(new Date());
+
   const [contentKind, setContentKind] = useState<ContentKind>("long");
 
   const [formData, setFormData] = useState<FormDataType>({
@@ -214,9 +227,8 @@ const EditMessagePage: React.FC = () => {
     date: "",
     photo: null,
     content: "",
-    articleType: "OpinionPiece",
+    article_type_id: null,
     error: (message: string) => console.error(message),
-    idts: undefined,
     viewCount: 0,
   });
 
@@ -225,83 +237,79 @@ const EditMessagePage: React.FC = () => {
 
   const [articleTypeOptions, setArticleTypeOptions] = useState<ArticleTypeOption[]>([]);
   const [articleTypeLoading, setArticleTypeLoading] = useState<boolean>(false);
+  const [shortTypeId, setShortTypeId] = useState<number | undefined>(undefined);
 
-  /* โหลดประเภทบทความ */
+  /* Create Update Delete states for dropdown */
+  const [opLoading, setOpLoading] = useState<boolean>(false);
+  const [manageMode, setManageMode] = useState<"none" | "create" | "edit">("none");
+  const [editTargetId, setEditTargetId] = useState<number | null>(null);
+  const [nameInput, setNameInput] = useState("");
+  const [descInput, setDescInput] = useState("");
+
+  /* โหลดประเภทบทความ + ข้อมูลเดิม */
   useEffect(() => {
     (async () => {
       try {
         setArticleTypeLoading(true);
-        const detailed = await getArticleTypeOptionsDetailed();
-        const opts: ArticleTypeOption[] = (detailed || []).map((o: any) => {
-          const labelText =
-            typeof o?.label === "string" ? o.label :
-            typeof o?.label?.th === "string" ? o.label.th :
-            typeof o?.name === "string" ? o.name :
-            typeof o?.title === "string" ? o.title :
-            typeof o?.raw?.label === "string" ? o.raw.label :
-            typeof o?.raw?.name === "string" ? o.raw.name :
-            String(o?.value ?? "");
-          const descText =
-            typeof o?.description === "string" ? o.description :
-            typeof o?.raw?.description === "string" ? o.raw.description :
-            typeof o?.detail === "string" ? o.detail :
-            typeof o?.raw?.detail === "string" ? o.raw.detail :
-            typeof o?.raw?.desc === "string" ? o.raw.desc :
-            "";
-          return { value: String(o?.value ?? labelText), label: labelText, description: descText };
-        });
+
+        // 1) โหลดประเภททั้งหมด
+        const list: ArticleType[] = await getAllArticleTypes();
+        const opts: ArticleTypeOption[] = (list || []).map((t) => ({
+          id: Number(t.id!),
+          label: t.name,
+          description: t.description || "",
+        }));
         setArticleTypeOptions(opts);
-      } catch {
-        msgApi.error("โหลดประเภทบทความไม่สำเร็จ");
+        const shortId = resolveShortTypeId(opts);
+        setShortTypeId(shortId);
+
+        // 2) ถ้ามี id ให้โหลดข้อมูลเดิม
+        if (editingId) {
+          const data = await getWordHealingMessageById(String(editingId));
+          if (!data) throw new Error("not found");
+
+          // date >> yyyy-mm-dd
+          const dateYMD = data.date ? String(data.date).slice(0, 10) : "";
+
+          // ตั้งค่า form
+          setFormData((prev) => ({
+            ...prev,
+            id: data.id ?? editingId,
+            name: data.name ?? "",
+            author: data.author ?? "",
+            no_of_like: data.no_of_like ?? 0,
+            date: dateYMD,
+            photo: data.photo ?? null,
+            content: data.content ?? "",
+            article_type_id: data.article_type_id ?? null,
+            viewCount: data.viewCount ?? 0,
+          }));
+
+          // preview
+          if (data.photo && (String(data.photo).startsWith("data:") || String(data.photo).startsWith("http"))) {
+            setPreview(String(data.photo));
+          } else {
+            setPreview("");
+          }
+
+          // 3) ตัดสินโหมด (ข้อความ vs บทความ) — ถ้าเป็น "ข้อความ" ให้ไปฝั่งข้อความเสมอ
+          const isShort =
+            (data.article_type_id != null && (data.article_type_id === shortId || data.article_type_id === SHORT_FALLBACK_ID)) ||
+            (!!shortId === false && opts.find((o) => o.label === SHORT_FALLBACK_NAME && o.id === data.article_type_id));
+
+          setContentKind(isShort ? "short" : "long");
+        }
+      } catch (e) {
+        console.error(e);
+        msgApi.error("โหลดข้อมูลไม่สำเร็จ");
       } finally {
         setArticleTypeLoading(false);
       }
     })();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingId]);
 
-  /* โหลดข้อมูลเดิม */
-  useEffect(() => {
-    (async () => {
-      if (!editingId) return;
-      try {
-        const data = await getWordHealingMessageById(String(editingId));
-        if (!data) return;
-
-        const toYMD = (input?: string) => {
-          if (!input) return "";
-          const t = new Date(input);
-          if (!isNaN(t.getTime())) return fmtYMD(t);
-          return String(input).slice(0, 10);
-        };
-
-        setFormData((prev) => ({
-          ...prev,
-          id: data.id ?? editingId,
-          name: data.name ?? "",
-          author: data.author ?? "",
-          no_of_like: data.no_of_like ?? 0,
-          date: toYMD(data.date),
-          photo: data.photo ?? null,
-          content: data.content ?? "",
-          articleType: data.articleType ?? prev.articleType,
-          viewCount: data.viewCount ?? 0,
-        }));
-
-        setContentKind((data.articleType ?? "") === "บทความสั้น" ? "short" : "long");
-
-        if (data.photo && (String(data.photo).startsWith("data:image") || String(data.photo).startsWith("http"))) {
-          setPreview(data.photo);
-        } else {
-          setPreview("");
-        }
-      } catch (e) {
-        console.error(e);
-        msgApi.error("ไม่สามารถดึงข้อมูลบทความ");
-      }
-    })();
-  }, [editingId]); // eslint-disable-line
-
-  /* Dropdown ประเภทบทความ */
+  /* dropdown (ตำแหน่ง/ค้นหา) */
   const [typeOpen, setTypeOpen] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
   const [dropUp, setDropUp] = useState(false);
@@ -314,8 +322,6 @@ const EditMessagePage: React.FC = () => {
   const ITEM_ROW_H = 44;
   const listMaxH = Math.min(menuMaxH, VISIBLE_ITEMS * ITEM_ROW_H + 8);
 
-  const [customTypeMode, setCustomTypeMode] = useState(false);
-  const [customTypeText, setCustomTypeText] = useState("");
   const [activeIdx, setActiveIdx] = useState<number>(-1);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -340,8 +346,7 @@ const EditMessagePage: React.FC = () => {
       if (!typeRef.current) return;
       if (!typeRef.current.contains(e.target as Node)) {
         setTypeOpen(false);
-        setCustomTypeMode(false);
-        setCustomTypeText("");
+        resetManage();
       }
     };
     document.addEventListener("mousedown", onDocClick);
@@ -349,7 +354,12 @@ const EditMessagePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setTypeOpen(false); setCustomTypeMode(false); } };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setTypeOpen(false);
+        resetManage();
+      }
+    };
     if (typeOpen) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [typeOpen]);
@@ -368,40 +378,19 @@ const EditMessagePage: React.FC = () => {
     };
   }, [typeOpen]);
 
-  /* useMemo */
   const filteredTypeOptions = useMemo(() => {
     const q = typeQuery.trim().toLowerCase();
     if (!q) return articleTypeOptions;
     return articleTypeOptions.filter(
-      (o) => o.label.toLowerCase().includes(q) || (o.description?.toLowerCase() || "").includes(q)
+      (o) =>
+        o.label.toLowerCase().includes(q) ||
+        (o.description?.toLowerCase() || "").includes(q)
     );
   }, [typeQuery, articleTypeOptions]);
 
-  const hasExactMatch = useMemo(() => {
-    const q = typeQuery.trim().toLowerCase();
-    if (!q) return false;
-    return articleTypeOptions.some((o) => o.label.toLowerCase() === q || String(o.value).toLowerCase() === q);
-  }, [typeQuery, articleTypeOptions]);
-
-  const showCreateFromQuery = !!typeQuery.trim() && !articleTypeLoading && !hasExactMatch;
-
-  const isCustomType = useMemo(() => {
-    const cur = String(formData.articleType || "").trim();
-    if (!cur) return false;
-    return !articleTypeOptions.some((o) => String(o.value) === cur);
-  }, [formData.articleType, articleTypeOptions]);
-
-  const selectedTypeLabel = useMemo(() => {
-    if (articleTypeLoading) return "กำลังโหลดประเภทบทความ...";
-    const cur = String(formData.articleType || "").trim();
-    const f = articleTypeOptions.find((o) => o.value === cur);
-    if (f) return f.label || f.value;
-    if (cur) return `อื่นๆ: ${cur}`;
-    return "เลือกประเภทบทความ";
-  }, [articleTypeLoading, articleTypeOptions, formData.articleType]);
-
   useEffect(() => {
-    if (articleTypeLoading || !typeOpen) return;
+    if (articleTypeLoading) return;
+    if (!typeOpen) return;
     if (filteredTypeOptions.length === 0) {
       setActiveIdx(-1);
       return;
@@ -419,7 +408,7 @@ const EditMessagePage: React.FC = () => {
     el?.scrollIntoView({ block: "nearest" });
   }, [activeIdx]);
 
-  /* สวิตช์โหมด */
+  /* สวิตช์ UI pill */
   const [thumb, setThumb] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const pillRef = useRef<HTMLDivElement>(null);
   const longRef = useRef<HTMLButtonElement>(null);
@@ -449,50 +438,7 @@ const EditMessagePage: React.FC = () => {
     };
   }, []);
 
-  /* บันทึก */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return msgApi.error("กรุณากรอกชื่อบทความ");
-    if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
-    if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
-    if (!formData.content.trim()) return msgApi.error("กรุณากรอกเนื้อหา");
-    // บังคับต้องมีรูป (ถ้ามีรูปเดิมอยู่ใน formData.photo ก็ถือว่าผ่าน)
-    if (!formData.photo) return msgApi.error("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
-    if (contentKind === "long" && !String(formData.articleType || "").trim()) {
-      return msgApi.error("กรุณาระบุประเภทบทความ");
-    }
-
-    const picked = new Date(`${formData.date}T00:00:00`);
-    const today = new Date(`${todayStr}T00:00:00`);
-    if (isNaN(picked.getTime())) return msgApi.error("วันที่ไม่ถูกต้อง");
-    if (picked > today) return msgApi.error("เลือกวันที่ในอนาคตไม่ได้");
-
-    const reqBody = {
-      name: formData.name,
-      author: formData.author,
-      no_of_like: formData.no_of_like,
-      date: new Date(formData.date).toISOString(),
-      content: formData.content,
-      article_type: contentKind === "short" ? "บทความสั้น" : formData.articleType,
-      photo: formData.photo, // base64 ของรูป
-      viewCount: formData.viewCount ?? 0,
-    };
-
-    try {
-      const ok = await updateWordHealingMessage(String(formData.id), reqBody as any);
-      if (ok) {
-        msgApi.success("แก้ไขข้อมูลสำเร็จ");
-        setTimeout(() => navigate("/admin/messagePage"), 2000);
-      } else {
-        msgApi.error("เกิดข้อผิดพลาดในการเเก้ไขข้อมูล");
-      }
-    } catch (err) {
-      console.error(err);
-      msgApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
-    }
-  };
-
-  /* เลือกไฟล์ — รับเฉพาะรูปภาพเท่านั้น */
+  /* File handler */
   const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -514,8 +460,96 @@ const EditMessagePage: React.FC = () => {
   const removeFile = () => {
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
+    msgApi.info("ลบรูปแล้ว");
   };
 
+  /* CRUD helpers ใน dropdown */
+  const resetManage = () => {
+    setManageMode("none");
+    setEditTargetId(null);
+    setNameInput("");
+    setDescInput("");
+  };
+  const beginCreate = () => {
+    setManageMode("create");
+    setEditTargetId(null);
+    setNameInput(typeQuery.trim() || "");
+    setDescInput("");
+  };
+  const beginEdit = (opt: ArticleTypeOption) => {
+    setManageMode("edit");
+    setEditTargetId(opt.id);
+    setNameInput(opt.label);
+    setDescInput(opt.description || "");
+  };
+
+  const handleCreateType = async () => {
+    const name = nameInput.trim();
+    if (!name) return msgApi.warning("กรุณาระบุชื่อประเภท");
+    try {
+      setOpLoading(true);
+      const created = await createArticleType({ name, description: descInput.trim() });
+      const newOpt: ArticleTypeOption = {
+        id: Number(created.id),
+        label: created.name,
+        description: created.description || "",
+      };
+      setArticleTypeOptions((prev) => [newOpt, ...prev]);
+      setFormData((prev) => ({ ...prev, article_type_id: newOpt.id }));
+      setShortTypeId((prev) => prev ?? resolveShortTypeId([newOpt, ...articleTypeOptions]));
+      msgApi.success("สร้างประเภทบทความสำเร็จ");
+      resetManage();
+      setTypeOpen(false);
+    } catch (e: any) {
+      msgApi.error(e?.message || "สร้างประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
+  const handleEditType = async () => {
+    if (!editTargetId) return;
+    const name = nameInput.trim();
+    if (!name) return msgApi.warning("กรุณาระบุชื่อประเภท");
+    try {
+      setOpLoading(true);
+      const updated = await apiUpdateArticleType(editTargetId, { name, description: descInput.trim() });
+      setArticleTypeOptions((prev) =>
+        prev.map((o) =>
+          o.id === editTargetId ? { ...o, label: updated.name, description: updated.description || "" } : o
+        )
+      );
+      msgApi.success("แก้ไขประเภทบทความสำเร็จ");
+      resetManage();
+      setTypeOpen(false);
+    } catch (e: any) {
+      msgApi.error(e?.message || "แก้ไขประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
+  const handleDeleteType = async (opt: ArticleTypeOption) => {
+    try {
+      setOpLoading(true);
+      await apiDeleteArticleType(opt.id);
+      setArticleTypeOptions((prev) => prev.filter((o) => o.id !== opt.id));
+      setFormData((prev) => {
+        if (prev.article_type_id === opt.id) {
+          const rest = articleTypeOptions.filter((o) => o.id !== opt.id);
+          return { ...prev, article_type_id: rest[0]?.id ?? null };
+        }
+        return prev;
+      });
+      msgApi.success("ลบประเภทบทความสำเร็จ");
+    } catch (e: any) {
+      msgApi.error(e?.message || "ลบประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
+  /*  mobile picker? */
   const [useMobilePicker, setUseMobilePicker] = useState(false);
   useEffect(() => {
     setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
@@ -524,9 +558,71 @@ const EditMessagePage: React.FC = () => {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  /* submit */
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+
+    if (formData.name.trim() === "") return msgApi.warning("กรุณากรอกชื่อบทความ/ข้อความ");
+    if (formData.author.trim() === "") return msgApi.warning("กรุณากรอกชื่อผู้เขียน/แหล่งที่มา");
+    if (!formData.date) return msgApi.warning("กรุณาเลือกวันที่เผยแพร่");
+    if (formData.content.trim() === "") return msgApi.warning("กรุณากรอกเนื้อหา");
+    if (!formData.photo) return msgApi.warning("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
+
+    const picked = new Date(`${formData.date}T00:00:00`);
+    const today = new Date(`${todayStr}T00:00:00`);
+    if (isNaN(picked.getTime())) return msgApi.warning("วันที่ไม่ถูกต้อง");
+    if (picked > today) return msgApi.warning("เลือกวันที่ในอนาคตไม่ได้");
+
+    // resolve ให้ชัด: ถ้าเป็น "ข้อความ" ต้องใช้ id ของข้อความเสมอ
+    const resolvedArticleTypeId =
+      contentKind === "short"
+        ? (shortTypeId ?? SHORT_FALLBACK_ID)
+        : formData.article_type_id ?? undefined;
+
+    if (!resolvedArticleTypeId) {
+      return msgApi.warning("กรุณาเลือกประเภทบทความ");
+    }
+
+    const body = {
+      name: formData.name.trim(),
+      author: formData.author.trim(),
+      no_of_like: formData.no_of_like ?? 0,
+      date: new Date(formData.date).toISOString(),
+      content: formData.content.trim(),
+      photo: formData.photo,                 // base64 / URL
+      article_type_id: resolvedArticleTypeId 
+    };
+
+    setSaving(true);
+    let didNavigate = false;
+    try {
+      const ok = await updateWordHealingMessage(String(formData.id), body as any);
+      if (!ok) throw new Error("update failed");
+
+      await new Promise<void>((resolve) =>
+        msgApi.success({ content: "แก้ไขข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
+      );
+
+      didNavigate = true;
+      navigate("/admin/messagePage", {
+        replace: true,
+        state: { flash: { type: "success", content: "เเก้ไขข้อมูลสำเร็จ" } },
+      });
+    } catch (err) {
+      console.error(err);
+      msgApi.error({ content: "เกิดข้อผิดพลาดในการเเก้ไขข้อมูล", duration: 2.0 });
+    } finally {
+      if (!didNavigate) setSaving(false);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-slate-100 p-6 lg:p-8">
       {msgCtx}
+      <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
       <div className="mb-3 flex items-center gap-1 sm:gap-2">
         <img src={editMessageIcon} alt="manage icon" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block" />
@@ -540,7 +636,7 @@ const EditMessagePage: React.FC = () => {
         className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10 lg:overflow-hidden"
       >
         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          {/* Left */}
+          {/* ฝั่งซ้าย */}
           <div className="space-y-5">
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-slate-700">
@@ -573,7 +669,9 @@ const EditMessagePage: React.FC = () => {
 
             {/* Switch */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการแก้ไข)</label>
+              <label className="block text-sm font-medium text-slate-700">
+                โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการแก้ไข)
+              </label>
               <div className="w-full flex justify-center">
                 <div className="relative w-fit mx-auto">
                   <div ref={pillRef} className="relative inline-flex rounded-2xl border border-slate-200 bg-[#5DE2FF] p-1 shadow-sm">
@@ -609,11 +707,16 @@ const EditMessagePage: React.FC = () => {
                       </button>
                     </div>
                   </div>
+
+                  {/* คำอธิบายลดความสับสน */}
+                  <p className="mt-2 text-xs text-slate-500 text-center">
+                    ถ้าเป็น “ข้อความ/บทความสั้น” ระบบจะบันทึกให้เป็นประเภท “ข้อความ” (ID {SHORT_FALLBACK_ID}) เสมอ
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* ประเภทบทความ  */}
+            {/* ประเภทบทความ >> แสดงเฉพาะโหมดบทความยาว */}
             {contentKind === "long" && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
@@ -629,219 +732,147 @@ const EditMessagePage: React.FC = () => {
                     }}
                     className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
                   >
-                    <span className={articleTypeLoading ? "text-slate-400" : ""}>{selectedTypeLabel}</span>
+                    <span>
+                      {articleTypeLoading
+                        ? "กำลังโหลดประเภทบทความ..."
+                        : (articleTypeOptions.find((o) => o.id === formData.article_type_id)?.label || "เลือกประเภทบทความ")}
+                    </span>
                     <svg viewBox="0 0 20 20" fill="currentColor" className="ml-2 h-4 w-4 opacity-60">
-                      <path
-                        fillRule="evenodd"
-                        d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
                     </svg>
                   </button>
-
-                  {isCustomType && !!String(formData.articleType || "").trim() && (
-                    <p className="mt-1.5 text-xs text-slate-500">
-                      ตอนนี้ตั้งค่าเป็น <span className="font-medium">อื่นๆ</span>:
-                      <span className="ml-1">{String(formData.articleType)}</span>
-                    </p>
-                  )}
 
                   {typeOpen && (
                     <div
                       className={[
-                        "absolute z-[70] w-full overflow-auto overscroll-contain rounded-xl border border-slate-200 bg-white shadow-xl",
+                        "absolute z-[70] w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl",
                         dropUp ? "bottom-full mb-1" : "top-full mt-1",
                       ].join(" ")}
                     >
                       <div className="p-2">
-                        <input
-                          value={typeQuery}
-                          onChange={(e) => setTypeQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowDown") {
-                              e.preventDefault();
-                              if (filteredTypeOptions.length) {
-                                setActiveIdx((i) => Math.min((i < 0 ? -1 : i) + 1, filteredTypeOptions.length - 1));
-                              }
-                            } else if (e.key === "ArrowUp") {
-                              e.preventDefault();
-                              if (filteredTypeOptions.length) {
-                                setActiveIdx((i) => Math.max((i < 0 ? 0 : i) - 1, 0));
-                              }
-                            } else if (e.key === "Enter") {
-                              e.preventDefault();
-                              if (activeIdx >= 0 && activeIdx < filteredTypeOptions.length) {
-                                const o = filteredTypeOptions[activeIdx];
-                                setFormData((prev) => ({ ...prev, articleType: o.value }));
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              } else if (showCreateFromQuery) {
-                                const val = typeQuery.trim();
-                                if (val) {
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                              }
-                            } else if (e.key === "Escape") {
-                              setTypeOpen(false);
-                              setCustomTypeMode(false);
-                            }
-                          }}
-                          placeholder="ค้นหา..."
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            value={typeQuery}
+                            onChange={(e) => setTypeQuery(e.target.value)}
+                            placeholder="ค้นหา..."
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
+                          />
+                          <button
+                            type="button"
+                            onClick={beginCreate}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 sm:py-1.5"
+                          >
+                            <Plus className="h-4 w-4" /> สร้าง
+                          </button>
+                        </div>
                       </div>
 
-                      <ul
-                        role="listbox"
-                        ref={listRef}
-                        className="overflow-y-auto py-1"
-                        style={{ maxHeight: listMaxH }}
-                        aria-activedescendant={activeIdx >= 0 ? `type-opt-${activeIdx}` : undefined}
-                      >
-                        {isCustomType && !!String(formData.articleType || "").trim() && (
-                          <li className="px-3 py-2 text-xs text-slate-500 border-b border-slate-100 bg-slate-50">
-                            ค่าปัจจุบัน: <span className="font-medium">อื่นๆ – {String(formData.articleType)}</span>
-                          </li>
-                        )}
-
+                      <ul role="listbox" ref={listRef} className="overflow-y-auto py-1" style={{ maxHeight: listMaxH }}>
                         {articleTypeLoading && <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>}
                         {!articleTypeLoading && filteredTypeOptions.length === 0 && (
                           <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>
                         )}
 
                         {filteredTypeOptions.map((o, idx) => (
-                          <li key={o.value}>
-                            <button
-                              type="button"
-                              id={`type-opt-${idx}`}
-                              data-idx={idx}
-                              role="option"
-                              aria-selected={o.value === String(formData.articleType)}
-                              onMouseEnter={() => setActiveIdx(idx)}
-                              className={[
-                                "w-full px-3 py-3 text-left text-base hover:bg-slate-100",
-                                "sm:py-2 sm:text-sm",
-                                o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : "",
-                                idx === activeIdx ? "bg-slate-100" : "",
-                              ].join(" ")}
-                              onClick={() => {
-                                setFormData((prev) => ({ ...prev, articleType: o.value }));
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              <div className="flex flex-col">
-                                <span className="text-sm sm:text-[13px]">{o.label}</span>
-                                {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
+                          <li key={o.id}>
+                            <div className="flex items-center">
+                              <button
+                                type="button"
+                                data-idx={idx}
+                                className={[
+                                  "flex-1 px-3 py-3 text-left text-base hover:bg-slate-100",
+                                  "sm:py-2 sm:text-sm",
+                                  o.id === formData.article_type_id ? "bg-slate-50 font-medium" : "",
+                                ].join(" ")}
+                                onClick={() => {
+                                  setFormData((prev) => ({ ...prev, article_type_id: o.id }));
+                                  setTypeOpen(false);
+                                  setTypeQuery("");
+                                  resetManage();
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="text-sm sm:text-[13px]">{o.label}</span>
+                                  {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
+                                </div>
+                              </button>
+
+                              <div className="pr-2 flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  title="แก้ไข"
+                                  onClick={(e) => { e.stopPropagation(); beginEdit(o); }}
+                                  className="rounded-md p-2 text-slate-700 hover:bg-slate-100"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="ลบ"
+                                  disabled={opLoading}
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteType(o); }}
+                                  className="rounded-md p-2 text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
                               </div>
-                            </button>
+                            </div>
                           </li>
                         ))}
-
-                        {!customTypeMode && (
-                          <li>
-                            <button
-                              type="button"
-                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
-                              onClick={() => {
-                                setCustomTypeMode(true);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              อื่นๆ / ระบุเอง…
-                            </button>
-                          </li>
-                        )}
-
-                        {showCreateFromQuery && !customTypeMode && (
-                          <li>
-                            <button
-                              type="button"
-                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
-                              onClick={() => {
-                                const val = typeQuery.trim();
-                                if (!val) return;
-                                setFormData((prev) => ({ ...prev, articleType: val }));
-                                setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              สร้างประเภทใหม่: <span className="font-medium">“{typeQuery.trim()}”</span>
-                            </button>
-                          </li>
-                        )}
                       </ul>
 
-                      {customTypeMode && (
-                        <div className="border-t border-slate-200 p-2 bg-white sticky bottom-0 sm:static">
-                          <label className="mb-1 block text-xs text-slate-500">กำหนดชื่อประเภทด้วยตนเอง</label>
+                      {(manageMode === "create" || manageMode === "edit") && (
+                        <div className="border-t border-slate-200 p-3 bg-white sticky bottom-0">
+                          <div className="text-xs text-slate-500 mb-2">
+                            {manageMode === "create" ? "สร้างประเภทบทความใหม่" : "แก้ไขประเภทบทความ"}
+                          </div>
 
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <div className="space-y-2">
                             <input
-                              autoFocus
-                              value={customTypeText}
-                              onChange={(e) => setCustomTypeText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  const val = customTypeText.trim();
-                                  if (!val) return;
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                                if (e.key === "Escape") {
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                              }}
-                              className="w-full sm:flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
-                              placeholder="พิมพ์ชื่อประเภท เช่น คอลัมน์พิเศษ"
+                              value={nameInput}
+                              onChange={(e) => setNameInput(e.target.value)}
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                              placeholder="ชื่อประเภท เช่น บทความเชิงวิเคราะห์"
+                              maxLength={128}
                             />
+                            <textarea
+                              value={descInput}
+                              onChange={(e) => setDescInput(e.target.value)}
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                              placeholder="คำอธิบาย (ไม่บังคับ)"
+                              maxLength={1000}
+                              rows={2}
+                            />
+                          </div>
 
-                            <div className="flex gap-2 sm:w-auto">
+                          <div className="mt-2 flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={resetManage}
+                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
+                              disabled={opLoading}
+                            >
+                              ยกเลิก
+                            </button>
+                            {manageMode === "create" ? (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  const val = customTypeText.trim();
-                                  if (!val) return;
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }}
-                                className="w-full sm:w-auto rounded-lg bg-slate-900 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-white hover:bg-slate-700 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                                onClick={handleCreateType}
+                                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+                                disabled={opLoading}
                               >
-                                ใช้ค่านี้
+                                {opLoading ? "กำลังสร้าง..." : "สร้าง"}
                               </button>
-
+                            ) : (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }}
-                                className="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                                onClick={handleEditType}
+                                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+                                disabled={opLoading}
                               >
-                                ยกเลิก
+                                {opLoading ? "กำลังบันทึก..." : "บันทึก"}
                               </button>
-                            </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -851,7 +882,7 @@ const EditMessagePage: React.FC = () => {
               </div>
             )}
 
-            {/* Content */}
+            {/* เนื้อหา */}
             <div className="space-y-2">
               <label htmlFor="content" className="block text-sm font-medium text-slate-700">
                 เนื้อหา{contentKind === "short" ? " (ข้อความ/บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
@@ -867,7 +898,7 @@ const EditMessagePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right */}
+          {/* ฝั่งขวา */}
           <div className="flex flex-col">
             <label className="mb-2 block text-sm font-medium text-slate-700">
               อัปโหลดรูปภาพประกอบ <span className="text-rose-500">*</span>
@@ -887,14 +918,7 @@ const EditMessagePage: React.FC = () => {
                 }
               }}
             >
-              {/* รับเฉพาะรูปภาพ */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFilePick}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFilePick} className="hidden" />
 
               <div className="flex min-h-[280px] items-center justify-center" onClick={() => fileInputRef.current?.click()}>
                 {preview ? (
@@ -944,7 +968,12 @@ const EditMessagePage: React.FC = () => {
                 วันที่เผยแพร่ <span className="text-rose-500">*</span>
               </label>
               {useMobilePicker ? (
-                <MobileDateField value={formData.date} max={todayStr} onChange={(ymd) => setFormData((prev) => ({ ...prev, date: ymd }))} cardRef={cardRef} />
+                <MobileDateField
+                  value={formData.date}
+                  max={todayStr}
+                  onChange={(ymd) => setFormData((prev) => ({ ...prev, date: ymd }))}
+                  cardRef={cardRef}
+                />
               ) : (
                 <input
                   id="date"
@@ -958,18 +987,21 @@ const EditMessagePage: React.FC = () => {
               )}
             </div>
 
-            {/* Buttons */}
+            {/* ปุ่ม */}
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => navigate("/admin/messagePage")}
-                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
+                disabled={saving}
+                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
               >
                 ย้อนกลับ
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50"
+                disabled={saving}
+                aria-busy={saving}
+                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50 disabled:pointer-events-none"
               >
                 {contentKind === "short" ? "บันทึกข้อความ/บทความสั้น" : "บันทึกบทความ"}
               </button>
@@ -980,8 +1012,16 @@ const EditMessagePage: React.FC = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && preview && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" onClick={() => setShowPreviewModal(false)}>
-          <div className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowPreviewModal(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img src={preview} alt="Preview" className="mx-auto max-h-[80vh] w-full rounded-xl object-contain" />
             <div className="p-2 text-right">
               <button
@@ -999,3 +1039,7 @@ const EditMessagePage: React.FC = () => {
 };
 
 export default EditMessagePage;
+
+
+
+

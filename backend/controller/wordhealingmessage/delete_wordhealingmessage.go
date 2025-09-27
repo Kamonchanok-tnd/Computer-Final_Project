@@ -11,6 +11,7 @@ import (
 
 // ฟังก์ชันบริการเพื่อลบ WordHealingContent และข้อมูลที่เกี่ยวข้อง (เช่น Like)
 func DeleteWordHealingContent(c *gin.Context) {
+    
     // รับ id จาก URL
     contentId := c.Param("id")
 
@@ -35,7 +36,6 @@ func DeleteWordHealingContent(c *gin.Context) {
     tx := db.Begin()
 
     // 1) ลบ like ที่อ้างถึงบทความนี้ทั้งหมด
-    //    ใช้ struct-based query: tx.Where(&entity.Like{WID: wid}).Delete(&entity.Like{})
     if err := tx.Where(&entity.Like{WID: wid}).Delete(&entity.Like{}).Error; err != nil {
         tx.Rollback()
         c.JSON(http.StatusInternalServerError, gin.H{"message": "ลบข้อมูลถูกใจไม่สำเร็จ"})

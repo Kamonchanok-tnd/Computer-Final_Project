@@ -9,46 +9,6 @@ import (
     "strconv"
 )
 
-// ฟังก์ชันบริการเพื่อดึงข้อมูลบทความตาม ID
-func GetWordHealingMessage(c *gin.Context) {
-    idParam := c.Param("id")
-    id, err := strconv.Atoi(idParam)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
-        return
-    }
-
-    var message entity.WordHealingContent
-    if err := config.DB().First(&message, id).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "WordHealingMessage not found"})
-        return
-    }
-
-    // ตอบกลับโดยรวม content และ article_type ด้วย
-    type resp struct {
-        ID          uint      `json:"id"`
-        Name        string    `json:"name"`
-        Author      string    `json:"author"`
-        Photo       string    `json:"photo"`
-        NoOfLike    int       `json:"no_of_like"`
-        Date        time.Time `json:"date"`
-        Content     string    `json:"content"`
-        ArticleType string    `json:"article_type"`
-    }
-
-    r := resp{
-        ID:          message.ID,
-        Name:        message.Name,
-        Author:      message.Author,
-        Photo:       formatPhoto(message.Photo),
-        NoOfLike:    message.NoOfLike,
-        Date:        message.Date,
-        Content:     message.Content,
-        ArticleType: message.ArticleType,
-    }
-
-    c.JSON(http.StatusOK, r)
-}
 
 // formatPhoto ฟังก์ชันสำหรับจัดรูปแบบภาพ
 func formatPhoto(photo *string) string {
@@ -68,25 +28,68 @@ func isBase64(str string) bool {
 }
 
 
-// ฟังก์ชันบริการเพื่ออัปเดตข้อมูล WordHealingContent
-func UpdateWordHealingMessage(c *gin.Context) {
-    // รับค่า ID จาก URL
+// ฟังก์ชันบริการเพื่อดึงข้อมูลบทความตาม ID
+func GetWordHealingMessage(c *gin.Context) {
     id, err := strconv.Atoi(c.Param("id"))
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
         return
     }
 
-    // โครงสร้างรับ JSON จาก FE
-    // FE จะส่ง date เป็น ISO (เช่น "2025-08-12T00:00:00.000Z")
+    var message entity.WordHealingContent
+    if err := config.DB().
+        Preload("ArticleType").
+        First(&message, id).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "WordHealingMessage not found"})
+        return
+    }
+
+    type resp struct {
+        ID            uint      `json:"id"`
+        Name          string    `json:"name"`
+        Author        string    `json:"author"`
+        Photo         string    `json:"photo"`
+        NoOfLike      int       `json:"no_of_like"`
+        Date          time.Time `json:"date"`
+        Content       string    `json:"content"`
+        ArticleTypeID uint      `json:"article_type_id"`
+        ArticleType   string    `json:"article_type_name"` // เผื่อ UI แสดงชื่อได้ทันที
+    }
+
+    r := resp{
+        ID:            message.ID,
+        Name:          message.Name,
+        Author:        message.Author,
+        Photo:         formatPhoto(message.Photo),
+        NoOfLike:      message.NoOfLike,
+        Date:          message.Date,
+        Content:       message.Content,
+        ArticleTypeID: message.ArticleTypeID,
+        ArticleType:   message.ArticleType.Name,
+    }
+
+    c.JSON(http.StatusOK, r)
+}
+
+
+
+// ฟังก์ชันบริการเพื่ออัปเดตข้อมูล WordHealingContent
+func UpdateWordHealingMessage(c *gin.Context) {
+    id, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+        return
+    }
+
     type updateReq struct {
-        Name        string     `json:"name"`
-        Author      string     `json:"author"`
-        NoOfLike    int        `json:"no_of_like"`
-        Date        time.Time  `json:"date"`          // binding RFC3339 อัตโนมัติ
-        Photo       *string    `json:"photo"`         // base64 หรือ null
-        Content     string     `json:"content"`
-        ArticleType string     `json:"article_type"`  // snake_case ให้ตรง DB/Model
+        Name          string     `json:"name"`
+        Author        string     `json:"author"`
+        NoOfLike      int        `json:"no_of_like"`
+        Date          time.Time  `json:"date"`
+        Photo         *string    `json:"photo"`
+        Content       string     `json:"content"`
+        ArticleTypeID *uint      `json:"article_type_id"` 
+        ViewCount     *int       `json:"view_count,omitempty"`
     }
 
     var req updateReq
@@ -95,30 +98,39 @@ func UpdateWordHealingMessage(c *gin.Context) {
         return
     }
 
-    // หา record เดิม
+    db := config.DB()
     var existing entity.WordHealingContent
-    if err := config.DB().First(&existing, id).Error; err != nil {
+    if err := db.First(&existing, id).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Record not found"})
         return
     }
 
-    // อัปเดตฟิลด์
-    existing.Name        = req.Name
-    existing.Author      = req.Author
-    existing.NoOfLike    = req.NoOfLike
-    existing.Date        = req.Date
-    existing.Content     = req.Content
-    existing.ArticleType = req.ArticleType
-
-    // อัปเดตรูป (ถ้าส่งมาเป็นค่าว่าง/ไม่ส่ง ให้ล้างเป็น nil)
+    // อัปเดตฟิลด์หลัก
+    existing.Name     = req.Name
+    existing.Author   = req.Author
+    existing.NoOfLike = req.NoOfLike
+    existing.Date     = req.Date
+    existing.Content  = req.Content
     if req.Photo != nil && *req.Photo != "" {
         existing.Photo = req.Photo
     } else {
         existing.Photo = nil
     }
+    if req.ViewCount != nil {
+        existing.ViewCount = *req.ViewCount
+    }
 
+    // เปลี่ยนประเภท (ถ้าส่งมา)
+    if req.ArticleTypeID != nil {
+        var at entity.ArticleType
+        if err := db.First(&at, *req.ArticleTypeID).Error; err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "ไม่พบประเภทบทความที่เลือก"})
+            return
+        }
+        existing.ArticleTypeID = *req.ArticleTypeID
+    }
 
-    if err := config.DB().Save(&existing).Error; err != nil {
+    if err := db.Save(&existing).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update record"})
         return
     }
@@ -127,7 +139,3 @@ func UpdateWordHealingMessage(c *gin.Context) {
         "data":    existing,
     })
 }
-
-
-
-

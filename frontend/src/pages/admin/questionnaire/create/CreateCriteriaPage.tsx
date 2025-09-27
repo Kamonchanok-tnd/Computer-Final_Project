@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
-import { Button, Input, InputNumber, Spin, Popconfirm, Modal, message } from "antd";
+import { Button, Input, InputNumber, Spin, Popconfirm, message } from "antd";
 import { DeleteOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
 import criteriaIcon from "../../../../assets/criteria.png";
 import { createCriteria } from "../../../../services/https/questionnaire";
@@ -15,7 +15,7 @@ export interface Criterion {
 }
 type NavState = { questionnaireId?: number | string };
 
-/* UI classes */
+/* การตกเเต่ง */
 const inputCls =
   "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors !h-12 !text-base";
 const numberCls =
@@ -23,7 +23,8 @@ const numberCls =
   "[&_.ant-input-number-input]:!h-12 [&_.ant-input-number-input]:!leading-[48px] [&_.ant-input-number-input]:!py-0 " +
   "[&_.ant-input-number-handler-wrap]:!h-12 [&_.ant-input-number-handler]:!h-6";
 
-/* เรียงจากช่วงคะแนนน้อย→มาก */
+
+/* เรียงจากช่วงคะแนนน้อย ไป มาก */
 const sortByRange = (list: Criterion[]) =>
   [...list].sort((a, b) => {
     const amin = Number(a.minScore ?? Number.POSITIVE_INFINITY);
@@ -39,7 +40,7 @@ const CreateCriteriaPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const params = useParams<{ questionnaireId?: string; id?: string }>();
-
+  const name = (location.state as any)?.name ?? "";
   const [msg, contextHolder] = message.useMessage();
 
   /* resolve questionnaireId */
@@ -94,16 +95,15 @@ const CreateCriteriaPage: React.FC = () => {
 
   useEffect(() => {
     if (!questionnaireId) {
-      
-      Modal.warning({
-        title: "ไม่พบแบบทดสอบ",
-        content: "ไม่มี questionnaireId ถูกส่งมา",
-        onOk: () => navigate(-1),
+      msg.warning({
+        content: "ไม่พบแบบทดสอบ: ไม่มี questionnaireId ถูกส่งมา",
+        duration: 1.8,
+        onClose: () => navigate(-1),
       });
     }
-  }, [questionnaireId, navigate]);
+  }, [questionnaireId, navigate, msg]);
 
-  /* ตรวจครบ + บังคับ recommendation */
+  /* การเเจ้งเตือนการกรอกข้อมูล */
   const validateAll = (list: Criterion[]): string | null => {
     const descSet = new Set<string>();
     for (const [i, raw] of list.entries()) {
@@ -138,21 +138,21 @@ const CreateCriteriaPage: React.FC = () => {
   /* เพิ่มเกณฑ์ */
   const addCriterion = () => {
     if (!description || minScore === "" || maxScore === "") {
-      Modal.warning({ title: "กรุณากรอกข้อมูลให้ครบ", content: "ใส่คำอธิบายและช่วงคะแนนให้ครบถ้วน" });
+      msg.warning({ content: "กรุณากรอกคำอธิบายและช่วงคะแนนให้ครบถ้วน", duration: 1.8 });
       return;
     }
     if (!String(recommendation).trim()) {
-      Modal.warning({ title: "คำแนะนำว่าง", content: "กรุณากรอกคำแนะนำสำหรับเกณฑ์นี้" });
+      msg.warning({ content: "กรุณากรอกคำแนะนำสำหรับเกณฑ์นี้", duration: 1.8 });
       return;
     }
     const minN = Number(minScore);
     const maxN = Number(maxScore);
     if (Number.isNaN(minN) || Number.isNaN(maxN)) {
-      Modal.warning({ title: "รูปแบบคะแนนไม่ถูกต้อง", content: "กรุณากรอกเป็นตัวเลข" });
+      msg.warning({ content: "กรุณากรอกคะแนนเป็นตัวเลข", duration: 1.8 });
       return;
     }
     if (minN > maxN) {
-      Modal.warning({ title: "ช่วงคะแนนไม่ถูกต้อง", content: "ขั้นต่ำต้อง ≤ สูงสุด" });
+      msg.warning({ content: "ช่วงคะแนนไม่ถูกต้อง: ขั้นต่ำต้อง ≤ สูงสุด", duration: 1.8 });
       return;
     }
     const next = [
@@ -161,10 +161,10 @@ const CreateCriteriaPage: React.FC = () => {
     ];
     const v = validateAll(next);
     if (v) {
-      Modal.warning({ title: "ตรวจสอบข้อมูล", content: v });
+      msg.warning({ content: v, duration: 2.2 });
       return;
     }
-    setCriteriaList(sortByRange(next)); // เรียงก่อนใส่
+    setCriteriaList(sortByRange(next));
     setDescription("");
     setRecommendation("");
     setMinScore("");
@@ -192,13 +192,13 @@ const CreateCriteriaPage: React.FC = () => {
   const handleSaveAll = async () => {
     if (!questionnaireId) return;
     if (criteriaList.length === 0) {
-      Modal.warning({ title: "ยังไม่มีเกณฑ์", content: "กรุณาเพิ่มเกณฑ์อย่างน้อย 1 รายการ" });
+      msg.warning({ content: "ยังไม่มีเกณฑ์การประเมิน: กรุณาเพิ่มอย่างน้อย 1 รายการ", duration: 1.8 });
       return;
     }
     const sorted = sortByRange(criteriaList);
     const v = validateAll(sorted);
     if (v) {
-      Modal.warning({ title: "ตรวจสอบข้อมูล", content: v });
+      msg.warning({ content: v, duration: 2.2 });
       return;
     }
     let didNavigate = false;
@@ -223,7 +223,7 @@ const CreateCriteriaPage: React.FC = () => {
         state: { flash: { type: "success", content: "เพิ่มข้อมูลสำเร็จ" } },
       });
     } catch (e: any) {
-      Modal.error({ title: "เพิ่มข้อมูลไม่สำเร็จ", content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" });
+      msg.error({ content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์", duration: 2.2 });
     } finally {
       if (!didNavigate) setSubmitting(false);
     }
@@ -241,7 +241,7 @@ const CreateCriteriaPage: React.FC = () => {
             <img src={criteriaIcon} alt="criteria" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
             <div className="min-w-0">
               <h1 className="truncate text-xl font-bold text-slate-800 sm:text-2xl">สร้างเกณฑ์การประเมิน</h1>
-              {questionnaireId && <p className="text-sm text-slate-500">แบบทดสอบ ID: {questionnaireId}</p>}
+              {questionnaireId && <p className="text-sm text-slate-500">แบบทดสอบ ID: {questionnaireId}, ชื่อเเบบทดสอบ: {name}</p>}
             </div>
           </div>
           <div className="hidden items-center gap-2 md:flex">
@@ -262,7 +262,8 @@ const CreateCriteriaPage: React.FC = () => {
       <div className="w-full px-4 pb-6 sm:px-6">
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 pb-16 md:pb-6">
           <Spin spinning={loading} tip="กำลังโหลดข้อมูล...">
-            {/* ตัวอย่าง */}
+            
+            {/* ส่วนเเสดงตัวอย่าง */}
             <div className="mb-4 sm:mb-6">
               <h3 className="mb-2 text-sm font-semibold text-slate-700 sm:text-base">ตัวอย่างการวัดระดับความสุข</h3>
               <div className="grid gap-2 text-sm text-slate-700 md:grid-cols-2">
@@ -271,17 +272,18 @@ const CreateCriteriaPage: React.FC = () => {
                   <li>5–6 = ความสุขปานกลาง</li><li>7–8 = ความสุขมาก</li><li>9–10 = ความสุขมากที่สุด</li>
                 </ul>
                 <ul className="list-disc pl-6 text-red-500">
-                  <li>“ไม่มีความสุขเลย” → 0–0</li><li>“ความสุขน้อยที่สุด” → 1–2</li><li>“ความสุขน้อย” → 3–4</li>
-                  <li>“ความสุขปานกลาง” → 5–6</li><li>“ความสุขมาก” → 7–8</li><li>“ความสุขมากที่สุด” → 9–10</li>
+                  <li>“ไม่มีความสุขเลย” = ต่ำสุด 0 – สูงสุด 0</li><li>“ความสุขน้อยที่สุด” = ต่ำสุด 1 – สูงสุด 2</li><li>“ความสุขน้อย” = ต่ำสุด 3 – สูงสุด 4</li>
+                  <li>“ความสุขปานกลาง” = ต่ำสุด 5 – สูงสุด 6</li><li>“ความสุขมาก” = ต่ำสุด 7 – สูงสุด 8</li><li>“ความสุขมากที่สุด” = ต่ำสุด 9 – สูงสุด 10</li>
                 </ul>
               </div>
             </div>
 
-            {/* Form + List (scroll) */}
+            {/* Form + List (scroll) สามารถเลื่อนได้ */}
             <div ref={formScrollRef} className="space-y-6 pr-1 overflow-y-auto hide-scrollbar">
               {/* Form */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                {/* Desktop */}
+                
+                {/* สำหรับ Desktop */}
                 <div className="hidden md:grid md:grid-cols-12 md:gap-4">
                   <div className="md:col-span-6">
                     <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
@@ -305,7 +307,7 @@ const CreateCriteriaPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Mobile */}
+                {/* สำหรับ Mobile */}
                 <div className="grid gap-3 md:hidden">
                   <div>
                     <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
@@ -351,7 +353,7 @@ const CreateCriteriaPage: React.FC = () => {
                         </Popconfirm>
                       </div>
 
-                      {/* Desktop */}
+                      {/* สำหรับ Desktop */}
                       <div className="hidden md:grid md:grid-cols-12 md:gap-4">
                         <div className="md:col-span-6">
                           <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
@@ -378,7 +380,7 @@ const CreateCriteriaPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Mobile */}
+                      {/* สำหรับ Mobile */}
                       <div className="grid gap-3 md:hidden">
                         <div>
                           <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์ <span className="text-rose-600">*</span></label>
@@ -415,7 +417,7 @@ const CreateCriteriaPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ปุ่มล่าง (มือถือ) */}
+      {/* ตำเเหน่งปุ่มบันทึกสำหรับมือถือ */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2">
           <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveAll} loading={submitting} className="!bg-[#5DE2FF] hover:!bg-cyan-500" block>

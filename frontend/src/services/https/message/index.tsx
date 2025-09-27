@@ -3,6 +3,7 @@ import { WordHealingContent } from "../../../interfaces/IWordHealingContent";
 import axios from "axios";
 const apiUrl = "http://localhost:8000";
 
+
 // ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน admin
 export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]> => {
   try {
@@ -21,26 +22,34 @@ export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]>
     }
 
     const rawData = await response.json();
-    
+
     const data: WordHealingContent[] = rawData.map((message: any) => {
       const id = message.ID ?? message.id ?? 0;
-      const dateIso = message.date
-        ? new Date(message.date).toISOString()
-        : "";
+      const dateIso = message.date ? new Date(message.date).toISOString() : "";
 
-      return {
+      const articleTypeId: number | null =
+        message.article_type_id != null
+          ? Number(message.article_type_id)
+          : message.ArticleTypeID != null
+          ? Number(message.ArticleTypeID)
+          : null;
+
+      const obj: WordHealingContent & { article_type_id?: number | null } = {
         id,
         name: message.name ?? "ไม่มีชื่อ",
         author: message.author ?? "ไม่ระบุ",
-        content: message.content ?? "",                                   
-        articleType: message.article_type ?? message.articleType ?? "",   
+        content: message.content ?? "",
+      
         photo: message.photo ?? "/default-image.png",
         no_of_like: message.no_of_like ?? 0,
         viewCount: message.view_count ?? message.viewCount ?? 0,
         date: dateIso || "ไม่มีวันที่",
-        // หน้านี้ไม่ใช้ error แต่ interface บังคับ → ทำ no-op
         error: () => {},
+        // แนบเพิ่มสำหรับหน้าใหม่ที่ต้องใช้ id
+        article_type_id: articleTypeId,
       };
+
+      return obj as WordHealingContent;
     });
 
     return data;
@@ -50,8 +59,7 @@ export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]>
   }
 };
 
-
-// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน  user
+// ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน user
 export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingContent[]> => {
   try {
     const token = localStorage.getItem("token");
@@ -67,15 +75,11 @@ export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingCon
     if (!response.ok) throw new Error(`Error: ${response.status}`);
 
     const rawData = await response.json();
-    
-    const data: WordHealingContent[] = rawData.map((m: any) => {
-      // id จาก GORM อาจเป็น ID หรือ id
-      const id = m.ID ?? m.id ?? 0;
 
-      // date -> แสดงแบบ yyyy-mm-dd เพื่อความสวยงาม; หรือจะ .toLocaleDateString() ตอน render ก็ได้
+    const data: WordHealingContent[] = rawData.map((m: any) => {
+      const id = m.ID ?? m.id ?? 0;
       const dateStr = m.date ? new Date(m.date).toISOString().slice(0, 10) : "ไม่มีวันที่";
 
-      // photo -> ถ้าเป็น base64 แบบไม่พรีฟิกซ์ ให้เติม data URI ให้ครบ
       let photo = m.photo ?? "/default-image.png";
       if (photo && typeof photo === "string" && photo !== "/default-image.png") {
         if (!photo.startsWith("data:")) {
@@ -83,19 +87,29 @@ export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingCon
         }
       }
 
-      return {
+      // รองรับทั้ง string และ FK id
+      const articleTypeId: number | null =
+        m.article_type_id != null
+          ? Number(m.article_type_id)
+          : m.ArticleTypeID != null
+          ? Number(m.ArticleTypeID)
+          : null;
+
+      const obj: WordHealingContent & { article_type_id?: number | null } = {
         id,
         name: m.name ?? "ไม่มีชื่อ",
         author: m.author ?? "ไม่ระบุ",
-        content: m.content ?? "",                                       
-        articleType: m.article_type ?? m.articleType ?? "",              
+        content: m.content ?? "",
+  
         photo,
         no_of_like: m.no_of_like ?? 0,
         viewCount: m.view_count ?? m.viewCount ?? 0,
         date: dateStr,
-        // ให้ตรงกับ interface (แม้หน้านี้จะไม่ใช้)
         error: () => {},
+        article_type_id: articleTypeId,
       };
+
+      return obj as WordHealingContent;
     });
 
     return data;
@@ -104,7 +118,6 @@ export const getAllWordHealingMessagesForUser = async (): Promise<WordHealingCon
     return [];
   }
 };
-
 
 export interface ArticleTypeDTO {
   name: string;
@@ -128,7 +141,6 @@ export const getArticleTypesDetailed = async (): Promise<ArticleTypeDTO[]> => {
 
     const raw = await res.json();
 
-    // คาดหวังรูปแบบ: [{ name, description }, ...]
     if (Array.isArray(raw)) {
       return raw
         .filter((x) => x && typeof x.name === "string")
@@ -145,96 +157,116 @@ export const getArticleTypesDetailed = async (): Promise<ArticleTypeDTO[]> => {
   }
 };
 
-// ฟังก์ชันสำหรับดึงประเภทบทความ (Article Types) พร้อมรายละเอียด เพื่อใช้ใน dropdown
-export const getArticleTypeOptionsDetailed = async (): Promise<
-  { value: string; label: React.ReactNode; raw: ArticleTypeDTO }[]
-> => {
-  const items = await getArticleTypesDetailed();
-
-  // label เป็น ReactNode เพื่อโชว์ description ใน dropdown
-  return items.map((it) => ({
-    value: it.name, // เก็บค่า value = name
-    raw: it,
-    label: (
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ fontWeight: 600 }}>{it.name}</span>
-        {it.description ? (
-          <span style={{ fontSize: 12, opacity: 0.8 }}>{it.description}</span>
-        ) : null}
-      </div>
-    ),
-  }));
-};
-
 
 // ฟังก์ชันสำหรับสร้างบทความ WordHealingMessage
 export const createWordHealingMessage = async (formData: FormData): Promise<boolean> => {
-    try {
-        const token = localStorage.getItem("token");  // รับ token จาก localStorage
+  try {
+    const token = localStorage.getItem("token");
 
-        const response = await fetch(`${apiUrl}/createwordhealingmessage`, {
-            method: "POST",
-            headers: {
-                // ไม่ต้องกำหนด Content-Type สำหรับ FormData เพราะมันจะถูกจัดการอัตโนมัติ
-                Authorization: `Bearer ${token}`,  // ส่ง Authorization header
-            },
-            body: formData,  // ส่งข้อมูล FormData ที่รวมทั้งไฟล์
-        });
+    const response = await fetch(`${apiUrl}/createwordhealingmessage`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
-        }
-
-        const data = await response.json();  // รับข้อมูลตอบกลับจาก API
-
-        if (data.message) {
-            return true;  // คืนค่าผลลัพธ์เป็น true หากการบันทึกสำเร็จ
-        }
-
-        return false;  // คืนค่าผลลัพธ์เป็น false ถ้ามีข้อผิดพลาด
-    } catch (error) {
-        console.error("Error creating word healing message:", error);  // log ข้อผิดพลาด
-        return false;  // คืนค่าผลลัพธ์เป็น false หากเกิดข้อผิดพลาด
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
     }
+
+    const data = await response.json();
+    return !!data.message;
+  } catch (error) {
+    console.error("Error creating word healing message:", error);
+    return false;
+  }
 };
 
 // ฟังก์ชันสำหรับลบบทความ WordHealingMessage
 export const deleteWordHealingMessage = async (id: string): Promise<boolean> => {
-    try {
-        const token = localStorage.getItem("token");
-        const numericId = parseInt(id);  // แปลง id จาก string เป็น number
+  try {
+    const token = localStorage.getItem("token");
+    const numericId = parseInt(id);
 
-        const response = await fetch(`${apiUrl}/deletewordhealingmessage/${numericId}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-        });
+    const response = await fetch(`${apiUrl}/deletewordhealingmessage/${numericId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-        if (response.ok) {
-            return true;
-        } else {
-            return false;
-        }
-    } catch (error) {
-        return false;
-    }
+    return response.ok;
+  } catch {
+    return false;
+  }
 };
 
-//  ฟังก์ชันสำหรับอัพเดตทความ WordHealingMessage
+
+
+// ฟังก์ชันสำหรับดึงบทความ WordHealingMessage ตาม ID
+export const getWordHealingMessageById = async (id: string): Promise<WordHealingContent | null> => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${apiUrl}/getwordhealingmessage/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error(`Error: ${response.status}`);
+
+    const rawData = await response.json();
+    const dateIso = rawData.date ? new Date(rawData.date).toISOString().slice(0, 10) : "";
+    const articleTypeId: number | null =
+      rawData.article_type_id != null
+        ? Number(rawData.article_type_id)
+        : rawData.ArticleTypeID != null
+        ? Number(rawData.ArticleTypeID)
+        : null;
+
+    const obj: WordHealingContent & { article_type_id?: number | null } = {
+      id: rawData.id ?? rawData.ID ?? 0,
+      name: rawData.name ?? "ไม่มีชื่อ",
+      author: rawData.author ?? "ไม่ระบุ",
+      content: rawData.content ?? "",
+      photo: rawData.photo
+        ? rawData.photo.startsWith("data:")
+          ? rawData.photo
+          : `data:image/jpeg;base64,${rawData.photo}`
+        : "/default-image.png",
+      no_of_like: rawData.no_of_like ?? 0,
+      viewCount: rawData.view_count ?? rawData.viewCount ?? 0,
+      date: dateIso || "",
+      error: () => {},
+      article_type_id: articleTypeId,
+    };
+
+    return obj as WordHealingContent;
+  } catch (error) {
+    console.error("Error fetching word healing message:", error);
+    return null;
+  }
+};
+
+
+// อัปเดตบทความ 
 interface UpdateWordHealingRequest {
   name: string;
   author: string;
   no_of_like: number;
-  date: string;              
+  date: string;             
   photo: string | null;
-  content: string;           
-  article_type: string;      
+  content: string;
+  article_type_id?: number | null;
 }
 
 // ฟังก์ชันสำหรับอัปเดตบทความ WordHealingMessage
-export const updateWordHealingMessage = async (id: string,data: UpdateWordHealingRequest): Promise<boolean> => {
+export const updateWordHealingMessage = async (id: string, data: UpdateWordHealingRequest): Promise<boolean> => {
   try {
     const token = localStorage.getItem("token");
 
@@ -255,49 +287,7 @@ export const updateWordHealingMessage = async (id: string,data: UpdateWordHealin
 };
 
 
-// ฟังก์ชันสำหรับดึงบทความ WordHealingMessage ตาม ID 
-export const getWordHealingMessageById = async (id: string): Promise<WordHealingContent | null> => {
-  try {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(`${apiUrl}/getwordhealingmessage/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) throw new Error(`Error: ${response.status}`);
-
-    const rawData = await response.json();
-    const dateIso = rawData.date ? new Date(rawData.date).toISOString().slice(0, 10) : ""; // yyyy-mm-dd for input[type=date]
-
-    const data: WordHealingContent = {
-      id: rawData.id ?? rawData.ID ?? 0,
-      name: rawData.name ?? "ไม่มีชื่อ",
-      author: rawData.author ?? "ไม่ระบุ",
-      content: rawData.content ?? "",                              
-      articleType: rawData.article_type ?? rawData.articleType ?? "", 
-      photo: rawData.photo
-        ? rawData.photo.startsWith("data:")
-          ? rawData.photo
-          : `data:image/jpeg;base64,${rawData.photo}`
-        : "/default-image.png",
-      no_of_like: rawData.no_of_like ?? 0,
-      viewCount: rawData.view_count ?? rawData.viewCount ?? 0,
-      date: dateIso || "",
-      error: () => {},
-    };
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching word healing message:", error);
-    return null;
-  }
-};
-
-
+// ส่วนของการกด Likes Service 
 // ฟังก์ชันสำหรับกดไลค์บทความ
 export const likeMessage = async (id: number, uid: string) => {
   try {
@@ -393,12 +383,12 @@ export const updateViewCount = async (id: string): Promise<boolean> => {
 
 
 
-// ===================== Views Service =====================
+// ส่วนของการกดชม Views Service 
 
 export interface CountViewResponse {
   ok: boolean;
   already: boolean;        // true = เคยนับไปแล้ว
-  view_id: number | null;  // id แถวในตารางกลาง (บางกรณี backend อาจส่ง 0 -> คืนเป็น null)
+  view_id: number | null;  // id แถวในตารางกลาง (บางกรณี backend อาจส่ง 0  คืนเป็น null)
   view_count: number;      // จำนวนวิวล่าสุดของบทความ
   wordheal_id: number;
 }
@@ -473,3 +463,10 @@ export const getViewsByMessage = async (whid: number): Promise<ViewLogRow[]> => 
     return [];
   }
 };
+
+
+
+
+
+
+

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
-import { Button, Input, InputNumber, Spin, Popconfirm, Modal, message } from "antd";
+import { Button, Input, InputNumber, Spin, Popconfirm, message } from "antd";
 import { DeleteOutlined, PlusOutlined, SaveOutlined, RollbackOutlined } from "@ant-design/icons";
 import criteriaIcon from "../../../../assets/criteria.png";
 import { getAllCriteriaByQuestionnaireId, updateCriteriaByQuestionnaireId } from "../../../../services/https/questionnaire";
@@ -29,7 +29,7 @@ const numberCls =
   "[&_.ant-input-number-input]:!h-12 [&_.ant-input-number-input]:!leading-[48px] [&_.ant-input-number-input]:!py-0 " +
   "[&_.ant-input-number-handler-wrap]:!h-12 [&_.ant-input-number-handler]:!h-6";
 
-/* เรียงจากช่วงคะแนนน้อย→มาก */
+/* เรียงจากช่วงคะแนนน้อย ไป มาก */
 const sortByRange = (list: Criterion[]) =>
   [...list].sort((a, b) => {
     const amin = Number(a.minScore ?? Number.POSITIVE_INFINITY);
@@ -45,8 +45,16 @@ const EditCriteriaPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const params = useParams<{ questionnaireId?: string; id?: string }>();
+  const name = (location.state as any)?.name ?? "";
 
+  // message การเเจ้งเตือน
   const [msg, contextHolder] = message.useMessage();
+  const warn = (content: string, d = 1.8, onClose?: () => void) =>
+    msg.warning({ content, duration: d, onClose });
+  const errorMsg = (content: string, d = 2.2, onClose?: () => void) =>
+    msg.error({ content, duration: d, onClose });
+  const ok = (content: string, d = 1.2, onClose?: () => void) =>
+    msg.success({ content, duration: d, onClose });
 
   const stateIdRaw = (location.state as NavState | null)?.questionnaireId;
   const queryIdRaw = searchParams.get("questionnaireId");
@@ -100,11 +108,7 @@ const EditCriteriaPage: React.FC = () => {
 
   useEffect(() => {
     if (!questionnaireId) {
-      Modal.warning({
-        title: "ไม่พบแบบทดสอบ",
-        content: "ไม่มี questionnaireId ถูกส่งมา กรุณากลับไปยังหน้าก่อนหน้า",
-        onOk: () => navigate(-1),
-      });
+      warn("ไม่พบแบบทดสอบ: ไม่มี questionnaireId ถูกส่งมา", 1.8, () => navigate(-1));
       return;
     }
     const fetchData = async () => {
@@ -115,7 +119,7 @@ const EditCriteriaPage: React.FC = () => {
         setCriteriaList(sortByRange(list)); // เรียงทันทีหลังโหลด
         setDeletedIds([]);
       } catch (e: any) {
-        Modal.error({ title: "ดึงข้อมูลไม่สำเร็จ", content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" });
+        errorMsg(e?.message || "ดึงข้อมูลไม่สำเร็จ");
       } finally {
         setLoading(false);
       }
@@ -123,7 +127,7 @@ const EditCriteriaPage: React.FC = () => {
     fetchData();
   }, [questionnaireId, navigate]);
 
-  /* ตรวจครบ + บังคับ recommendation */
+  /* การเเจ้งเตือนการกรอกข้อมูล การซ้อนทับ */
   const validateNoOverlap = (list: Criterion[]): string | null => {
     const descSet = new Set<string>();
     for (const [i, cRaw] of list.entries()) {
@@ -154,35 +158,30 @@ const EditCriteriaPage: React.FC = () => {
     }
     return null;
   };
-
+  
+  // เพิ่มเกณฑ์
   const addCriterion = () => {
     if (!description || minScore === "" || maxScore === "") {
-      Modal.warning({ title: "กรุณากรอกข้อมูลให้ครบ", content: "ใส่คำอธิบายและช่วงคะแนนให้ครบถ้วน" });
-      return;
+      return warn("กรุณากรอกคำอธิบายและช่วงคะแนนให้ครบถ้วน");
     }
     if (!String(recommendation).trim()) {
-      Modal.warning({ title: "คำแนะนำว่าง", content: "กรุณากรอกคำแนะนำสำหรับเกณฑ์นี้" });
-      return;
+      return warn("กรุณากรอกคำแนะนำสำหรับเกณฑ์นี้");
     }
     const minN = Number(minScore);
     const maxN = Number(maxScore);
     if (Number.isNaN(minN) || Number.isNaN(maxN)) {
-      Modal.warning({ title: "รูปแบบคะแนนไม่ถูกต้อง", content: "กรุณากรอกเป็นตัวเลข" });
-      return;
+      return warn("กรุณากรอกคะแนนเป็นตัวเลข");
     }
     if (minN > maxN) {
-      Modal.warning({ title: "ช่วงคะแนนไม่ถูกต้อง", content: "ขั้นต่ำต้อง ≤ สูงสุด" });
-      return;
+      return warn("ช่วงคะแนนไม่ถูกต้อง: ขั้นต่ำต้อง ≤ สูงสุด");
     }
     const next = [
       ...criteriaList,
       { description: description.trim(), recommendation: recommendation.trim(), minScore: minN, maxScore: maxN },
     ];
     const v = validateNoOverlap(next);
-    if (v) {
-      Modal.warning({ title: "ช่วงคะแนนซ้อนทับ", content: v });
-      return;
-    }
+    if (v) return warn(v, 2.0);
+
     setCriteriaList(sortByRange(next)); // เรียงก่อนเซ็ต
     setDescription("");
     setRecommendation("");
@@ -195,7 +194,8 @@ const EditCriteriaPage: React.FC = () => {
       if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     });
   };
-
+  
+  /* อัปเดต/ลบแถว */
   const updateRow = (idx: number, patch: Partial<Criterion>) =>
     setCriteriaList(prev => prev.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
@@ -204,17 +204,26 @@ const EditCriteriaPage: React.FC = () => {
       const next = [...prev];
       const removed = next.splice(idx, 1)[0];
       if (removed?.id) setDeletedIds(d => [...d, removed.id!]);
+      
+      // เตือนทันทีเมื่อเหลือ 0 รายการ
+      if (next.length === 0) {
+        warn("ยังไม่มีเกณฑ์การประเมิน: กรุณาเพิ่มอย่างน้อย 1 รายการ");
+      }
       return next;
     });
 
   const handleSaveAll = async () => {
     if (!questionnaireId) return;
+
+    // ต้องมีอย่างน้อย 1 เกณฑ์
+    if (criteriaList.length === 0) {
+      return warn("ยังไม่มีเกณฑ์การประเมิน: กรุณาเพิ่มอย่างน้อย 1 รายการ");
+    }
+
     const sorted = sortByRange(criteriaList);
     const v = validateNoOverlap(sorted);
-    if (v) {
-      Modal.warning({ title: "ตรวจสอบข้อมูล", content: v });
-      return;
-    }
+    if (v) return warn(v, 2.0);
+
     let didNavigate = false;
     try {
       setSubmitting(true);
@@ -228,20 +237,17 @@ const EditCriteriaPage: React.FC = () => {
       await updateCriteriaByQuestionnaireId(questionnaireId, { updated, deleted: deletedIds });
       setDeletedIds([]);
 
-      await new Promise<void>(resolve =>
-        msg.success({ content: "แก้ไขข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
-      );
+      await new Promise<void>(resolve => ok("แก้ไขข้อมูลสำเร็จ", 1.2, resolve));
 
       const role = localStorage.getItem("role");
       const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
-
       didNavigate = true;
       navigate(`/${rolePrefix}/questionnairePage`, {
         replace: true,
         state: { flash: { type: "success", content: "แก้ไขข้อมูลสำเร็จ" } },
       });
     } catch (e: any) {
-      Modal.error({ title: "เเก้ไขข้อมูลไม่สำเร็จ", content: e?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์" });
+      errorMsg(e?.message || "เเก้ไขข้อมูลไม่สำเร็จ");
     } finally {
       if (!didNavigate) setSubmitting(false);
     }
@@ -268,7 +274,7 @@ const EditCriteriaPage: React.FC = () => {
             <img src={criteriaIcon} alt="criteria" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
             <div className="min-w-0">
               <h1 className="truncate text-2xl font-bold text-slate-800 sm:text-2xl">แก้ไขเกณฑ์การประเมิน</h1>
-              {questionnaireId && <p className="text-sm text-slate-500">แบบทดสอบ ID: {questionnaireId}</p>}
+              {questionnaireId && <p className="text-sm text-slate-500">แบบทดสอบ ID: {questionnaireId}, ชื่อเเบบทดสอบ: {name}</p>}
             </div>
           </div>
 
@@ -297,7 +303,8 @@ const EditCriteriaPage: React.FC = () => {
       <div className="w-full px-4 pb-6 sm:px-6">
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 pb-16 md:pb-6">
           <Spin spinning={loading} tip="กำลังโหลดข้อมูล...">
-            {/* ตัวอย่าง */}
+            
+            {/* ส่วนเเสดงตัวอย่าง */}
             <div className="mb-4 sm:mb-6">
               <h3 className="mb-2 text-sm font-semibold text-slate-700 sm:text-base">ตัวอย่างการวัดระดับความสุข</h3>
               <div className="grid gap-2 text-sm text-slate-700 md:grid-cols-2">
@@ -306,8 +313,8 @@ const EditCriteriaPage: React.FC = () => {
                   <li>5–6 = ความสุขปานกลาง</li><li>7–8 = ความสุขมาก</li><li>9–10 = ความสุขมากที่สุด</li>
                 </ul>
                 <ul className="list-disc pl-6 text-red-500">
-                  <li>“ไม่มีความสุขเลย” → 0–0</li><li>“ความสุขน้อยที่สุด” → 1–2</li><li>“ความสุขน้อย” → 3–4</li>
-                  <li>“ความสุขปานกลาง” → 5–6</li><li>“ความสุขมาก” → 7–8</li><li>“ความสุขมากที่สุด” → 9–10</li>
+                  <li>“ไม่มีความสุขเลย” = ต่ำสุด 0 – 0</li><li>“ความสุขน้อยที่สุด” = ต่ำสุด 1 – สูงสุด 2</li><li>“ความสุขน้อย” = ต่ำสุด 3 – สูงสุด 4</li>
+                  <li>“ความสุขปานกลาง” = ต่ำสุด 5 – สูงสุด 6</li><li>“ความสุขมาก” = ต่ำสุด 7 – สูงสุด 8</li><li>“ความสุขมากที่สุด” = ต่ำสุด 9 – สูงสุด 10</li>
                 </ul>
               </div>
             </div>
@@ -316,19 +323,20 @@ const EditCriteriaPage: React.FC = () => {
             <div ref={formScrollRef} className="space-y-6 pr-1 overflow-y-auto hide-scrollbar">
               {/* Add form */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                {/* Desktop */}
+                
+                {/* สำหรับ Desktop */}
                 <div className="hidden md:grid md:grid-cols-12 md:gap-4">
                   <div className="md:col-span-6">
                     <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
                     <Input size="large" value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="กรอกคำอธิบายเกณฑ์" className={inputCls}/>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="mb-1 block text_sm text-slate-700">คะแนนขั้นต่ำ</label>
+                    <label className="mb-1 block text-sm text-slate-700">คะแนนขั้นต่ำ</label>
                     <InputNumber size="large" min={0} max={10000} value={minScore===""?undefined:minScore}
                       onChange={(v)=>setMinScore(v==null?"":v)} placeholder="ขั้นต่ำ" className={numberCls}/>
                   </div>
                   <div className="md:col-span-3">
-                    <label className="mb-1 block text_sm text-slate-700">คะแนนสูงสุด</label>
+                    <label className="mb-1 block text-sm text-slate-700">คะแนนสูงสุด</label>
                     <InputNumber size="large" min={0} max={10000} value={maxScore===""?undefined:maxScore}
                       onChange={(v)=>setMaxScore(v==null?"":v)} placeholder="สูงสุด" className={numberCls}/>
                   </div>
@@ -340,7 +348,7 @@ const EditCriteriaPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Mobile */}
+                {/* สำหรับ Mobile */}
                 <div className="grid gap-3 md:hidden">
                   <div>
                     <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
@@ -386,7 +394,7 @@ const EditCriteriaPage: React.FC = () => {
                         </Popconfirm>
                       </div>
 
-                      {/* Desktop */}
+                      {/* สำหรับ Desktop */}
                       <div className="hidden md:grid md:grid-cols-12 md:gap-4">
                         <div className="md:col-span-6">
                           <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
@@ -407,13 +415,13 @@ const EditCriteriaPage: React.FC = () => {
                             placeholder="สูงสุด" className={numberCls}/>
                         </div>
                         <div className="md:col-span-12">
-                          <label className="mb-1 block text_sm text-slate-700">คำแนะนำเกณฑ์</label>
+                          <label className="mb-1 block text-sm text-slate-700">คำแนะนำเกณฑ์</label>
                           <Input.TextArea rows={2} value={c.recommendation} onChange={(e)=>updateRow(idx,{recommendation:e.target.value})}
                             placeholder="คำแนะนำเกณฑ์" className="!rounded-xl !border-slate-300 hover:!border-black focus:!border-black"/>
                         </div>
                       </div>
 
-                      {/* Mobile */}
+                      {/* สำหรับ Mobile */}
                       <div className="grid gap-3 md:hidden">
                         <div>
                           <label className="mb-1 block text-sm text-slate-700">คำอธิบายเกณฑ์</label>
@@ -450,7 +458,7 @@ const EditCriteriaPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer (mobile) */}
+      {/* ตำเเหน่งปุ่มกลับเเละปุ่มบันทึกสำหรับมือถือ */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2">
           <Button
@@ -477,7 +485,6 @@ const EditCriteriaPage: React.FC = () => {
       <style>{`
         .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-
         .ant-spin-fullscreen { background-color: rgba(0,0,0,0.45); }
         .ant-spin-fullscreen .ant-spin-dot-item { background-color: #fff !important; }
         .ant-spin-fullscreen .ant-spin-text { color: #fff !important; }

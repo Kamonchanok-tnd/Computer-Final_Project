@@ -1,16 +1,21 @@
-import React, { useEffect, useRef, useState, useMemo } from "react"; 
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Modal } from "antd";
 import { AiOutlineArrowLeft, AiOutlineEye, AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { BookOpen } from "lucide-react";
 import {getAllWordHealingMessagesForUser,likeMessage,unlikeMessage,checkIfLikedArticle,countViewMessage,} from "../../../services/https/message";
+import { getAllArticleTypes } from "../../../services/https/articletype";
 import type { WordHealingContent } from "../../../interfaces/IWordHealingContent";
+import type { ArticleType } from "../../../interfaces/IArticleType";
 import AmbientBackground from "./AmbientBackground";
 
-/*  Global styles/constants */
+/* ค่าคงที่/สไตล์ */
 const READ_BTN =
   "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-[#5DE2FF] text-white hover:bg-[#4AC5D9] transition";
 
-/*  Helpers */
+const SHORT_FALLBACK_ID = 29;
+const SHORT_FALLBACK_NAME = "ข้อความ";
+
+/* ตัวช่วย */
 const isPdf = (s?: string | null) =>
   !!s && (s.includes("application/pdf") || /\.pdf($|\?)/i.test(s || ""));
 const isImage = (s?: string | null) =>
@@ -52,22 +57,13 @@ const estimateRequiredMs = (text: string, imageCount = 0) => {
   return Math.max(8000, Math.min(total * 0.7, 300_000));
 };
 
-/* helper ตรวจจับ iPad/Tablet */
 const isTabletDevice = () => {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent || "";
   const maxTouch = (navigator as any).maxTouchPoints || 0;
-
-  // iPadOS 13+ รายงานเป็น Macintosh แต่มี touch
-  const isIPad =
-    /iPad/.test(ua) || (/\bMacintosh\b/.test(ua) && maxTouch > 1);
-
-  // Android tablet = มี Android แต่ไม่มี Mobile
+  const isIPad = /iPad/.test(ua) || (/\bMacintosh\b/.test(ua) && maxTouch > 1);
   const isAndroidTablet = /Android/.test(ua) && !/Mobile/.test(ua);
-
-  // ผู้ผลิตบางรายใส่คำว่า Tablet ตรงๆ
   const isGenericTablet = /\bTablet\b/i.test(ua);
-
   return isIPad || isAndroidTablet || isGenericTablet;
 };
 
@@ -101,10 +97,6 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
   onOpen,
   layout = "card",
 }) => {
-  const CARD_BG = "#EAFBFF";
-  const CARD_RING = "#BFEAF5";
-
-  // meta ให้สว่างขึ้นใน dark
   const metaColor = isRight ? "text-white/90" : "text-slate-500 dark:text-slate-300";
   const ghostBtn =
     isRight
@@ -112,22 +104,14 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
       : "border-slate-300 hover:bg-slate-50 text-slate-700 dark:border-slate-600 dark:hover:bg-slate-700 dark:text-slate-100";
 
   if (layout === "card") {
-    // ปรับขนาดรูป + ล็อกสัดส่วน ป้องกัน layout shift
-    const IMG_W = "w-[96px] sm:w-[136px]";
-    const IMG_H = "h-[88px] sm:h-[112px]";
-    const emphasisBg = isRight ? "bg-white/20" : "bg-black/5 dark:bg-white/10";
-    const emphasisRing = isRight ? "ring-white/25" : "ring-black/5 dark:ring-white/10";
-
-    // การ์ดฝั่งซ้าย: รองรับ dark แบบเต็ม
     const outerClass = isRight
       ? "relative flex-1 rounded-2xl px-3 py-3 shadow bg-gradient-to-br from-[#5DE2FF] to-[#49C3D6] text-white"
       : "relative flex-1 rounded-2xl px-3 py-3 shadow border border-[#BFEAF5] bg-[#EAFBFF] dark:bg-[#1B2538] dark:text-white dark:border-slate-700";
-    const outerStyle: React.CSSProperties = {};
 
     return (
       <div className={`mb-3 flex ${isRight ? "justify-end" : "justify-start"}`}>
         <div className="flex items-stretch gap-3 max-w-[820px] w-full animate-[fadeSlide_.25s_ease-out]">
-          <div className={outerClass} style={outerStyle} role="group">
+          <div className={outerClass} role="group">
             <div
               className="flex items-center gap-3"
               onClick={onOpen}
@@ -142,7 +126,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                     e.stopPropagation();
                     onImageClick?.(photo!);
                   }}
-                  className={`shrink-0 overflow-hidden rounded-xl ${isRight ? "ring-1 ring-white/40" : "ring-1 ring-black/5 dark:ring-white/10"}`}
+                  className="shrink-0 overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10"
                   title="คลิกดูรูปใหญ่"
                 >
                   <img
@@ -150,7 +134,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                     alt=""
                     width={136}
                     height={112}
-                    className={`${IMG_W} ${IMG_H} object-cover`}
+                    className="w-[96px] sm:w-[136px] h-[88px] sm:h-[112px] object-cover"
                     loading="lazy"
                     decoding="async"
                     onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
@@ -159,8 +143,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
               )}
 
               <div className="flex-1 min-h-[88px] sm:min-h-[112px] flex items-center">
-                <div className={["w-full rounded-xl px-3 py-2", emphasisBg, "ring", emphasisRing, "backdrop-blur-[1px]"].join(" ")}>
-                  {/*  line-clamp ให้กระชับบนมือถือ */}
+                <div className="w-full rounded-xl px-3 py-2 bg-black/5 dark:bg-white/10 ring ring-black/5 dark:ring-white/10 backdrop-blur-[1px]">
                   <p
                     className={`text-center font-semibold text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-wrap break-words ${isRight ? "text-white" : "text-slate-900 dark:text-white"}`}
                     style={{
@@ -192,7 +175,6 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                       <span className={isRight ? "text-white text-[12px]" : "text-slate-700 dark:text-slate-300 text-[12px]"}>{likeCount}</span>
                     </button>
 
-                    
                     <span className="inline-flex items-center gap-1">
                       <AiOutlineEye className={`${isRight ? "text-white" : "text-[#5DE2FF]"} w-6 h-6 sm:w-6 sm:h-6`} />
                       <span className={isRight ? "text-white tabular-nums" : "text-slate-700 dark:text-slate-300 tabular-nums"}>{viewCount}</span>
@@ -208,19 +190,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
             </div>
 
             {/* หาง */}
-            {isRight ? (
-              <div className="absolute w-3 h-3 rotate-45 -bottom-1 right-3 bg-[#49C3D6] shadow" />
-            ) : (
-              <>
-                {/* light mode tail */}
-                <div
-                  className="absolute w-3 h-3 rotate-45 -bottom-1 left-3 shadow dark:hidden"
-                  style={{ background: CARD_BG, borderBottom: `1px solid ${CARD_RING}`, borderRight: `1px solid ${CARD_RING}` }}
-                />
-                {/* dark mode tail */}
-                <div className="hidden dark:block absolute w-3 h-3 rotate-45 -bottom-1 left-3 bg-[#1B2538] border-b border-r border-slate-700 shadow" />
-              </>
-            )}
+            <div className="absolute w-3 h-3 rotate-45 -bottom-1 left-3 bg-[#EAFBFF] dark:bg-[#1B2538] border-b border-r border-[#BFEAF5] dark:border-slate-700 shadow" />
           </div>
         </div>
 
@@ -229,7 +199,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
     );
   }
 
-  // bubble เดิม
+  // bubble 
   const bubbleColor = isRight
     ? "bg-gradient-to-br from-[#5DE2FF] to-[#49C3D6] text-white"
     : "bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100";
@@ -291,9 +261,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
           title="ถูกใจ"
         >
           {liked ? <AiFillHeart size={20} className="text-red-500" /> : <AiOutlineHeart size={20} className={isRight ? "text-white" : ""} />}
-          <span className={["ml-1 text-[12px] tabular-nums", isRight ? "text-white" : "text-slate-700 dark:text-slate-200"].join(" ")}>
-            {likeCount}
-          </span>
+          <span className={["ml-1 text-[12px] tabular-nums", isRight ? "text-white" : "text-slate-700 dark:text-slate-200"].join(" ")}>{likeCount}</span>
         </button>
       </div>
 
@@ -302,7 +270,7 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
   );
 };
 
-/* Page  */
+/* หน้า Page */ 
 type PageMode = "shorts" | "articles" | "likedShorts" | "likedArticles";
 
 export default function UserMessagePage() {
@@ -313,7 +281,9 @@ export default function UserMessagePage() {
   const [liked, setLiked] = useState<Record<number, boolean>>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ---------- ใช้ memo เพื่อตรวจแค่ครั้งเดียว ----------
+  // บัญชีประเภท: id >> name (ไว้ map ชื่อ)
+  const [typeMap, setTypeMap] = useState<Record<number, string>>({});
+
   const IS_TABLET = useMemo(() => isTabletDevice(), []);
 
   // pagination
@@ -347,6 +317,31 @@ export default function UserMessagePage() {
     ["/ambient/day-clouds.jpg", "/ambient/milkyway.jpg"].forEach((u) => { const img = new Image(); img.src = u; });
   }, []);
 
+  // โหลดประเภททั้งหมด ทำ map id >> name
+  useEffect(() => {
+    (async () => {
+      try {
+        const types: ArticleType[] = await getAllArticleTypes();
+        const m: Record<number, string> = {};
+        (types || []).forEach((t) => {
+          if (t?.id != null) m[Number(t.id)] = t.name;
+        });
+        setTypeMap(m);
+      } catch {
+      }
+    })();
+  }, []);
+
+  // ตัวช่วย: แปลง id >> ชื่อประเภท
+  const typeNameOf = (id?: number | null) => (id != null && typeMap[id]) || "";
+
+  // เช็คว่าเป็น “ข้อความ” หรือไม่ (ตาม id=29 หรือชื่อ "ข้อความ")
+  const isShortType = (id?: number | null) => {
+    if (id === SHORT_FALLBACK_ID) return true;
+    const n = typeNameOf(id);
+    return n.trim() === SHORT_FALLBACK_NAME || n.trim() === "บทความสั้น";
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
@@ -371,7 +366,7 @@ export default function UserMessagePage() {
     return () => clearInterval(interval);
   }, []);
 
-  /*Search + Split*/
+  /* Search + Split */
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setShortPage(1); setArticlePage(1); setLikedShortsPage(1); setLikedArticlesPage(1);
@@ -379,31 +374,33 @@ export default function UserMessagePage() {
 
   const baseFiltered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return messages.filter((m) =>
-      [m.name, m.author, m.articleType ?? "", m.content ?? ""].join(" ").toLowerCase().includes(q)
-    );
-  }, [messages, searchQuery]);
+    return messages.filter((m) => {
+      const typeName = typeNameOf(m.article_type_id);
+      return [m.name, m.author, typeName, m.content ?? ""].join(" ").toLowerCase().includes(q);
+    });
+  }, [messages, searchQuery, typeMap]);
 
   // sort helpers
   const byDateDesc = (a: WordHealingContent, b: WordHealingContent) =>
     new Date(b.date as any).getTime() - new Date(a.date as any).getTime();
   const byIdDesc = (a: WordHealingContent, b: WordHealingContent) => (b.id ?? 0) - (a.id ?? 0);
 
+  // แยก “ข้อความ” กับ “บทความ” ด้วย article_type_id ที่ map เป็นชื่อแล้ว
   const shortsAll = useMemo(
-    () => baseFiltered.filter((m) => (m.articleType ?? "").trim() === "บทความสั้น").sort(byDateDesc),
-    [baseFiltered]
+    () => baseFiltered.filter((m) => isShortType(m.article_type_id)).sort(byDateDesc),
+    [baseFiltered, typeMap]
   );
   const articlesAll = useMemo(
-    () => baseFiltered.filter((m) => (m.articleType ?? "").trim() !== "บทความสั้น").sort(byDateDesc),
-    [baseFiltered]
+    () => baseFiltered.filter((m) => !isShortType(m.article_type_id)).sort(byDateDesc),
+    [baseFiltered, typeMap]
   );
   const likedShortsAll = useMemo(
-    () => baseFiltered.filter((m) => liked[m.id] && (m.articleType ?? "") === "บทความสั้น").sort(byDateDesc),
-    [baseFiltered, liked]
+    () => baseFiltered.filter((m) => liked[m.id] && isShortType(m.article_type_id)).sort(byDateDesc),
+    [baseFiltered, liked, typeMap]
   );
   const likedArticlesAll = useMemo(
-    () => baseFiltered.filter((m) => liked[m.id] && (m.articleType ?? "") !== "บทความสั้น").sort(byDateDesc),
-    [baseFiltered, liked]
+    () => baseFiltered.filter((m) => liked[m.id] && !isShortType(m.article_type_id)).sort(byDateDesc),
+    [baseFiltered, liked, typeMap]
   );
 
   // pagination totals
@@ -430,7 +427,7 @@ export default function UserMessagePage() {
     [likedArticlesAll, likedArticlesPage]
   );
 
-  /*  Like */
+  /* Like */
   const toggleLike = async (id: number) => {
     if (!isLoggedIn) { alert("กรุณาล็อกอินเพื่อทำการกดถูกใจ"); return; }
     const currentlyLiked = !!liked[id];
@@ -451,7 +448,7 @@ export default function UserMessagePage() {
     }
   };
 
-  /*  Reader */
+  /* Reader */
   const showModal = (message: WordHealingContent) => {
     setSelectedMessage(message);
     setIsModalVisible(true);
@@ -471,18 +468,15 @@ export default function UserMessagePage() {
     return Math.max(0, Math.min(99, Math.floor(ratio * 100)));
   };
 
-  // ---------- แทนที่ฟังก์ชัน evalPass เดิมด้วยเวอร์ชันนี้ ----------
   const evalPass = (msg: WordHealingContent | null, pctNow: number, ms: number) => {
     if (!msg) return false;
 
-    // iPad/แท็บเล็ต: ต้องอ่านครบ 100% และเวลา >= requiredMs
     if (IS_TABLET) {
-      const timeOkTablet = ms >= requiredMs;   // เวลาอย่างน้อยเท่าที่แนะนำ
-      const contentOkTablet = pctNow >= 100;   // เปอร์เซ็นต์เนื้อหาแตะ 100%
+      const timeOkTablet = ms >= requiredMs;
+      const contentOkTablet = pctNow >= 100;
       return timeOkTablet && contentOkTablet;
     }
 
-    // อุปกรณ์อื่น: ใช้กติกาเดิม
     const contentLen = (msg.content || "").trim().length;
     const isVeryShort = contentLen <= 60;
     const scrollable = scrollBodyRef.current
@@ -524,6 +518,7 @@ export default function UserMessagePage() {
       window.removeEventListener("wheel", onAct);
       window.removeEventListener("touchmove", onAct);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isModalVisible, selectedMessage, requiredMs, readMs, evalPass]);
 
   const onModalBodyScroll: React.UIEventHandler<HTMLDivElement> = () => {
@@ -554,7 +549,7 @@ export default function UserMessagePage() {
 
   const handleBack = () => window.history.back();
 
-  /*  Group by day */
+  /* Group by day */
   function groupByDay<T extends { date: string | Date }>(items: T[]) {
     const groups: Record<string, T[]> = {};
     for (const it of items) {
@@ -576,10 +571,10 @@ export default function UserMessagePage() {
 
   const isLikedMode = mode === "likedShorts" || mode === "likedArticles";
 
-  /* UI */
+  /*  UI  */
   return (
     <div className="font-ibmthai relative flex flex-col items-center p-4 sm:p-6 min-h-screen bg-gradient-to-b from-[#C2F4FF] to-[#5DE2FF] dark:bg-gradient-to-b dark:from-[#1B2538] dark:to-[#0E1626] transition-all duration-300">
-      {/* Ambient */}
+      {/* Ambient ภาพพื้นหลัง */}
       <div
         aria-hidden
         className={[
@@ -591,7 +586,7 @@ export default function UserMessagePage() {
       </div>
 
       <div className="relative z-10 w-full">
-        {/* Header: Back + Search (responsive) */}
+        {/* Header: Back + Search */}
         <div className="w-full max-w-5xl mx-auto mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
           <button
             onClick={handleBack}
@@ -615,10 +610,10 @@ export default function UserMessagePage() {
             <div className="mx-auto inline-block min-w-max rounded-full bg-white/80 dark:bg-slate-800/70 p-1 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
               <div className="flex gap-1 px-1 whitespace-nowrap">
                 {([
-                  { key: "shorts",        label: "ข้อความ",        count: shortsAll.length },
-                  { key: "articles",      label: "บทความ",            count: articlesAll.length },
-                  { key: "likedShorts",   label: "ที่ถูกใจ (ข้อความ)", count: likedShortsAll.length },
-                  { key: "likedArticles", label: "ที่ถูกใจ (บทความ)", count: likedArticlesAll.length },
+                  { key: "shorts",        label: "ข้อความ",              count: shortsAll.length },
+                  { key: "articles",      label: "บทความ",                count: articlesAll.length },
+                  { key: "likedShorts",   label: "ที่ถูกใจ (ข้อความ)",    count: likedShortsAll.length },
+                  { key: "likedArticles", label: "ที่ถูกใจ (บทความ)",     count: likedArticlesAll.length },
                 ] as { key: PageMode; label: string; count: number }[]).map((b) => {
                   const active = mode === b.key;
                   return (
@@ -642,26 +637,30 @@ export default function UserMessagePage() {
                     </button>
                   );
                 })}
-              </div> 
+              </div>
             </div>
           </div>
         </div>
 
-        {/* CONTENT */}
-        {/* บทความสั้น */}
+        {/* เนื้อหา */}
+        {/* ข้อความ/บทความสั้น */}
         <section className={mode === "shorts" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "shorts"}>
           <div className="w-full max-w-5xl mx-auto mb-10">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ข้อความหรือบทความสั้น ({shortsAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">
+              ข้อความหรือบทความสั้น ({shortsAll.length})
+            </h3>
 
             {shortsPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีข้อความให้กำลัง</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">
+                ไม่มีข้อความให้กำลัง
+              </div>
             ) : (
               groupByDay(shortsPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
                 return (
                   <div key={dayKey} className="mb-6">
                     <div className="sticky top-2 z-10 flex items-center justify-center my-2">
-                      <span className="inline-flex items-center rounded-full bg-white/80  dark:bg-slate-800/80 px-3 sm:px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
+                      <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-slate-800/80 px-3 sm:px-4 py-1 text-xs font-medium text-slate-600 dark:text-slate-200 shadow ring-1 ring-slate-200 dark:ring-slate-700">
                         {humanDay(dayKey)}
                       </span>
                     </div>
@@ -704,10 +703,14 @@ export default function UserMessagePage() {
         {/* บทความ */}
         <section className={mode === "articles" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "articles"}>
           <div className="w-full max-w-5xl mx-auto">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">บทความ ({articlesAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">
+              บทความ ({articlesAll.length})
+            </h3>
 
             {articlesPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ไม่มีบทความ</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">
+                ไม่มีบทความ
+              </div>
             ) : (
               groupByDay(articlesPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
@@ -738,7 +741,11 @@ export default function UserMessagePage() {
                           )}
 
                           <div className="flex items-center gap-2">
-                            {m.articleType && <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">{m.articleType}</span>}
+                            {typeNameOf(m.article_type_id) && (
+                              <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">
+                                {typeNameOf(m.article_type_id)}
+                              </span>
+                            )}
                             <p className="text-gray-600 dark:text-white">{fmtDate(m.date)}</p>
                           </div>
 
@@ -778,13 +785,17 @@ export default function UserMessagePage() {
           </div>
         </section>
 
-        {/* ที่ถูกใจ (บทสั้น) */}
+        {/* ที่ถูกใจ (ข้อความ/บทความสั้น) */}
         <section className={mode === "likedShorts" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "likedShorts"}>
           <div className="w-full max-w-5xl mx-auto">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (ข้อความหรือบทความสั้น) ({likedShortsAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">
+              ที่ถูกใจ (ข้อความหรือบทความสั้น) ({likedShortsAll.length})
+            </h3>
 
             {likedShortsPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีข้อความหรือบทความสั้นที่คุณถูกใจ</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">
+                ยังไม่มีข้อความหรือบทความสั้นที่คุณถูกใจ
+              </div>
             ) : (
               groupByDay(likedShortsPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
@@ -831,13 +842,17 @@ export default function UserMessagePage() {
           </div>
         </section>
 
-        {/* ที่ถูกใจ (บทความ)  */}
+        {/* ที่ถูกใจ (บทความ) */}
         <section className={mode === "likedArticles" ? "" : "hidden w-0 h-0 overflow-hidden"} aria-hidden={mode !== "likedArticles"}>
           <div className="w-full max-w-5xl mx-auto">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">ที่ถูกใจ (บทความ) ({likedArticlesAll.length})</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3">
+              ที่ถูกใจ (บทความ) ({likedArticlesAll.length})
+            </h3>
 
             {likedArticlesPageItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">ยังไม่มีบทความที่คุณถูกใจ</div>
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 sm:p-10 text-center text-gray-500 dark:text-gray-400">
+                ยังไม่มีบทความที่คุณถูกใจ
+              </div>
             ) : (
               groupByDay(likedArticlesPageItems).map(([dayKey, items]) => {
                 const itemsSorted = [...items].sort(byIdDesc);
@@ -868,7 +883,11 @@ export default function UserMessagePage() {
                           )}
 
                           <div className="flex items-center gap-2">
-                            {m.articleType && <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">{m.articleType}</span>}
+                            {typeNameOf(m.article_type_id) && (
+                              <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">
+                                {typeNameOf(m.article_type_id)}
+                              </span>
+                            )}
                             <p className="text-gray-600 dark:text-white">{fmtDate(m.date)}</p>
                           </div>
 
@@ -927,7 +946,8 @@ export default function UserMessagePage() {
         >
           {selectedMessage && (
             <ArticleReader
-              message={selectedMessage}
+              message={{ ...selectedMessage, /* ให้ reader โชว์ชื่อประเภทที่ map แล้ว */ } as WordHealingContent}
+              typeName={typeNameOf(selectedMessage.article_type_id)}
               scrollBodyRef={scrollBodyRef}
               onModalBodyScroll={onModalBodyScroll}
               scrollProgress={scrollProgress}
@@ -938,7 +958,7 @@ export default function UserMessagePage() {
           )}
         </Modal>
 
-        {/* Lightbox รูปบทสั้น */}
+        {/* Lightbox รูปข้อความ/บทความสั้น */}
         <Modal
           open={!!shortImagePreview}
           onCancel={() => setShortImagePreview(null)}
@@ -972,6 +992,7 @@ export default function UserMessagePage() {
 /* ArticleReader */
 function ArticleReader({
   message,
+  typeName,
   scrollBodyRef,
   onModalBodyScroll,
   scrollProgress,
@@ -980,6 +1001,7 @@ function ArticleReader({
   requiredMs,
 }: {
   message: WordHealingContent;
+  typeName: string;
   scrollBodyRef: React.MutableRefObject<HTMLDivElement | null>;
   onModalBodyScroll: React.UIEventHandler<HTMLDivElement>;
   scrollProgress: number;
@@ -1004,10 +1026,10 @@ function ArticleReader({
         className="h-full overflow-y-auto overscroll-contain bg-[#F4FFFF] dark:bg-[#1B2538] dark:text-white"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {/* summary bar */}
+        {/* เเถบเเสดงสถานะการอ่าน + เวลาการอ่าน */}
         <div className="sticky top-0 z-20 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
           <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2 ">
-            <div className="flex items-center justify-between text-[12px] sm:text-[13px]">
+            <div className="flex items-center justify-between text-[12px] sm:text[13px]">
               <div className="flex items-center gap-2">
                 <span className="font-medium">อ่านแล้ว {Math.floor(scrollProgress)}%</span>
                 <span
@@ -1048,7 +1070,7 @@ function ArticleReader({
 
           <div className="mt-4 flex flex-col gap-2 text-[12px] sm:text-[13px] text-slate-600 dark:text-white">
             <div className="flex items-center gap-2">
-              {message.articleType && <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">{message.articleType}</span>}
+              {typeName && <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">{typeName}</span>}
               <span>{fmtDate(message.date)}</span>
             </div>
 

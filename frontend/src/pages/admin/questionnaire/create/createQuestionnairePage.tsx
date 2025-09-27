@@ -61,7 +61,7 @@ const DropdownSearchSelect: React.FC<{
     let spaceAbove = fieldRect.top;
 
     // ถ้ามีการ์ด ให้จำกัดพื้นที่ให้อยู่ในขอบการ์ด
-    const cardRect = cardRef?.current?.getBoundingClientRect();
+    const cardRect = (cardRef as any)?.current?.getBoundingClientRect?.();
     if (cardRect) {
       spaceBelow = Math.min(spaceBelow, cardRect.bottom - fieldRect.bottom);
       spaceAbove = Math.min(spaceAbove, fieldRect.top - cardRect.top);
@@ -80,11 +80,11 @@ const DropdownSearchSelect: React.FC<{
     recalc();
     window.addEventListener("resize", recalc);
     window.addEventListener("scroll", recalc, true);
-    cardRef?.current?.addEventListener("scroll", recalc, true);
+    (cardRef as any)?.current?.addEventListener?.("scroll", recalc, true);
     return () => {
       window.removeEventListener("resize", recalc);
       window.removeEventListener("scroll", recalc, true);
-      cardRef?.current?.removeEventListener("scroll", recalc, true);
+      (cardRef as any)?.current?.removeEventListener?.("scroll", recalc, true);
     };
   }, [open, cardRef]);
 
@@ -245,7 +245,7 @@ const NumberStepper: React.FC<{
   );
 };
 
-/* UploadBox (ล็อกขนาดพอดี ไม่ยืดรูป)*/
+/* UploadBox */
 const UploadBox: React.FC<{
   pictureBase64?: string;
   setPictureBase64: (v?: string) => void;
@@ -358,8 +358,6 @@ const FormStepInfo: React.FC = () => {
   // การ์ดหลัก (ส่งให้ dropdown เพื่อคุมพื้นที่ popup)
   const cardRef = useRef<HTMLDivElement>(null);
 
-
-
   // โหลดรายการแบบทดสอบเพื่อให้เลือกเป็นเงื่อนไข
   useEffect(() => {
     (async () => {
@@ -374,10 +372,39 @@ const FormStepInfo: React.FC = () => {
     })();
   }, [messageApi]);
 
+  /* Validation การกรอกข้อมมูล ด้วย message */
+  const validateBeforeSubmit = (): string | null => {
+    const n = name.trim();
+    const d = description.trim();
+
+    if (!n) return "กรุณากรอกชื่อแบบทดสอบ";
+    if (!d) return "กรุณากรอกคำอธิบาย";
+    if (!quantity || quantity < 1) return "จำนวนคำถามต้องมากกว่า 0";
+    if (!testType) return "กรุณาเลือกประเภทแบบทดสอบ";
+    if (!pictureBase64) return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
+
+    if (hasCondition) {
+      if (!conditionOnID) return "กรุณาเลือกแบบทดสอบที่ต้องทำก่อน";
+      if (!conditionType) return "กรุณาเลือกเงื่อนไขคะแนน";
+      const s = Number(conditionScore ?? NaN);
+      if (!Number.isFinite(s)) return "กรุณาระบุคะแนนที่ต้องได้";
+      if (s < 1) return "คะแนนที่ต้องได้ต้องมากกว่า 0";
+    }
+    return null;
+  };
+
   // บันทึก
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
+
+    // ใช้ message 
+    const v = validateBeforeSubmit();
+    if (v) {
+      messageApi.warning({ content: v, duration: 1.8 });
+      return;
+    }
+
     setSubmitting(true);
     let didNavigate = false;
 
@@ -388,35 +415,18 @@ const FormStepInfo: React.FC = () => {
       setSubmitting(false);
       return;
     }
-    if (!name || !description || !quantity || !testType) {
-      messageApi.error("กรุณากรอกข้อมูลให้ครบถ้วน");
-      setSubmitting(false);
-      return;
-    }
-    if (!pictureBase64) {
-      messageApi.error("กรุณาอัปโหลดรูปภาพก่อนบันทึก");
-      setSubmitting(false);
-      return;
-    }
 
     // ใช้ค่า default 1 เมื่อเปิดเงื่อนไขแต่ยังไม่ขยับปุ่ม
     const effectiveScore = hasCondition ? (conditionScore ?? 1) : undefined;
 
-    // ตรวจเฉพาะ field ที่ต้องมีจริง ๆ เมื่อเปิดเงื่อนไข
-    if (hasCondition && (!conditionOnID || !conditionType)) {
-      messageApi.error("กรุณากรอกเงื่อนไขให้ครบถ้วน");
-      setSubmitting(false);
-      return;
-    }
-
     const payload: Questionnaire = {
-      nameQuestionnaire: name,
-      description,
+      nameQuestionnaire: name.trim(),
+      description: description.trim(),
       quantity,
       uid,
       testType,
       conditionOnID: hasCondition ? conditionOnID : undefined,
-      conditionScore: effectiveScore, 
+      conditionScore: effectiveScore,
       conditionType: hasCondition ? conditionType : undefined,
       picture: pictureBase64,
       questions: [],
@@ -438,10 +448,12 @@ const FormStepInfo: React.FC = () => {
       const role = localStorage.getItem("role");
       const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
 
-      navigate(`/${rolePrefix}/createquestion`, { state: { questionnaireId, quantity } });
+      didNavigate = true;
+      // เสร็จเเล้วไปหน้าต่อไป โดยมีการส่งข้อมูลที่ต้องการใช้ไปด้วย
+      navigate(`/${rolePrefix}/createquestion`, { state: { questionnaireId, quantity, name: name.trim(), } });
     } catch (err) {
       console.error(err);
-      messageApi.error("ไม่สามารถเพิ่มข้อมูลได้");
+      messageApi.error({ content: "ไม่สามารถเพิ่มข้อมูลได้", duration: 2.0 });
     } finally {
       if (!didNavigate) setSubmitting(false);
     }
@@ -465,12 +477,21 @@ const FormStepInfo: React.FC = () => {
               <div className="space-y-5">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบทดสอบ *</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} required />
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={fieldClass}
+                  />
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">คำอธิบาย *</label>
-                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className={fieldClass} required />
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={5}
+                    className={fieldClass}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -505,12 +526,10 @@ const FormStepInfo: React.FC = () => {
                         const checked = e.target.checked;
                         setHasCondition(checked);
                         if (checked) {
-                          // ตั้งค่าเริ่มต้นทันทีเพื่อกัน error
                           setConditionType("greaterThan");
                           setConditionScore((s) => s ?? 1);
                         } else {
                           setConditionOnID(undefined);
-                          // ไม่ต้องล้าง score ก็ได้ เพราะจะไม่ถูกส่งใน payload
                         }
                       }}
                     />

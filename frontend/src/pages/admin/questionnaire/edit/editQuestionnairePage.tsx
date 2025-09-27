@@ -3,14 +3,13 @@ import { message, Spin } from "antd";
 import type { MessageInstance } from "antd/es/message/interface";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import createQuestionIcon from "../../../../assets/createQuestionnaire.png";
-import {getAllQuestionnaires,  getQuestionnaireById,updateQuestionnaire,} from "../../../../services/https/questionnaire";
+import {getAllQuestionnaires,getQuestionnaireById,updateQuestionnaire,} from "../../../../services/https/questionnaire";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 
-/* ชนิดข้อมูล/ตัวเลือก */
+/* Types & helpers */
 type TestType = "positive" | "negative";
 type Option = { label: string; value: string | number; icon?: React.ReactNode | string };
 
-/* คลาสอินพุตมาตรฐานของหน้า */
 const fieldClass =
   "w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-800 placeholder-slate-400 transition-colors " +
   "focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black bg-white";
@@ -22,6 +21,7 @@ type CardRefLike =
   | null
   | undefined;
 
+/* Dropdown (ค้นหา + smart drop-up) */
 const DropdownSearchSelect: React.FC<{
   value?: string | number;
   onChange: (val: any) => void;
@@ -44,7 +44,6 @@ const DropdownSearchSelect: React.FC<{
   const boxRef = useRef<HTMLDivElement | null>(null);
   const selected = options.find((o) => o.value === value);
 
-  // drop-up & dynamic height
   const [dropUp, setDropUp] = useState(false);
   const [menuMaxH, setMenuMaxH] = useState(288);
   const IDEAL_MENU_H = 288;
@@ -53,12 +52,10 @@ const DropdownSearchSelect: React.FC<{
     const fieldRect = boxRef.current?.getBoundingClientRect();
     if (!fieldRect) return;
 
-    // พื้นที่จาก viewport
     let spaceBelow = window.innerHeight - fieldRect.bottom;
     let spaceAbove = fieldRect.top;
 
-
-    const cardRect = cardRef?.current?.getBoundingClientRect();
+    const cardRect = (cardRef as any)?.current?.getBoundingClientRect?.();
     if (cardRect) {
       spaceBelow = Math.min(spaceBelow, cardRect.bottom - fieldRect.bottom);
       spaceAbove = Math.min(spaceAbove, fieldRect.top - cardRect.top);
@@ -66,7 +63,7 @@ const DropdownSearchSelect: React.FC<{
 
     const preferUp = spaceBelow < IDEAL_MENU_H && spaceAbove > spaceBelow;
     setDropUp(preferUp);
-    const room = (preferUp ? spaceAbove : spaceBelow) - 12; // กันชน
+    const room = (preferUp ? spaceAbove : spaceBelow) - 12;
     setMenuMaxH(Math.max(200, Math.min(IDEAL_MENU_H, room)));
   };
 
@@ -85,14 +82,14 @@ const DropdownSearchSelect: React.FC<{
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", recalc);
     window.addEventListener("scroll", recalc, true);
-    cardRef?.current?.addEventListener?.("scroll", recalc, true);
+    (cardRef as any)?.current?.addEventListener?.("scroll", recalc, true);
 
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", recalc);
       window.removeEventListener("scroll", recalc, true);
-      cardRef?.current?.removeEventListener?.("scroll", recalc, true);
+      (cardRef as any)?.current?.removeEventListener?.("scroll", recalc, true);
     };
   }, [open, cardRef]);
 
@@ -147,7 +144,7 @@ const DropdownSearchSelect: React.FC<{
             dropUp ? "bottom-full mb-2" : "top-full mt-2",
           ].join(" ")}
         >
-          {/* กล่องค้นหา (sticky) */}
+          {/* เเถบค้นหา */}
           <div className="sticky top-0 z-10 bg-white">
             <div className="flex items-center gap-2 px-3 pt-3 pb-2 border-b border-slate-200">
               <div className="flex items-center rounded-lg border border-slate-300 px-3 py-2 hover:border-black w-full">
@@ -176,7 +173,7 @@ const DropdownSearchSelect: React.FC<{
             </div>
           </div>
 
-          {/* รายการ (scroll ได้ / สูงสุดเท่าที่พื้นที่พอ) */}
+          {/* options */}
           <div className="p-2 overflow-auto" style={{ maxHeight: menuMaxH }}>
             {filtered.map((o) => {
               const active = o.value === value;
@@ -206,9 +203,7 @@ const DropdownSearchSelect: React.FC<{
                 </button>
               );
             })}
-            {!filtered.length && (
-              <div className="px-3 py-2 text-sm text-slate-500">ไม่พบตัวเลือก</div>
-            )}
+            {!filtered.length && <div className="px-3 py-2 text-sm text-slate-500">ไม่พบตัวเลือก</div>}
           </div>
         </div>
       )}
@@ -216,6 +211,7 @@ const DropdownSearchSelect: React.FC<{
   );
 };
 
+/* Number stepper */
 const NumberStepper: React.FC<{
   value: number;
   onChange: (n: number) => void;
@@ -251,11 +247,14 @@ const NumberStepper: React.FC<{
   );
 };
 
+/* Upload box (แจ้งเลือก/ลบรูป) */
 const UploadBox: React.FC<{
   pictureBase64?: string;
   setPictureBase64: (v?: string) => void;
   messageApi: MessageInstance;
-}> = ({ pictureBase64, setPictureBase64, messageApi }) => {
+  onPick?: () => void;   // เลือกรูปใหม่
+  onRemove?: () => void; // ลบรูปออก
+}> = ({ pictureBase64, setPictureBase64, messageApi, onPick, onRemove }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
@@ -277,13 +276,12 @@ const UploadBox: React.FC<{
     const b64 = await fileToBase64(file);
     setPictureBase64(b64);
     setFileName(file.name);
+    onPick?.();
   };
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-slate-700">
-        อัปโหลดรูปภาพประกอบ
-      </label>
+      <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ</label>
 
       <div
         className={`group rounded-[22px] border-2 border-dashed p-4 sm:p-6 transition-colors ${
@@ -326,7 +324,10 @@ const UploadBox: React.FC<{
           </button>
           <button
             type="button"
-            onClick={() => setPictureBase64(undefined)}
+            onClick={() => {
+              setPictureBase64(undefined);
+              onRemove?.();
+            }}
             disabled={!pictureBase64}
             className="rounded-full border border-rose-300 bg-rose-50 px-4 py-2 text-sm text-rose-700 shadow-sm transition-colors hover:border-rose-400 disabled:opacity-60"
           >
@@ -352,8 +353,6 @@ const EditQuestionnaire: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const location = useLocation();
-
-  // antd message สำหรับแสดง toast
   const [msg, contextHolder] = message.useMessage();
 
   // หา qid จาก param/state/query
@@ -366,7 +365,6 @@ const EditQuestionnaire: React.FC = () => {
   }, [params.id, qidFromState, location.search]);
 
   // สเตตหลักของฟอร์ม
-  const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
@@ -383,10 +381,11 @@ const EditQuestionnaire: React.FC = () => {
   const [current, setCurrent] = useState<any | null>(null);
 
   const [pictureBase64, setPictureBase64] = useState<string | undefined>(undefined);
+  const [pictureRemoved, setPictureRemoved] = useState(false); // ผู้ใช้ลบรูปเดิมหรือยัง
 
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // โหลดข้อมูลเริ่มต้น
+  // โหลดข้อมูลเริ่มต้น 
   useEffect(() => {
     const load = async () => {
       if (!qid) {
@@ -395,8 +394,10 @@ const EditQuestionnaire: React.FC = () => {
         return;
       }
       try {
-        setPageLoading(true);
-        const [data, list] = await Promise.all([getQuestionnaireById(qid), getAllQuestionnaires()]);
+        const [data, list] = await Promise.all([
+          getQuestionnaireById(qid),
+          getAllQuestionnaires(),
+        ]);
         setCurrent(data);
         setQuestionnaires((Array.isArray(list) ? list : []).filter((x) => x.id !== qid));
 
@@ -413,58 +414,87 @@ const EditQuestionnaire: React.FC = () => {
         const ensureDataUrl = (pic?: string | null) =>
           !pic ? undefined : pic.startsWith("data:") ? pic : `data:image/jpeg;base64,${pic}`;
         const url = ensureDataUrl(data?.picture);
-        if (url) setPictureBase64(url);
+        setPictureBase64(url);
+        setPictureRemoved(false);
       } catch (err) {
         console.error(err);
         msg.error("โหลดข้อมูลไม่สำเร็จ");
         navigate(-1);
-      } finally {
-        setPageLoading(false);
       }
     };
     load();
   }, [qid]);
 
+  /* Validation ด้วย message เเจ้งเตือนการกรอกข้อมูล */
+  const validateBeforeSave = (): string | null => {
+    const n = name.trim();
+    const d = description.trim();
+
+    if (!n) return "กรุณากรอกชื่อแบบทดสอบ";
+    if (!d) return "กรุณากรอกคำอธิบาย";
+    if (!quantity || quantity < 1) return "จำนวนคำถามต้องมากกว่า 0";
+    if (!testType) return "กรุณาเลือกประเภทแบบทดสอบ";
+
+    // ถ้าผู้ใช้ลบรูปเดิม ต้องอัปโหลดใหม่
+    if (pictureRemoved && !pictureBase64) return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
+    // ถ้าไม่ลบ แต่ไม่มีทั้งรูปใหม่และรูปเดิมเลย
+    if (!pictureRemoved && !pictureBase64 && !current?.picture)
+      return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
+
+    if (hasCondition) {
+      if (!conditionOnID) return "กรุณาเลือกแบบทดสอบที่ต้องทำก่อน";
+      if (!conditionType) return "กรุณาเลือกเงื่อนไขคะแนน";
+      const s = Number(conditionScore ?? NaN);
+      if (!Number.isFinite(s)) return "กรุณาระบุคะแนนที่ต้องได้";
+      if (s < 1) return "คะแนนที่ต้องได้ต้องมากกว่า 0";
+    }
+    return null;
+  };
+  
   // บันทึก
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!qid) return;
-    if (!name || !description || !quantity || !testType)
-      return msg.error("กรุณากรอกข้อมูลให้ครบถ้วน");
+
+    const v = validateBeforeSave();
+    if (v) {
+      msg.warning({ content: v, duration: 1.8 });
+      return;
+    }
 
     setSaving(true);
     let didNavigate = false;
     try {
       const payload: Questionnaire = {
-        nameQuestionnaire: name,
-        description,
+        nameQuestionnaire: name.trim(),
+        description: description.trim(),
         quantity,
         uid: current?.uid,
         testType,
         conditionOnID: hasCondition ? conditionOnID : undefined,
         conditionScore: hasCondition ? conditionScore : undefined,
         conditionType: hasCondition ? conditionType : undefined,
-        picture: pictureBase64 ?? current?.picture,
+
+        // ถ้าผู้ใช้ลบ ใช้เฉพาะรูปใหม่ (ผ่าน validation ว่าต้องมีแล้ว)
+        // ถ้าไม่ลบ ใช้รูปใหม่ถ้ามี ไม่งั้นคงรูปเดิม
+        picture: pictureRemoved ? pictureBase64! : (pictureBase64 ?? current?.picture),
+
         questions: current?.questions ?? [],
         groups: current?.groups ?? [],
       };
+
       await updateQuestionnaire(qid, payload);
 
-      // Toast สำเร็จ แล้วค่อยนำทาง
-      await new Promise<void>((resolve) => {
-        msg.success({
-          content: "แก้ไขข้อมูลสำเร็จ",
-          duration: 1.2,
-          onClose: resolve,
-        });
-      });
+      await new Promise<void>((resolve) =>
+        msg.success({ content: "แก้ไขข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
+      );
 
       didNavigate = true;
       const role = localStorage.getItem("role");
       const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
 
       navigate(`/${rolePrefix}/editQuestionAndAnswerPage`, {
-        state: { questionnaireId: qid, quantity },
+        state: { questionnaireId: qid, name: name.trim(), },
       });
     } catch (err) {
       console.error(err);
@@ -474,25 +504,9 @@ const EditQuestionnaire: React.FC = () => {
     }
   };
 
-  // ระหว่างโหลด
-  if (pageLoading) {
-    return (
-      <div className="min-h-screen w-full bg-slate-100 py-8">
-        <div className="w-full px-6">
-          <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex w-full items-center justify-center py-20">
-              <Spin />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // UI หลัก
+  /* UI */
   return (
     <div className="min-h-screen w-full bg-slate-100 py-8">
-      {/* contextHolder จำเป็นต่อการแสดง message */}
       {contextHolder}
       <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
@@ -504,16 +518,17 @@ const EditQuestionnaire: React.FC = () => {
 
         <div ref={cardRef} className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <form onSubmit={onSubmit} className="grid w-full grid-cols-1 gap-8 lg:grid-cols-2">
-            {/* ซ้าย: ฟอร์มข้อความ */}
+            
+            {/* ฝั่งซ้าย: ฟอร์มข้อความ */}
             <div className="space-y-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบทดสอบ *</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} required />
+                <input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">คำอธิบาย *</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className={fieldClass} required />
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className={fieldClass} />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -593,21 +608,31 @@ const EditQuestionnaire: React.FC = () => {
                   type="button"
                   onClick={() => navigate(-1)}
                   className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
+                  disabled={saving}
                 >
                   ยกเลิก
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-[#5DE2FF] px-5 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-cyan-500 disabled:opacity-60"
+                  className={
+                    "rounded-xl px-5 py-2.5 font-medium text-white shadow-sm transition-colors " +
+                    (saving ? "bg-cyan-400 cursor-not-allowed" : "bg-[#5DE2FF] hover:bg-cyan-500")
+                  }
                 >
-                  บันทึกการแก้ไข
+                  {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
                 </button>
               </div>
             </div>
 
-            {/* ขวา: Upload รูป (ล็อกขนาดพอดี) */}
-            <UploadBox pictureBase64={pictureBase64} setPictureBase64={setPictureBase64} messageApi={msg} />
+            {/* ฝั่งขวา: Upload รูป */}
+            <UploadBox
+              pictureBase64={pictureBase64}
+              setPictureBase64={setPictureBase64}
+              messageApi={msg}
+              onPick={() => setPictureRemoved(false)}
+              onRemove={() => setPictureRemoved(true)}
+            />
           </form>
         </div>
       </div>
