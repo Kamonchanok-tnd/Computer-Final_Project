@@ -47,43 +47,7 @@ interface Column {
   intervalDays?: number;
 }
 
-const SortableItem = ({
-  id,
-  children,
-  disabled = false,
-}: {
-  id: number | string; // UPDATED: ให้รองรับ tail id (string)
-  children: React.ReactNode;
-  disabled?: boolean;
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id, disabled });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={isDragging ? "z-50" : undefined}
-    >
-      {children}
-    </div>
-  );
-};
-
-// ADDED: Drop zone ท้ายลิสต์ ช่วยให้วาง “เป็นอันสุดท้าย” ได้แม่น
+// Drop zone ท้ายลิสต์ ช่วยให้วาง “เป็นอันสุดท้าย” ได้แม่น
 const DropTail = ({ id }: { id: string }) => {
   const { setNodeRef, isOver } = useSortable({ id });
   return (
@@ -97,8 +61,83 @@ const DropTail = ({ id }: { id: string }) => {
   );
 };
 
-// ADDED: tail id helper (หนึ่งอันต่อคอลัมน์)
+// tail id helper (หนึ่งอันต่อคอลัมน์)
 const tailId = (columnId: number) => `__tail_${columnId}`;
+
+/** แถวการ์ดแต่ละรายการ: ลากได้ “เฉพาะ” ที่ปุ่มสามขีดด้านซ้าย */
+const ItemRow: React.FC<{
+  q: Questionnaire;
+  columnId: number;
+  onRemove: (groupId: number, qid: number) => void;
+}> = ({ q, columnId, onRemove }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: q.id,
+    disabled: !!q.condition_on_id, // ลูกห้ามลาก
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow ${
+        isDragging ? "z-50" : ""
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        {/* ปุ่มสามขีด (Drag Handle) — อยู่ฝั่งซ้าย */}
+        <button
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          className={`p-1 rounded hover:bg-gray-100 active:scale-[0.98] ${
+            q.condition_on_id ? "opacity-30 cursor-not-allowed" : "cursor-grab"
+          }`}
+          title={
+            q.condition_on_id
+              ? "รายการย่อย — ลากไม่ได้"
+              : "กดค้างที่นี่เพื่อจัดลำดับ"
+          }
+          aria-label="จัดลำดับ"
+        >
+          <GripVertical className="w-5 h-5 text-gray-600" />
+        </button>
+
+        {/* เนื้อหาในการ์ด */}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-gray-900 pr-10 truncate">
+            {q.name}
+          </h4>
+          <p className="text-sm text-gray-500">
+            เงื่อนไข📝 :{" "}
+            {q.condition_score != null ? `ถ้าคะแนน >= ${q.condition_score}` : "-"}
+          </p>
+        </div>
+
+        {/* ถังขยะ (ฝั่งขวา) */}
+        <button
+          onClick={() => onRemove(columnId, q.id)}
+          className="p-1 rounded hover:bg-red-50 transition-colors"
+          title="ลบแบบทดสอบสุขภาพจิต"
+        >
+          <img src={icondelete} alt="delete" className="w-7 h-7" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const ManageTestOrder: React.FC = () => {
   const [draggedDays, setDraggedDays] = useState<number>(0);
@@ -110,19 +149,12 @@ const ManageTestOrder: React.FC = () => {
   const [availableList, setAvailableList] = useState<
     { id: number; name: string }[]
   >([]);
-  const [isDragMode, setIsDragMode] = useState<boolean>(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 3 },
     })
   );
-
-  const stopDrag = {
-    onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
-    onPointerDown: (e: React.PointerEvent) => e.stopPropagation(),
-    onTouchStart: (e: React.TouchEvent) => e.stopPropagation(),
-  };
 
   const groupIDs = [1, 2, 3];
   const colors = [
@@ -196,10 +228,6 @@ const ManageTestOrder: React.FC = () => {
   }, [draggedDays]);
 
   const handleToggleDropdown = async (groupId: number) => {
-    if (!dropdownGroupId || dropdownGroupId !== groupId) {
-      setIsDragMode(false);
-    }
-
     if (dropdownGroupId === groupId) {
       setDropdownGroupId(null);
       setAvailableList([]);
@@ -247,8 +275,7 @@ const ManageTestOrder: React.FC = () => {
             );
           } else if (data?.error === "DUPLICATE") {
             message.warning(
-              data?.message ||
-                "เพิ่มไม่ได้: แบบทดสอบสุขภาพจิตนี้อยู่ในกลุ่มแล้ว"
+              data?.message || "เพิ่มไม่ได้: แบบทดสอบสุขภาพจิตนี้อยู่ในกลุ่มแล้ว"
             );
           } else {
             message.warning(data?.message || "ข้อมูลซ้ำในกลุ่มนี้");
@@ -266,7 +293,7 @@ const ManageTestOrder: React.FC = () => {
     }
   };
 
-  // ADDED: click outside เพื่อหุบเมนู
+  // click outside เพื่อหุบเมนู
   const dropdownAnchors = useRef<Record<number, HTMLDivElement | null>>({});
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -388,9 +415,8 @@ const ManageTestOrder: React.FC = () => {
   };
 
   const onDragEnd = async (event: DragEndEvent, columnId: number) => {
-    if (!isDragMode) return;
-
     const { active, over } = event;
+
     if (!over) {
       // ปล่อยในช่องว่าง → วางท้ายสุด
       const tasks = getTasksForColumn(columnId);
@@ -443,7 +469,7 @@ const ManageTestOrder: React.FC = () => {
       ? null
       : groups.find((g) => g.ids.includes(Number(overRaw)));
 
-    // ✅ กติกาใหม่: ถ้าลากขึ้น → วางก่อนกลุ่มเป้าหมาย, ถ้าลากลง → วางหลังกลุ่มเป้าหมาย
+    // ถ้าลากขึ้น → วางก่อนกลุ่มเป้าหมาย, ถ้าลากลง → วางหลังกลุ่มเป้าหมาย
     let toIndex: number;
     if (isTail) {
       toIndex = tasks.length;
@@ -465,10 +491,7 @@ const ManageTestOrder: React.FC = () => {
     let insertIndex = toIndex;
     if (fromIndex < insertIndex) insertIndex -= blockLen; // ขยับเป้าหมายเมื่อเราถอดก้อนออกแล้ว
 
-    insertIndex = Math.max(
-      0,
-      Math.min(insertIndex, tasks.length - blockLen + 1)
-    );
+    insertIndex = Math.max(0, Math.min(insertIndex, tasks.length - blockLen + 1));
 
     const reordered = [...tasks];
     reordered.splice(fromIndex, blockLen);
@@ -593,33 +616,8 @@ const ManageTestOrder: React.FC = () => {
                   </div>
                 </div>
 
-                {/* ปุ่มสลับโหมดลาก-จัดเรียง + ปุ่มเพิ่ม (Plus) */}
+                {/* ปุ่มเพิ่ม (Plus) — เหลือเฉพาะปุ่มนี้ (ตัดปุ่มสลับโหมดเลื่อนออก) */}
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setIsDragMode((v) => {
-                        const next = !v;
-                        if (next) {
-                          setDropdownGroupId(null);
-                          setAvailableList([]);
-                        }
-                        return next;
-                      });
-                    }}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                      isDragMode
-                        ? "bg-blue-600 text-white"
-                        : "bg-white hover:bg-gray-50 text-gray-600"
-                    } ${
-                      dropdownGroupId ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    title="โหมดจัดลำดับ"
-                    aria-label="โหมดจัดลำดับ"
-                    disabled={!!dropdownGroupId}
-                  >
-                    <GripVertical className="w-4 h-4" />
-                  </button>
-
                   <div
                     className="relative"
                     ref={(el) => {
@@ -628,14 +626,9 @@ const ManageTestOrder: React.FC = () => {
                   >
                     <button
                       onClick={() => handleToggleDropdown(column.id)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                        isDragMode
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-white hover:bg-gray-50 text-gray-600"
-                      }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-white hover:bg-gray-50 text-gray-600`}
                       title="เพิ่มแบบทดสอบสุขภาพจิต"
                       aria-label="เพิ่มแบบทดสอบสุขภาพจิต"
-                      disabled={isDragMode}
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -682,79 +675,21 @@ const ManageTestOrder: React.FC = () => {
                 onDragEnd={(e) => onDragEnd(e, column.id)}
               >
                 <SortableContext
-                  // UPDATED: เติม tail id ต่อท้ายรายการ เพื่อให้มีจุดวางท้ายลิสต์จริง ๆ
+                  // เติม tail id ต่อท้ายรายการ เพื่อให้มีจุดวางท้ายลิสต์จริง ๆ
                   items={[...tasks.map((q) => q.id), tailId(column.id)]}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-3">
                     {tasks.map((q) => (
-                      <SortableItem
+                      <ItemRow
                         key={q.id}
-                        id={q.id}
-                        disabled={!isDragMode || !!q.condition_on_id}
-                      >
-                        <div
-                          className={`relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow ${
-                            isDragMode ? "cursor-move" : ""
-                          }`}
-                        >
-                          {isDragMode && (
-                            <div
-                              className={`absolute right-2 top-1/2 -translate-y-1/2
-                ${
-                  q.condition_on_id
-                    ? "opacity-30 cursor-not-allowed"
-                    : "opacity-100"
-                }
-               `}
-                              title={
-                                q.condition_on_id
-                                  ? "รายการย่อย — ลากไม่ได้"
-                                  : "กดค้างเพื่อจัดลำดับ"
-                              }
-                            >
-                              <GripVertical className="w-5 h-5 text-gray-500" />
-                            </div>
-                          )}
-
-                          {/* เนื้อหาในการ์ด */}
-                          <div className="flex flex-col gap-2">
-                            <h4 className="font-semibold text-gray-900 pr-10">
-                              {q.name}
-                            </h4>
-                            <p className="text-sm text-gray-500">
-                              เงื่อนไข📝 :{" "}
-                              {q.condition_score != null
-                                ? `ถ้าคะแนน >= ${q.condition_score}`
-                                : "-"}
-                            </p>
-                          </div>
-
-                          {/* ปุ่มลบโชว์ตอนปิด drag mode */}
-                          {!isDragMode && (
-                            <button
-                              {...stopDrag}
-                              onClick={() =>
-                                handleRemoveFromGroup(column.id, q.id)
-                              }
-                              className="absolute right-2 top-2 p-1 rounded hover:bg-red-50 transition-colors"
-                              title="ลบแบบทดสอบสุขภาพจิต"
-                            >
-                              <img
-                                src={icondelete}
-                                alt="delete"
-                                className="w-7 h-7"
-                              />
-                            </button>
-                          )}
-                        </div>
-                      </SortableItem>
+                        q={q}
+                        columnId={column.id}
+                        onRemove={handleRemoveFromGroup}
+                      />
                     ))}
-
-                    {/* ADDED: โซนวางท้ายลิสต์ */}
-                    <SortableItem id={tailId(column.id)} disabled>
-                      <DropTail id={tailId(column.id)} />
-                    </SortableItem>
+                    
+                    <DropTail id={tailId(column.id)} />
 
                     {tasks.length === 0 && (
                       <p className="text-gray-500 text-sm italic">

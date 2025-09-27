@@ -34,7 +34,7 @@ type (
        Gender     string    `json:"gender"`
        PersonType string  `json:"person_type"`
        Faculty    string  `json:"faculty"`
-       Year       *int    `json:"year"`
+       Year       string    `json:"year"`
        ConsentAccepted   bool      `json:"consent_accepted"`
        ConsentAcceptedAt time.Time `json:"consent_accepted_at"`
    }
@@ -44,6 +44,12 @@ type (
 func isValidEmail(email string) bool {
     re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
     return re.MatchString(email)
+}
+
+// ตรวจสอบรูปแบบเบอร์โทร (ตัวอย่าง regex เบอร์โทรไทย)
+func isValidPhoneNumber(phone string) bool {
+    re := regexp.MustCompile(`^(0[689]{1}[0-9]{8})$`) 
+    return re.MatchString(phone)
 }
 
 func SignUp(c *gin.Context) {
@@ -58,6 +64,12 @@ func SignUp(c *gin.Context) {
         return
     }
 
+    // ✅ ตรวจสอบเบอร์โทร
+    if !isValidPhoneNumber(payload.PhoneNumber) {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "รูปแบบเบอร์โทรไม่ถูกต้อง"})
+        return
+    }
+
     db := config.DB()
     var userCheck entity.Users
     result := db.Where("email = ?", payload.Email).First(&userCheck)
@@ -69,6 +81,19 @@ func SignUp(c *gin.Context) {
         c.JSON(http.StatusConflict, gin.H{"error": "อีเมลนี้ถูกใช้งานแล้ว"})
         return
     }
+
+    // ✅ ตรวจสอบเบอร์โทรซ้ำ
+    var phoneCheck entity.Users
+    result = db.Where("phone_number = ?", payload.PhoneNumber).First(&phoneCheck)
+    if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการตรวจสอบเบอร์โทร"})
+        return
+    }
+    if phoneCheck.ID != 0 {
+        c.JSON(http.StatusConflict, gin.H{"error": "เบอร์โทรนี้ถูกใช้งานแล้ว"})
+        return
+    }
+
 
     if payload.Role != "superadmin" && payload.Role != "user" {
         c.JSON(http.StatusBadRequest, gin.H{"error": "บทบาทไม่ถูกต้อง"})
@@ -105,7 +130,7 @@ func SignUp(c *gin.Context) {
         ConsentAcceptedAt: payload.ConsentAcceptedAt,
         PersonType: payload.PersonType,
         Faculty:    payload.Faculty,
-        Year:       *payload.Year,
+        Year:       payload.Year,
     }
 
     if err := db.Create(&user).Error; err != nil {
