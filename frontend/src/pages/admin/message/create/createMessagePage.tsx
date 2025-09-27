@@ -1,23 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { message } from "antd";
-import { FileText, MessageSquare } from "lucide-react";
-import { createWordHealingMessage, getArticleTypeOptionsDetailed } from "../../../../services/https/message";
-import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
+import { message, Spin } from "antd";
+import { FileText, MessageSquare, Pencil, Trash2, Plus } from "lucide-react";
+import { createWordHealingMessage } from "../../../../services/https/message";
+import {getAllArticleTypes,createArticleType,updateArticleType,deleteArticleType,} from "../../../../services/https/articletype";
+import type { ArticleType } from "../../../../interfaces/IArticleType";
 import createMessageIcon from "../../../../assets/createMessageIcon.png";
 
-/* Types & Utils */
-type ArticleTypeOption = { value: string; label: string; description?: string };
+/* Utils */
+type ArticleTypeOption = { id: number; label: string; description?: string };
 
-interface FormDataType extends Omit<WordHealingContent, "photo" | "article_type"> {
-  photo: string | null;
-  error: (message: string) => unknown;
-  idts?: number;
-  content: string;
-  articleType: string;
-  viewCount: number;
-}
-type ContentKind = "long" | "short";
+const SHORT_FALLBACK_ID = 29; // id ของบทความประเภทข้อความใน BE
+const SHORT_FALLBACK_NAME = "ข้อความ";
 
 const fmtYMD = (d: Date) => {
   const y = d.getFullYear();
@@ -30,10 +24,34 @@ const isTouchDevice = () =>
     (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
   false;
 
-/* ให้รองรับทั้ง RefObject และ MutableRefObject */
+function resolveShortTypeId(options: ArticleTypeOption[]) {
+  const byId = options.find((o) => o.id === SHORT_FALLBACK_ID);
+  if (byId) return byId.id;
+  const byName = options.find((o) => o.label === SHORT_FALLBACK_NAME);
+  if (byName) return byName.id;
+  return undefined;
+}
+
+/* Types */
+type ContentKind = "long" | "short";
+
+interface FormDataType {
+  id: number;
+  name: string;
+  author: string;
+  no_of_like: number;
+  date: string;
+  photo: string | null; // base64
+  content: string;
+  article_type_id: number | null;
+  viewCount: number;
+  error: (message: string) => unknown;
+  idts?: number;
+}
+
+/* DatePicker (mobile smart drop-up) */
 type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
 
-/* Mobile DatePicker (smart drop-up) */
 const MobileDateField: React.FC<{
   value: string;
   max: string;
@@ -180,8 +198,8 @@ const MobileDateField: React.FC<{
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-200 px-3 py-2 text-sm">
-            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(""); setViewMonth(new Date(today)); setOpen(false); }}>Clear</button>
-            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(fmtYMD(today)); setViewMonth(new Date(today)); setOpen(false); }}>Today</button>
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(""); setViewMonth(new Date(today)); }}>Clear</button>
+            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(fmtYMD(today)); setViewMonth(new Date(today)); }}>Today</button>
           </div>
         </div>
       )}
@@ -206,7 +224,7 @@ const CreateMessagePage: React.FC = () => {
     date: "",
     photo: null,
     content: "",
-    articleType: "OpinionPiece",
+    article_type_id: null,
     error: (message: string) => console.error(message),
     idts: undefined,
     viewCount: 0,
@@ -217,36 +235,30 @@ const CreateMessagePage: React.FC = () => {
 
   const [articleTypeOptions, setArticleTypeOptions] = useState<ArticleTypeOption[]>([]);
   const [articleTypeLoading, setArticleTypeLoading] = useState<boolean>(false);
+  const [shortTypeId, setShortTypeId] = useState<number | undefined>(undefined);
 
-  /* สถานะระหว่างบันทึก */
-  const [saving, setSaving] = useState(false);
+  /* Create Update Delete states for dropdown */
+  const [opLoading, setOpLoading] = useState<boolean>(false);
+  const [manageMode, setManageMode] = useState<"none" | "create" | "edit">("none");
+  const [editTargetId, setEditTargetId] = useState<number | null>(null);
+  const [nameInput, setNameInput] = useState("");
+  const [descInput, setDescInput] = useState("");
 
+  /* Load article types */
   useEffect(() => {
     (async () => {
       try {
         setArticleTypeLoading(true);
-        const detailed = await getArticleTypeOptionsDetailed();
-        const opts: ArticleTypeOption[] = (detailed || []).map((o: any) => {
-          const labelText =
-            typeof o?.label === "string" ? o.label :
-            typeof o?.label?.th === "string" ? o.label.th :
-            typeof o?.name === "string" ? o.name :
-            typeof o?.title === "string" ? o.title :
-            typeof o?.raw?.label === "string" ? o.raw.label :
-            typeof o?.raw?.name === "string" ? o.raw.name :
-            String(o?.value ?? "");
-          const descText =
-            typeof o?.description === "string" ? o.description :
-            typeof o?.raw?.description === "string" ? o.raw.description :
-            typeof o?.detail === "string" ? o.detail :
-            typeof o?.raw?.detail === "string" ? o.raw.detail :
-            typeof o?.raw?.desc === "string" ? o.raw.desc :
-            "";
-          return { value: String(o?.value ?? labelText), label: labelText, description: descText };
-        });
+        const list: ArticleType[] = await getAllArticleTypes();
+        const opts: ArticleTypeOption[] = (list || []).map((t) => ({
+          id: Number(t.id!),
+          label: t.name,
+          description: t.description || "",
+        }));
         setArticleTypeOptions(opts);
-        if (opts.length && !opts.some((x) => x.value === String(formData.articleType))) {
-          setFormData((prev) => ({ ...prev, articleType: opts[0].value }));
+        setShortTypeId(resolveShortTypeId(opts));
+        if (!formData.article_type_id && opts.length) {
+          setFormData((p) => ({ ...p, article_type_id: opts[0].id }));
         }
       } catch {
         msgApi.error("โหลดประเภทบทความไม่สำเร็จ");
@@ -254,9 +266,10 @@ const CreateMessagePage: React.FC = () => {
         setArticleTypeLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Smart drop-up ของ dropdown ประเภทบทความ */
+  /* dropdown positioning */
   const [typeOpen, setTypeOpen] = useState(false);
   const [typeQuery, setTypeQuery] = useState("");
   const [dropUp, setDropUp] = useState(false);
@@ -265,16 +278,10 @@ const CreateMessagePage: React.FC = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const IDEAL_MENU_H = 280;
 
-  // แสดง 5 รายการพอดี + scroll
   const VISIBLE_ITEMS = 5;
   const ITEM_ROW_H = 44;
   const listMaxH = Math.min(menuMaxH, VISIBLE_ITEMS * ITEM_ROW_H + 8);
 
-  // โหมดกำหนดเอง
-  const [customTypeMode, setCustomTypeMode] = useState(false);
-  const [customTypeText, setCustomTypeText] = useState("");
-
-  // คีย์บอร์ด
   const [activeIdx, setActiveIdx] = useState<number>(-1);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -303,8 +310,7 @@ const CreateMessagePage: React.FC = () => {
       if (!typeRef.current) return;
       if (!typeRef.current.contains(e.target as Node)) {
         setTypeOpen(false);
-        setCustomTypeMode(false);
-        setCustomTypeText("");
+        resetManage();
       }
     };
     document.addEventListener("mousedown", onDocClick);
@@ -312,7 +318,12 @@ const CreateMessagePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setTypeOpen(false); setCustomTypeMode(false); } };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setTypeOpen(false);
+        resetManage();
+      }
+    };
     if (typeOpen) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [typeOpen]);
@@ -331,32 +342,16 @@ const CreateMessagePage: React.FC = () => {
     };
   }, [typeOpen]);
 
-  /* ====== useMemo พึ่งพาใน effects ====== */
   const filteredTypeOptions = useMemo(() => {
     const q = typeQuery.trim().toLowerCase();
     if (!q) return articleTypeOptions;
     return articleTypeOptions.filter(
-      (o) => o.label.toLowerCase().includes(q) || (o.description?.toLowerCase() || "").includes(q)
+      (o) =>
+        o.label.toLowerCase().includes(q) ||
+        (o.description?.toLowerCase() || "").includes(q)
     );
   }, [typeQuery, articleTypeOptions]);
 
-  const hasExactMatch = useMemo(() => {
-    const q = typeQuery.trim().toLowerCase();
-    if (!q) return false;
-    return articleTypeOptions.some(
-      (o) => o.label.toLowerCase() === q || String(o.value).toLowerCase() === q
-    );
-  }, [typeQuery, articleTypeOptions]);
-
-  const showCreateFromQuery = !!typeQuery.trim() && !articleTypeLoading && !hasExactMatch;
-
-  const selectedTypeLabel = useMemo(() => {
-    if (articleTypeLoading) return "กำลังโหลดประเภทบทความ...";
-    const f = articleTypeOptions.find((o) => o.value === String(formData.articleType));
-    return f?.label || "เลือกประเภทบทความ";
-  }, [articleTypeLoading, articleTypeOptions, formData.articleType]);
-
-  // ★ ซิงค์ activeIdx และ auto-scroll
   useEffect(() => {
     if (articleTypeLoading) return;
     if (!typeOpen) return;
@@ -377,7 +372,7 @@ const CreateMessagePage: React.FC = () => {
     el?.scrollIntoView({ block: "nearest" });
   }, [activeIdx]);
 
-  /* สวิตช์โหมด */
+  /* switch UI thumb */
   const [thumb, setThumb] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const pillRef = useRef<HTMLDivElement>(null);
   const longRef = useRef<HTMLButtonElement>(null);
@@ -407,54 +402,7 @@ const CreateMessagePage: React.FC = () => {
     };
   }, []);
 
-  /* บันทึก */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (saving) return;
-
-    if (!formData.name.trim()) return msgApi.error("กรุณากรอกชื่อบทความ");
-    if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
-    if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
-    if (!formData.content.trim()) return msgApi.error("กรุณากรอกเนื้อหา");
-    if (!formData.photo) return msgApi.error("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
-    if (contentKind === "long" && !String(formData.articleType || "").trim()) {
-      return msgApi.error("กรุณาระบุประเภทบทความ");
-    }
-
-    const picked = new Date(`${formData.date}T00:00:00`);
-    const today = new Date(`${todayStr}T00:00:00`);
-    if (isNaN(picked.getTime())) return msgApi.error("วันที่ไม่ถูกต้อง");
-    if (picked > today) return msgApi.error("เลือกวันที่ในอนาคตไม่ได้");
-
-    const form = new FormData();
-    form.append("name", formData.name);
-    form.append("author", formData.author);
-    form.append("no_of_like", String(formData.no_of_like));
-    form.append("date", formData.date);
-    form.append("content", formData.content);
-    form.append("viewCount", String(formData.viewCount ?? 0));
-    form.append("article_type", contentKind === "short" ? "บทความสั้น" : formData.articleType);
-    // แนบรูปภาพ (จำเป็น)
-    if (formData.photo) form.append("photo", formData.photo);
-
-    setSaving(true);
-    try {
-      const ok = await createWordHealingMessage(form);
-      if (ok) {
-        msgApi.success(contentKind === "short" ? "เพิ่มข้อมูลสำเร็จ" : "เพิ่มข้อมูลสำเร็จ");
-        setTimeout(() => navigate("/admin/messagePage"), 1000);
-      } else {
-        msgApi.error("เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
-      }
-    } catch (err) {
-      console.error(err);
-      msgApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  /* เลือกไฟล์ — รับเฉพาะรูปภาพ และบังคับต้องแนบรูป */
+  /* file handler */
   const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -474,12 +422,96 @@ const CreateMessagePage: React.FC = () => {
     };
     reader.readAsDataURL(file);
   };
-
   const removeFile = () => {
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
+    msgApi.info("ลบรูปแล้ว");
   };
 
+  /* Create Update Delete helpers */
+  const resetManage = () => {
+    setManageMode("none");
+    setEditTargetId(null);
+    setNameInput("");
+    setDescInput("");
+  };
+  const beginCreate = () => {
+    setManageMode("create");
+    setEditTargetId(null);
+    setNameInput(typeQuery.trim() || "");
+    setDescInput("");
+  };
+  const beginEdit = (opt: ArticleTypeOption) => {
+    setManageMode("edit");
+    setEditTargetId(opt.id);
+    setNameInput(opt.label);
+    setDescInput(opt.description || "");
+  };
+  const handleCreate = async () => {
+    const name = nameInput.trim();
+    if (!name) return msgApi.warning("กรุณาระบุชื่อประเภท");
+    try {
+      setOpLoading(true);
+      const created = await createArticleType({ name, description: descInput.trim() });
+      const newOpt: ArticleTypeOption = {
+        id: Number(created.id),
+        label: created.name,
+        description: created.description || "",
+      };
+      setArticleTypeOptions((prev) => [newOpt, ...prev]);
+      setFormData((prev) => ({ ...prev, article_type_id: newOpt.id }));
+      setShortTypeId((prev) => prev ?? resolveShortTypeId([newOpt, ...articleTypeOptions]));
+      msgApi.success("สร้างประเภทบทความสำเร็จ");
+      resetManage();
+      setTypeOpen(false);
+    } catch (e: any) {
+      msgApi.error(e?.message || "สร้างประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+  const handleEdit = async () => {
+    if (!editTargetId) return;
+    const name = nameInput.trim();
+    if (!name) return msgApi.warning("กรุณาระบุชื่อประเภท");
+    try {
+      setOpLoading(true);
+      const updated = await updateArticleType(editTargetId, { name, description: descInput.trim() });
+      setArticleTypeOptions((prev) =>
+        prev.map((o) =>
+          o.id === editTargetId ? { ...o, label: updated.name, description: updated.description || "" } : o
+        )
+      );
+      msgApi.success("แก้ไขประเภทบทความสำเร็จ");
+      resetManage();
+      setTypeOpen(false);
+    } catch (e: any) {
+      msgApi.error(e?.message || "แก้ไขประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+  const handleDelete = async (opt: ArticleTypeOption) => {
+    try {
+      setOpLoading(true);
+      await deleteArticleType(opt.id);
+      setArticleTypeOptions((prev) => prev.filter((o) => o.id !== opt.id));
+      setFormData((prev) => {
+        if (prev.article_type_id === opt.id) {
+          const rest = articleTypeOptions.filter((o) => o.id !== opt.id);
+          return { ...prev, article_type_id: rest[0]?.id ?? null };
+        }
+        return prev;
+      });
+      msgApi.success("ลบประเภทบทความสำเร็จ");
+    } catch (e: any) {
+      msgApi.error(e?.message || "ลบประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
+  /* mobile datepicker? */
   const [useMobilePicker, setUseMobilePicker] = useState(false);
   useEffect(() => {
     setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
@@ -488,9 +520,67 @@ const CreateMessagePage: React.FC = () => {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  /* submit */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.name.trim() === "") return msgApi.warning("กรุณากรอกชื่อบทความ/ข้อความ");
+    if (formData.author.trim() === "") return msgApi.warning("กรุณากรอกชื่อผู้เขียน/แหล่งที่มา");
+    if (!formData.date) return msgApi.warning("กรุณาเลือกวันที่เผยแพร่");
+    if (formData.content.trim() === "") return msgApi.warning("กรุณากรอกเนื้อหา");
+    if (!formData.photo) return msgApi.warning("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
+
+    const picked = new Date(`${formData.date}T00:00:00`);
+    const today = new Date(`${todayStr}T00:00:00`);
+    if (isNaN(picked.getTime())) return msgApi.warning("วันที่ไม่ถูกต้อง");
+    if (picked > today) return msgApi.warning("เลือกวันที่ในอนาคตไม่ได้");
+
+    // resolve article_type_id
+    const resolvedArticleTypeId =
+      contentKind === "short"
+        ? shortTypeId
+        : formData.article_type_id ?? undefined;
+
+    if (!resolvedArticleTypeId) {
+      msgApi.warning("ไม่พบประเภท ID 29 หรือชื่อ 'ข้อความ' โปรดสร้างหรือเลือกประเภทก่อน");
+      return;
+    }
+
+    const form = new FormData();
+    form.append("name", formData.name.trim());
+    form.append("author", formData.author.trim());
+    form.append("no_of_like", String(formData.no_of_like ?? 0));
+    form.append("date", formData.date);
+    form.append("content", formData.content.trim());
+    form.append("viewCount", String(formData.viewCount ?? 0));
+    form.append("article_type_id", String(resolvedArticleTypeId));
+    form.append("photo", formData.photo!);
+
+    try {
+      setSaving(true);
+      const ok = await createWordHealingMessage(form);
+      if (!ok) throw new Error("เพิ่มข้อมูลไม่สำเร็จ");
+      await new Promise<void>((resolve) =>
+        msgApi.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
+      );
+      navigate("/admin/messagePage", {
+        replace: true,
+        state: { flash: { type: "success", content: "เพิ่มข้อมูลสำเร็จ" } },
+      });
+    } catch (err) {
+      console.error(err);
+      msgApi.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* saving spinner */
+  const [saving, setSaving] = useState(false);
+
   return (
     <div className="w-full min-h-screen bg-slate-100 p-6 lg:p-8">
       {msgCtx}
+      <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
       <div className="mb-3 flex items-center gap-1 sm:gap-2">
         <img src={createMessageIcon} alt="manage icon" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block" />
@@ -499,7 +589,8 @@ const CreateMessagePage: React.FC = () => {
 
       <div ref={cardRef} className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10">
         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          {/* Left */}
+          
+          {/* ฝั่งซ้าย */}
           <div className="space-y-5">
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-slate-700">
@@ -587,7 +678,12 @@ const CreateMessagePage: React.FC = () => {
                     }}
                     className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
                   >
-                    <span className={articleTypeLoading ? "text-slate-400" : ""}>{selectedTypeLabel}</span>
+                    <span>
+                      {articleTypeLoading
+                        ? "กำลังโหลดประเภทบทความ..."
+                        : (articleTypeOptions.find((o) => o.id === formData.article_type_id)?.label ||
+                          "เลือกประเภทบทความ")}
+                    </span>
                     <svg viewBox="0 0 20 20" fill="currentColor" className="ml-2 h-4 w-4 opacity-60">
                       <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
                     </svg>
@@ -596,48 +692,21 @@ const CreateMessagePage: React.FC = () => {
                   {typeOpen && (
                     <div className={["absolute z-20 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg", dropUp ? "bottom-full mb-1" : "top-full mt-1"].join(" ")}>
                       <div className="p-2">
-                        <input
-                          value={typeQuery}
-                          onChange={(e) => setTypeQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowDown") {
-                              e.preventDefault();
-                              if (filteredTypeOptions.length) {
-                                setActiveIdx((i) => Math.min((i < 0 ? -1 : i) + 1, filteredTypeOptions.length - 1));
-                              }
-                            } else if (e.key === "ArrowUp") {
-                              e.preventDefault();
-                              if (filteredTypeOptions.length) {
-                                setActiveIdx((i) => Math.max((i < 0 ? 0 : i) - 1, 0));
-                              }
-                            } else if (e.key === "Enter") {
-                              e.preventDefault();
-                              if (activeIdx >= 0 && activeIdx < filteredTypeOptions.length) {
-                                const o = filteredTypeOptions[activeIdx];
-                                setFormData((prev) => ({ ...prev, articleType: o.value }));
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              } else if (showCreateFromQuery) {
-                                const val = typeQuery.trim();
-                                if (val) {
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                              }
-                            } else if (e.key === "Escape") {
-                              setTypeOpen(false);
-                              setCustomTypeMode(false);
-                            }
-                          }}
-                          placeholder="ค้นหา..."
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            value={typeQuery}
+                            onChange={(e) => setTypeQuery(e.target.value)}
+                            placeholder="ค้นหา..."
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
+                          />
+                          <button
+                            type="button"
+                            onClick={beginCreate}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 sm:py-1.5"
+                          >
+                            <Plus className="h-4 w-4" /> สร้าง
+                          </button>
+                        </div>
                       </div>
 
                       <ul
@@ -645,137 +714,110 @@ const CreateMessagePage: React.FC = () => {
                         ref={listRef}
                         className="overflow-y-auto py-1"
                         style={{ maxHeight: listMaxH }}
-                        aria-activedescendant={activeIdx >= 0 ? `type-opt-${activeIdx}` : undefined}
                       >
                         {articleTypeLoading && <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>}
                         {!articleTypeLoading && filteredTypeOptions.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>}
 
                         {filteredTypeOptions.map((o, idx) => (
-                          <li key={o.value}>
-                            <button
-                              type="button"
-                              id={`type-opt-${idx}`}
-                              data-idx={idx}
-                              role="option"
-                              aria-selected={o.value === String(formData.articleType)}
-                              onMouseEnter={() => setActiveIdx(idx)}
-                              className={[
-                                "w-full px-3 py-3 text-left text-base hover:bg-slate-100",
-                                "sm:py-2 sm:text-sm",
-                                o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : "",
-                                idx === activeIdx ? "bg-slate-100" : "",
-                              ].join(" ")}
-                              onClick={() => {
-                                setFormData((prev) => ({ ...prev, articleType: o.value }));
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              <div className="flex flex-col">
-                                <span className="text-sm sm:text-[13px]">{o.label}</span>
-                                {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
+                          <li key={o.id}>
+                            <div className="flex items-center">
+                              <button
+                                type="button"
+                                data-idx={idx}
+                                className={[
+                                  "flex-1 px-3 py-3 text-left text-base hover:bg-slate-100",
+                                  "sm:py-2 sm:text-sm",
+                                  o.id === formData.article_type_id ? "bg-slate-50 font-medium" : "",
+                                ].join(" ")}
+                                onClick={() => {
+                                  setFormData((prev) => ({ ...prev, article_type_id: o.id }));
+                                  setTypeOpen(false);
+                                  setTypeQuery("");
+                                  resetManage();
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="text-sm sm:text-[13px]">{o.label}</span>
+                                  {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
+                                </div>
+                              </button>
+
+                              <div className="pr-2 flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  title="แก้ไข"
+                                  onClick={(e) => { e.stopPropagation(); beginEdit(o); }}
+                                  className="rounded-md p-2 text-slate-700 hover:bg-slate-100"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="ลบ"
+                                  disabled={opLoading}
+                                  onClick={(e) => { e.stopPropagation(); handleDelete(o); }}
+                                  className="rounded-md p-2 text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
                               </div>
-                            </button>
+                            </div>
                           </li>
                         ))}
-
-                        {!customTypeMode && (
-                          <li>
-                            <button
-                              type="button"
-                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
-                              onClick={() => {
-                                setCustomTypeMode(true);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              อื่นๆ / ระบุเอง…
-                            </button>
-                          </li>
-                        )}
-
-                        {showCreateFromQuery && !customTypeMode && (
-                          <li>
-                            <button
-                              type="button"
-                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
-                              onClick={() => {
-                                const val = typeQuery.trim();
-                                if (!val) return;
-                                setFormData((prev) => ({ ...prev, articleType: val }));
-                                setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              สร้างประเภทใหม่: <span className="font-medium">“{typeQuery.trim()}”</span>
-                            </button>
-                          </li>
-                        )}
                       </ul>
 
-                      {customTypeMode && (
-                        <div className="border-t border-slate-200 p-2 bg-white sticky bottom-0 sm:static">
-                          <label className="mb-1 block text-xs text-slate-500">กำหนดชื่อประเภทด้วยตนเอง</label>
+                      {(manageMode === "create" || manageMode === "edit") && (
+                        <div className="border-t border-slate-200 p-3 bg-white sticky bottom-0">
+                          <div className="text-xs text-slate-500 mb-2">
+                            {manageMode === "create" ? "สร้างประเภทบทความใหม่" : "แก้ไขประเภทบทความ"}
+                          </div>
 
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <div className="space-y-2">
                             <input
-                              autoFocus
-                              value={customTypeText}
-                              onChange={(e) => setCustomTypeText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  const val = customTypeText.trim();
-                                  if (!val) return;
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                                if (e.key === "Escape") {
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                              }}
-                              className="w-full sm:flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
-                              placeholder="พิมพ์ชื่อประเภท เช่น คอลัมน์พิเศษ"
+                              value={nameInput}
+                              onChange={(e) => setNameInput(e.target.value)}
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                              placeholder="ชื่อประเภท เช่น บทความเชิงวิเคราะห์"
+                              maxLength={128}
                             />
+                            <textarea
+                              value={descInput}
+                              onChange={(e) => setDescInput(e.target.value)}
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                              placeholder="คำอธิบาย (ไม่บังคับ)"
+                              maxLength={1000}
+                              rows={2}
+                            />
+                          </div>
 
-                            <div className="flex gap-2 sm:w-auto">
+                          <div className="mt-2 flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={resetManage}
+                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
+                              disabled={opLoading}
+                            >
+                              ยกเลิก
+                            </button>
+                            {manageMode === "create" ? (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  const val = customTypeText.trim();
-                                  if (!val) return;
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }}
-                                className="w-full sm:w-auto rounded-lg bg-slate-900 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-white hover:bg-slate-700 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                                onClick={handleCreate}
+                                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+                                disabled={opLoading}
                               >
-                                ใช้ค่านี้
+                                {opLoading ? "กำลังสร้าง..." : "สร้าง"}
                               </button>
-
+                            ) : (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }}
-                                className="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                                onClick={handleEdit}
+                                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+                                disabled={opLoading}
                               >
-                                ยกเลิก
+                                {opLoading ? "กำลังบันทึก..." : "บันทึก"}
                               </button>
-                            </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -785,7 +827,7 @@ const CreateMessagePage: React.FC = () => {
               </div>
             )}
 
-            {/* Content */}
+            {/* เนื้อหา */}
             <div className="space-y-2">
               <label htmlFor="content" className="block text-sm font-medium text-slate-700">
                 เนื้อหา{contentKind === "short" ? " (ข้อความ/บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
@@ -801,9 +843,11 @@ const CreateMessagePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right */}
+          {/* ฝั่งขวา */}
           <div className="flex flex-col">
-            <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ <span className="text-rose-500">*</span></label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              อัปโหลดรูปภาพประกอบ <span className="text-rose-500">*</span>
+            </label>
 
             <div
               className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-white p-4"
@@ -819,7 +863,6 @@ const CreateMessagePage: React.FC = () => {
                 }
               }}
             >
-              {/* รับเฉพาะรูปภาพ */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -889,25 +932,16 @@ const CreateMessagePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate("/admin/messagePage")}
-                disabled={saving}
-                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
               >
                 ย้อนกลับ
               </button>
 
               <button
                 type="submit"
-                disabled={saving}
-                aria-busy={saving}
-                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50 disabled:pointer-events-none"
+                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99]"
               >
-                <span>
-                  {saving
-                    ? "กำลังบันทึก…"
-                    : contentKind === "short"
-                      ? "บันทึกข้อความ/บทความสั้น"
-                      : "บันทึกบทความ"}
-                </span>
+                {contentKind === "short" ? "บันทึกข้อความ/บทความสั้น" : "บันทึกบทความ"}
               </button>
             </div>
           </div>
@@ -930,4 +964,6 @@ const CreateMessagePage: React.FC = () => {
 };
 
 export default CreateMessagePage;
+
+
 
