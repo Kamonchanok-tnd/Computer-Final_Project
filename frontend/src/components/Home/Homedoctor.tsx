@@ -79,7 +79,7 @@ function Homedoctor() {
     <div className="  py-8 mt-4 font-ibmthai 
     text-basic-text dark:text-text-dark">
         <div>
-            <p className='text-2xl font-bold text-center '>Frinds Corner SUT</p>
+            <p className='text-2xl font-bold text-center '>Friends Corner SUT</p>
             <p className='text-lg text-center mt-4'>คณาจารย์สาขาการพยาบาลสุขภาพิจตและจิตเวช สำนักวิชาพยาบาลศาสตร์ มทส. </p>
         </div>
       <div className="max-w-4xl mx-auto px-4 mt-4">

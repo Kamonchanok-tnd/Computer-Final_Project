@@ -5,7 +5,7 @@ export interface Question {
   nameQuestion: string;
   quID: number;
   priority: number;
-  picture?: string | null;  // ✅ เพิ่มฟิลด์นี้
+  picture?: string | null;  
   answers?: AnswerOption[];
 }
 

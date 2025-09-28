@@ -55,7 +55,7 @@ const items = [
  
   {
     key: "message",
-    label: "Frinds Corner SUT",
+    label: "Friends Corner SUT",
     path: "/doctors",
     icon: <Cross size={24} />,
   },

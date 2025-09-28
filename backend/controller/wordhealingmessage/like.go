@@ -1,4 +1,3 @@
-// controller/wordhealingmessage/like.go
 package wordhealingmessage
 
 import (
@@ -33,7 +32,8 @@ func LikeArticle(c *gin.Context) {
     err := db.Where("uid = ? AND w_id = ?", uid, articleID).First(&like).Error
 
     if err == nil {
-        // เคยกดแล้ว → ยกเลิก Like
+
+        // เคยกดแล้ว ยกเลิก Like
         if err := db.Delete(&like).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unlike"})
             return
@@ -53,7 +53,7 @@ func LikeArticle(c *gin.Context) {
         return
     }
 
-    // ยังไม่เคยกด → เพิ่ม Like
+    // ยังไม่เคยกด เพิ่ม Like
     newLike := entity.Like{
         UID: parseUint(uid),
         WID: parseUint(articleID),
@@ -116,6 +116,7 @@ func CheckLikedArticle(c *gin.Context) {
 // ฟังก์ชันบริการเพื่ออัปเดตจำนวนการเข้าชมบทความ
 func UpdateViewcountMessage(c *gin.Context) {
     db := config.DB()
+	
 	// ดึง id ของบทความจาก URL parameter
 	id := c.Param("id")
 
@@ -145,10 +146,7 @@ func UpdateViewcountMessage(c *gin.Context) {
 }
 
 
-
-
-/* ==================== helpers ==================== */
-
+/* helpers*/
 // แปลงค่าประเภทต่าง ๆ เป็น uint
 func toUint(v any) (uint, error) {
 	switch t := v.(type) {
@@ -181,8 +179,6 @@ func toUint(v any) (uint, error) {
 }
 
 // ดึง uid จาก context ที่ middleware ใส่ไว้
-// หมายเหตุ: โค้ดนี้ "ไม่" พาร์ส JWT เพื่อลด dependency
-// ให้ middleware auth ของคุณเซ็ตค่าไว้ เช่น c.Set("id", <uid>) หรือ c.Set("uid", <uid>)
 func getUIDFromCtx(c *gin.Context) (uint, error) {
 	for _, k := range []string{"uid", "user_id", "id", "UID", "Id"} {
 		if v, ok := c.Get(k); ok {
@@ -194,8 +190,7 @@ func getUIDFromCtx(c *gin.Context) (uint, error) {
 	return 0, errors.New("uid not found")
 }
 
-/* ==================== payload ==================== */
-
+/* payload */
 type countViewReq struct {
 	WHID        uint  `json:"whid"         binding:"required"`
 	ReadMs      int64 `json:"read_ms"`
@@ -204,14 +199,14 @@ type countViewReq struct {
 
 type countViewResp struct {
 	OK         bool  `json:"ok"`
-	Already    bool  `json:"already"`   // ที่นี่จะเป็น false เสมอ เพราะเรานับทุกครั้ง
+	Already    bool  `json:"already"`  // ที่นี่จะเป็น false เสมอ เพราะเรานับทุกครั้ง
 	ViewID     uint  `json:"view_id"`
 	ViewCount  int64 `json:"view_count"`
 	WordhealID uint  `json:"wordheal_id"`
 }
 
-/* ==================== POST /views/count ==================== */
-// ✅ นับทุกครั้งที่เรียก (ไม่มีการกันซ้ำ) — ใช้คู่กับเงื่อนไขฝั่ง Frontend
+/* POST /views/count */
+// นับทุกครั้งที่เรียก (ไม่มีการกันซ้ำ) 
 func CountView(c *gin.Context) {
 	db := config.DB()
 
@@ -240,7 +235,7 @@ func CountView(c *gin.Context) {
 
 	// INSERT แถวใหม่ทุกครั้ง
 	row := entity.View{
-		UID:         &uid,                          // ถ้า struct ของคุณเป็น pointer ให้เปลี่ยนเป็น: UID: &uid,
+		UID:         &uid,                          
 		WHID:        req.WHID,
 		ReadMS:      int(req.ReadMs),
 		PctScrolled: req.PctScrolled,
@@ -272,8 +267,7 @@ func CountView(c *gin.Context) {
 	})
 }
 
-/* ==================== GET /views/by-message/:id ==================== */
-
+/* GET /views/by-message/:id */
 func ListViewsByMessage(c *gin.Context) {
 	db := config.DB()
 
@@ -293,7 +287,7 @@ func ListViewsByMessage(c *gin.Context) {
 	// join users เพื่อชื่อผู้ใช้ได้ตามต้องการ
 	type row struct {
 		ID          uint      `json:"id"`
-		UID         uint      `json:"uid"` // ถ้า entity.View.UID เป็น *uint ให้ใช้ *uint ที่นี่
+		UID         uint      `json:"uid"` 
 		Username    *string   `json:"username"`
 		ReadMs      int       `json:"read_ms"`
 		PctScrolled int       `json:"pct_scrolled"`

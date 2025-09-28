@@ -115,19 +115,32 @@ function CreateAdmin() {
               <Form.Item
                 label="รหัสผ่าน"
                 name="password"
-                rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน !" }]}
+                rules={[
+      { required: true, message: "กรุณากรอกรหัสผ่าน !" },
+      { 
+        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        message: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร พร้อมตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษ"
+      },
+    ]}
               >
                 <Input.Password size="large" />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-              <Form.Item
-                label="หมายเลขโทรศัพท์"
-                name="phone_number"
-                rules={[{ required: true, message: "กรุณากรอกหมายเลขโทรศัพท์ !" }]}
-              >
-                <Input size="large" />
-              </Form.Item>
+             <Form.Item
+  label="หมายเลขโทรศัพท์"
+  name="phone_number"
+  rules={[
+    { required: true, message: "กรุณากรอกหมายเลขโทรศัพท์ !" },
+    {
+      pattern: /^0\d{9}$/,
+      message: "หมายเลขโทรศัพท์ต้องขึ้นต้นด้วย 0 และมีทั้งหมด 10 หลัก",
+    },
+  ]}
+>
+  <Input size="large" maxLength={10} />
+</Form.Item>
+
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item

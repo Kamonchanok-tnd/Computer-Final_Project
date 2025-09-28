@@ -3,16 +3,16 @@ import { Play, Pause, Volume2 } from 'lucide-react';
 import iconSound from "../../../../assets/asmr/asmr-hp.png";
 
 const ambianceFiles = [
-  { name: "ฝนตก", file: "asmr-rain.mp3", icon: "🌧️" },
-  { name: "น้ำ", file: "asmr-water.mp3", icon: "💧" },
-  { name: "ชายหาด", file: "asmr-beach.mp3", icon: "🌅" },
-  { name: "คาเฟ่", file: "asmr-cafe.mp3", icon: "☕" },
-  { name: "ไฟ", file: "asmr-fire.mp3", icon: "🔥" },
-  { name: "ภาพยนตร์", file: "asmr-cinematic.mp3", icon: "🎬" },
-  { name: "กบ", file: "asmr-frog.mp3", icon: "🐸" },
-  { name: "นก", file: "asmr-bird.mp3", icon: "🐦" },
-  { name: "คีย์บอร์ด", file: "asmr-mechanical-keyboard.mp3", icon: "⌨️" },
-  { name: "ดินสอ", file: "asmr-pencil.mp3", icon: "✏️" },
+  { name: "ฝนตก", file: "asmr-rain.mp3", icon: "🌧️",credit: "Pixabay: bijan6207" },
+  { name: "น้ำ", file: "asmr-water.mp3", icon: "💧" ,credit: "Pixabay: SLrathna"},
+  { name: "ชายหาด", file: "asmr-beach.mp3", icon: "🌅" ,credit: "Pixabay: soundangel1111"},
+  { name: "คาเฟ่", file: "asmr-cafe.mp3", icon: "☕" ,credit: "Pixabay: freesound_community"},
+  { name: "ไฟ", file: "asmr-fire.mp3", icon: "🔥" ,credit: "Pixabay: SoundReality"},
+  { name: "ภาพยนตร์", file: "asmr-cinematic.mp3", icon: "🎬" ,credit: "Pixabay: NCPRIME"},
+  { name: "กบ", file: "asmr-frog.mp3", icon: "🐸" ,credit: "Pixabay: hasin2004"},
+  { name: "นก", file: "asmr-bird.mp3", icon: "🐦" ,credit: "Pixabay: SoundReality"},
+  { name: "คีย์บอร์ด", file: "asmr-mechanical-keyboard.mp3", icon: "⌨️" ,credit: "Pixabay: VirtualZero"},
+  { name: "ดินสอ", file: "asmr-pencil.mp3", icon: "✏️" ,credit: "Pixabay: freesound_community"},
 ];
 
 interface Props {
@@ -68,7 +68,10 @@ const SoundPanel: React.FC<Props> = ({ playingSounds, volumes, toggleSound, upda
                   <span className="text-white/60 text-xs md:text-sm w-8 text-right">{volume}</span>
                 </div>
               )}
+            <p className="text-[10px] text-gray-500">เสียงประกอบฟรีโดย {item.credit}</p>
+
             </div>
+            
           );
         })}
       </div>

@@ -4,11 +4,17 @@ import type { ColumnsType } from "antd/es/table";
 import { DeleteOutlined, SettingOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { getAllWordHealingMessages, deleteWordHealingMessage } from "../../../../services/https/message";
 import type { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import emailIcon from "../../../../assets/email.png";
+
+const apiUrl = "http://localhost:8000";
+
+type Flash = { type?: "success" | "error" | "info" | "warning"; content: string };
 
 const MessagePage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [messages, setMessages] = useState<WordHealingContent[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<WordHealingContent[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
@@ -20,16 +26,73 @@ const MessagePage: React.FC = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>("");
 
-  function getRolePath( subPath: string) {
+  /* map id เป็น name ของ ArticleType*/
+  const [typeMap, setTypeMap] = useState<Record<number, string>>({});
+
+  /* โหลด mapping ประเภทบทความ (id >> name) */
+  const loadTypeMap = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${apiUrl}/getarticletype`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+      if (res.status === 204) {
+        setTypeMap({});
+        return;
+      }
+      if (!res.ok) throw new Error(String(res.status));
+      const raw = await res.json();
+      const m: Record<number, string> = {};
+
+      if (Array.isArray(raw)) {
+        for (const it of raw) {
+          const id =
+            (typeof it?.id === "number" && it.id) ||
+            (typeof it?.ID === "number" && it.ID) ||
+            (typeof it?.article_type_id === "number" && it.article_type_id) ||
+            null;
+        const nm =
+            (typeof it?.name === "string" && it.name) ||
+            (typeof it?.Name === "string" && it.Name) ||
+            (typeof it?.title === "string" && it.title) ||
+            (typeof it?.Title === "string" && it.Title) ||
+            "";
+          if (id && nm) m[id] = nm;
+        }
+      }
+      setTypeMap(m);
+    } catch (e) {
+      console.error("getarticletype failed:", e);
+      setTypeMap({});
+    }
+  };
+
+  function getRolePath(subPath: string) {
     const role = localStorage.getItem("role");
     const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
-    navigate(`/${rolePrefix}/${subPath}`)
-   
+    navigate(`/${rolePrefix}/${subPath}`);
   }
 
   useEffect(() => {
     loadMessages();
+    loadTypeMap();  // โหลด mapping ประเภท
   }, []);
+
+  // รองรับ flash จากหน้าอื่น + ล้าง state กันแสดงซ้ำ
+  useEffect(() => {
+    const incoming = (location.state as { flash?: Flash } | null) || null;
+    if (!incoming?.flash?.content) return;
+
+    const t = incoming.flash.type ?? "success";
+    message.destroy();
+    (message as any)[t]?.(incoming.flash.content);
+    navigate(location.pathname, { replace: true, state: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
 
   const loadMessages = async () => {
     setLoadingMessages(true);
@@ -61,6 +124,34 @@ const MessagePage: React.FC = () => {
     }
   };
 
+  /*  helper: แปลง id >> ชื่อประเภท สำหรับแสดง/ค้นหา */
+  const getTypeName = (m: WordHealingContent): string => {
+    // 1) ถ้า service ใหม่ส่งมาเป็น id
+    const id =
+      (typeof m.article_type_id === "number" ? m.article_type_id : null) ??
+      
+      // กันกรณีชื่อ field อื่นจาก BE
+      (m as any)?.articleTypeId ??
+      (m as any)?.article_typeId ??
+      null;
+
+    if (typeof id === "number") {
+      if (typeMap[id]) return typeMap[id];
+      // กรณีพิเศษตาม requirement: id=29 คือ "ข้อความ"
+      if (id === 29) return "ข้อความ";
+      // ถ้าไม่รู้จักชื่อจริง ให้แสดงเป็น id จะได้เห็นว่ามีค่าจริง
+      return `#${id}`;
+    }
+
+    // 2) fallback: กรณีข้อมูลเก่ายังเป็น string
+    const byString =
+      (m as any).article_type?.toString()?.trim() ||
+      (m as any).articleType?.toString()?.trim() ||
+      (m as any).article_type_name?.toString()?.trim() ||
+      "";
+    return byString;
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchText(value);
@@ -73,33 +164,36 @@ const MessagePage: React.FC = () => {
     // Filter
     if (searchValue.trim() !== "") {
       const q = searchValue.toLowerCase();
-      data = data.filter((m) =>
-        m.name.toLowerCase().includes(q) ||
-        m.author.toLowerCase().includes(q) ||
-        (m.articleType || "").toLowerCase().includes(q) ||
-        (m.content || "").toLowerCase().includes(q)
-      );
+      data = data.filter((m) => {
+        const tname = getTypeName(m).toLowerCase();
+        return (
+          m.name.toLowerCase().includes(q) ||
+          m.author.toLowerCase().includes(q) ||
+          tname.includes(q) ||
+          (m.content || "").toLowerCase().includes(q)
+        );
+      });
     }
 
     // Sort
     switch (sortKey) {
       case "nameAsc":
-        data.sort((a, b) => a.name.localeCompare(b.name, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => a.name.localeCompare(b.name, "th", { sensitivity: "base" }));
         break;
       case "nameDesc":
-        data.sort((a, b) => b.name.localeCompare(a.name, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => b.name.localeCompare(a.name, "th", { sensitivity: "base" }));
         break;
       case "authorAsc":
-        data.sort((a, b) => a.author.localeCompare(b.author, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => a.author.localeCompare(b.author, "th", { sensitivity: "base" }));
         break;
       case "authorDesc":
-        data.sort((a, b) => b.author.localeCompare(a.author, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => b.author.localeCompare(a.author, "th", { sensitivity: "base" }));
         break;
       case "contentAsc":
-        data.sort((a, b) => (a.content || '').localeCompare(b.content || '', 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => (a.content || "").localeCompare(b.content || "", "th", { sensitivity: "base" }));
         break;
       case "contentDesc":
-        data.sort((a, b) => (b.content || '').localeCompare(a.content || '', 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => (b.content || "").localeCompare(a.content || "", "th", { sensitivity: "base" }));
         break;
       case "likesAsc":
         data.sort((a, b) => (a.no_of_like ?? 0) - (b.no_of_like ?? 0));
@@ -133,32 +227,32 @@ const MessagePage: React.FC = () => {
   };
 
   // Header style for table
-  const headerCellStyle = { backgroundColor: '#5DE2FF', color: '#0f172a', fontWeight: 600 } as const;
+  const headerCellStyle = { backgroundColor: "#5DE2FF", color: "#0f172a", fontWeight: 600 } as const;
 
   const messageColumns: ColumnsType<WordHealingContent> = [
     {
-      title: 'ลำดับ',
-      dataIndex: 'id',
-      key: 'id',
-      align: 'center',
+      title: "ลำดับ",
+      dataIndex: "id",
+      key: "id",
+      align: "center",
       width: 80,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'ชื่อบทความ',
-      dataIndex: 'name',
-      key: 'name',
-      align: 'center',
+      title: "ชื่อบทความ",
+      dataIndex: "name",
+      key: "name",
+      align: "center",
       width: 320,
       render: (text: string) => <div className="whitespace-normal break-words">{text}</div>,
       onHeaderCell: () => ({ style: headerCellStyle }),
-      responsive: ['xs','sm','md','lg','xl'],
+      responsive: ["xs", "sm", "md", "lg", "xl"],
     },
     {
-      title: 'ผู้เขียน/อ้างอิง/เเหล่งที่มา',
-      dataIndex: 'author',
-      key: 'author',
-      align: 'center',
+      title: "ผู้เขียน/อ้างอิง/เเหล่งที่มา",
+      dataIndex: "author",
+      key: "author",
+      align: "center",
       width: 480,
       render: (content: string) => {
         if (!content) return <span>-</span>;
@@ -171,22 +265,24 @@ const MessagePage: React.FC = () => {
         );
       },
       onHeaderCell: () => ({ style: headerCellStyle }),
-      responsive: ['xs','sm','md','lg','xl'],
+      responsive: ["xs", "sm", "md", "lg", "xl"],
     },
     {
-      title: 'ประเภทบทความ',
-      dataIndex: 'articleType',
-      key: 'articleType',
-      align: 'center',
-      render: (type: string) => (type ? <Tag>{type}</Tag> : <span>-</span>),
+      title: "ประเภทบทความ",
+      key: "article_type",
+      align: "center",
+      render: (_: any, record: WordHealingContent) => {
+        const label = getTypeName(record);
+        return label ? <Tag>{label}</Tag> : <span>-</span>;
+      },
       width: 160,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'เนื้อหาบทความ',
-      dataIndex: 'content',
-      key: 'content',
-      align: 'center',
+      title: "เนื้อหาบทความ",
+      dataIndex: "content",
+      key: "content",
+      align: "center",
       width: 480,
       render: (content: string) => {
         if (!content) return <span>-</span>;
@@ -199,43 +295,43 @@ const MessagePage: React.FC = () => {
         );
       },
       onHeaderCell: () => ({ style: headerCellStyle }),
-      responsive: ['xs','sm','md','lg','xl'],
+      responsive: ["xs", "sm", "md", "lg", "xl"],
     },
     {
-      title: 'วันที่สร้าง',
-      dataIndex: 'date',
-      key: 'date',
-      align: 'center',
+      title: "วันที่สร้าง",
+      dataIndex: "date",
+      key: "date",
+      align: "center",
       render: (date: string) => {
-        if (!date || date === 'ไม่มีวันที่') return '-';
+        if (!date || date === "ไม่มีวันที่") return "-";
         const d = new Date(date);
-        if (Number.isNaN(d.getTime())) return '-';
+        if (Number.isNaN(d.getTime())) return "-";
         return d.toLocaleDateString();
       },
       width: 140,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'จำนวนการกดถูกใจ',
-      dataIndex: 'no_of_like',
-      key: 'no_of_like',
-      align: 'center',
+      title: "จำนวนการกดถูกใจ",
+      dataIndex: "no_of_like",
+      key: "no_of_like",
+      align: "center",
       width: 160,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'จำนวนการเข้าชม',
-      dataIndex: 'viewCount',
-      key: 'viewCount',
-      align: 'center',
+      title: "จำนวนการเข้าชม",
+      dataIndex: "viewCount",
+      key: "viewCount",
+      align: "center",
       width: 160,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'รูปภาพ',
-      dataIndex: 'photo',
-      key: 'photo',
-      align: 'center',
+      title: "รูปภาพ",
+      dataIndex: "photo",
+      key: "photo",
+      align: "center",
       render: (photo: string | null) => (
         <div className="flex items-center justify-center cursor-pointer" onClick={() => handleImageClick(photo || "/default-image.png")}>
           <img src={photo || "/default-image.png"} alt="Healing" className="h-[50px] w-[50px] object-cover rounded-md" />
@@ -245,17 +341,26 @@ const MessagePage: React.FC = () => {
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'การจัดการ',
-      key: 'actions',
-      align: 'center',
+      title: "การจัดการ",
+      key: "actions",
+      align: "center",
       render: (_: any, record: WordHealingContent) => (
         <Space>
-          <AntButton icon={<SettingOutlined />} onClick={() => {
-            const role = localStorage.getItem("role");
-            const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
-
-            navigate(`/${rolePrefix}/editMessagePage`, { state: { id: record.id } })}} className="!bg-black !text-white hover:!bg-gray-700 active:!bg-indigo-800 !border-none !shadow-none focus:!shadow-none"/>
-          <AntButton danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)}  className="!w-8 !h-8 !p-0 !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"/>
+          <AntButton
+            icon={<SettingOutlined />}
+            onClick={() => {
+              const role = localStorage.getItem("role");
+              const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+              navigate(`/${rolePrefix}/editMessagePage`, { state: { id: record.id } });
+            }}
+            className="!bg-black !text-white hover:!bg-gray-700 active:!bg-indigo-800 !border-none !shadow-none focus:!shadow-none"
+          />
+          <AntButton
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => showDeleteModal(record)}
+            className="!w-8 !h-8 !p-0 !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"
+          />
         </Space>
       ),
       width: 140,
@@ -298,23 +403,26 @@ const MessagePage: React.FC = () => {
         <div className="md:col-span-3">
           <Select
             value={sortOption}
-            onChange={(v) => { setSortOption(String(v)); filterAndSort(searchText, String(v)); }}
-                        size="large"
+            onChange={(v) => {
+              setSortOption(String(v));
+              filterAndSort(searchText, String(v));
+            }}
+            size="large"
             className="w-full"
             options={[
-              { value: 'default',   label: 'เรียงลำดับ' },
-              { value: 'nameAsc',   label: 'ชื่อบทความ (ก → ฮ)' },
-              { value: 'nameDesc',  label: 'ชื่อบทความ (ฮ → ก)' },
-              { value: 'authorAsc', label: 'ชื่อผู้เขียน (ก → ฮ)' },
-              { value: 'authorDesc',label: 'ชื่อผู้เขียน (ฮ → ก)' },
-              { value: 'contentAsc',label: 'เนื้อหาบทความ (ก → ฮ)' },
-              { value: 'contentDesc',label: 'เนื้อหาบทความ (ฮ → ก)' },
-              { value: 'likesAsc',  label: 'จำนวนการกดถูกใจ (น้อย → มาก)' },
-              { value: 'likesDesc', label: 'จำนวนการกดถูกใจ (มาก → น้อย)' },
-              { value: 'viewsAsc',  label: 'จำนวนการเข้าชม (น้อย → มาก)' },
-              { value: 'viewsDesc', label: 'จำนวนการเข้าชม (มาก → น้อย)' },
-              { value: 'dateAsc',   label: 'วันที่สร้าง (เก่าสุด → ใหม่สุด)' },
-              { value: 'dateDesc',  label: 'วันที่สร้าง (ใหม่สุด → เก่าสุด)' },
+              { value: "default", label: "เรียงลำดับ" },
+              { value: "nameAsc", label: "ชื่อบทความ (ก → ฮ)" },
+              { value: "nameDesc", label: "ชื่อบทความ (ฮ → ก)" },
+              { value: "authorAsc", label: "ชื่อผู้เขียน (ก → ฮ)" },
+              { value: "authorDesc", label: "ชื่อผู้เขียน (ฮ → ก)" },
+              { value: "contentAsc", label: "เนื้อหาบทความ (ก → ฮ)" },
+              { value: "contentDesc", label: "เนื้อหาบทความ (ฮ → ก)" },
+              { value: "likesAsc", label: "จำนวนการกดถูกใจ (น้อย → มาก)" },
+              { value: "likesDesc", label: "จำนวนการกดถูกใจ (มาก → น้อย)" },
+              { value: "viewsAsc", label: "จำนวนการเข้าชม (น้อย → มาก)" },
+              { value: "viewsDesc", label: "จำนวนการเข้าชม (มาก → น้อย)" },
+              { value: "dateAsc", label: "วันที่สร้าง (เก่าสุด → ใหม่สุด)" },
+              { value: "dateDesc", label: "วันที่สร้าง (ใหม่สุด → เก่าสุด)" },
             ]}
           />
         </div>
@@ -323,7 +431,9 @@ const MessagePage: React.FC = () => {
       {/* Table */}
       <div className="mt-4">
         {loadingMessages ? (
-          <div className="flex items-center justify-center py-16"><Spin tip="กำลังโหลดบทความ..." /></div>
+          <div className="flex items-center justify-center py-16">
+            <Spin tip="กำลังโหลดบทความ..." />
+          </div>
         ) : filteredMessages.length === 0 ? (
           <Alert message="ไม่พบบทความ" type="info" showIcon />
         ) : (
@@ -351,10 +461,9 @@ const MessagePage: React.FC = () => {
         okText="ยืนยัน"
         cancelText="ยกเลิก"
         centered
-        
         okButtonProps={{
           danger: true,
-          disabled: !selectedToDelete, 
+          disabled: !selectedToDelete,
           className:
             "!rounded-xl !border-none !shadow-none " +
             "!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 " +
@@ -368,11 +477,8 @@ const MessagePage: React.FC = () => {
         rootClassName="font-sans"
       >
         <p>คุณแน่ใจหรือไม่ว่าต้องการลบบทความนี้?</p>
-        <p className="text-center font-semibold text-lg text-red-600">
-          {selectedToDelete?.name}
-        </p>
+        <p className="text-center font-semibold text-lg text-red-600">{selectedToDelete?.name}</p>
       </Modal>
-
 
       {/* Preview image modal */}
       <Modal open={previewVisible} footer={null} onCancel={() => setPreviewVisible(false)} centered>
@@ -383,3 +489,5 @@ const MessagePage: React.FC = () => {
 };
 
 export default MessagePage;
+
+
