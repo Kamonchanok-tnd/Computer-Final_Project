@@ -48,15 +48,14 @@ const facultyOptions = [
 ];
 
 const yearOptions = [
-  { value: 1, label: "ชั้นปี 1" },
-  { value: 2, label: "ชั้นปี 2" },
-  { value: 3, label: "ชั้นปี 3" },
-  { value: 4, label: "ชั้นปี 4" },
-  { value: 5, label: "ชั้นปี 5" },
-  { value: 6, label: "ชั้นปี 6" },
+  { value: "ชั้นปี 1", label: "ชั้นปี 1" },
+  { value: "ชั้นปี 2", label: "ชั้นปี 2" },
+  { value: "ชั้นปี 3", label: "ชั้นปี 3" },
+  { value: "ชั้นปี 4", label: "ชั้นปี 4" },
+  { value: "ชั้นปี 5", label: "ชั้นปี 5" },
+  { value: "ชั้นปี 6", label: "ชั้นปี 6" },
   { value: "6 ปีขึ้นไป", label: "6 ปีขึ้นไป" },
 ];
-
 // Env variables
 const PROFILE_BASE_URL = import.meta.env.VITE_PF_URL;
 
@@ -125,6 +124,7 @@ function UserEdit() {
     }
   };
 
+  
   // โหลด avatar ทั้งหมด
   async function fetchALlAvatar() {
     try {
@@ -160,7 +160,7 @@ function UserEdit() {
       gender: values.Gender,
       pfid: form.getFieldValue('pfid') || (values as any).pfid,
     };
-    // console.log("payload is : ",payload);
+    //console.log("payload is : ",payload);
 
     const res = await UpdateUsersById(userId as string, payload);
     if (res.status === 200) {
