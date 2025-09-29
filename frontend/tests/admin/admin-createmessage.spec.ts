@@ -12,9 +12,9 @@ test.describe('Admin CreateMessage — UAT', () => {
   await page.waitForTimeout(1000); 
   await page.getByRole('textbox', { name: 'ผู้เขียน/อ้างอิง/แหล่งที่มา *' }).fill('test');
   await page.waitForTimeout(1000); 
-  await page.getByRole('button', { name: 'บทความ How-to' }).click();
+  await page.getByRole('button', { name: 'บทความความคิดเห็น' }).click();
   await page.waitForTimeout(1000); 
-  await page.getByRole('option', { name: 'บทความ How-to' }).click();
+  await page.getByRole('button', { name: 'บทความ How-to' }).click();
   await page.waitForTimeout(1000); 
   await page.getByRole('textbox', { name: 'เนื้อหาบทความ *' }).click();
   await page.waitForTimeout(1000); 
@@ -38,10 +38,11 @@ test.describe('Admin CreateMessage — UAT', () => {
     }
     await page.waitForTimeout(1000);
     // ---------------------------------------------
-    await page.locator('#date').fill('2025-09-13');
-    await page.waitForTimeout(1000); 
+    // await page.locator('#date').fill('2025-09-13');
+    // await page.waitForTimeout(1000); 
     await page.getByRole('button', { name: 'บันทึกบทความ' }).click();
     await page.waitForTimeout(1000); 
     
   });
 });
+

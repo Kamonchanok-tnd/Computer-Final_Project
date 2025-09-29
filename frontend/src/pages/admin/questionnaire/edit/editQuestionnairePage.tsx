@@ -3,25 +3,26 @@ import { message, Spin } from "antd";
 import type { MessageInstance } from "antd/es/message/interface";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import createQuestionIcon from "../../../../assets/createQuestionnaire.png";
-import {getAllQuestionnaires,getQuestionnaireById,updateQuestionnaire,} from "../../../../services/https/questionnaire";
+import { getAllQuestionnaires, getQuestionnaireById, updateQuestionnaire } from "../../../../services/https/questionnaire";
 import { Questionnaire } from "../../../../interfaces/IQuestionnaire";
 
-/* Types & helpers */
+// Types & helpers พื้นฐาน
 type TestType = "positive" | "negative";
 type Option = { label: string; value: string | number; icon?: React.ReactNode | string };
 
+//* คลาส input มาตรฐานของฟอร์ม
 const fieldClass =
   "w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-800 placeholder-slate-400 transition-colors " +
   "focus:outline-none focus:ring-1 focus:ring-black focus:border-black hover:border-black bg-white";
 
-/* ชนิด ref ที่ยอมรับได้สำหรับคอนเทนเนอร์ popup */
+// ref ที่รับได้ (ส่งให้ dropdown เพื่อคุมพื้นที่ popup ภายในการ์ด)
 type CardRefLike =
   | React.MutableRefObject<HTMLDivElement | null>
   | React.RefObject<HTMLDivElement | null>
   | null
   | undefined;
 
-/* Dropdown (ค้นหา + smart drop-up) */
+// Dropdown แบบค้นหา + เลือกเด้งขึ้น/ลงอัตโนมัติ
 const DropdownSearchSelect: React.FC<{
   value?: string | number;
   onChange: (val: any) => void;
@@ -39,15 +40,17 @@ const DropdownSearchSelect: React.FC<{
   className = "",
   cardRef,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [term, setTerm] = useState("");
-  const boxRef = useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = useState(false);             // เปิด/ปิดเมนู
+  const [term, setTerm] = useState("");                // คำค้นหา
+  const boxRef = useRef<HTMLDivElement | null>(null);  // กล่องหลัก
   const selected = options.find((o) => o.value === value);
 
+  // จัดทิศเมนู (drop-up/drop-down) และจำกัดความสูงตามพื้นที่
   const [dropUp, setDropUp] = useState(false);
   const [menuMaxH, setMenuMaxH] = useState(288);
   const IDEAL_MENU_H = 288;
 
+  // คำนวณพื้นที่ว่างด้านบน/ล่าง แล้วตัดสินใจให้เมนูเด้งขึ้น/ลง
   const calcDrop = () => {
     const fieldRect = boxRef.current?.getBoundingClientRect();
     if (!fieldRect) return;
@@ -55,6 +58,7 @@ const DropdownSearchSelect: React.FC<{
     let spaceBelow = window.innerHeight - fieldRect.bottom;
     let spaceAbove = fieldRect.top;
 
+    // ถ้าอยู่ใน card ให้ไม่ให้เมนูล้นออกนอก card
     const cardRect = (cardRef as any)?.current?.getBoundingClientRect?.();
     if (cardRect) {
       spaceBelow = Math.min(spaceBelow, cardRect.bottom - fieldRect.bottom);
@@ -63,10 +67,11 @@ const DropdownSearchSelect: React.FC<{
 
     const preferUp = spaceBelow < IDEAL_MENU_H && spaceAbove > spaceBelow;
     setDropUp(preferUp);
-    const room = (preferUp ? spaceAbove : spaceBelow) - 12;
+    const room = (preferUp ? spaceAbove : spaceBelow) - 12; // กันชน
     setMenuMaxH(Math.max(200, Math.min(IDEAL_MENU_H, room)));
   };
 
+  // จัดการปิดเมื่อคลิกนอก/กด Esc และผูก event resize/scroll เพื่อ recalculation
   useEffect(() => {
     if (!open) return;
 
@@ -93,6 +98,7 @@ const DropdownSearchSelect: React.FC<{
     };
   }, [open, cardRef]);
 
+  // กรองรายการตามคำค้น
   const filtered = useMemo(() => {
     const t = term.trim().toLowerCase();
     return t ? options.filter((o) => o.label.toLowerCase().includes(t)) : options;
@@ -100,6 +106,7 @@ const DropdownSearchSelect: React.FC<{
 
   return (
     <div ref={boxRef} className={"relative " + className}>
+      {/* ปุ่มหลักของ dropdown */}
       <button
         type="button"
         disabled={disabled}
@@ -128,6 +135,7 @@ const DropdownSearchSelect: React.FC<{
             placeholder
           )}
         </span>
+        {/* ลูกศรเปิด/ปิด */}
         <svg
           className={"h-4 w-4 shrink-0 text-slate-500 transition-transform " + (open ? "rotate-180" : "")}
           viewBox="0 0 20 20"
@@ -137,6 +145,7 @@ const DropdownSearchSelect: React.FC<{
         </svg>
       </button>
 
+      {/* กล่องเมนูตัวเลือก */}
       {open && (
         <div
           className={[
@@ -144,10 +153,11 @@ const DropdownSearchSelect: React.FC<{
             dropUp ? "bottom-full mb-2" : "top-full mt-2",
           ].join(" ")}
         >
-          {/* เเถบค้นหา */}
+          {/* แถบค้นหา (sticky) */}
           <div className="sticky top-0 z-10 bg-white">
             <div className="flex items-center gap-2 px-3 pt-3 pb-2 border-b border-slate-200">
               <div className="flex items-center rounded-lg border border-slate-300 px-3 py-2 hover:border-black w-full">
+                {/* ไอคอนค้นหา */}
                 <svg className="mr-2 h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
@@ -173,7 +183,7 @@ const DropdownSearchSelect: React.FC<{
             </div>
           </div>
 
-          {/* options */}
+          {/* รายการตัวเลือก (scroll ได้) */}
           <div className="p-2 overflow-auto" style={{ maxHeight: menuMaxH }}>
             {filtered.map((o) => {
               const active = o.value === value;
@@ -211,7 +221,7 @@ const DropdownSearchSelect: React.FC<{
   );
 };
 
-/* Number stepper */
+// Stepper เลือกจำนวนเลขแบบกด + / - 
 const NumberStepper: React.FC<{
   value: number;
   onChange: (n: number) => void;
@@ -247,18 +257,19 @@ const NumberStepper: React.FC<{
   );
 };
 
-/* Upload box (แจ้งเลือก/ลบรูป) */
+// กล่องอัปโหลดรูป: แปลงไฟล์เป็น base64 + ลบรูป
 const UploadBox: React.FC<{
   pictureBase64?: string;
   setPictureBase64: (v?: string) => void;
   messageApi: MessageInstance;
-  onPick?: () => void;   // เลือกรูปใหม่
-  onRemove?: () => void; // ลบรูปออก
+  onPick?: () => void;   // เรียกเมื่อเลือกรูปใหม่
+  onRemove?: () => void; // เรียกเมื่อลบรูป
 }> = ({ pictureBase64, setPictureBase64, messageApi, onPick, onRemove }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
 
+  // helper: ไฟล์ > base64
   const fileToBase64 = (file: File) =>
     new Promise<string>((resolve, reject) => {
       const r = new FileReader();
@@ -267,6 +278,7 @@ const UploadBox: React.FC<{
       r.onerror = reject;
     });
 
+  // ตรวจชนิด/ขนาดไฟล์ แล้วแปลงเป็น base64
   const handleFile = async (file?: File) => {
     if (!file) return;
     const accept = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -283,6 +295,7 @@ const UploadBox: React.FC<{
     <div>
       <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ</label>
 
+      {/* โซนลากวางไฟล์รูป + พรีวิว */}
       <div
         className={`group rounded-[22px] border-2 border-dashed p-4 sm:p-6 transition-colors ${
           isDragging ? "border-black" : "border-slate-300 hover:border-black"
@@ -314,6 +327,7 @@ const UploadBox: React.FC<{
           </div>
         </div>
 
+        {/* ปุ่มเลือก/ลบรูป */}
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
@@ -335,6 +349,7 @@ const UploadBox: React.FC<{
           </button>
         </div>
 
+        {/* input จริงที่ซ่อนอยู่ */}
         <input
           ref={fileInputRef}
           type="file"
@@ -348,14 +363,14 @@ const UploadBox: React.FC<{
   );
 };
 
-/* หน้าแก้ไขแบบทดสอบ */
+// หน้าแก้ไขแบบทดสอบ 
 const EditQuestionnaire: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const location = useLocation();
   const [msg, contextHolder] = message.useMessage();
 
-  // หา qid จาก param/state/query
+  // หา id ของแบบทดสอบ: จาก URL param -> state -> query
   const qidFromState = (location.state as any)?.questionnaireId as number | undefined;
   const qid = useMemo(() => {
     if (params.id && !isNaN(Number(params.id))) return Number(params.id);
@@ -364,28 +379,29 @@ const EditQuestionnaire: React.FC = () => {
     return search ? Number(search) : undefined;
   }, [params.id, qidFromState, location.search]);
 
-  // สเตตหลักของฟอร์ม
-  const [saving, setSaving] = useState(false);
+  // สเตตฟอร์มหลัก
+  const [saving, setSaving] = useState(false);  // สถานะกำลังบันทึก
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState<number>(1);
   const [testType, setTestType] = useState<TestType>("positive");
 
+  // เงื่อนไขก่อนทำแบบทดสอบ (optional)
   const [hasCondition, setHasCondition] = useState(false);
   const [conditionOnID, setConditionOnID] = useState<number | undefined>(undefined);
   const [conditionScore, setConditionScore] = useState<number | undefined>(undefined);
   const [conditionType, setConditionType] = useState<"greaterThan" | "lessThan">("greaterThan");
 
-  const [questionnaires, setQuestionnaires] = useState<any[]>([]);
-  const [current, setCurrent] = useState<any | null>(null);
+  const [questionnaires, setQuestionnaires] = useState<any[]>([]); // รายการแบบทดสอบอื่น ๆ ให้เลือกตั้งเป็นเงื่อนไข
+  const [current, setCurrent] = useState<any | null>(null);        // ข้อมูลแบบทดสอบปัจจุบัน
 
-  const [pictureBase64, setPictureBase64] = useState<string | undefined>(undefined);
-  const [pictureRemoved, setPictureRemoved] = useState(false); // ผู้ใช้ลบรูปเดิมหรือยัง
+  const [pictureBase64, setPictureBase64] = useState<string | undefined>(undefined); // รูปใหม่ที่อัปโหลด (base64)
+  const [pictureRemoved, setPictureRemoved] = useState(false); // ผู้ใช้เลือกลบรูปเดิมหรือไม่
 
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // โหลดข้อมูลเริ่มต้น 
+  // โหลดข้อมูลเริ่มต้นของแบบทดสอบ + รายการแบบทดสอบทั้งหมด
   useEffect(() => {
     const load = async () => {
       if (!qid) {
@@ -401,6 +417,7 @@ const EditQuestionnaire: React.FC = () => {
         setCurrent(data);
         setQuestionnaires((Array.isArray(list) ? list : []).filter((x) => x.id !== qid));
 
+        // เซ็ตค่าเริ่มต้นลงฟอร์ม
         setName(data?.nameQuestionnaire ?? "");
         setDescription(data?.description ?? "");
         setQuantity(Number(data?.quantity ?? 1));
@@ -411,6 +428,7 @@ const EditQuestionnaire: React.FC = () => {
         setConditionScore(data?.conditionScore ?? undefined);
         setConditionType((data?.conditionType as any) ?? "greaterThan");
 
+        // แปลงรูปจาก Backend ให้แสดงเป็น data URL ถ้ายังไม่ใช่
         const ensureDataUrl = (pic?: string | null) =>
           !pic ? undefined : pic.startsWith("data:") ? pic : `data:image/jpeg;base64,${pic}`;
         const url = ensureDataUrl(data?.picture);
@@ -425,7 +443,7 @@ const EditQuestionnaire: React.FC = () => {
     load();
   }, [qid]);
 
-  /* Validation ด้วย message เเจ้งเตือนการกรอกข้อมูล */
+  // ตรวจความถูกต้องก่อนบันทึก (แจ้งด้วย message)
   const validateBeforeSave = (): string | null => {
     const n = name.trim();
     const d = description.trim();
@@ -435,9 +453,10 @@ const EditQuestionnaire: React.FC = () => {
     if (!quantity || quantity < 1) return "จำนวนคำถามต้องมากกว่า 0";
     if (!testType) return "กรุณาเลือกประเภทแบบทดสอบ";
 
-    // ถ้าผู้ใช้ลบรูปเดิม ต้องอัปโหลดใหม่
+    // กรณีรูป: ถ้าผู้ใช้กดลบ ต้องมีการอัปโหลดใหม่
     if (pictureRemoved && !pictureBase64) return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
-    // ถ้าไม่ลบ แต่ไม่มีทั้งรูปใหม่และรูปเดิมเลย
+    
+    // ถ้าไม่ได้ลบ แต่ไม่มีทั้งรูปใหม่และรูปเดิม
     if (!pictureRemoved && !pictureBase64 && !current?.picture)
       return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
 
@@ -451,17 +470,18 @@ const EditQuestionnaire: React.FC = () => {
     return null;
   };
   
-  // บันทึก
+  // submit: ตรวจ > สร้าง payload > เรียก API > เด้งไปหน้าแก้ไขคำถาม/คำตอบ
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!qid) return;
-
+    
+    // ตรวจ
     const v = validateBeforeSave();
     if (v) {
       msg.warning({ content: v, duration: 1.8 });
       return;
     }
-
+    
     setSaving(true);
     let didNavigate = false;
     try {
@@ -469,20 +489,21 @@ const EditQuestionnaire: React.FC = () => {
         nameQuestionnaire: name.trim(),
         description: description.trim(),
         quantity,
-        uid: current?.uid,
+        uid: current?.uid, // ใช้ uid ของเจ้าของเดิม
         testType,
         conditionOnID: hasCondition ? conditionOnID : undefined,
         conditionScore: hasCondition ? conditionScore : undefined,
         conditionType: hasCondition ? conditionType : undefined,
 
-        // ถ้าผู้ใช้ลบ ใช้เฉพาะรูปใหม่ (ผ่าน validation ว่าต้องมีแล้ว)
-        // ถ้าไม่ลบ ใช้รูปใหม่ถ้ามี ไม่งั้นคงรูปเดิม
+        // กติกาเลือกรูป: ถ้าลบ > ใช้รูปใหม่, ถ้าไม่ลบ > ใช้รูปใหม่หรือรูปเดิม
         picture: pictureRemoved ? pictureBase64! : (pictureBase64 ?? current?.picture),
 
+        // ส่งคืนกลุ่ม/คำถามเดิม (ไม่ได้แก้ในหน้านี้)
         questions: current?.questions ?? [],
         groups: current?.groups ?? [],
       };
-
+ 
+      // เรียกฟังก์ชัน
       await updateQuestionnaire(qid, payload);
 
       await new Promise<void>((resolve) =>
@@ -493,6 +514,7 @@ const EditQuestionnaire: React.FC = () => {
       const role = localStorage.getItem("role");
       const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
 
+      // เสร็จแล้วไปหน้าแก้ไขคำถาม/คำตอบต่อ พร้อมส่ง id + name ไปด้วย
       navigate(`/${rolePrefix}/editQuestionAndAnswerPage`, {
         state: { questionnaireId: qid, name: name.trim(), },
       });
@@ -504,22 +526,26 @@ const EditQuestionnaire: React.FC = () => {
     }
   };
 
-  /* UI */
+  // UI หลักของหน้า
   return (
     <div className="min-h-screen w-full bg-slate-100 py-8">
+      {/* การเเจ้งเตือน */}
       {contextHolder}
+  
       <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
       <div className="w-full px-6">
+        {/* หัวเรื่อง */}
         <div className="mb-6 flex items-center gap-3">
           <img src={createQuestionIcon} alt="icon" className="h-12 w-12 object-contain" />
           <h1 className="text-2xl font-bold text-slate-800">แก้ไขแบบทดสอบสุขภาพจิต</h1>
         </div>
 
+        {/* การ์ดฟอร์ม */}
         <div ref={cardRef} className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <form onSubmit={onSubmit} className="grid w-full grid-cols-1 gap-8 lg:grid-cols-2">
             
-            {/* ฝั่งซ้าย: ฟอร์มข้อความ */}
+            {/* ซ้าย: ฟอร์มข้อความหลัก */}
             <div className="space-y-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบทดสอบ *</label>
@@ -552,7 +578,7 @@ const EditQuestionnaire: React.FC = () => {
                 </div>
               </div>
 
-              {/* บล็อกเงื่อนไขก่อนทำ */}
+              {/* บล็อก: ตั้งค่าเงื่อนไขก่อนทำ (optional) */}
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
                   <input
@@ -602,7 +628,7 @@ const EditQuestionnaire: React.FC = () => {
                 )}
               </div>
 
-              {/* ปุ่มบันทึก */}
+              {/* ปุ่ม บันทึกเเละยกเลิก */}
               <div className="flex items-center justify-center gap-3 pt-2">
                 <button
                   type="button"
@@ -625,13 +651,13 @@ const EditQuestionnaire: React.FC = () => {
               </div>
             </div>
 
-            {/* ฝั่งขวา: Upload รูป */}
+            {/* ขวา: อัปโหลด/ลบรูป + sync สถานะลบ */}
             <UploadBox
               pictureBase64={pictureBase64}
               setPictureBase64={setPictureBase64}
               messageApi={msg}
-              onPick={() => setPictureRemoved(false)}
-              onRemove={() => setPictureRemoved(true)}
+              onPick={() => setPictureRemoved(false)}   // เลือกรูปใหม่ = ถือว่าไม่ได้ลบแล้ว
+              onRemove={() => setPictureRemoved(true)}  // ลบรูป = ต้องอัปโหลดใหม่ตอนบันทึก
             />
           </form>
         </div>
