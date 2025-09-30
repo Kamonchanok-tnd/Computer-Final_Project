@@ -3,62 +3,53 @@ package config
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"sukjai_project/entity"
-
 	"gorm.io/gorm"
 )
 
-// SetupMockUpData
-// - สร้างผู้ใช้ 3 คน: Andy / Marry / Bell (FirstOrCreate กันซ้ำ)
-// - สร้าง assessment_results + transactions ครบทุกกลุ่มตาม TriggerType
-// - TotalScore อิงช่วงคะแนนจริงจาก criteria/calculations
-// - MaxScore ใส่เป็นค่ามากสุดของแบบนั้น ๆ จาก criteria
-// - Result = คำอธิบายจาก Criteria ที่ครอบคะแนน (fallback เป็น "แนวโน้ม..." ถ้าไม่พบ mapping)
+/*
+สคริปต์ mock ข้อมูลตามไทม์ไลน์ใหม่:
+- 1 Jul : (onLogin + afterChat) ในวันเดียวกัน
+- ต่อจากนั้น: วน (interval + afterChat) ทุกๆ +14 วัน
+- วนจนวันสุดท้าย = 16 วันก่อน 1 Oct ของปีปัจจุบัน (เช่น 2025-09-15)
+- ทำให้ผู้ใช้ 4 คน: Andy / Marry / Bell + UID=2 ถ้ามี (ถ้าไม่มีก็สร้าง)
+- คะแนน/Result อิง criteria+calculations จริง (fallback "แนวโน้ม..." ถ้าไม่เจอ mapping)
+*/
+
 func SetupMockUpData(db *gorm.DB) error {
 	rand.Seed(time.Now().UnixNano())
 
-	// 1) เตรียมผู้ใช้ 3 คน
-	pw1, err := HashPassword("user123")
+	// ---------- 1) สร้างผู้ใช้ 3 คน (FirstOrCreate) ----------
+	pw, err := HashPassword("user123")
 	if err != nil {
-		return fmt.Errorf("hash pw1: %w", err)
+		return fmt.Errorf("hash password: %w", err)
 	}
-	pw2, err := HashPassword("user123")
-	if err != nil {
-		return fmt.Errorf("hash pw2: %w", err)
-	}
-	pw3, err := HashPassword("user123")
-	if err != nil {
-		return fmt.Errorf("hash pw3: %w", err)
-	}
+	var uAndy, uMarry, uBell entity.Users
 
-	var u1, u2, u3 entity.Users
-
-	if err := db.
-		Where("username = ?", "Andy").
+	if err := db.Where("username = ?", "Andy").
 		Attrs(entity.Users{
 			Username:    "Andy",
 			Email:       "andy@example.com",
-			Password:    pw1,
+			Password:    pw,
 			Role:        "user",
 			Age:         27,
 			Gender:      "ชาย",
-			PhoneNumber: "0989898989", // 10 หลัก ขึ้นต้น 0 (ตาม validator)
+			PhoneNumber: "0989898989",
 			Facebook:    "andy_fb",
 			BirthDate:   "2000-01",
 			PFID:        1,
 		}).
-		FirstOrCreate(&u1).Error; err != nil {
+		FirstOrCreate(&uAndy).Error; err != nil {
 		return fmt.Errorf("create/find Andy: %w", err)
 	}
-
-	if err := db.
-		Where("username = ?", "Marry").
+	if err := db.Where("username = ?", "Marry").
 		Attrs(entity.Users{
 			Username:    "Marry",
 			Email:       "marry@example.com",
-			Password:    pw2,
+			Password:    pw,
 			Role:        "user",
 			Age:         18,
 			Gender:      "หญิง",
@@ -67,16 +58,14 @@ func SetupMockUpData(db *gorm.DB) error {
 			BirthDate:   "1999-01",
 			PFID:        1,
 		}).
-		FirstOrCreate(&u2).Error; err != nil {
+		FirstOrCreate(&uMarry).Error; err != nil {
 		return fmt.Errorf("create/find Marry: %w", err)
 	}
-
-	if err := db.
-		Where("username = ?", "Bell").
+	if err := db.Where("username = ?", "Bell").
 		Attrs(entity.Users{
 			Username:    "Bell",
 			Email:       "bell@example.com",
-			Password:    pw3,
+			Password:    pw,
 			Role:        "user",
 			Age:         23,
 			Gender:      "หญิง",
@@ -85,190 +74,235 @@ func SetupMockUpData(db *gorm.DB) error {
 			BirthDate:   "1995-01",
 			PFID:        1,
 		}).
-		FirstOrCreate(&u3).Error; err != nil {
+		FirstOrCreate(&uBell).Error; err != nil {
 		return fmt.Errorf("create/find Bell: %w", err)
 	}
 
-	// 2) seed เฉพาะ 3 UID นี้ (ของระบบแบบทดสอบ/ธุรกรรม – โค้ดเดิม)
-	if err := seedForUserIDs(db, []uint{u1.ID, u2.ID, u3.ID}); err != nil {
+	// ---------- 2) รวม UID=2 (ถ้ามี/ไม่มีให้ ensure) ----------
+	uid2, err := ensureUID2(db, pw)
+	if err != nil {
+		return err
+	}
+	userIDs := []uint{uAndy.ID, uMarry.ID, uBell.ID, uid2}
+
+	// ---------- 3) โหลดกลุ่มที่ใช้: onLogin / afterChat / interval ----------
+	gOnLogin, err := getGroupByTrigger(db, "onLogin")
+	if err != nil {
+		return err
+	}
+	gAfterChat, err := getGroupByTrigger(db, "afterChat")
+	if err != nil {
+		return err
+	}
+	gInterval, err := getGroupByTrigger(db, "interval")
+	if err != nil {
 		return err
 	}
 
-	// 3) SEED เพิ่มเติม: แบบประเมิน (feedback) ให้ผู้ใช้ id = 4, 5, 6
-	//    - ไม่ยุ่งกับผู้ใช้ที่สร้างด้านบน
-	//    - ถ้า user ไม่อยู่ในระบบ จะข้ามเฉย ๆ
-	if err := seedFeedbackForUserIDs(db, []uint{4, 5, 6}); err != nil {
-		return err
-	}
+	// ---------- 4) สร้างไทม์ไลน์ ----------
+	loc := time.Local
+	year := time.Now().Year()
 
-	return nil
-}
+	// วันเริ่ม 1 Jul YYYY 10:00
+	start := time.Date(year, time.July, 1, 10, 0, 0, 0, loc)
 
-// ---------- helpers (ของเดิม) ----------
+	// วันสุดท้าย = 16 วันก่อน 1 Oct YYYY
+	last := time.Date(year, time.October, 1, 10, 0, 0, 0, loc).AddDate(0, 0, -16)
 
-func seedForUserIDs(db *gorm.DB, userIDs []uint) error {
-	// โหลดกลุ่ม + mapping + questionnaire
-	var groups []entity.QuestionnaireGroup
-	if err := db.
-		Preload("QuestionnaireGroupQuestionnaires", func(tx *gorm.DB) *gorm.DB {
-			return tx.Order("order_in_group ASC")
-		}).
-		Preload("QuestionnaireGroupQuestionnaires.Questionnaire").
-		Find(&groups).Error; err != nil {
-		return fmt.Errorf("load groups failed: %w", err)
-	}
-
-	now := time.Now()
+	// ---------- 5) ลงข้อมูล ----------
 	for _, uid := range userIDs {
-		for _, g := range groups {
-			trigger := ""
-			if g.TriggerType != nil {
-				trigger = *g.TriggerType
+		// 5.1) 1 Jul: onLogin + afterChat (วันเดียวกัน)
+		if err := seedGroupAt(db, uid, *gOnLogin, start, 0); err != nil {
+			return err
+		}
+		if err := seedGroupAt(db, uid, *gAfterChat, start, 1); err != nil {
+			return err
+		}
+
+		// 5.2) จากนั้นวน (interval + afterChat) ทุก 14 วัน
+		d := start.AddDate(0, 0, 14) // เริ่ม 15 Jul
+		lastSeed := start
+
+		for d.Before(last) || d.Equal(last) {
+			if err := seedGroupAt(db, uid, *gInterval, d, 0); err != nil {
+				return err
 			}
-			links := g.QuestionnaireGroupQuestionnaires
-			if len(links) == 0 {
-				continue
+			if err := seedGroupAt(db, uid, *gAfterChat, d, 1); err != nil {
+				return err
 			}
+			lastSeed = d
+			d = d.AddDate(0, 0, 14)
+		}
 
-			switch trigger {
-			case "onLogin":
-				// ทำ 1 ครั้ง/แบบ/ผู้ใช้ (ย้อนหลัง 28 วัน)
-				base := now.AddDate(0, 0, -28)
-				if err := seedOncePerQuestionnaire(db, uid, g, links, base); err != nil {
-					return err
-				}
-
-			case "afterChat":
-				// ทำ 1 ครั้ง/แบบ/ผู้ใช้ (ย้อนหลัง 21 วัน)
-				base := now.AddDate(0, 0, -21)
-				if err := seedOncePerQuestionnaire(db, uid, g, links, base); err != nil {
-					return err
-				}
-
-			case "interval":
-				// ทุก 14 วัน รวม 3 ครั้ง
-				for i := 1; i <= 3; i++ {
-					base := now.AddDate(0, 0, -14*i)
-					if err := seedOncePerQuestionnaire(db, uid, g, links, base); err != nil {
-						return err
-					}
-				}
-
-			default:
-				// ไม่ตั้ง trigger → เหมือน onLogin
-				base := now.AddDate(0, 0, -30)
-				if err := seedOncePerQuestionnaire(db, uid, g, links, base); err != nil {
-					return err
-				}
+		// 5.3) ถ้ารอบ 14 วันไม่ตกเป๊ะที่วัน last ให้ "ปิดท้าย" อีกวัน ณ last
+		if lastSeed.Before(last) {
+			if err := seedGroupAt(db, uid, *gInterval, last, 2); err != nil {
+				return err
+			}
+			if err := seedGroupAt(db, uid, *gAfterChat, last, 3); err != nil {
+				return err
 			}
 		}
 	}
+
+	// ---------- 6) Seed Feedback ให้ครบทุก user (รวม uid=2) ----------
+	if err := seedFeedbackForUserIDs(db, userIDs); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// วิ่งทุกแบบทดสอบในกลุ่ม สร้าง AssessmentResult + Transaction 1 ชุด ต่อ user หนึ่งคน
-func seedOncePerQuestionnaire(
-	db *gorm.DB,
-	userID uint,
-	g entity.QuestionnaireGroup,
-	links []entity.QuestionnaireGroupQuestionnaire,
-	when time.Time,
-) error {
+// ensureUID2 ตรวจสอบว่ามีผู้ใช้ ID=2 หรือไม่
+// - ถ้ามี: คืนค่า 2
+// - ถ้าไม่มี: สร้างผู้ใช้ใหม่ ID=2 ชื่อ "UID2" (กันซ้ำ username/email)
+//   หมายเหตุ: ใน Postgres/SQLite การกำหนด PK ตรง ๆ จะ insert ได้ ถ้า sequence ไม่ชน
+func ensureUID2(db *gorm.DB, pw string) (uint, error) {
+	var exists int64
+	if err := db.Model(&entity.Users{}).Where("id = ?", 2).Count(&exists).Error; err != nil {
+		return 0, fmt.Errorf("check uid=2 failed: %w", err)
+	}
+	if exists > 0 {
+		return 2, nil
+	}
+	return 2, nil
+}
 
-	groupName := g.Name
-	for idx, link := range links {
-		q := link.Questionnaire
-		if q.ID == 0 {
+/* ===================== seeding core ===================== */
+func seedGroupAt(db *gorm.DB, uid uint, g entity.QuestionnaireGroup, when time.Time, idx int) error {
+	// ใช้ของที่ preload มาจาก getGroupByTrigger โดยตรง
+	links := g.QuestionnaireGroupQuestionnaires
+
+	// ถ้ายังว่าง ลองโหลดผ่าน Association API (ไม่ผูกกับชื่อคอลัมน์)
+	if len(links) == 0 {
+		if err := db.Model(&g).Association("QuestionnaireGroupQuestionnaires").Find(&links); err != nil {
+			return fmt.Errorf("load links for group %d (%s) failed: %w", g.ID, g.Name, err)
+		}
+		// เติม Questionnaire ให้แต่ละลิงก์ (กันเหนียว)
+		for i := range links {
+			if links[i].Questionnaire.ID == 0 {
+				// ใช้ Association ระดับลิงก์เพื่อดึง Questionnaire
+				_ = db.Model(&links[i]).Association("Questionnaire").Find(&links[i].Questionnaire)
+			}
+		}
+	}
+
+	if len(links) == 0 {
+		// ไม่มีแบบทดสอบในกลุ่มนี้ ข้ามไป
+		return nil
+	}
+
+	// วิ่งสร้างผลตามแบบในกลุ่ม
+	for j, lk := range links {
+		if lk.Questionnaire.ID == 0 {
 			continue
 		}
-
-		// 1) สร้าง/หา AssessmentResult (กันซ้ำด้วย uid+qu+qg+date)
-		ar := entity.AssessmentResult{
-			Date: when.Format("2006-01-02"),
-			UID:  userID,
-			QuID: q.ID,
-			QGID: g.ID,
+		if err := seedOneARAndTX(db, uid, g, lk.Questionnaire, when, idx+j); err != nil {
+			return err
 		}
-		var exists int64
-		_ = db.Model(&entity.AssessmentResult{}).
-			Where("uid = ? AND qu_id = ? AND qg_id = ? AND date = ?", userID, q.ID, g.ID, ar.Date).
-			Count(&exists).Error
-		if exists == 0 {
-			if err := db.Create(&ar).Error; err != nil {
-				return fmt.Errorf("create assessment_result failed: %w", err)
-			}
-		} else {
-			if err := db.Where("uid = ? AND qu_id = ? AND qg_id = ? AND date = ?",
-				userID, q.ID, g.ID, ar.Date).
-				First(&ar).Error; err != nil {
-				return fmt.Errorf("find existing assessment_result failed: %w", err)
-			}
-		}
+	}
+	return nil
+}
 
-		// 2) คำนวณคะแนน mock + ระดับผลลัพธ์
-		minScore, maxScore := loadMinMaxScoreForQuestionnaire(db, q.ID)
-		if minScore > maxScore {
-			// ถ้าไม่มี criteria เลย → ดีฟอลต์
-			minScore, maxScore = 0, 27
-		}
-		total, level := mockScoreAndLevel(minScore, maxScore, q.TestType, idx)
+func seedOneARAndTX(db *gorm.DB, uid uint, g entity.QuestionnaireGroup, q entity.Questionnaire, when time.Time, index int) error {
+	dateStr := when.Format("2006-01-02")
 
-		testType := ""
-		if q.TestType != nil {
-			testType = *q.TestType
+	// 1) AssessmentResult (กันซ้ำ uid+qu+qg+date)
+	ar := entity.AssessmentResult{
+		Date: dateStr,
+		UID:  uid,
+		QuID: q.ID,
+		QGID: g.ID,
+	}
+	var arExists int64
+	_ = db.Model(&entity.AssessmentResult{}).
+		Where("uid = ? AND qu_id = ? AND qg_id = ? AND date = ?", uid, q.ID, g.ID, dateStr).
+		Count(&arExists).Error
+	if arExists == 0 {
+		if err := db.Create(&ar).Error; err != nil {
+			return fmt.Errorf("create assessment_result failed: %w", err)
 		}
-
-		// 3) ดึงคำอธิบายผลจาก Criteria ที่ match คะแนน (รองรับทั้ง c_id/qu_id และ cid/quid)
-		resultText := ""
-		if desc, ok := findCriteriaDescriptionForScore(db, q.ID, total); ok {
-			resultText = desc
-		} else {
-			// เผื่อกรณีไม่มี mapping หรือยังไม่ได้ seed calculations/criteria
-			resultText = mockResultText(total, minScore, maxScore)
+	} else {
+		if err := db.Where("uid = ? AND qu_id = ? AND qg_id = ? AND date = ?",
+			uid, q.ID, g.ID, dateStr).
+			First(&ar).Error; err != nil {
+			return fmt.Errorf("find existing assessment_result failed: %w", err)
 		}
+	}
 
-		// 4) สร้าง Transaction
-		tx := entity.Transaction{
-			Description:        q.NameQuestionnaire,
-			TotalScore:         total,
-			MaxScore:           maxScore,
-			Result:             resultText,
-			ResultLevel:        level, // happy/sad/bored
-			TestType:           testType,
-			QuestionnaireGroup: groupName,
-			ARID:               ar.ID,
-		}
-		tx.CreatedAt = when // ปักเวลาที่ mock ไว้
+	// 2) คะแนน/ระดับ
+	minScore, maxScore := loadMinMaxScoreForQuestionnaire(db, q.ID)
+	if minScore > maxScore {
+		minScore, maxScore = 0, 27
+	}
+	total, level := mockScoreAndLevel(minScore, maxScore, q.TestType, index)
+	testType := ""
+	if q.TestType != nil {
+		testType = *q.TestType
+	}
+	if testType == "" {
+		testType = determineTestType(q)
+	}
 
-		// กันซ้ำ: AR เดิม + วันที่เดียวกัน
-		var txExists int64
-		_ = db.Model(&entity.Transaction{}).
-			Where("ar_id = ? AND DATE(created_at) = ?", ar.ID, when.Format("2006-01-02")).
-			Count(&txExists).Error
-		if txExists == 0 {
-			if err := db.Create(&tx).Error; err != nil {
-				return fmt.Errorf("create transaction failed: %w", err)
-			}
+	// 3) Result จาก criteria (fallback แนวโน้ม…)
+	resultText := ""
+	if desc, ok := findCriteriaDescriptionForScore(db, q.ID, total); ok {
+		resultText = desc
+	} else {
+		resultText = mockResultText(total, minScore, maxScore)
+	}
+
+	// 4) Transaction (กันซ้ำ ARID + วันที่)
+	tx := entity.Transaction{
+		Description:        q.NameQuestionnaire,
+		TotalScore:         total,
+		MaxScore:           maxScore,
+		Result:             resultText,
+		ResultLevel:        level,
+		TestType:           testType,
+		QuestionnaireGroup: g.Name,
+		ARID:               ar.ID,
+	}
+	tx.CreatedAt = when
+
+	var txExists int64
+	_ = db.Model(&entity.Transaction{}).
+		Where("ar_id = ? AND DATE(created_at) = ?", ar.ID, dateStr).
+		Count(&txExists).Error
+	if txExists == 0 {
+		if err := db.Create(&tx).Error; err != nil {
+			return fmt.Errorf("create transaction failed: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// ดึงช่วงคะแนนจาก criteria ที่แมพกับ questionnaire ผ่าน calculations
-func loadMinMaxScoreForQuestionnaire(db *gorm.DB, quID uint) (int, int) {
-	type row struct {
-		MinS int
-		MaxS int
-	}
-	var rs []row
+/* ===================== lookups & helpers ===================== */
+
+func getGroupByTrigger(db *gorm.DB, trigger string) (*entity.QuestionnaireGroup, error) {
+	var g entity.QuestionnaireGroup
 	if err := db.
+		Preload("QuestionnaireGroupQuestionnaires.Questionnaire").
+		Where("trigger_type = ?", trigger).
+		First(&g).Error; err != nil {
+		return nil, fmt.Errorf("questionnaire_group not found (trigger_type=%s)", trigger)
+	}
+	return &g, nil
+}
+
+func loadMinMaxScoreForQuestionnaire(db *gorm.DB, quID uint) (int, int) {
+	type row struct{ MinS, MaxS int }
+	var rs []row
+
+	err := db.
 		Table("criteria").
 		Select("criteria.min_criteria_score as min_s, criteria.max_criteria_score as max_s").
 		Joins("JOIN calculations ON calculations.c_id = criteria.id").
 		Where("calculations.qu_id = ?", quID).
-		Scan(&rs).Error; err != nil || len(rs) == 0 {
-		// ลองสคีมาอีกแบบ (cid/quid)
+		Scan(&rs).Error
+	if err != nil || len(rs) == 0 {
+		// รองรับชื่อคอลัมน์อีกแบบ (cid/quid)
 		rs = nil
 		if err2 := db.
 			Table("criteria").
@@ -298,12 +332,9 @@ func loadMinMaxScoreForQuestionnaire(db *gorm.DB, quID uint) (int, int) {
 	return minV, maxV
 }
 
-// คืน description ของ criteria ที่ครอบ score สำหรับ questionnaire นี้
-// รองรับทั้งสคีมา: (c_id, qu_id) และ (cid, quid)
 func findCriteriaDescriptionForScore(db *gorm.DB, quID uint, score int) (string, bool) {
 	var descs []string
-
-	// เคสคอลัมน์ c_id / qu_id
+	// c_id / qu_id
 	err := db.
 		Table("criteria").
 		Joins("JOIN calculations ON calculations.c_id = criteria.id").
@@ -315,8 +346,7 @@ func findCriteriaDescriptionForScore(db *gorm.DB, quID uint, score int) (string,
 	if err == nil && len(descs) > 0 {
 		return descs[0], true
 	}
-
-	// เคสคอลัมน์ cid / quid
+	// cid / quid
 	descs = nil
 	err = db.
 		Table("criteria").
@@ -329,11 +359,31 @@ func findCriteriaDescriptionForScore(db *gorm.DB, quID uint, score int) (string,
 	if err == nil && len(descs) > 0 {
 		return descs[0], true
 	}
-
 	return "", false
 }
 
-// สุ่ม/จัดรูปแบบคะแนนให้ครอบคลุมเคส แล้วหาค่า resultLevel ให้สอดคล้อง testType
+func determineTestType(q entity.Questionnaire) string {
+	if q.TestType != nil && *q.TestType != "" {
+		return *q.TestType
+	}
+	name := strings.ToLower(q.NameQuestionnaire)
+	switch {
+	case strings.Contains(name, "9q"),
+		strings.Contains(name, "2q"),
+		strings.Contains(name, "st-5"),
+		strings.Contains(name, "เครียด"),
+		strings.Contains(name, "ซึมเศร้า"):
+		return "negative"
+	case strings.Contains(name, "happiness"),
+		strings.Contains(name, "ความสุข"),
+		strings.Contains(name, "mindfulness"),
+		strings.Contains(name, "สติ"):
+		return "positive"
+	default:
+		return "neutral"
+	}
+}
+
 func mockScoreAndLevel(minScore, maxScore int, testTypePtr *string, index int) (total int, level string) {
 	if minScore > maxScore {
 		minScore, maxScore = 0, 27
@@ -341,7 +391,6 @@ func mockScoreAndLevel(minScore, maxScore int, testTypePtr *string, index int) (
 	span := maxScore - minScore
 	mid := minScore + span/2
 
-	// กระจายคะแนน: ต่ำ / กลาง / สูง
 	switch index % 3 {
 	case 0:
 		total = minScore + rand.Intn(max(1, span/6)+1) // ต่ำ
@@ -410,7 +459,7 @@ func max(a, b int) int {
 	return b
 }
 
-/* ===================== NEW: Feedback seeding for users 4,5,6 ===================== */
+/* ===================== NEW: Feedback seeding for users ===================== */
 
 // seedFeedbackForUserIDs จะสร้าง feedback_submissions/answers ให้ user แต่ละคน
 // - ทำ 3 เดือนล่าสุด (เดือนนี้ + ย้อนหลัง 2)

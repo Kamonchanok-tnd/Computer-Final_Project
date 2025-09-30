@@ -210,6 +210,23 @@ export const getCriteriaByQuID = async (quId: number): Promise<any[]> => {
   }
 };
 
+// ใช้กับ /assessment/Questionnaires ของที่ให้มา
+export const getQuestionnairesLite = async (): Promise<
+  Array<{ id: number; name?: string; description?: string; code?: string; alias?: string }>
+> => {
+  const res = await axiosInstance.get("/assessment/Questionnaires");
+  const list = Array.isArray(res.data) ? res.data : [];
+  // map เฉพาะฟิลด์ที่น่าจะมี (กันเคสชื่อแตกต่าง)
+  return list.map((q: any) => ({
+    id: Number(q?.ID ?? q?.Id ?? q?.id),
+    name: q?.Name ?? q?.name,
+    description: q?.Description ?? q?.description,
+    code: q?.Code ?? q?.code,
+    alias: q?.Alias ?? q?.alias,
+  }));
+};
+
+
 
 ////////////////////////////////////////////Admin Finished//////////////////////////////////////////////////////////////////////////
 export const getQuestionnaireGroupByID = async (id: number) => {
