@@ -184,9 +184,6 @@ const ShortBubble: React.FC<ShortBubbleProps> = ({
                 </div>
               </div>
             </div>
-
-            {/* หางการ์ดเล็ก ๆ เพื่อสไตล์แชต */}
-            <div className="absolute w-3 h-3 rotate-45 -bottom-1 left-3 bg-[#EAFBFF] dark:bg-[#1B2538] border-b border-r border-[#BFEAF5] dark:border-slate-700 shadow" />
           </div>
         </div>
 
