@@ -64,6 +64,9 @@ const PALETTE = [
   "#16a34a",
 ];
 
+const RED = "#ef4444";
+const GREEN = "#22c55e";
+
 const formatDateTH = (iso: string) => {
   const d = new Date(iso);
   const dd = d.getDate().toString().padStart(2, "0");
@@ -100,7 +103,34 @@ type TxView = {
   score: number;
   max?: number;
   result?: string; // ข้อความแปลผลจาก transaction
+  testType?: "positive" | "negative";
 };
+
+/** ---------- Color utils (red<->green) ---------- */
+// ไล่สีระหว่างสองสี a->b ตาม t ∈ [0,1]
+function lerpColor(a: string, b: string, t: number) {
+  const pa = parseInt(a.slice(1), 16);
+  const pb = parseInt(b.slice(1), 16);
+  const ra = (pa >> 16) & 0xff, ga = (pa >> 8) & 0xff, ba = pa & 0xff;
+  const rb = (pb >> 16) & 0xff, gb = (pb >> 8) & 0xff, bb = pb & 0xff;
+  const r = Math.round(ra + (rb - ra) * t);
+  const g = Math.round(ga + (gb - ga) * t);
+  const b2 = Math.round(ba + (bb - ba) * t);
+  return `#${(r << 16 | g << 8 | b2).toString(16).padStart(6, "0")}`;
+}
+
+// ให้สีตามคะแนน (ใช้กับ dot) — positive: มาก→เขียว, น้อย→แดง / negative: กลับกัน
+function colorByScore(
+  score: number,
+  min: number,
+  max: number,
+  testType: "positive" | "negative"
+) {
+  if (max === min) return testType === "positive" ? GREEN : RED;
+  const t = Math.max(0, Math.min(1, (score - min) / (max - min)));
+  const tt = testType === "positive" ? t : 1 - t;
+  return lerpColor(RED, GREEN, tt);
+}
 
 /** ---------- normalize tx (รองรับหลายชื่อ field) ---------- */
 const normalize = (t: any): TxView & { quId?: number } => {
@@ -133,6 +163,11 @@ const normalize = (t: any): TxView & { quId?: number } => {
     t.qid;
   const quId = typeof quIdRaw === "string" ? Number(quIdRaw) : quIdRaw;
 
+  // test type
+  const testTypeRaw = (t.test_type ?? t.testType ?? t.type ?? "positive") as string;
+  const testType: "positive" | "negative" =
+    String(testTypeRaw).toLowerCase() === "negative" ? "negative" : "positive";
+
   return {
     key: String(id ?? `${desc}-${createdAt}`),
     dateISO: createdAt,
@@ -143,6 +178,7 @@ const normalize = (t: any): TxView & { quId?: number } => {
     max: typeof max === "number" ? max : undefined,
     quId: typeof quId === "number" && !Number.isNaN(quId) ? quId : undefined,
     result,
+    testType,
   };
 };
 
@@ -414,9 +450,10 @@ const AssessmentDashboard: React.FC = () => {
       group: t.group,
       score: t.score,
       result: (t as any).result,
+      testType: (t as any).testType as "positive" | "negative",
       __mw:  isVeryNarrow ? 200 : 260, // max width tooltip
     }));
-  }, [tx, rangeOne, selectedTest]);
+  }, [tx, rangeOne, selectedTest, isVeryNarrow]);
 
   const dataAll = useMemo(() => aggregateCombined(filterByRange(tx, rangeAll), NEAR_MINUTES), [tx, rangeAll]);
 
@@ -446,6 +483,26 @@ const AssessmentDashboard: React.FC = () => {
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [tx, rangePie]);
+
+  // ชนิดแบบทดสอบของชุดที่เลือก (ใช้รายการล่าสุดเป็นตัวแทน)
+  const selectedTestType: "positive" | "negative" = useMemo(() => {
+    const rows = tx.filter((t) => t.description === selectedTest);
+    const last = rows[rows.length - 1];
+    return (last?.testType ?? "positive") as "positive" | "negative";
+  }, [tx, selectedTest]);
+
+  // ช่วงคะแนนของกราฟ single (ใช้ทำ dot ไล่สี)
+  const [minScoreOne, maxScoreOne] = useMemo(() => {
+    if (!dataOne.length) return [0, 1] as const;
+    let mn = Infinity, mx = -Infinity;
+    for (const r of dataOne) {
+      mn = Math.min(mn, r.score);
+      mx = Math.max(mx, r.score);
+    }
+    if (!Number.isFinite(mn) || !Number.isFinite(mx)) return [0, 1] as const;
+    if (mn === mx) return [mn, mn + 1] as const;
+    return [mn, mx] as const;
+  }, [dataOne]);
 
   if (loading) return <div className="p-6 text-slate-600">กำลังโหลดข้อมูล…</div>;
 
@@ -605,6 +662,26 @@ const AssessmentDashboard: React.FC = () => {
                     data={dataOne}
                     margin={{ top: 10, right: isVeryNarrow ? 12 : 20, left: isVeryNarrow ? 6 : 12, bottom: 8 }}
                   >
+                    {/* กำหนด gradient สำหรับเส้นตาม testType */}
+                    <defs>
+                      <linearGradient id={`scoreGrad-${selectedTestType}`} x1="0" y1="0" x2="0" y2="1">
+                        {selectedTestType === "positive" ? (
+                          <>
+                            {/* ค่าสูง = เขียว (ด้านบน) */}
+                            <stop offset="0%" stopColor={GREEN} />
+                            {/* ค่าต่ำ = แดง (ด้านล่าง) */}
+                            <stop offset="100%" stopColor={RED} />
+                          </>
+                        ) : (
+                          <>
+                            {/* negative: มาก = แดง */}
+                            <stop offset="0%" stopColor={RED} />
+                            <stop offset="100%" stopColor={GREEN} />
+                          </>
+                        )}
+                      </linearGradient>
+                    </defs>
+
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="_key"
@@ -618,13 +695,25 @@ const AssessmentDashboard: React.FC = () => {
                     <YAxis />
                     {/* Tooltip แบบหลายบรรทัด & ไม่ล้นจอ */}
                     <Tooltip content={<CustomTooltipSingle />} />
+
+                    {/* เส้นไล่สี + จุดตามคะแนน */}
                     <Line
                       type="monotone"
                       dataKey="score"
-                      stroke="#2563eb"
+                      stroke={`url(#scoreGrad-${selectedTestType})`}
                       strokeWidth={2}
-                      dot={{ r: isVeryNarrow ? 1 : isNarrow ? 1.5 : 3 }}
-                      activeDot={{ r: isVeryNarrow ? 2.5 : isNarrow ? 3 : 5 }}
+                      dot={(p: any) => {
+                        const { cx, cy, payload } = p;
+                        const c = colorByScore(payload.score, minScoreOne, maxScoreOne, selectedTestType);
+                        const r = isVeryNarrow ? 2 : isNarrow ? 2.5 : 3.5;
+                        return <circle cx={cx} cy={cy} r={r} fill={c} stroke="#ffffff" strokeWidth={1} />;
+                      }}
+                      activeDot={(p: any) => {
+                        const { cx, cy, payload } = p;
+                        const c = colorByScore(payload.score, minScoreOne, maxScoreOne, selectedTestType);
+                        const r = isVeryNarrow ? 3 : isNarrow ? 3.5 : 5;
+                        return <circle cx={cx} cy={cy} r={r} fill={c} stroke="#0f172a" strokeWidth={1} />;
+                      }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
