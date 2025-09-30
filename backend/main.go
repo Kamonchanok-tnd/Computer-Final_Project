@@ -36,7 +36,7 @@ import (
 	"github.com/joho/godotenv" // เพิ่มการนำเข้า godotenv
 )
 
-const PORT = "8000"
+const PORT = "8003"
 
 func init() {
 	// โหลดไฟล์ .env
