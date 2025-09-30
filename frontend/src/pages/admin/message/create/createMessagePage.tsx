@@ -466,7 +466,9 @@ const CreateMessagePage: React.FC = () => {
       );
 
       // ย้ายหน้าไปตารางรายการ พร้อมส่ง flash state
-      navigate("/admin/messagePage", {
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+      navigate(`/${rolePrefix}/messagePage`, {
         replace: true,
         state: { flash: { type: "success", content: "เพิ่มข้อมูลสำเร็จ" } },
       });
