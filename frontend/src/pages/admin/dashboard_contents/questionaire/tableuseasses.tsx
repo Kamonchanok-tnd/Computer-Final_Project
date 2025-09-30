@@ -60,7 +60,9 @@ function TableUseAsses() {
           <button
             className="text-[#7CEDC6] hover:text-[#6ed3af] duration-300 transition-colors cursor-pointer"
             onClick={() => {
-              navigate(`/admin/dashboard/contents/summary/user/${row.original.id}`);
+              const role = localStorage.getItem("role");
+              const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+              navigate(`/${rolePrefix}/dashboard/contents/summary/user/${row.original.id}`);
             }}
           >
             <FileSearch2 size={25} />

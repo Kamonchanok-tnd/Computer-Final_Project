@@ -43,9 +43,10 @@ func SetupMockUpData(db *gorm.DB) error {
 			Password:    pw1,
 			Role:        "user",
 			Age:         27,
-			Gender:      "ผู้ชาย",
+			Gender:      "ชาย",
 			PhoneNumber: "0989898989", // 10 หลัก ขึ้นต้น 0 (ตาม validator)
 			Facebook:    "andy_fb",
+			BirthDate:   "2000-01",
 			PFID:        1,
 		}).
 		FirstOrCreate(&u1).Error; err != nil {
@@ -60,9 +61,10 @@ func SetupMockUpData(db *gorm.DB) error {
 			Password:    pw2,
 			Role:        "user",
 			Age:         18,
-			Gender:      "ผู้หญิง",
+			Gender:      "หญิง",
 			PhoneNumber: "0987654321",
 			Facebook:    "Marry_fb",
+			BirthDate:   "1999-01",
 			PFID:        1,
 		}).
 		FirstOrCreate(&u2).Error; err != nil {
@@ -77,9 +79,10 @@ func SetupMockUpData(db *gorm.DB) error {
 			Password:    pw3,
 			Role:        "user",
 			Age:         23,
-			Gender:      "ผู้หญิง",
+			Gender:      "หญิง",
 			PhoneNumber: "0987654321",
 			Facebook:    "Bell_fb",
+			BirthDate:   "1995-01",
 			PFID:        1,
 		}).
 		FirstOrCreate(&u3).Error; err != nil {

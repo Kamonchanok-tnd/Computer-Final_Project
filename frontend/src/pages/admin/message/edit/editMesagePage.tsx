@@ -500,7 +500,9 @@ const EditMessagePage: React.FC = () => {
       );
 
       didNavigate = true;
-      navigate("/admin/messagePage", {
+      const role = localStorage.getItem("role");
+      const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+      navigate(`/${rolePrefix}/messagePage`, {
         replace: true,
         state: { flash: { type: "success", content: "เเก้ไขข้อมูลสำเร็จ" } },
       });
