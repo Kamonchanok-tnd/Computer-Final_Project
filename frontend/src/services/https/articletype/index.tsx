@@ -1,5 +1,6 @@
 
 import type { ArticleType } from "../../../interfaces/IArticleType";
+// const apiUrl = "http://localhost:8003";
 const apiUrl = "http://localhost:8000";
 
 // รองรับเคสที่ BE ส่ง field แบบต่างกัน

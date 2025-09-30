@@ -10,7 +10,8 @@ import { EmotionChoice } from "../../../interfaces/IEmotionChoices";
 
 // ✅ Inline axiosInstance พร้อมแนบ token
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000", // แก้เป็น env ก็ได้ถ้ามี .env.local
+  //baseURL: "http://localhost:8003", // แก้เป็น env ก็ได้ถ้ามี .env.local
+  baseURL: "http://localhost:8000",
 });
 
 axiosInstance.interceptors.request.use((config) => {

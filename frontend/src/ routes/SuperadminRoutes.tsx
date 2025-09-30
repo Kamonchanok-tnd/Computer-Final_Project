@@ -35,6 +35,7 @@ import VisitFrequencyPage from "../pages/admin/userdataweb/VisitFrequencyPage";
 import RetentionRatePage from "../pages/admin/userdataweb/RetentionRatePage";
 import AdminFeedbackCreateQuestion from "../pages/feedback/feedback";
 import AdminFeedbackUser from "../pages/feedback/components/AdminFeedbackUser";
+import SummaryUser from "../pages/admin/dashboard_contents/questionaire/summaryUser";
 // import CreateAdmin from "../pages/superadmin/create_admin/createadmin";
 // import DashboardAdmin from "../pages/superadmin/dashboard_admin/dashboard";
 // import EditAdmin from "../pages/superadmin/edit_admin/EditAdmin";
@@ -112,6 +113,10 @@ const SuperadminRoutes = (isLoggedIn: boolean): RouteObject[] => {
                             path: "/superadmin/dashboard/contents/questionnaire",
                            element: <Quetionairedetail />, // หน้า Settings ของ Admin DashboardChanting
                          },
+                         {
+                          path: "/superadmin/dashboard/contents/summary/user/:id",
+                         element: <SummaryUser />, 
+                       },
         
                          {
                            path: "/superadmin/activity",

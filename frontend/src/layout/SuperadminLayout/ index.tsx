@@ -79,11 +79,11 @@ const FullLayout = () => {
 </Menu.Item> */}
 
 <Menu.Item key="/superadmin/questionnairePage" icon={<QuestionOutlined/>}>
-  <Link to="/superadmin/questionnairePage">แบบสอบถาม</Link>
+  <Link to="/superadmin/questionnairePage">แบบทดสอบ</Link>
 </Menu.Item>
 
 <Menu.Item key="/superadmin/prompt" icon={<CommentOutlined />}>
-  <Link to="/superadmin/prompt">การจัดการ Prompt AI</Link>
+  <Link to="/superadmin/prompt">การจัดการพร้อมพ์</Link>
 </Menu.Item>
 
 <Menu.Item key="/superadmin/sounds" icon={<CustomerServiceOutlined/>}> 

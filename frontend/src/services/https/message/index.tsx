@@ -1,8 +1,8 @@
 
 import { WordHealingContent } from "../../../interfaces/IWordHealingContent";
 import axios from "axios";
+// const apiUrl = "http://localhost:8003";
 const apiUrl = "http://localhost:8000";
-
 
 // ฟังก์ชันสำหรับดึงบทความ WordHealingMessages ทั้งหมดสำหรับแสดงใน admin
 export const getAllWordHealingMessages = async (): Promise<WordHealingContent[]> => {

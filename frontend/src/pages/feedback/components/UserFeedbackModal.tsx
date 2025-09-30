@@ -202,7 +202,7 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
         onClick={() => (saving ? null : onClose())}
       />
       {/* modal */}
-      <div className="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-center sm:justify-center">
+      <div className="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-center sm:justify-center ">
         <div className="w-full sm:max-w-2xl sm:rounded-2xl bg-white shadow-xl sm:m-6">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
             <h3 className="font-semibold text-slate-800">แบบประเมินความพึงพอใจ</h3>

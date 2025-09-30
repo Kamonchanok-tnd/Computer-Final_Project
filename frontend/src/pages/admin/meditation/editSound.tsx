@@ -183,7 +183,7 @@ const EditSound: React.FC = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-medium text-gray-800">
-            แก้ไขเสียง
+            แก้ไขข้อมูลวิดีโอ
           </h1>
         </div>
 

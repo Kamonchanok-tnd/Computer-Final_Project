@@ -3,6 +3,7 @@ import { Question } from "../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../interfaces/IAnswerOption";
 import { EmotionChoice } from "../../../interfaces/IEmotionChoices";
 import { Criteria } from "../../../interfaces/ICriteria";
+// const apiUrl = "http://localhost:8003";
 const apiUrl = "http://localhost:8000";
 
 // ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
