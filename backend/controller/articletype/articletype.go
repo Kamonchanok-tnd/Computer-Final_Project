@@ -174,6 +174,24 @@ func DeleteArticleType(c *gin.Context) {
 		return
 	}
 
+
+	// ตรวจว่าถูกใช้งานอยู่หรือไม่ (มีบทความ/ข้อความอ้างถึงอยู่)
+	var useCount int64
+	if err := db.Model(&entity.WordHealingContent{}).
+		Where("article_type_id = ? AND deleted_at IS NULL", id).
+		Count(&useCount).Error; err != nil {
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถตรวจสอบการใช้งานได้"})
+	return
+	}
+	if useCount > 0 {
+	c.JSON(http.StatusConflict, gin.H{
+		"error":  "ประเภทนี้กำลังถูกเรียกใช้ ไม่สามารถลบได้",
+		"code":   "IN_USE",   // ให้ FE จับ pattern นี้
+		"usages": useCount,
+	})
+	return
+	}
+
 	// Soft delete: ตั้งค่า deleted_at (เพราะใช้ gorm.Model)
 	if err := db.Delete(&at).Error; err != nil {
 		// ถ้ามี FK constraint อาจลบไม่ได้

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {Button,Form,Input,InputNumber,Modal,Tag,Collapse,Upload,Select,message,Spin,} from "antd";
-import {DeleteOutlined,MenuOutlined,MinusSquareOutlined,PlusSquareOutlined,UploadOutlined,PlusOutlined,SaveOutlined,RollbackOutlined,} from "@ant-design/icons";
-import {DragDropContext,Droppable,Draggable,DropResult,} from "@hello-pangea/dnd";
+import {Button, Form, Input, InputNumber, Modal, Tag, Collapse, Upload, Select, message, Spin,} from "antd";
+import {DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined, UploadOutlined,PlusOutlined, SaveOutlined, RollbackOutlined,} from "@ant-design/icons";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Question } from "../../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../../interfaces/IAnswerOption";
 import { EmotionChoice } from "../../../../interfaces/IEmotionChoices";
@@ -12,12 +12,14 @@ import questionIcon from "../../../../assets/question-mark.png";
 
 const { Panel } = Collapse;
 
+// โครงสร้างข้อมูลคำถามเเละคำตาม
 interface QuestionWithAnswers {
-  question: Question & { priority: number };
+  question: Question & { priority: number }; 
   answers: AnswerOption[];
 }
 type NavState = { questionnaireId?: number };
 
+// สีพื้นหลังสลับแต่ละคำถาม
 const bgClasses = [
   "bg-gradient-to-br from-blue-50 to-blue-100",
   "bg-gradient-to-br from-pink-50 to-pink-100",
@@ -26,11 +28,11 @@ const bgClasses = [
   "bg-gradient-to-br from-violet-50 to-violet-100",
 ];
 
+// การตกเเต่งปุ่มต่างๆ
 const squareBtnCls =
   "!p-0 rounded-lg border border-slate-300 bg-white text-gray-700 " +
   "hover:!border-black hover:!text-black active:scale-[.98] " +
   "!h-8 !w-8 sm:!h-9 sm:!w-9 md:!h-10 md:!w-10";
-
 const noRingCls = "!border-none !shadow-none";
 const noRingStyle: React.CSSProperties = { boxShadow: "none", outline: "none" };
 
@@ -39,20 +41,21 @@ const EditQuestionAndAnswer: React.FC = () => {
   const navigate = useNavigate();
   const [msg, contextHolder] = message.useMessage();
 
-  // รับค่า questionnaireId เเละ name ที่ถูกส่งมา
+  // รับค่า id เเละ name แบบทดสอบจากหน้าสร้างเเบบทดสอบ
   const { questionnaireId } = (location.state as NavState) || {};
   const name = (location.state as any)?.name ?? "";
   
-  const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
-  const [activeKeys, setActiveKeys] = useState<string[]>([]);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [emotionChoices, setEmotionChoices] = useState<EmotionChoice[]>([]);
+  //  สเตตหลักของหน้า
+  const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);     // รายการคำถาม+คำตอบ
+  const [activeKeys, setActiveKeys] = useState<string[]>([]);                
+  const [previewImage, setPreviewImage] = useState<string | null>(null);     // รูป preview
+  const [previewVisible, setPreviewVisible] = useState(false);               // modal preview
+  const [saving, setSaving] = useState(false);                            
+  const [emotionChoices, setEmotionChoices] = useState<EmotionChoice[]>([]); 
 
   const goBack = () => navigate(-1);
 
-  // โหลดข้อมูล
+  // โหลดข้อมูลเริ่มต้น: ตัวเลือกอารมณ์ เเละ คำถาม/คำตอบของแบบทดสอบนี้ 
   useEffect(() => {
     if (!questionnaireId) {
       msg.warning("ไม่พบข้อมูลแบบทดสอบ");
@@ -69,6 +72,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         ]);
         setEmotionChoices(ec || []);
 
+        // แปลงข้อมูลจากเซิร์ฟเวอร์ให้เป็นรูปแบบที่หน้าใช้งาน
         const normalize = (item: any, idx: number): QuestionWithAnswers => {
           const qRaw = item?.question ?? item ?? {};
           const answersRaw =
@@ -96,13 +100,14 @@ const EditQuestionAndAnswer: React.FC = () => {
           return { question: q, answers };
         };
 
+        // เรียงตาม priority และรีเลขลำดับใหม่ให้ต่อเนื่อง
         const mapped = (serverItems || []).map(normalize);
         const prioritized = mapped
           .sort((a, b) => (a.question.priority || 0) - (b.question.priority || 0))
           .map((x, i) => ({ ...x, question: { ...x.question, priority: i + 1 } }));
 
         setQuestions(prioritized);
-        setActiveKeys(prioritized.map((_, i) => i.toString()));
+        setActiveKeys(prioritized.map((_, i) => i.toString())); // เปิดทุก panel
       } catch (e: any) {
         console.error(e);
         msg.error(e?.message || "โหลดคำถามและคำตอบไม่สำเร็จ");
@@ -110,7 +115,7 @@ const EditQuestionAndAnswer: React.FC = () => {
     })();
   }, [questionnaireId]);
 
-  // UI actions 
+  // จัดการเปิด/ปิดทั้งหมด และลากสลับลำดับคำถาม 
   const togglePanel = (key: string) =>
     setActiveKeys((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
@@ -118,6 +123,7 @@ const EditQuestionAndAnswer: React.FC = () => {
   const expandAll = () => setActiveKeys(questions.map((_, i) => i.toString()));
   const collapseAll = () => setActiveKeys([]);
 
+  // เมื่อลากแล้วปล่อย: อัปเดตลำดับ priority ใหม่
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const reordered = Array.from(questions);
@@ -131,7 +137,7 @@ const EditQuestionAndAnswer: React.FC = () => {
     );
   };
 
-  // Mutators 
+  // ฟังก์ชันแก้ไขข้อมูลในสเตต (mutators)
   const updateQuestionText = (qi: number, v: string) =>
     setQuestions((prev) => {
       const next = [...prev];
@@ -164,7 +170,8 @@ const EditQuestionAndAnswer: React.FC = () => {
       next[qi] = { ...next[qi], answers };
       return next;
     });
-
+  
+  // เพิ่มคำตอบ
   const addAnswer = (qi: number) =>
     setQuestions((prev) => {
       const next = [...prev];
@@ -177,7 +184,8 @@ const EditQuestionAndAnswer: React.FC = () => {
       };
       return next;
     });
-
+  
+  // ลบคำตอบ
   const removeAnswer = (qi: number, ai: number) =>
     setQuestions((prev) => {
       const next = [...prev];
@@ -187,7 +195,7 @@ const EditQuestionAndAnswer: React.FC = () => {
       return next;
     });
 
-  // เพิ่มคำถาม 
+  // เพิ่มคำถามทั้งข้อ
   const addQuestion = () =>
     setQuestions((prev) => {
       const newItem: QuestionWithAnswers = {
@@ -204,24 +212,24 @@ const EditQuestionAndAnswer: React.FC = () => {
         ],
       };
       const next = [...prev, newItem];
-      // เปิด panel ของข้อใหม่
-      setActiveKeys((keys) => [...keys, String(next.length - 1)]);
+      setActiveKeys((keys) => [...keys, String(next.length - 1)]); // เปิด panel ข้อใหม่
       return next;
     });
   
-  
-  // ลบคำถาม 
+  // ลบคำถามทั้งข้อ
   const removeQuestion = (qi: number) =>
     setQuestions((prev) => {
       const arr = [...prev];
       arr.splice(qi, 1);
+      
+      // รีเลข priority ให้ต่อเนื่อง
       return arr.map((q, i) => ({
         ...q,
         question: { ...q.question, priority: i + 1 },
       }));
     });
 
-  // Image upload / preview 
+  // ส่วนอัปโหลด / พรีวิว / ลบรูปของคำถาม
   const handleImageUpload = (file: File, qi: number) => {
     if (!file.type?.startsWith("image/")) {
       msg.error("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
@@ -242,9 +250,10 @@ const EditQuestionAndAnswer: React.FC = () => {
         return next;
       });
     fr.readAsDataURL(file);
-    return false;
+    return false; // ปิดอัปโหลดจริงของ antd (เราแปลงเอง)
   };
 
+  // พรีวิวรูป
   const handlePreview = (img: string) => {
     setPreviewImage(img);
     setPreviewVisible(true);
@@ -259,16 +268,16 @@ const EditQuestionAndAnswer: React.FC = () => {
       return next;
     });
 
-  // Validation  เเจ้งเตือนการกรอกข้อมูล
+  // ตรวจความถูกต้องก่อนบันทึก (คำถาม/คำตอบ/อารมณ์) 
   const normalizeText = (s: string) => (s ?? "").replace(/\s+/g, " ").trim();
 
   const validateBeforeSave = (): string | null => {
-    if (!questions.length) return "กรุณาเพิ่มคำถามอย่างน้อย 1 ข้อ";
+    if (!questions.length) return "กรุณาเพิ่มคำถามอย่างน้อย 1 ข้อ"; // หากไม่มีเลยจะมีการเเจ้งเตือน
 
     for (const [qi, item] of questions.entries()) {
       const qNo = qi + 1;
 
-      // ถ้าไม่ได้กรอก "ข้อความคำถาม" แต่มีการกรอกตัวเลือกในคำตอบแล้ว เตือนให้กรอกคำถามก่อน
+      // ถ้าพิมพ์คำตอบหรือเลือกอารมณ์/คะแนนแล้ว แต่ยังไม่กรอกคำถามให้เตือน
       const hasAnyAnswerInfo = item.answers.some((a) => {
         const desc = normalizeText(a.description);
         const emo = Number(a.EmotionChoiceID || 0);
@@ -283,7 +292,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         return `กรุณากรอกข้อความคำถามที่ ${qNo}`;
       }
 
-      // เตือนกรณีคำตอบกรอกไม่ครบ: เลือกอารมณ์หรือกรอกคะแนน(≠0) แต่ยังไม่กรอกข้อความคำตอบ
+      // ถ้ากรอกคะแนน/อารมณ์ แต่ยังไม่กรอกข้อความคำตอบ ให้เตือน
       for (let ai = 0; ai < item.answers.length; ai++) {
         const a = item.answers[ai];
         const desc = normalizeText(a.description);
@@ -295,7 +304,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         }
       }
 
-      // เลือกเฉพาะคำตอบที่ "มีข้อความ"
+      // ใช้เฉพาะคำตอบที่มีข้อความ
       const validAnswers = item.answers
         .map((a, idx) => ({ ...a, _idx: idx }))
         .filter((a) => normalizeText(a.description) !== "");
@@ -304,7 +313,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         return `กรุณากรอกอย่างน้อย 1 ตัวเลือกในคำถามที่ ${qNo}`;
       }
 
-      // 1) ข้อความคำตอบห้ามซ้ำ
+      // ข้อความคำตอบห้ามซ้ำในข้อเดียวกัน
       const descSeen = new Map<string, number>();
       for (const ans of validAnswers) {
         const key = normalizeText(ans.description);
@@ -316,7 +325,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         descSeen.set(key, ans._idx);
       }
 
-      // 2) อารมณ์ห้ามซ้ำ (ยกเว้น 0 = ยังไม่เลือก)
+      // อารมณ์ห้ามซ้ำ
       const emoSeen = new Map<number, number>();
       for (const ans of validAnswers) {
         const emo = Number(ans.EmotionChoiceID || 0);
@@ -329,7 +338,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         emoSeen.set(emo, ans._idx);
       }
 
-      // ต้องเลือกอารมณ์ให้ทุกคำตอบที่มีข้อความ (คะแนนไม่บังคับและซ้ำได้)
+      // ต้องเลือกอารมณ์ให้ทุกคำตอบที่มีข้อความ
       for (const ans of validAnswers) {
         if (!ans.EmotionChoiceID) {
           return `กรุณาเลือกอารมณ์สำหรับคำตอบที่ ${ans._idx + 1} ของคำถามที่ ${qNo}`;
@@ -340,16 +349,20 @@ const EditQuestionAndAnswer: React.FC = () => {
     return null;
   };
 
+  // ไปหน้าแก้ไขเกณฑ์ 
   const goEditCriteria = (qid: number) => {
     const role = localStorage.getItem("role");
     const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
     navigate(`/${rolePrefix}/editCriteriaPage?questionnaireId=${qid}`, {
-      state: { questionnaireId: qid, name: name.trim()},
+      state: { questionnaireId: qid, name: name.trim()}, // ส่ง id เเละ name ไปยังหน้า เเก้ไขเกณฑ์
       replace: true,
     });
   };
 
+  // บันทึกการเเเก้ไข
   const handleSave = async () => {
+
+    // ตรวจสอบ
     const err = validateBeforeSave();
     if (err) return msg.warning(err);
 
@@ -358,9 +371,11 @@ const EditQuestionAndAnswer: React.FC = () => {
       setSaving(true);
       const payload = questions.map((q) => ({
         question: q.question,
-        // ส่งเฉพาะคำตอบที่มี "ข้อความคำตอบ"
+        // ส่งเฉพาะคำตอบที่ “มีข้อความ”
         answers: q.answers.filter((a) => normalizeText(a.description) !== ""),
       }));
+
+      // เรียกใช้ฟังก์ชัน
       await updateQuestionAndAnswer(questionnaireId!, payload);
 
       await new Promise<void>((r) =>
@@ -368,6 +383,8 @@ const EditQuestionAndAnswer: React.FC = () => {
       );
 
       didNavigate = true;
+
+      // ไปหน้าต่อไป
       goEditCriteria(questionnaireId!);
     } catch (e: any) {
       console.error(e);
@@ -377,7 +394,7 @@ const EditQuestionAndAnswer: React.FC = () => {
     }
   };
 
-  // ====== Helpers for emotion images ======
+  // helper แปลง path รูปอารมณ์จาก Backend >> URL เต็ม
   const apiUrl = import.meta.env.VITE_API_URL as string;
   const joinUrl = (base: string, path: string) =>
     `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
@@ -392,6 +409,7 @@ const EditQuestionAndAnswer: React.FC = () => {
 
   if (!questionnaireId) return null;
 
+  // คลาสตกแต่งอินพุตในตารางคำตอบ
   const inputCls =
     "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors";
   const answerInputCls =
@@ -407,10 +425,12 @@ const EditQuestionAndAnswer: React.FC = () => {
 
   return (
     <div className="w-full max-w-none min-h-screen p-4 pb-20 sm:p-6 lg:p-8 md:pb-8">
+      {/* การเเจ้งเตือน */}
       {contextHolder}
+    
       <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
-      {/* หัวข้อ */}
+      {/* ส่วนหัว */}
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <img
@@ -428,7 +448,7 @@ const EditQuestionAndAnswer: React.FC = () => {
           </div>
         </div>
 
-        {/* ปุ่ม กลับ + บันทึก สำหรับ (เดสก์ท็อป/แท็บเล็ต) */}
+        {/* ปุ่ม กลับเเละบันทึก สำหรับ (เดสก์ท็อป) */}
         <div className="hidden md:flex items-center gap-2">
           <Button
             icon={<RollbackOutlined />}
@@ -449,7 +469,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         </div>
       </div>
 
-      {/* ปุ่มกลางจอ */}
+      {/* ปุ่มจัดการกลางจอ: ขยาย/ย่อ/เพิ่มข้อ */}
       <div className="mb-4">
         <div className="w-full flex justify-center">
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -465,7 +485,6 @@ const EditQuestionAndAnswer: React.FC = () => {
             >
               ย่อทั้งหมด
             </Button>
-            {/* เพิ่มคำถามแบบไม่ล็อคจำนวน */}
             <Button
               icon={<PlusOutlined />}
               className={`${toolBtnCls} !bg-yellow-200 !border-yellow-300 !text-yellow-800 hover:!bg-yellow-300`}
@@ -477,7 +496,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
+      {/* เนื้อหา: ลิสต์คำถามแบบลากเรียงได้ */}
       <Form layout="vertical">
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="question-list">
@@ -513,6 +532,8 @@ const EditQuestionAndAnswer: React.FC = () => {
                                 showArrow={false}
                                 className="bg-transparent"
                                 header={
+
+                                  // แถบหัวของแต่ละคำถาม: ชื่อ + ปุ่มลบ/เปิดปิด/ลากเรียง
                                   <div className="flex flex-col gap-1 md:gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-2">
                                       <img
@@ -525,7 +546,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                       </span>
                                     </div>
 
-                                    {/* ปุ่มชิดขวา */}
+                                    {/* ปุ่มจัดการทั้ง 4 ชิดขวา */}
                                     <div className="flex items-center flex-wrap gap-1 sm:gap-1 md:gap-2 w-full sm:w-auto justify-end self-end sm:self-auto sm:ml-auto">
                                       <Tag
                                         color="black"
@@ -534,6 +555,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                         ลำดับข้อ : {q.question.priority}
                                       </Tag>
 
+                                      {/* ลบทั้งข้อ */}
                                       <Button
                                         danger
                                         type="primary"
@@ -546,6 +568,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                         style={noRingStyle}
                                       />
 
+                                      {/* เปิด/ปิด panel */}
                                       <Button
                                         type="default"
                                         icon={
@@ -562,6 +585,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                         className={squareBtnCls}
                                       />
 
+                                      {/* ที่จับสำหรับลากเรียงลำดับ */}
                                       <div
                                         {...provided2.dragHandleProps}
                                         onClick={(e) => e.stopPropagation()}
@@ -576,7 +600,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                               >
                                 <div className="flex flex-col gap-4 lg:flex-row">
                                   <div className="flex-1 flex flex-col gap-3">
-                                    {/* คำถาม */}
+                                    {/* ช่องกรอกข้อความคำถาม */}
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                                       <label className="text-sm sm:text-base font-semibold">
                                         คำถาม:
@@ -594,7 +618,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                       />
                                     </div>
 
-                                    {/* Header ตาราง (desktop) */}
+                                    {/* หัวตาราง (เฉพาะจอใหญ่) */}
                                     <div className="hidden sm:grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700">
                                       <span className="col-span-6">
                                         ตัวเลือกคำตอบ
@@ -606,7 +630,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                       <span className="col-span-1" />
                                     </div>
 
-                                    {/* สำหรับ MOBILE: card/choice */}
+                                    {/* มุมมองมือถือ: แสดงคำตอบเป็นการ์ด */}
                                     <div className="sm:hidden space-y-5">
                                       {q.answers.map((a, i) => (
                                         <div
@@ -629,6 +653,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                             />
                                           </div>
 
+                                          {/* คำตอบ / คะแนน / อารมณ์ */}
                                           <div>
                                             <Input
                                               placeholder={`ตัวเลือกที่ ${i + 1}`}
@@ -717,7 +742,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                       ))}
                                     </div>
 
-                                    {/* สำหรับ DESKTOP/TABLET: rows */}
+                                    {/* มุมมองจอใหญ่: แสดงเป็นแถวในตาราง */}
                                     <div className="hidden sm:block">
                                       <div className="space-y-2">
                                         {q.answers.map((a, i) => (
@@ -818,6 +843,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                       </div>
                                     </div>
 
+                                    {/* เพิ่มตัวเลือกคำตอบภานในคำถาม */}
                                     <Button
                                       type="dashed"
                                       onClick={() => addAnswer(qIndex)}
@@ -825,7 +851,7 @@ const EditQuestionAndAnswer: React.FC = () => {
                                       + เพิ่มตัวเลือก
                                     </Button>
 
-                                    {/* อัปโหลดรูปภาพ */}
+                                    {/* อัปโหลดรูปของคำถาม (ไม่บังคับ) */}
                                     <Form.Item
                                       label={
                                         <span className="text-sm sm:text-base font-semibold">
@@ -895,7 +921,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         </DragDropContext>
       </Form>
 
-      {/* ปุ่มกลับเเละบันทึกสำหรับมือถือมือถือ */}
+      {/* แถบปุ่มล่างสำหรับมือถือ: กลับเเละบันทึก */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2 pb-[env(safe-area-inset-bottom)]">
           <Button
@@ -917,7 +943,7 @@ const EditQuestionAndAnswer: React.FC = () => {
         </div>
       </div>
 
-      {/* Preview Modal สำหรับดูตัวอย่างรูป */}
+      {/* Modal พรีวิวรูปคำถาม */}
       <Modal
         open={previewVisible}
         footer={null}
