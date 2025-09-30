@@ -1,6 +1,8 @@
 // path: frontend/src/pages/feedback/UserFeedbackModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import { X, Star } from "lucide-react";
+import { createPortal } from "react-dom";
+
 import {
   getUserFeedbackForm,
   submitUserFeedback,
@@ -22,11 +24,11 @@ type Props = {
 
 // เก็บสถานะด้วย "index ของคำถาม" เพื่อกัน q.id ซ้ำข้ามกลุ่ม
 type DraftAnswer = {
-  questionIndex: number;     // index ภายในฟอร์ม
+  questionIndex: number;
   rating?: number;
   text?: string;
-  optionIndex?: number;      // single
-  optionIndexes?: number[];  // multi
+  optionIndex?: number;
+  optionIndexes?: number[];
 };
 type DraftAnswerMap = Record<number, DraftAnswer>;
 
@@ -43,7 +45,7 @@ function StarRating({
 }) {
   return (
     <div className="flex gap-2">
-      {[1,2,3,4,5].map((n) => (
+      {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}
           type="button"
@@ -63,12 +65,12 @@ function StarRating({
 }
 
 export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Props) {
-  const [loading, setLoading]   = useState(false);
-  const [saving, setSaving]     = useState(false);
-  const [form, setForm]         = useState<FeedbackFormResponse | null>(null);
-  const [answers, setAnswers]   = useState<DraftAnswerMap>({});
-  const [okMsg, setOkMsg]       = useState<string | null>(null);
-  const [errMsg, setErrMsg]     = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<FeedbackFormResponse | null>(null);
+  const [answers, setAnswers] = useState<DraftAnswerMap>({});
+  const [okMsg, setOkMsg] = useState<string | null>(null);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
   // โหลดฟอร์มเมื่อเปิด
   useEffect(() => {
@@ -103,7 +105,9 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
       }
     }
     load();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [open]);
 
   // ตรวจความครบถ้วน
@@ -114,11 +118,16 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
       const a = answers[qi];
       if (!a) return false;
       switch (q.type as QuestionType) {
-        case "rating":        return typeof a.rating === "number" && a.rating >= 1 && a.rating <= 5;
-        case "text":          return typeof a.text === "string" && a.text.trim().length > 0;
-        case "choice_single": return typeof a.optionIndex === "number";
-        case "choice_multi":  return Array.isArray(a.optionIndexes) && a.optionIndexes.length > 0;
-        default:              return false;
+        case "rating":
+          return typeof a.rating === "number" && a.rating >= 1 && a.rating <= 5;
+        case "text":
+          return typeof a.text === "string" && a.text.trim().length > 0;
+        case "choice_single":
+          return typeof a.optionIndex === "number";
+        case "choice_multi":
+          return Array.isArray(a.optionIndexes) && a.optionIndexes.length > 0;
+        default:
+          return false;
       }
     });
   }, [answers, form]);
@@ -146,7 +155,7 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
         period_key: periodKey,
         answers: qs.map((q, qi) => {
           const a = answers[qi];
-          const qid = q.id; // id จริงที่แบ็กเอนด์ต้องการ
+          const qid = q.id;
 
           if (q.type === "rating") {
             return { question_id: qid, rating: a?.rating ?? 0 };
@@ -184,8 +193,9 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
 
   const questions = form?.questions ?? [];
 
-  return (
-    <div className="fixed inset-0 z-[60]">
+  // ===== MODAL CONTENT (wrapped) =====
+  const modal = (
+    <div className="fixed inset-0 z-[10000]">
       {/* backdrop */}
       <div
         className="absolute inset-0 bg-slate-900/40"
@@ -235,8 +245,8 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
                     {(q.type === "choice_single" || q.type === "choice_multi") && (
                       <div className="mt-1 grid gap-2">
                         {(q.options ?? []).map((op: IFeedbackOption, oi: number) => {
-                          const groupName = `q-${qi}`;          // กลุ่มจำแนกด้วย questionIndex
-                          const inputId   = `q-${qi}-op-${oi}`; // คีย์เสถียร
+                          const groupName = `q-${qi}`;
+                          const inputId = `q-${qi}-op-${oi}`;
 
                           if (q.type === "choice_single") {
                             const selected = answers[qi]?.optionIndex === oi;
@@ -260,7 +270,7 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
                           }
 
                           // MULTI
-                          const current  = answers[qi]?.optionIndexes ?? [];
+                          const current = answers[qi]?.optionIndexes ?? [];
                           const selected = current.includes(oi);
 
                           return (
@@ -276,8 +286,8 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
                                 checked={!!selected}
                                 onChange={(e) => {
                                   const checked = e.target.checked;
-                                  const before  = answers[qi]?.optionIndexes ?? [];
-                                  const next    = checked
+                                  const before = answers[qi]?.optionIndexes ?? [];
+                                  const next = checked
                                     ? Array.from(new Set([...before, oi]))
                                     : before.filter((x) => x !== oi);
                                   setAnswer(qi, { optionIndexes: next });
@@ -329,4 +339,8 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
       </div>
     </div>
   );
+
+  // ส่งออกด้วย Portal (ใช้ #modal-root ถ้ามี ไม่งั้น fallback เป็น body)
+  const host = document.getElementById("modal-root") ?? document.body;
+  return createPortal(modal, host);
 }
