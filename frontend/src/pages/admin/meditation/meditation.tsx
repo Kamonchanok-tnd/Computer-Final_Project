@@ -162,7 +162,7 @@ const VideoForm: React.FC = () => {
       <div className=" mx-auto md:px-4">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-xl font-medium text-gray-800">สร้างคอนเทนต์เสียง</h1>
+          <h1 className="text-xl font-medium text-gray-800">สร้างวิดีโอ</h1>
         </div>
 
         {/* Main Form Container */}

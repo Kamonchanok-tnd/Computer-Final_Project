@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Form, Input, InputNumber, Modal, Tag, Collapse, Upload, Select, message, Spin } from "antd";
-import { DeleteOutlined, MenuOutlined, MinusSquareOutlined, PlusSquareOutlined, UploadOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
+import { MenuOutlined, MinusSquareOutlined, PlusSquareOutlined, UploadOutlined, SaveOutlined, DeleteOutlined } from "@ant-design/icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
-
 import { Question } from "../../../../interfaces/IQuestion";
 import { AnswerOption } from "../../../../interfaces/IAnswerOption";
 import { EmotionChoice } from "../../../../interfaces/IEmotionChoices";
@@ -13,11 +12,13 @@ import manageQuestionAndAnswerIcon from "../../../../assets/manageQuestionAndAns
 
 const { Panel } = Collapse;
 
+// โครงสร้างข้อมูลคำถามเเละคำตอบ
 interface QuestionWithAnswers {
   question: Question & { priority: number };
   answers: AnswerOption[];
 }
 
+// สีพื้นหลังสลับแต่ละข้อ
 const bgClasses = [
   "bg-gradient-to-br from-blue-50 to-blue-100",
   "bg-gradient-to-br from-pink-50 to-pink-100",
@@ -26,6 +27,7 @@ const bgClasses = [
   "bg-gradient-to-br from-violet-50 to-violet-100",
 ];
 
+// การตกเเต่งปุ่มทรงสี่เหลี่ยม 
 const squareBtnCls =
   "!p-0 rounded-lg border border-slate-300 bg-white text-gray-700 " +
   "hover:!border-black hover:!text-black active:scale-[.98] " +
@@ -35,25 +37,27 @@ const noRingCls = "!border-none !shadow-none";
 const noRingStyle: React.CSSProperties = { boxShadow: "none", outline: "none" };
 
 const FormStepQuestion: React.FC = () => {
+  
+  // รับค่าที่ถูกส่งมาจากหน้าก่อน
   const location = useLocation();
   const navigate = useNavigate();
   const [msg, contextHolder] = message.useMessage();
 
+  // รับ questionnaireId / จำนวนข้อ / ชื่อแบบทดสอบ จาก state
   const questionnaireId = (location.state as any)?.questionnaireId as number | undefined;
-  const quantity = (location.state as any)?.quantity ?? 3;
+  const quantity = (location.state as any)?.quantity ?? 1;
+  const name = (location.state as any)?.name ?? "";
 
-  const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
-  const [activeKeys, setActiveKeys] = useState<string[]>([]);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [emotionChoices, setEmotionChoices] = useState<EmotionChoice[]>([]);
+  // สถานะหลักของหน้า
+  const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);    // ลิสต์คำถามทั้งหมด
+  const [activeKeys, setActiveKeys] = useState<string[]>([]);               
+  const [previewImage, setPreviewImage] = useState<string | null>(null);    // รูปพรีวิว (Modal)
+  const [previewVisible, setPreviewVisible] = useState(false);              // เปิด/ปิด Modal พรีวิว
+  const [submitting, setSubmitting] = useState(false);                   
+  const [emotionChoices, setEmotionChoices] = useState<EmotionChoice[]>([]); 
+  useMemo(() => quantity, [quantity]); 
 
-  const remaining = useMemo(
-    () => (typeof quantity === "number" ? quantity - questions.length : undefined),
-    [quantity, questions.length]
-  );
-
+  //  ตรวจว่ามี questionnaireId 
   useEffect(() => {
     if (!questionnaireId) {
       msg.warning("ไม่พบข้อมูลแบบทดสอบ");
@@ -61,15 +65,26 @@ const FormStepQuestion: React.FC = () => {
       return;
     }
 
+    // เตรียมโครงคำถามเริ่มต้น (แต่ละข้อมี 4 ตัวเลือกว่าง)
     const init: QuestionWithAnswers[] = Array.from({ length: quantity }, (_, i) => ({
-      question: { id: 0, nameQuestion: "", quID: questionnaireId, priority: i + 1, picture: null },
+      question: {
+        id: 0,
+        nameQuestion: "",
+        quID: questionnaireId,
+        priority: i + 1,     // ลำดับข้อ
+        picture: null,       // base64 รูปที่อัปโหลด
+      },
       answers: Array.from({ length: 4 }, (_, aIndex) => ({
-        id: aIndex, description: "", point: 0, EmotionChoiceID: 0,
+        id: aIndex,
+        description: "",
+        point: 0,            // คะแนน (ไม่บังคับ)
+        EmotionChoiceID: 0,  // id อารมณ์ (ต้องเลือกเมื่อมีข้อความคำตอบ)
       })),
     }));
     setQuestions(init);
-    setActiveKeys(init.map((_, i) => i.toString()));
+    setActiveKeys(init.map((_, i) => i.toString())); // เปิดทุกข้อไว้ก่อน
 
+    // โหลดตัวเลือกอารมณ์จาก Backend
     (async () => {
       try {
         const data = await getAllEmotionChoices();
@@ -81,21 +96,27 @@ const FormStepQuestion: React.FC = () => {
     })();
   }, [questionnaireId, quantity]);
 
+  // จัดการเปิด/ปิดแผง เเละ ปุ่มขยาย/ย่อทั้งหมด
   const togglePanel = (key: string) =>
     setActiveKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
   const expandAll = () => setActiveKeys(questions.map((_, i) => i.toString()));
   const collapseAll = () => setActiveKeys([]);
 
+  // จัดเรียงข้อคำถามด้วย drag & drop เเละ อัปเดต priority ใหม่
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const reordered = Array.from(questions);
     const [movedItem] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, movedItem);
     setQuestions(
-      reordered.map((q, index) => ({ ...q, question: { ...q.question, priority: index + 1 } }))
+      reordered.map((q, index) => ({
+        ...q,
+        question: { ...q.question, priority: index + 1 },
+      }))
     );
   };
 
+  // อัปเดตข้อความคำถาม
   const updateQuestionText = (qIndex: number, value: string) =>
     setQuestions((prev) => {
       const updated = [...prev];
@@ -103,20 +124,17 @@ const FormStepQuestion: React.FC = () => {
       return updated;
     });
 
-  const updateAnswer = (
-    qIndex: number,
-    aIndex: number,
-    field: "description" | "point",
-    value: string | number
-  ) =>
+  // อัปเดตค่าในคำตอบ (description/point)
+  const updateAnswer = (qIndex: number, aIndex: number, field: "description" | "point", value: string | number) =>
     setQuestions((prev) => {
       const updated = [...prev];
       const answers = [...updated[qIndex].answers];
-      answers[aIndex] = { ...(answers[aIndex] as any), [field]: value } as any;
+      (answers[aIndex] as any)[field] = value as any;
       updated[qIndex] = { ...updated[qIndex], answers };
       return updated;
     });
 
+  // ตั้งค่าอารมณ์ให้คำตอบ
   const setAnswerEmotion = (qIndex: number, aIndex: number, emoId: number) =>
     setQuestions((prev) => {
       const updated = [...prev];
@@ -126,13 +144,13 @@ const FormStepQuestion: React.FC = () => {
       return updated;
     });
 
+  // เพิ่ม/ลบตัวเลือกคำตอบ
   const addAnswer = (qIndex: number) =>
     setQuestions((prev) => {
       const updated = [...prev];
       updated[qIndex].answers.push({ id: updated[qIndex].answers.length, description: "", point: 0, EmotionChoiceID: 0 });
       return updated;
     });
-
   const removeAnswer = (qIndex: number, aIndex: number) =>
     setQuestions((prev) => {
       const updated = [...prev];
@@ -140,45 +158,10 @@ const FormStepQuestion: React.FC = () => {
       return updated;
     });
 
-  const addQuestion = () => {
-    if (typeof quantity === "number" && questions.length >= quantity) {
-      msg.info("ครบจำนวนข้อที่กำหนดแล้ว");
-      return;
-    }
-    setQuestions((prev) => {
-      const next = [
-        ...prev,
-        {
-          question: { id: 0, nameQuestion: "", quID: questionnaireId!, picture: null, priority: prev.length + 1 },
-          answers: [
-            { id: 0, description: "", point: 0, EmotionChoiceID: 0 },
-            { id: 1, description: "", point: 0, EmotionChoiceID: 0 },
-          ],
-        },
-      ];
-      setActiveKeys((keys) => [...keys, String(prev.length)]);
-      return next;
-    });
-  };
-
-  const removeQuestion = (qIndex: number) =>
-    setQuestions((prev) => {
-      const arr = [...prev];
-      arr.splice(qIndex, 1);
-      const next = arr.map((q, i) => ({ ...q, question: { ...q.question, priority: i + 1 } }));
-      setActiveKeys((keys) => keys.filter((k) => k !== String(qIndex)));
-      return next;
-    });
-
+  // อัปโหลดรูปคำถาม: ตรวจชนิด/ขนาด  แปลง base64 เเล้ว เก็บใน state
   const handleImageUpload = (file: File, qIndex: number) => {
-    if (!file.type?.startsWith("image/")) {
-      msg.error("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
-      return false;
-    }
-    if (file.size / 1024 / 1024 >= 5) {
-      msg.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
-      return false;
-    }
+    if (!file.type?.startsWith("image/")) { msg.error("กรุณาเลือกไฟล์รูปภาพเท่านั้น"); return false; }
+    if (file.size / 1024 / 1024 >= 5) { msg.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB"); return false; }
     const reader = new FileReader();
     reader.onloadend = () =>
       setQuestions((prev) => {
@@ -187,9 +170,10 @@ const FormStepQuestion: React.FC = () => {
         return updated;
       });
     reader.readAsDataURL(file);
-    return false;
+    return false; // ป้องกัน antd อัปโหลดจริง
   };
 
+  // เปิดปิดพรีวิวรูป + ลบรูป
   const handlePreview = (image: string) => { setPreviewImage(image); setPreviewVisible(true); };
   const handleRemoveImage = (qIndex: number) =>
     setQuestions((prev) => {
@@ -198,27 +182,88 @@ const FormStepQuestion: React.FC = () => {
       return updated;
     });
 
+  
+    // การตรวจสอบ Validation ก่อนบันทึก
+  const normalizeText = (s: string) => (s ?? "").replace(/\s+/g, " ").trim();
   const validateBeforeSubmit = (): string | null => {
     if (!questions.length) return "กรุณาเพิ่มคำถามอย่างน้อย 1 ข้อ";
-    for (const [i, item] of questions.entries()) {
-      if (!item.question.nameQuestion?.trim()) return `กรุณากรอกข้อความคำถามที่ ${i + 1}`;
-      const valid = item.answers.filter((a) => a.description.trim() !== "");
-      if (!valid.length) return `กรุณากรอกอย่างน้อย 1 ตัวเลือกในคำถามที่ ${i + 1}`;
-      for (const [j, a] of valid.entries()) {
-        if (!a.EmotionChoiceID) return `กรุณาเลือกอารมณ์สำหรับคำตอบที่ ${j + 1} ของคำถามที่ ${i + 1}`;
+
+    for (const [qi, item] of questions.entries()) {
+      const qNo = qi + 1;
+
+      // ถ้ามีแตะข้อมูลคำตอบแล้ว แต่ไม่มีข้อความคำถาม  ให้เตือน
+      const hasAnyAnswerInfo = item.answers.some((a) => {
+        const desc = normalizeText(a.description);
+        const emo = Number(a.EmotionChoiceID || 0);
+        const pointFilled = a.point !== undefined && a.point !== null && Number(a.point) !== 0;
+        return desc !== "" || emo > 0 || pointFilled;
+      });
+      if (!item.question.nameQuestion?.trim()) {
+        if (hasAnyAnswerInfo) return `กรุณากรอกข้อความคำถามที่ ${qNo} ก่อน (ตรวจพบว่ามีการกรอกคำตอบ/เลือกอารมณ์แล้ว)`;
+        return `กรุณากรอกข้อความคำถามที่ ${qNo}`;
+      }
+
+      // ถ้าคำตอบยังไม่มีข้อความ แต่มีคะแนน/อารมณ์ ให้เตือนให้กรอกให้ครบ
+      for (let ai = 0; ai < item.answers.length; ai++) {
+        const a = item.answers[ai];
+        const desc = normalizeText(a.description);
+        const emo = Number(a.EmotionChoiceID || 0);
+        const pointFilled = a.point !== undefined && a.point !== null && Number(a.point) !== 0;
+        if (desc === "" && (emo > 0 || pointFilled)) {
+          return `คำตอบที่ ${ai + 1} ของคำถามที่ ${qNo} กรอกข้อมูลไม่ครบ (กรุณากรอกข้อความคำตอบด้วย หรือเคลียร์ฟิลด์ที่ไม่ใช้)`;
+        }
+      }
+
+      // เลือกเฉพาะคำตอบที่มีข้อความจริง
+      const validAnswers = item.answers
+        .map((a, idx) => ({ ...a, _idx: idx }))
+        .filter((a) => normalizeText(a.description) !== "");
+      if (!validAnswers.length) return `กรุณากรอกอย่างน้อย 1 ตัวเลือกในคำถามที่ ${qNo}`;
+
+      // ข้อความคำตอบห้ามซ้ำ
+      const descSeen = new Map<string, number>();
+      for (const ans of validAnswers) {
+        const key = normalizeText(ans.description);
+        if (descSeen.has(key)) {
+          const firstIdx = (descSeen.get(key) ?? 0) + 1;
+          const dupIdx = ans._idx + 1;
+          return `คำตอบซ้ำกันในคำถามที่ ${qNo} (ตัวเลือกที่ ${firstIdx} และ ${dupIdx})`;
+        }
+        descSeen.set(key, ans._idx);
+      }
+
+      // อารมณ์ห้ามซ้ำ 
+      const emoSeen = new Map<number, number>();
+      for (const ans of validAnswers) {
+        const emo = Number(ans.EmotionChoiceID || 0);
+        if (!emo) continue;
+        if (emoSeen.has(emo)) {
+          const firstIdx = (emoSeen.get(emo) ?? 0) + 1;
+          const dupIdx = ans._idx + 1;
+          return `อารมณ์ซ้ำกันในคำถามที่ ${qNo} (ตัวเลือกที่ ${firstIdx} และ ${dupIdx})`;
+        }
+        emoSeen.set(emo, ans._idx);
+      }
+
+      // ต้องเลือกอารมณ์ให้ทุกคำตอบที่มีข้อความ
+      for (const ans of validAnswers) {
+        if (!ans.EmotionChoiceID) return `กรุณาเลือกอารมณ์สำหรับคำตอบที่ ${ans._idx + 1} ของคำถามที่ ${qNo}`;
       }
     }
     return null;
   };
 
+  // เมื่อบันทึกสำเร็จจะพาไปหน้าสร้างเกณฑ์การประเมิน
   const goCreateCriteria = (qid: number) => {
-    
     const role = localStorage.getItem("role");
     const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
-    navigate(`/${rolePrefix}/createCriteriaPage?questionnaireId=${qid}`, { state: { questionnaireId: qid }, replace: true });
-  }
+    navigate(`/${rolePrefix}/createCriteriaPage?questionnaireId=${qid}`, {
+      state: { questionnaireId: qid, name: name.trim() }, // ส่ง id เเละ name ไปต่อ
+      replace: true,
+    });
+  };
 
-
+  // กดบันทึกทั้งหมด: ตรวจ validate > แปลงข้อมูล (ตัดคำตอบว่าง) > เรียก API > ไปหน้าถัดไป
   const handleSubmit = async () => {
     if (submitting) return;
     const err = validateBeforeSubmit();
@@ -229,12 +274,10 @@ const FormStepQuestion: React.FC = () => {
       setSubmitting(true);
       const cleaned = questions.map((q) => ({
         question: q.question,
-        answers: q.answers.filter((a) => a.description.trim() !== ""),
+        answers: q.answers.filter((a) => normalizeText(a.description) !== ""), // ส่งเฉพาะคำตอบที่มีข้อความ
       }));
       await createQuestions(cleaned);
-      await new Promise<void>((resolve) =>
-        msg.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
-      );
+      await new Promise<void>((resolve) => msg.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve }));
       didNavigate = true;
       goCreateCriteria(questionnaireId!);
     } catch (error: any) {
@@ -245,68 +288,51 @@ const FormStepQuestion: React.FC = () => {
     }
   };
 
+  // สร้าง URL รูปตัวเลือกอารมณ์ 
   const apiUrl = import.meta.env.VITE_API_URL as string;
   const joinUrl = (base: string, path: string) => `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
   const buildImageSrc = (picture?: string | null) =>
-    !picture ? "" : /^https?:\/\//i.test(picture)
+    !picture
+      ? ""
+      : /^https?:\/\//i.test(picture)
       ? picture
       : /^\/?images\/emotion_choice\//i.test(picture)
       ? joinUrl(apiUrl, picture)
       : joinUrl(apiUrl, `images/emotion_choice/${picture}`);
 
-  if (!questionnaireId) return null;
+  if (!questionnaireId) return null; // ป้องกันเรนเดอร์หากไม่มี id
 
-  const inputCls =
-    "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors";
-  const answerInputCls =
-    "w-full !rounded-md !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0";
-  const answerNumberCls =
-    "w-full !rounded-md !border-slate-300 hover:!border-black focus-within:!border-black focus-within:!shadow-none";
+  // คลาสตกแต่งฟอร์ม
+  const inputCls = "!rounded-xl !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0 transition-colors";
+  const answerInputCls = "w-full !rounded-md !border-slate-300 hover:!border-black focus:!border-black focus:!ring-0";
+  const answerNumberCls = "w-full !rounded-md !border-slate-300 hover:!border-black focus-within:!border-black focus-within:!shadow-none";
   const answerSelectCls =
     "w-full [&_.ant-select-selector]:!rounded-md [&_.ant-select-selector]:!border-slate-300 " +
     "hover:[&_.ant-select-selector]:!border-black focus:[&_.ant-select-selector]:!border-black";
-
-  const toolBtnCls =
-    "h-10 px-3 sm:px-4 rounded-xl font-medium shadow-sm border transition-colors hover:!border-black active:scale-[.99]";
+  const toolBtnCls = "h-10 px-3 sm:px-4 rounded-xl font-medium shadow-sm border transition-colors hover:!border-black active:scale-[.99]";
 
   return (
     <div className="w-full max-w-none min-h-screen p-4 pb-20 sm:p-6 lg:p-8 md:pb-8">
       {contextHolder}
       <Spin spinning={submitting} fullscreen tip="กำลังบันทึกข้อมูล..." />
 
-      {/* Title */}
+      {/* ส่วนหัว: ชื่อหน้า + ปุ่มบันทึก (เดสก์ท็อป) */}
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <img src={manageQuestionAndAnswerIcon} alt="manage" className="h-12 w-12 sm:h-16 sm:w-16 object-contain" />
           <div>
             <h2 className="text-2xl sm:text-2xl font-bold text-gray-800">สร้างคำถามและคำตอบ</h2>
-            <div className="text-sm text-gray-500">
-              แบบทดสอบ ID: {questionnaireId}
-              {typeof quantity === "number" && (
-                <Tag color={remaining! < 0 ? "red" : "blue"} className="ml-2">
-                  จำนวนข้อที่กำหนด: {quantity}
-                  {typeof remaining === "number" && remaining >= 0 && <> (เหลือเพิ่มได้อีก {remaining})</>}
-                </Tag>
-              )}
-            </div>
+            <div className="text-sm text-gray-500">แบบทดสอบ ID: {questionnaireId}, ชื่อเเบบทดสอบ: {name}</div>
           </div>
         </div>
-
-        {/* Save (desktop/tablet) */}
         <div className="hidden md:flex items-center gap-2">
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            onClick={handleSubmit}
-            loading={submitting}
-            className="!bg-[#5DE2FF] hover:!bg-cyan-500"
-          >
+          <Button type="primary" icon={<SaveOutlined />} onClick={handleSubmit} loading={submitting} className="!bg-[#5DE2FF] hover:!bg-cyan-500">
             บันทึกคำถามและคำตอบทั้งหมด
           </Button>
         </div>
       </div>
 
-      {/* ปุ่มควบคุมกลางจอ */}
+      {/* ปุ่มควบคุมขยาย/ย่อ ทั้งหมด */}
       <div className="mb-4">
         <div className="w-full flex justify-center">
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -316,19 +342,11 @@ const FormStepQuestion: React.FC = () => {
             <Button className={`${toolBtnCls} !bg-green-200 !border-green-300 !text-green-800 hover:!bg-green-300`} onClick={collapseAll}>
               ย่อทั้งหมด
             </Button>
-            <Button
-              icon={<PlusOutlined />}
-              className={`${toolBtnCls} !bg-yellow-200 !border-yellow-300 !text-yellow-800 hover:!bg-yellow-300`}
-              onClick={addQuestion}
-              disabled={typeof quantity === "number" && questions.length >= quantity}
-            >
-              เพิ่มคำถาม
-            </Button>
           </div>
         </div>
       </div>
 
-      {/* Content */}
+      {/* เนื้อหา: ลิสต์คำถามที่ลากเรียงได้ */}
       <Form layout="vertical">
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="question-list">
@@ -352,34 +370,22 @@ const FormStepQuestion: React.FC = () => {
                                 showArrow={false}
                                 className="bg-transparent"
                                 header={
+                                  // แถบหัวข้อของแต่ละข้อ: ชื่อข้อ + ปุ่มเปิด/ปิด + drag handle + แสดงลำดับ
                                   <div className="flex flex-col gap-1 md:gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-2">
                                       <img src={questionIcon} alt="question" className="w-5 h-5 object-contain" />
                                       <span className="text-base sm:text-lg font-semibold">คำถามข้อที่ {qIndex + 1}</span>
                                     </div>
-
-                                    {/* ปุ่มชิดขวา */}
                                     <div className="flex items-center flex-wrap gap-1 sm:gap-1 md:gap-2 w-full sm:w-auto justify-end self-end sm:self-auto sm:ml-auto">
                                       <Tag color="black" className="text-white rounded-md px-1.5 py-0.5 text-[11px] sm:text-xs md:text-sm">
                                         ลำดับข้อ : {q.question.priority}
                                       </Tag>
-                                      
-                                      <Button
-                                        danger
-                                        type="primary"
-                                        icon={<DeleteOutlined />}
-                                        onClick={(e) => { e.stopPropagation(); removeQuestion(qIndex); }}
-                                        className={`${squareBtnCls} !bg-rose-600 hover:!bg-rose-700 active:!bg-rose-800 ${noRingCls}`}
-                                        style={noRingStyle}
-                                      />
-
                                       <Button
                                         type="default"
                                         icon={activeKeys.includes(panelKey) ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
                                         onClick={(e) => { e.stopPropagation(); togglePanel(panelKey); }}
                                         className={squareBtnCls}
                                       />
-
                                       <div
                                         {...provided2.dragHandleProps}
                                         onClick={(e) => e.stopPropagation()}
@@ -388,14 +394,13 @@ const FormStepQuestion: React.FC = () => {
                                       >
                                         <MenuOutlined />
                                       </div>
-
                                     </div>
                                   </div>
                                 }
                               >
                                 <div className="flex flex-col gap-4 lg:flex-row">
                                   <div className="flex-1 flex flex-col gap-3">
-                                    {/* คำถาม */}
+                                    {/* ช่องกรอกข้อความคำถาม */}
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                                       <label className="text-sm sm:text-base font-semibold">คำถาม:</label>
                                       <Input
@@ -406,7 +411,7 @@ const FormStepQuestion: React.FC = () => {
                                       />
                                     </div>
 
-                                    {/* หัวตาราง (desktop) */}
+                                    {/* ส่วนหัวตาราง (เดสก์ท็อป) */}
                                     <div className="hidden sm:grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700">
                                       <span className="col-span-6">ตัวเลือกคำตอบ</span>
                                       <span className="col-span-2">คะแนน</span>
@@ -414,17 +419,12 @@ const FormStepQuestion: React.FC = () => {
                                       <span className="col-span-1" />
                                     </div>
 
-                                    {/* ===== MOBILE: การ์ดต่อคำตอบ  ===== */}
+                                    {/* จัดวางสำหรับมือถือ */}
                                     <div className="sm:hidden space-y-5">
                                       {q.answers.map((a, i) => (
-                                        <div
-                                          key={`m-q${qIndex}-a${i}-${a.id ?? "new"}`}
-                                          className="rounded-xl border border-slate-200 bg-white/60 p-4"
-                                        >
+                                        <div key={`m-q${qIndex}-a${i}-${a.id ?? "new"}`} className="rounded-xl border border-slate-200 bg-white/60 p-4">
                                           <div className="mb-3 flex items-center justify-between">
-                                            <span className="text-sm font-semibold text-gray-700">
-                                              คำตอบที่ {i + 1} ของข้อ {qIndex + 1}
-                                            </span>
+                                            <span className="text-sm font-semibold text-gray-700">คำตอบที่ {i + 1} ของข้อ {qIndex + 1}</span>
                                             <Button
                                               danger
                                               type="primary"
@@ -435,7 +435,6 @@ const FormStepQuestion: React.FC = () => {
                                             />
                                           </div>
 
-                                          {/* ใช้ wrapper คุมช่องไฟและความกว้างแทน */}
                                           <div>
                                             <Input
                                               placeholder={`ตัวเลือกที่ ${i + 1}`}
@@ -446,7 +445,7 @@ const FormStepQuestion: React.FC = () => {
 
                                             <div className="mt-4">
                                               <InputNumber
-                                                placeholder="คะแนน"
+                                                placeholder="คะแนน (ไม่บังคับ)"
                                                 value={a.point}
                                                 onChange={(v) => updateAnswer(qIndex, i, "point", Number(v ?? 0))}
                                                 min={0}
@@ -472,11 +471,7 @@ const FormStepQuestion: React.FC = () => {
                                                   <Select.Option key={c.id} value={c.id} label={c.name}>
                                                     <div className="flex items-center gap-2">
                                                       {c.picture && (
-                                                        <img
-                                                          src={buildImageSrc(c.picture)}
-                                                          alt={c.name}
-                                                          className="w-6 h-6 object-cover rounded-full"
-                                                        />
+                                                        <img src={buildImageSrc(c.picture)} alt={c.name} className="w-6 h-6 object-cover rounded-full" />
                                                       )}
                                                       <span>{c.name}</span>
                                                     </div>
@@ -489,7 +484,7 @@ const FormStepQuestion: React.FC = () => {
                                       ))}
                                     </div>
 
-                                    {/* ===== DESKTOP/TABLET: แบบตาราง ===== */}
+                                    {/* เดสก์ท็อป/แท็บเล็ต: grid 12 คอลัมน์ */}
                                     <div className="hidden sm:block">
                                       <div className="space-y-2">
                                         {q.answers.map((a, i) => (
@@ -502,7 +497,7 @@ const FormStepQuestion: React.FC = () => {
                                             />
                                             <div className="col-span-2">
                                               <InputNumber
-                                                placeholder="คะแนน"
+                                                placeholder="คะแนน (ไม่บังคับ)"
                                                 value={a.point}
                                                 onChange={(v) => updateAnswer(qIndex, i, "point", Number(v ?? 0))}
                                                 min={0}
@@ -546,9 +541,12 @@ const FormStepQuestion: React.FC = () => {
                                       </div>
                                     </div>
 
-                                    <Button type="dashed" onClick={() => addAnswer(qIndex)}>+ เพิ่มตัวเลือก</Button>
+                                    {/* เพิ่มตัวเลือกคำตอบใหม่ */}
+                                    <Button type="dashed" onClick={() => addAnswer(qIndex)}>
+                                      + เพิ่มตัวเลือก
+                                    </Button>
 
-                                    {/* อัปโหลดรูป */}
+                                    {/* อัปโหลดรูปคำถาม */}
                                     <Form.Item label={<span className="text-sm sm:text-base font-semibold">อัปโหลดรูป (ถ้ามี)</span>} className="w-full">
                                       {!q.question.picture ? (
                                         <Upload
@@ -594,23 +592,30 @@ const FormStepQuestion: React.FC = () => {
                     </Draggable>
                   );
                 })}
-                {provided.placeholder}
+                {provided.placeholder /* กัน layout กระโดดขณะลาก */}
               </div>
             )}
           </Droppable>
         </DragDropContext>
       </Form>
 
-      {/* Sticky action bar (มือถือ) */}
+      {/* แถบปุ่มล่างแบบติดจอสำหรับมือถือ */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
         <div className="flex gap-2 px-4 py-2">
-          <Button block type="primary" className="!bg-[#5DE2FF] hover:!bg-cyan-500" icon={<SaveOutlined />} onClick={handleSubmit} loading={submitting}>
+          <Button
+            block
+            type="primary"
+            className="!bg-[#5DE2FF] hover:!bg-cyan-500"
+            icon={<SaveOutlined />}
+            onClick={handleSubmit}
+            loading={submitting}
+          >
             บันทึกทั้งหมด
           </Button>
         </div>
       </div>
 
-      {/* Preview Modal (กดที่รูปเพื่อเปิดเท่านั้น) */}
+      {/* Modal พรีวิวรูป */}
       <Modal
         open={previewVisible}
         footer={null}

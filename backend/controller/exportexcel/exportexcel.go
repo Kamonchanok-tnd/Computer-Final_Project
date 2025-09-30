@@ -16,7 +16,7 @@ import (
 type ExportRow struct {
 	Username           string `db:"username"`
 	PersonType         string `db:"persontype"`  // เพิ่ม db tag
-	Year               int    `db:"year"`
+	Year               string    `db:"year"`
 	Faculty            string `db:"faculty"`
 	AssessmentDate     string `db:"assessment_date"`
 	QuestionnaireName  string `db:"questionnaire_name"`
@@ -190,8 +190,7 @@ func ExportExcel(c *gin.Context) {
 
 		// Header
         headers := []string{
-			 "ชื่อผู้ใช้", "ประเภทผู้ใช้","ชั้นปี","สำนักวิชา","วันที่ประเมิน",
-			 "คำถาม", "คำตอบ", "คะแนน",
+			 "ชื่อผู้ใช้", "ประเภทผู้ใช้","ชั้นปี","สำนักวิชา","วันที่ประเมิน","แบบสอบถาม","คำถาม", "คำตอบ", "คะแนน",
 		}
 		
 		// เขียน header
@@ -216,6 +215,7 @@ func ExportExcel(c *gin.Context) {
 				row.Year,
 				row.Faculty,
 				row.AssessmentDate,
+				row.QuestionnaireName,
 				row.QuestionText,
 				row.AnswerText,
 				row.AnswerScore,

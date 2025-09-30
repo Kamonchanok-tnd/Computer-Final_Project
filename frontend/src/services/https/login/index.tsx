@@ -17,6 +17,7 @@ async function SignIn(data: SignInInterface) {
     .then((res) => res)
     .catch((e) => e.response);
 }
+
 async function GetGender() {
   return await axios
     .get(`${apiUrl}/genders`, requestOptions)

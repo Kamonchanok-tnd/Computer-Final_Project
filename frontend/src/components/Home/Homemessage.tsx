@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WordHealingContent } from "../../interfaces/IWordHealingContent";
 import {checkIfLikedArticle,getAllWordHealingMessagesForUser,likeMessage,unlikeMessage,countViewMessage,} from "../../services/https/message";
+import { getAllArticleTypes } from "../../services/https/articletype";
+import type { ArticleType } from "../../interfaces/IArticleType";
 import { BookOpen, Heart } from "lucide-react";
 import { Modal } from "antd";
 import { AiFillHeart, AiOutlineHeart, AiOutlineEye } from "react-icons/ai";
 import healmessage from "../../assets/healmessage.jpg";
 import { useNavigate } from "react-router-dom";
 
-/* ---------------- Helpers ---------------- */
+// Helpers ตรวจชนิดไฟล์/เวลา/รูปแบบวันที่
 const isPdf = (s?: string | null) =>
   !!s && (s.includes("application/pdf") || /\.pdf($|\?)/i.test(s || ""));
 const isImage = (s?: string | null) =>
@@ -18,12 +20,14 @@ const isImage = (s?: string | null) =>
 const hasImage = (s?: string | null) => !!s && !isPdf(s) && isImage(s);
 
 const safeTs = (d?: string | Date | null) => {
+  // ป้องกัน NaN เวลา parse วันที่
   if (!d) return 0;
   const t = new Date(d as any).getTime();
   return Number.isNaN(t) ? 0 : t;
 };
 
 const fmtDate = (d?: string | Date) => {
+  // แสดง วันนี้/เมื่อวาน/วัน-เดือน-ปี
   if (!d) return "ไม่มีวันที่";
   const dd = new Date(d);
   if (Number.isNaN(dd.getTime())) return "ไม่มีวันที่";
@@ -34,13 +38,17 @@ const fmtDate = (d?: string | Date) => {
   if (diffDays === 1) return "เมื่อวาน";
   return dd.toLocaleDateString("en-GB");
 };
+
 const fmtDuration = (ms: number) => {
+  // แปลง ms > mm:ss สำหรับแถบเวลาอ่าน
   const s = Math.floor(ms / 1000);
   const m = Math.floor(s / 60);
   const rs = s % 60;
   return `${m}:${rs.toString().padStart(2, "0")}`;
 };
+
 const estimateRequiredMs = (text: string, imageCount = 0) => {
+  // ประมาณเวลาอ่านจากจำนวนคำ + จำนวนรูป (ใช้เป็นเกณฑ์ผ่าน)
   const wordLike = Math.max(
     text.trim().split(/\s+/).filter(Boolean).length,
     Math.round((text || "").length / 6)
@@ -53,7 +61,7 @@ const estimateRequiredMs = (text: string, imageCount = 0) => {
   return Math.max(8000, Math.min(total * 0.7, 300000));
 };
 
-/** จัดอันดับ: like มาก → view มาก → วันที่ใหม่ */
+// เกณฑ์เรียง: like > view > ใหม่สุด
 const sortByPopularityThenRecency = (a: WordHealingContent, b: WordHealingContent) => {
   const la = a.no_of_like ?? 0;
   const lb = b.no_of_like ?? 0;
@@ -70,7 +78,11 @@ const sortByPopularityThenRecency = (a: WordHealingContent, b: WordHealingConten
   return (b.id ?? 0) - (a.id ?? 0);
 };
 
-/* ---------------- Empty State ---------------- */
+// ค่าคงที่ประเภท ข้อความ (ให้ตรงกับ backend)
+const SHORT_FALLBACK_ID = 29;
+const SHORT_FALLBACK_NAME = "ข้อความ";
+
+// Empty state เมื่อไม่มีรายการ
 const EmptyState: React.FC<{ label: string }> = ({ label }) => (
   <div className="flex h-full w-full items-center justify-center">
     <div className="flex flex-col items-center justify-center rounded-2xl border border-sky-100/70 bg-gradient-to-b from-sky-50 to-sky-100/50 px-8 py-10 text-center">
@@ -85,9 +97,10 @@ const EmptyState: React.FC<{ label: string }> = ({ label }) => (
   </div>
 );
 
-/* ---------------- ArticleReader (Modal) ---------------- */
+// Modal อ่านบทความ/ข้อความ (นับ scroll/เวลาอ่าน)
 function ArticleReader({
   message,
+  typeName,
   scrollBodyRef,
   onModalBodyScroll,
   scrollProgress,
@@ -96,6 +109,7 @@ function ArticleReader({
   requiredMs,
 }: {
   message: WordHealingContent;
+  typeName: string;
   scrollBodyRef: React.MutableRefObject<HTMLDivElement | null>;
   onModalBodyScroll: React.UIEventHandler<HTMLDivElement>;
   scrollProgress: number;
@@ -103,6 +117,8 @@ function ArticleReader({
   readMs: number;
   requiredMs: number;
 }) {
+  
+  // ปรับขนาด/จัดวางเนื้อหาให้เหมาะตามความยาว
   const contentLen = (message?.content || "").trim().length;
   const isVeryShort = contentLen <= 60;
   const isShortish  = contentLen > 60 && contentLen <= 240;
@@ -114,13 +130,14 @@ function ArticleReader({
 
   return (
     <div className="font-ibmthai relative h-[calc(100dvh-120px)] md:h-[calc(100dvh-160px)] max-h-[90dvh] overflow-hidden">
+      {/* พื้นที่เลื่อนอ่านทั้งหมดของ Modal */}
       <div
         ref={scrollBodyRef}
         onScroll={onModalBodyScroll}
         className="no-scrollbar h-full overflow-y-auto overscroll-contain bg-[#F4FFFF] dark:bg-[#1B2538] dark:text-white"
         style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}
       >
-        {/* summary bar */}
+        {/* แถบสถานะด้านบน: % อ่าน + สถานะกิจกรรม + เวลาอ่าน */}
         <div className="sticky top-0 z-20 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
           <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2">
             <div className="flex items-center justify-between text-[12px] sm:text-[13px]">
@@ -141,6 +158,7 @@ function ArticleReader({
           </div>
         </div>
 
+        {/* เนื้อหา: ชื่อ, รูป, บทความ */}
         <div className={`${contentWidthClass} mx-auto w-full px-3 sm:px-6 ${contentPadYClass}`}>
           <h1 className="text-xl sm:text-2xl font-extrabold text-center tracking-tight text-gray-900 dark:text-white">
             {message.name}
@@ -148,7 +166,7 @@ function ArticleReader({
 
           {hasImage(message.photo) && (
             <div className="mt-3 sm:mt-4 flex justify-center">
-              {/* Modal แสดงรูปไม่ให้ขาด */}
+              {/* โชว์รูปแบบคุมสัดส่วน */}
               <div className=" max-w-[680px] max-h-[46vh] overflow-hidden rounded-2xl">
                 <img
                   src={message.photo!}
@@ -164,9 +182,10 @@ function ArticleReader({
             <p className={`whitespace-pre-wrap break-words ${contentTextSize} ${contentAlignClass}`}>{message.content || "-"}</p>
           </article>
 
+          {/* ประเภท/วันที่/ผู้เขียน/สถิติ */}
           <div className="mt-4 flex flex-col gap-2 text-[12px] sm:text-[13px] text-slate-600 dark:text-white">
             <div className="flex items-center gap-2">
-              {message.articleType && <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">{message.articleType}</span>}
+              {typeName && <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">{typeName}</span>}
               <span>{fmtDate(message.date)}</span>
             </div>
 
@@ -180,20 +199,25 @@ function ArticleReader({
         </div>
       </div>
 
-      {/* แถบด้านขวาที่เคยทับ scrollbar เอาออกได้; เก็บไว้ถ้าอยากสร้าง padding ด้านขวา */}
+      {/* แถบสีกลืนกับพื้นหลัง (เก็บไว้เผื่อ padding ขวา) */}
       <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-5 z-10 dark:hidden" style={{ background: "#F4FFFF" }} />
       <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-5 z-10 hidden dark:block" style={{ background: "#1B2538" }} />
     </div>
   );
 }
 
-/* ---------------- Page ---------------- */
+// หน้า Home message (รวมรายการ, สไลด์, โมดัลอ่าน, toggle like, นับอ่าน)
 export default function Homemessage() {
+  // สเตตรายการทั้งหมดจาก API
   const [messages, setMessages] = useState<WordHealingContent[]>([]);
+  // map id > liked ของผู้ใช้
   const [liked, setLiked] = useState<Record<number, boolean>>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Reader/Modal
+  // map ประเภท id > ชื่อ (ไว้เรนเดอร์ badge ประเภท)
+  const [typeMap, setTypeMap] = useState<Record<number, string>>({});
+
+  // สเตท Modal อ่าน
   const [selectedMessage, setSelectedMessage] = useState<WordHealingContent | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -202,10 +226,10 @@ export default function Homemessage() {
   const [isActive, setIsActive] = useState(true);
   const scrollBodyRef = useRef<HTMLDivElement | null>(null);
   const lastActivityRef = useRef(Date.now());
-  const passedRef = useRef(false);
-  const sentRef = useRef(false);
+  const passedRef = useRef(false); // ผ่านเกณฑ์อ่านแล้วหรือยัง
+  const sentRef = useRef(false);   // ส่ง count view ไปแล้วหรือยัง
 
-  // ซ้าย: สไลด์วน "บทความ"
+  // ฝั่งซ้าย/ฝั่งสไลด์บทความ Top5
   const [articleIdx, setArticleIdx] = useState(0);
   const [isArticlePaused, setIsArticlePaused] = useState(false);
   const articleTimerRef = useRef<number | null>(null);
@@ -213,6 +237,29 @@ export default function Homemessage() {
   const navigate = useNavigate();
   const uid = localStorage.getItem("id");
 
+  //  โหลดประเภททั้งหมด map  id > ชื่อ
+  useEffect(() => {
+    (async () => {
+      try {
+        const types: ArticleType[] = await getAllArticleTypes();
+        const m: Record<number, string> = {};
+        (types || []).forEach((t) => {
+          if (t?.id != null) m[Number(t.id)] = t.name;
+        });
+        setTypeMap(m);
+      } catch {}
+    })();
+  }, []);
+
+  // Helpers ประเภทสั้น/ยาว
+  const typeNameOf = (id?: number | null) => (id != null && typeMap[id]) || "";
+  const isShortType = (id?: number | null) => {
+    if (id === SHORT_FALLBACK_ID) return true;
+    const n = typeNameOf(id).trim();
+    return n === SHORT_FALLBACK_NAME || n === "ข้อความ";
+  };
+
+  // โหลดข้อความ/บทความทั้งหมด + สถานะถูกใจของผู้ใช้
   const fetchMessages = async () => {
     const fetched = await getAllWordHealingMessagesForUser();
     setMessages(fetched);
@@ -229,17 +276,15 @@ export default function Homemessage() {
     fetchMessages();
   }, []);
 
-  // แยกประเภท
+  // แยกกลุ่มบทความยาว/ข้อความสั้น และคัด Top 5
   const articles = useMemo(
-    () => messages.filter((m) => (m.articleType ?? "").trim() !== "บทความสั้น"),
-    [messages]
+    () => messages.filter((m) => !isShortType(m.article_type_id)),
+    [messages, typeMap]
   );
   const shorts = useMemo(
-    () => messages.filter((m) => (m.articleType ?? "").trim() === "บทความสั้น"),
-    [messages]
+    () => messages.filter((m) => isShortType(m.article_type_id)),
+    [messages, typeMap]
   );
-
-  // คัด Top อย่างละ 5: like มาก → view มาก → ใหม่สุด
   const topArticles = useMemo(
     () => [...articles].sort(sortByPopularityThenRecency).slice(0, 5),
     [articles]
@@ -249,7 +294,7 @@ export default function Homemessage() {
     [shorts]
   );
 
-  // สไลด์วนบทความ (ซ้าย)
+  // สไลด์บทความ Top5 อัตโนมัติทุก 5 วิ (หยุดเมื่อ hover) 
   useEffect(() => {
     if (topArticles.length === 0) return;
     if (isArticlePaused) return;
@@ -271,6 +316,7 @@ export default function Homemessage() {
     setArticleIdx((i) => (i + 1) % topArticles.length);
   };
 
+  // เปิด Modal อ่าน + คำนวณเวลาอ่านที่ต้องใช้จากความยาว
   const showModal = (message: WordHealingContent) => {
     setSelectedMessage(message);
     setIsModalVisible(true);
@@ -281,17 +327,20 @@ export default function Homemessage() {
     setRequiredMs(estimateRequiredMs(message.content || "", imgCount));
   };
 
+  // Toggle ถูกใจ/เลิกถูกใจ (Optimistic UI + rollback เมื่อ API fail)
   const toggleLike = async (id: number) => {
     if (!isLoggedIn) { alert("กรุณาล็อกอินเพื่อทำการกดถูกใจ"); return; }
     const currentlyLiked = !!liked[id];
     const userID = localStorage.getItem("id");
     if (!userID) { alert("ไม่พบข้อมูลผู้ใช้ โปรดเข้าสู่ระบบ"); return; }
 
+    // อัปเดตหน้าจอทันที
     setLiked((prev) => ({ ...prev, [id]: !currentlyLiked }));
     setMessages((prev) =>
       prev.map((m) => (m.id === id ? { ...m, no_of_like: Math.max(0, m.no_of_like + (currentlyLiked ? -1 : 1)) } : m))
     );
 
+    // เรียก API และ rollback ถ้าล้มเหลว
     const ok = currentlyLiked ? await unlikeMessage(id, userID) : await likeMessage(id, userID);
     if (!ok) {
       setLiked((prev) => ({ ...prev, [id]: currentlyLiked }));
@@ -301,7 +350,7 @@ export default function Homemessage() {
     }
   };
 
-  // reader loop (modal)
+  // ลูปจับกิจกรรมใน Modal: เพิ่มเวลาอ่านเมื่อ active + คำนวณ % scroll + เช็กผ่านเกณฑ์
   useEffect(() => {
     if (!isModalVisible) return;
     const onAct = () => (lastActivityRef.current = Date.now());
@@ -310,6 +359,7 @@ export default function Homemessage() {
     window.addEventListener("wheel", onAct, { passive: true });
     window.addEventListener("touchmove", onAct, { passive: true });
 
+    // คำนวณ % อ่านตาม scroll
     const computePct = () => {
       const el = scrollBodyRef.current; if (!el) return 0;
       const { scrollTop, clientHeight, scrollHeight } = el;
@@ -318,6 +368,7 @@ export default function Homemessage() {
       return Math.max(0, Math.min(99, Math.floor(ratio * 100)));
     };
 
+    // เกณฑ์ผ่าน: เวลา >= required*0.7 และถ้า scroll ได้ต้องอ่าน >= 90%
     const evalPass = (msg: WordHealingContent | null, pctNow: number, ms: number) => {
       if (!msg) return false;
       const contentLen = (msg.content || "").trim().length;
@@ -331,13 +382,17 @@ export default function Homemessage() {
     };
 
     const timer = setInterval(() => {
+      // จับ active: หน้าจอไม่ซ่อน + มี activity ภายใน 15 วิ
       const visible = !document.hidden;
       const active = Date.now() - lastActivityRef.current < 15000;
       setIsActive(visible && active);
       if (visible && active) setReadMs((t) => t + 1000);
 
+      // อัปเดต % อ่าน
       const nowPct = computePct();
       setScrollProgress((prev) => Math.max(prev, nowPct));
+
+      // Mark ผ่านครั้งแรก
       if (!passedRef.current && evalPass(selectedMessage, nowPct, readMs + (visible && active ? 1000 : 0))) {
         passedRef.current = true;
       }
@@ -352,6 +407,7 @@ export default function Homemessage() {
     };
   }, [isModalVisible, selectedMessage, requiredMs, readMs]);
 
+  // helper คำนวณ % ปัจจุบันจาก scroll
   const computePctNow = () => {
     const el = scrollBodyRef.current; 
     if (!el) return 0;
@@ -365,6 +421,7 @@ export default function Homemessage() {
     setScrollProgress((prev) => Math.max(prev, computePctNow()));
   };
 
+  // ปิด Modal: ถ้าผ่านเกณฑ์ และยังไม่ได้ส่ง ให้บันทึก viewCount
   const handleCancel = async () => {
     try {
       if (selectedMessage && !sentRef.current && passedRef.current) {
@@ -379,6 +436,7 @@ export default function Homemessage() {
             ? res.view_count
             : (selectedMessage.viewCount || 0) + 1;
 
+        // อัปเดต state ทั้งรายการและ selected
         setMessages((prev) =>
           prev.map((m) => (m.id === selectedMessage.id ? { ...m, viewCount: newCount } : m))
         );
@@ -389,10 +447,11 @@ export default function Homemessage() {
     setSelectedMessage(null);
   };
 
-  /* ---------------- UI ---------------- */
+  // UI หลัก: ส่วน mobile/tablet และ desktop แยก layout
   return (
     <div className="font-ibmthai mt-4 px-4 sm:px-6 lg:px-8 xl:px-30">
-      {/* ซ่อน scrollbar สำหรับ WebKit */}
+      
+      {/* CSS ซ่อน scrollbar webkit */}
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
       `}</style>
@@ -401,9 +460,9 @@ export default function Homemessage() {
         <p className="px-2 text-basic-text dark:text-text-dark">ข้อความให้กำลังใจเเละบทความ</p>
       </div>
 
-      {/* มือถือ + แท็บเล็ต (< xl) */}
+      {/* มุมมองมือถือ/แท็บเล็ต */}
       <div className="block xl:hidden">
-        {/* การ์ดหัวข้อ */}
+        {/* การ์ดหัวข้อ (ข้อความให้กำลังใจ) */}
         <div className="relative overflow-hidden rounded-2xl p-4
                         bg-gradient-to-br from-[#FFD7E1] via-[#F8BBD0] to-[#F48FB1]
                         shadow-[0_8px_24px_rgba(240,98,146,0.25)] flex flex-col">
@@ -416,14 +475,17 @@ export default function Homemessage() {
             </h3>
           </div>
 
+          {/* รูปประกอบวงกลม */}
           <div className="mt-3 mx-auto size-24 sm:size-32 rounded-full overflow-hidden shadow-lg ring-2 ring-white/60">
             <img src={healmessage} alt="ภาพประกอบข้อความให้กำลังใจ" className="w-full h-full object-cover" />
           </div>
 
+          {/* คำโปรย */}
           <p className="mt-3 text-xl sm: md:text-xl leading-6 text-black/85">
             รับข้อความให้กำลังใจ ที่อาจเป็นสิ่งเล็ก ๆ แต่สร้างพลังให้หัวใจได้เสมอ ไม่ว่าคุณกำลังเผชิญเรื่องไหนอยู่ ลองพักหายใจสักนิด แล้วเปิดรับถ้อยคำดี ๆ ที่จะค่อย ๆ เติมแรงฮึบและรอยยิ้มกลับมาใหม่นะ
           </p>
 
+          {/* ปุ่มไปหน้าเพิ่มเติม */}
           <button
             onClick={() => navigate("/audiohome/message")}
             className="mt-4 mx-auto px-4 py-2 bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] text-white rounded-full hover:to-[#2BD9FF] transition"
@@ -432,7 +494,7 @@ export default function Homemessage() {
           </button>
         </div>
 
-        {/* ซ้าย (บทความ) → สไลด์วน */}
+        {/* สไลด์บทความ Top5 (ฝั่งซ้าย) */}
         <div
           className="bg-[#BFEAF5] dark:bg-chat-dark rounded-2xl p-3 shadow-sm mt-3"
           onMouseEnter={() => setIsArticlePaused(true)}
@@ -448,7 +510,7 @@ export default function Homemessage() {
                   <article className="bg-[#BFEAF5] dark:bg-[#1B2538] rounded-2xl p-3">
                     {hasImage(m.photo) && (
                       <div className="w-full grid place-items-center py-2">
-                        {/* รูปฝั่งซ้าย: สี่เหลี่ยมขอบมน 4:3 (บังคงทรงทุกอุปกรณ์) */}
+                        {/* รูป 4:3 ขอบมน */}
                         <div className="w-full max-w-[680px] aspect-[4/3] rounded-2xl overflow-hidden">
                           <img src={m.photo!} alt="" className="w-full h-full object-cover" />
                         </div>
@@ -459,15 +521,17 @@ export default function Homemessage() {
                       {m.name}
                     </h3>
 
+                    {/* แท็กประเภท + วันที่ */}
                     <div className="mt-2 flex items-center gap-2 justify-center">
-                      {m.articleType && (
+                      {typeNameOf(m.article_type_id) && (
                         <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">
-                          {m.articleType}
+                          {typeNameOf(m.article_type_id)}
                         </span>
                       )}
                       <span className="text-xs text-gray-600 dark:text-white">{fmtDate(m.date)}</span>
                     </div>
 
+                    {/* ปุ่มถูกใจ + นับชม + อ่าน */}
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <button onClick={() => toggleLike(m.id)} className="text-2xl" aria-label={liked[m.id] ? "เลิกถูกใจ" : "ถูกใจ"}>
@@ -487,7 +551,7 @@ export default function Homemessage() {
                 );
               })()}
 
-              {/* controls */}
+              {/* ปุ่มเลื่อน/จุดสถานะสไลด์ */}
               <div className="mt-2 flex items-center justify-center gap-3">
                 <button onClick={prevArticle} className="px-3 py-1 rounded-full bg-white/60 hover:bg-white">‹</button>
                 <div className="flex items-center gap-1">
@@ -501,7 +565,7 @@ export default function Homemessage() {
           )}
         </div>
 
-        {/* ขวา (Top 5) */}
+        {/* รายการ Top 5 ข้อความสั้น (ฝั่งขวา) */}
         <div className="bg-[#BFEAF5] dark:bg-chat-dark rounded-2xl p-3 shadow-sm mt-3">
           {topShorts.length === 0 ? (
             <EmptyState label="ข้อความให้กำลังใจ" />
@@ -526,9 +590,9 @@ export default function Homemessage() {
         </div>
       </div>
 
-      {/* เดสก์ท็อป (>= xl) — สองคอลัมน์ */}
+      {/* มุมมอง Desktop: 2 คอลัมน์ */}
       <div className="hidden xl:grid grid-cols-2 gap-6 items-stretch">
-        {/* ซ้าย */}
+        {/* คอลัมน์ซ้าย: สไลด์บทความใหญ่ */}
         <div className="h-[74vh] bg-[#BFEAF5] dark:bg-chat-dark rounded-2xl p-4 shadow-sm overflow-hidden flex flex-col"
              onMouseEnter={() => setIsArticlePaused(true)}
              onMouseLeave={() => setIsArticlePaused(false)}>
@@ -542,7 +606,7 @@ export default function Homemessage() {
                   <article className="bg-[#BFEAF5] dark:bg-[#1B2538] rounded-2xl p-4 flex flex-col h-full">
                     {hasImage(m.photo) && (
                       <div className="flex-1 grid place-items-center">
-                        {/* รูปฝั่งซ้าย (Desktop): สี่เหลี่ยมขอบมน 4:3 */}
+                        {/* รูปขนาดใหญ่ 4:3 */}
                         <div className="w-full max-w-[min(62vh,740px)] aspect-[4/3] rounded-2xl overflow-hidden">
                           <img src={m.photo!} alt="" className="w-full h-full object-cover" />
                         </div>
@@ -556,14 +620,15 @@ export default function Homemessage() {
                     </div>
 
                     <div className="flex items-center gap-2 justify-center">
-                      {m.articleType && (
+                      {typeNameOf(m.article_type_id) && (
                         <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">
-                          {m.articleType}
+                          {typeNameOf(m.article_type_id)}
                         </span>
                       )}
                       <span className="text-xs dark:text-white">{fmtDate(m.date)}</span>
                     </div>
 
+                    {/* ปุ่มกด/แสดงสถิติ */}
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center gap-5">
                         <button
@@ -590,7 +655,7 @@ export default function Homemessage() {
                 );
               })()}
 
-              {/* controls + dots */}
+              {/* ควบคุมสไลด์ (ปุ่ม/จุด) */}
               <div className="mt-2 flex items-center justify-center gap-4">
                 <button onClick={prevArticle} className="px-3 py-1.5 rounded-full bg-white/70 hover:bg-white">‹</button>
                 <div className="flex items-center gap-1">
@@ -601,6 +666,7 @@ export default function Homemessage() {
                 <button onClick={nextArticle} className="px-3 py-1.5 rounded-full bg-white/70 hover:bg-white">›</button>
               </div>
 
+              {/* debug เล็ก ๆ แสดงสถานะ pause */}
               <div className="mt-1 text-center text-[11px] text-slate-600">
                 {isArticlePaused}
               </div>
@@ -608,11 +674,10 @@ export default function Homemessage() {
           )}
         </div>
 
-        {/* ขวา */}
+        {/* คอลัมน์ขวา: การ์ดหัวข้อ + ลิสต์ Top 5 ข้อความ */}
         <div className="h-[74vh] flex flex-col">
           {/* การ์ดหัวข้อ */}
           <div className="shrink-0 rounded-2xl p-4 md:p-5 bg-gradient-to-br from-[#FAD1DC] via-[#F8BBD0] to-[#F48FB1] shadow-[0_10px_26px_rgba(240,98,146,0.25)]">
-            {/* แถวหัวข้อ + ปุ่ม */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 md:gap-3">
                 <div className="p-2 bg-white rounded-full shadow-sm grid place-items-center">
@@ -623,7 +688,7 @@ export default function Homemessage() {
                 </p>
               </div>
 
-              {/* ปุ่มเพิ่มเติม */}
+              {/* ปุ่มไปหน้ารวม */}
               <button
                 onClick={() => navigate("/audiohome/message")}
                 className="px-4 py-1.5 md:px-5 md:py-2 rounded-full text-white
@@ -633,7 +698,7 @@ export default function Homemessage() {
               </button>
             </div>
 
-            {/* เนื้อหาในการ์ด */}
+            {/* รูป/คำโปรย */}
             <div className="mt-3 flex items-center gap-3 md:gap-4">
               <div className="shrink-0 size-16 md:size-20 rounded-full overflow-hidden ring-2 ring-white/60 shadow-lg">
                 <img src={healmessage} alt="" className="w-full h-full object-cover" />
@@ -645,7 +710,7 @@ export default function Homemessage() {
             </div>
           </div>
 
-          {/* ลิสต์ Top5 */}
+          {/* ลิสต์ Top 5 ข้อความสั้น */}
           <div className="mt-3 flex-1 bg-[#BFEAF5] dark:bg-chat-dark rounded-2xl p-4 shadow-sm overflow-y-auto">
             {topShorts.length === 0 ? (
               <EmptyState label="ข้อความให้กำลังใจ" />
@@ -657,7 +722,7 @@ export default function Homemessage() {
                     className="bg-white/70 dark:bg-[#222b3d] rounded-2xl p-3
                               grid grid-cols-12 items-center gap-3"
                   >
-                    {/* 1) รูป: วงกลม */}
+                    {/* รูปวงกลม */}
                     <div className="col-span-2 justify-self-start">
                       {s.photo && (
                         <img
@@ -669,24 +734,24 @@ export default function Homemessage() {
                       )}
                     </div>
 
-                    {/* 2) ชื่อ + แท็ก */}
+                    {/* แท็กประเภท + ชื่อ */}
                     <div className="col-span-2 min-w-0">
-                      {s.articleType && (
+                      {typeNameOf(s.article_type_id) && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] xl:text-xs bg-sky-100 text-sky-700">
-                          {s.articleType}
+                          {typeNameOf(s.article_type_id)}
                         </span>
                       )}
                       <p className="mt-1 text-sm font-bold text-[#686868] dark:text-text-dark truncate">{s.name}</p>
                     </div>
 
-                    {/* 3) คำโปรย / เนื้อหา */}
+                    {/* เนื้อหาย่อ */}
                     <div className="col-span-7 min-w-0 text-left">
                       <p className="text-3xl xl:text-sm  text-black dark:text-white font-bold line-clamp-2">
                         {s.content || "-"}
                       </p>
                     </div>
 
-                    {/* 4) ปุ่มอ่าน */}
+                    {/* ปุ่มอ่าน */}
                     <div className="col-span-1 justify-self-end">
                       <button
                         onClick={() => showModal(s)}
@@ -703,7 +768,7 @@ export default function Homemessage() {
          </div>
         </div>
 
-      {/* Modal อ่าน */}
+      {/* Modal อ่านบทความ/ข้อความ */}
       <Modal
         open={isModalVisible}
         onCancel={handleCancel}
@@ -723,6 +788,7 @@ export default function Homemessage() {
         {selectedMessage && (
           <ArticleReader
             message={selectedMessage}
+            typeName={typeNameOf(selectedMessage.article_type_id)}
             scrollBodyRef={scrollBodyRef}
             onModalBodyScroll={onModalBodyScroll}
             scrollProgress={scrollProgress}

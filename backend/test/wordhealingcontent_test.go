@@ -1,134 +1,156 @@
 package unit
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 	"time"
 
 	"sukjai_project/entity"
+
+	"github.com/asaskevich/govalidator"
+	. "github.com/onsi/gomega"
 )
 
-/* Validator สำหรับใช้ในเทสต์เท่านั้น */
-func ValidateWordHealingContentForTest(w entity.WordHealingContent) (bool, error) {
-	if strings.TrimSpace(w.Name) == "" {
-		return false, fmt.Errorf("Name is required")
-	}
-	if strings.TrimSpace(w.Author) == "" {
-		return false, fmt.Errorf("Author is required")
-	}
-	if w.Photo != nil && strings.TrimSpace(*w.Photo) == "" {
-		return false, fmt.Errorf("Photo cannot be empty when provided")
-	}
-	if w.Date.IsZero() {
-		return false, fmt.Errorf("Date is required")
-	}
-	if w.Date.After(time.Now()) {
-		return false, fmt.Errorf("Date cannot be in the future")
-	}
-	if strings.TrimSpace(w.Content) == "" {
-		return false, fmt.Errorf("Content is required")
-	}
-	if strings.TrimSpace(w.ArticleType) == "" {
-		return false, fmt.Errorf("Article type is required")
-	}
+func TestWordHealingContent_All(t *testing.T) {
 	
-	return true, nil
-}
-
-func makeValidWHC() entity.WordHealingContent {
-	return entity.WordHealingContent{
-		Name:        "Good name",
-		Author:      "Good author",
-		Photo:       nil,
-		NoOfLike:    0,
-		Date:        time.Now().Add(-time.Hour),
-		Content:     "some content",
-		ArticleType: "quote",
-		ViewCount:   0,
-	}
-}
-
-func assertError(t *testing.T, err error, want string) {
-	t.Helper()
-	if err == nil {
-		t.Fatalf("expected error %q, got nil", want)
-	}
-	if got := err.Error(); got != want {
-		t.Fatalf("unexpected error.\n got: %q\nwant: %q", got, want)
-	}
-}
-
-/* ====== Tests (รูปแบบเดียวกับตัวอย่าง) ====== */
-func TestWordHealingContentValidation(t *testing.T) {
+	// ตรวจเฉพาะฟิลด์ที่มีแท็ก valid
+	govalidator.SetFieldsRequiredByDefault(false)
 
 	t.Run("all fields correct", func(t *testing.T) {
-		w := makeValidWHC()
-		ok, err := ValidateWordHealingContentForTest(w)
-		if !ok || err != nil {
-			t.Fatalf("expected ok with nil error, got ok=%v err=%v", ok, err)
+		g := NewWithT(t)
+
+		photo := "data:image/png;base64,xxx"
+		w := entity.WordHealingContent{
+			Name:          "Calm Ocean",
+			Author:        "Alice",
+			Photo:         &photo,
+			NoOfLike:      0,
+			Date:          time.Now(),
+			Content:       "Short healing paragraph...",
+			ArticleTypeID: 1,
+			ViewCount:     0,
 		}
+		ok, err := govalidator.ValidateStruct(w)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(err).To(BeNil())
 	})
 
 	t.Run("name is required", func(t *testing.T) {
-		w := makeValidWHC()
-		w.Name = ""
-		ok, err := ValidateWordHealingContentForTest(w)
-		if ok {
-			t.Fatalf("expected !ok for empty name")
+		g := NewWithT(t)
+
+		photo := "data:image/png;base64,xxx"
+		w := entity.WordHealingContent{
+			Name:          "",
+			Author:        "Alice",
+			Photo:         &photo,
+			NoOfLike:      0,
+			Date:          time.Now(),
+			Content:       "x",
+			ArticleTypeID: 1,
+			ViewCount:     0,
 		}
-		assertError(t, err, "Name is required")
+		ok, err := govalidator.ValidateStruct(w)
+		g.Expect(ok).To(BeFalse())
+		g.Expect(err).ToNot(BeNil())
+		g.Expect(err.Error()).To(Equal("Name is required"))
 	})
 
 	t.Run("author is required", func(t *testing.T) {
-		w := makeValidWHC()
-		w.Author = "   "
-		ok, err := ValidateWordHealingContentForTest(w)
-		if ok {
-			t.Fatalf("expected !ok for empty author")
+		g := NewWithT(t)
+
+		photo := "data:image/png;base64,xxx"
+		w := entity.WordHealingContent{
+			Name:          "Calm Ocean",
+			Author:        "",
+			Photo:         &photo,
+			NoOfLike:      0,
+			Date:          time.Now(),
+			Content:       "x",
+			ArticleTypeID: 1,
+			ViewCount:     0,
 		}
-		assertError(t, err, "Author is required")
+		ok, err := govalidator.ValidateStruct(w)
+		g.Expect(ok).To(BeFalse())
+		g.Expect(err).ToNot(BeNil())
+		g.Expect(err.Error()).To(Equal("Author is required"))
 	})
 
 	t.Run("photo provided but empty", func(t *testing.T) {
-		w := makeValidWHC()
-		empty := "   "
-		w.Photo = &empty
-		ok, err := ValidateWordHealingContentForTest(w)
-		if ok {
-			t.Fatalf("expected !ok for empty photo when provided")
+		g := NewWithT(t)
+
+		// photo เป็น pointer แต่ค่าว่าง ไม่ถูก validate (ผ่าน)
+		empty := ""
+		w := entity.WordHealingContent{
+			Name:          "Calm Ocean",
+			Author:        "Alice",
+			Photo:         &empty,
+			NoOfLike:      0,
+			Date:          time.Now(),
+			Content:       "x",
+			ArticleTypeID: 1,
+			ViewCount:     0,
 		}
-		assertError(t, err, "Photo cannot be empty when provided")
+		ok, err := govalidator.ValidateStruct(w)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(err).To(BeNil())
 	})
 
 	t.Run("date in the future", func(t *testing.T) {
-		w := makeValidWHC()
-		w.Date = time.Now().Add(time.Hour)
-		ok, err := ValidateWordHealingContentForTest(w)
-		if ok {
-			t.Fatalf("expected !ok for future date")
+		g := NewWithT(t)
+
+		// ไม่มี rule ห้ามอนาคต (ผ่าน)
+		future := time.Now().AddDate(0, 0, 1)
+		w := entity.WordHealingContent{
+			Name:          "Calm Ocean",
+			Author:        "Alice",
+			Photo:         nil,
+			NoOfLike:      0,
+			Date:          future,
+			Content:       "x",
+			ArticleTypeID: 1,
+			ViewCount:     0,
 		}
-		assertError(t, err, "Date cannot be in the future")
+		ok, err := govalidator.ValidateStruct(w)
+		g.Expect(ok).To(BeTrue())
+		g.Expect(err).To(BeNil())
 	})
 
 	t.Run("content is required", func(t *testing.T) {
-		w := makeValidWHC()
-		w.Content = "   "
-		ok, err := ValidateWordHealingContentForTest(w)
-		if ok {
-			t.Fatalf("expected !ok for empty content")
+		g := NewWithT(t)
+
+		photo := "data:image/png;base64,xxx"
+		w := entity.WordHealingContent{
+			Name:          "Calm Ocean",
+			Author:        "Alice",
+			Photo:         &photo,
+			NoOfLike:      0,
+			Date:          time.Now(),
+			Content:       "",
+			ArticleTypeID: 1,
+			ViewCount:     0,
 		}
-		assertError(t, err, "Content is required")
+		ok, err := govalidator.ValidateStruct(w)
+		g.Expect(ok).To(BeFalse())
+		g.Expect(err).ToNot(BeNil())
+		g.Expect(err.Error()).To(Equal("Content is required"))
 	})
 
 	t.Run("article type is required", func(t *testing.T) {
-		w := makeValidWHC()
-		w.ArticleType = " "
-		ok, err := ValidateWordHealingContentForTest(w)
-		if ok {
-			t.Fatalf("expected !ok for empty article type")
-		}
-		assertError(t, err, "Article type is required")
-	})
+		g := NewWithT(t)
 
+		photo := "data:image/png;base64,xxx"
+		w := entity.WordHealingContent{
+			Name:          "Calm Ocean",
+			Author:        "Alice",
+			Photo:         &photo,
+			NoOfLike:      0,
+			Date:          time.Now(),
+			Content:       "x",
+			ArticleTypeID: 0, // zero value ของ uint  ไม่ผ่าน required
+			ViewCount:     0,
+		}
+		ok, err := govalidator.ValidateStruct(w)
+		g.Expect(ok).To(BeFalse())
+		g.Expect(err).ToNot(BeNil())
+		
+	})
 }

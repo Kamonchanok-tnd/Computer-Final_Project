@@ -150,7 +150,7 @@ func Update(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้"})
 		return
 	}
-
+    
 	// ส่งข้อมูลผู้ใช้ที่อัปเดตแล้วกลับไป
 	c.JSON(http.StatusOK, user)
 }

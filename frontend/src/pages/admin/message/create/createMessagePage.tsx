@@ -1,252 +1,132 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { message } from "antd";
-import { FileText, MessageSquare } from "lucide-react";
-import { createWordHealingMessage, getArticleTypeOptionsDetailed } from "../../../../services/https/message";
-import { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
+import { message, Spin } from "antd";
+import { FileText, MessageSquare, Pencil, Trash2, Plus } from "lucide-react";
+import { createWordHealingMessage } from "../../../../services/https/message";
+import {getAllArticleTypes,createArticleType,updateArticleType,deleteArticleType,} from "../../../../services/https/articletype";
+import type { ArticleType } from "../../../../interfaces/IArticleType";
 import createMessageIcon from "../../../../assets/createMessageIcon.png";
 
-/* Types & Utils */
-type ArticleTypeOption = { value: string; label: string; description?: string };
+// ค่าคงที่
+// รูปแบบตัวเลือกประเภทบทความที่ใช้ใน UI
+type ArticleTypeOption = { id: number; label: string; description?: string };
 
-interface FormDataType extends Omit<WordHealingContent, "photo" | "article_type"> {
-  photo: string | null;
-  error: (message: string) => unknown;
-  idts?: number;
-  content: string;
-  articleType: string;
-  viewCount: number;
-}
-type ContentKind = "long" | "short";
+// ข้อความ/บทความสั้น ให้ fallback หา id=29 หรือชื่อ ข้อความ
+const SHORT_FALLBACK_ID = 29;            // id ของบทความประเภทข้อความ ในฝั่ง Backend
+const SHORT_FALLBACK_NAME = "ข้อความ";
 
+// ฟังก์ชัน format วันที่เป็น YYYY-MM-DD
 const fmtYMD = (d: Date) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 };
-const isTouchDevice = () =>
-  (typeof window !== "undefined" &&
-    (window.matchMedia?.("(pointer: coarse)").matches || "ontouchstart" in window)) ||
-  false;
 
-/* ให้รองรับทั้ง RefObject และ MutableRefObject */
-type CardRefLike = { current: HTMLDivElement | null } | null | undefined;
+// หาค่า id ของประเภทข้อความ
+function resolveShortTypeId(options: ArticleTypeOption[]) {
+  const byId = options.find((o) => o.id === SHORT_FALLBACK_ID);
+  if (byId) return byId.id;
+  const byName = options.find((o) => o.label === SHORT_FALLBACK_NAME);
+  if (byName) return byName.id;
+  return undefined;
+}
 
-/* Mobile DatePicker (smart drop-up) */
-const MobileDateField: React.FC<{
-  value: string;
-  max: string;
-  onChange: (ymd: string) => void;
-  cardRef?: CardRefLike;
-}> = ({ value, max, onChange, cardRef }) => {
-  const fieldRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  const [dropUp, setDropUp] = useState(false);
-  const [menuMaxH, setMenuMaxH] = useState(320);
+// ฟังก์ชันช่วยตรวจว่า error จาก backend คือ ประเภทถูกใช้งานอยู่ หรือไม่
+function isTypeInUseError(e: any) {
+  // เช็ค HTTP 409
+  const status = e?.response?.status;
+  if (status === 409) return true;
+  // เช็ค code ที่ฝั่ง BE ส่งมา
+  const code = e?.response?.data?.code || e?.code;
+  if (code && String(code).toUpperCase().includes("IN_USE")) return true;
+  // เผื่อกรณีเป็นข้อความ
+  const msg = e?.response?.data?.message || e?.message || e?.toString?.() || "";
+  return /ถูกใช้งาน|ถูกเรียกใช้|in use|referenced/i.test(msg);
+}
 
-  const today = useMemo(() => new Date(`${max}T00:00:00`), [max]);
-  const initial = useMemo(() => (value ? new Date(`${value}T00:00:00`) : today), [value, today]);
-  const [viewMonth, setViewMonth] = useState<Date>(new Date(initial));
+// Types ข้อมูลฟอร์ม
+type ContentKind = "long" | "short"; // โหมดเนื้อหา: บทความยาว หรือ ข้อความ
 
-  const weeks = useMemo(() => {
-    const y = viewMonth.getFullYear();
-    const m = viewMonth.getMonth();
-    const first = new Date(y, m, 1);
-    const last = new Date(y, m + 1, 0);
-    const startIdx = first.getDay();
-    const total = last.getDate();
+// โครงสร้างข้อมูลที่ใช้เก็บ state ของฟอร์ม
+interface FormDataType {
+  id: number;
+  name: string;
+  author: string;
+  no_of_like: number;
+  date: string;                
+  photo: string | null;        
+  content: string;
+  article_type_id: number | null;
+  viewCount: number;
+  error: (message: string) => unknown;   // handler error (ไม่ได้ใช้จริง)
+  idts?: number;                         // ฟิลด์เพิ่มเติม (ไม่บังคับ)
+}
 
-    const cells: (Date | null)[] = [];
-    for (let i = 0; i < startIdx; i++) cells.push(null);
-    for (let d = 1; d <= total; d++) cells.push(new Date(y, m, d));
-    while (cells.length % 7 !== 0) cells.push(null);
-
-    const out: (Array<Date | null>)[] = [];
-    for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
-    return out;
-  }, [viewMonth]);
-
-  const calcDrop = () => {
-    const rect = fieldRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    let below = window.innerHeight - rect.bottom;
-    let above = rect.top;
-    const cardRect = cardRef?.current?.getBoundingClientRect();
-    if (cardRect) {
-      below = Math.min(below, cardRect.bottom - rect.bottom);
-      above = Math.min(above, rect.top - cardRect.top);
-    }
-    const IDEAL = 320;
-    const preferUp = below < IDEAL && above > below;
-    setDropUp(preferUp);
-    const room = (preferUp ? above : below) - 12;
-    setMenuMaxH(Math.max(220, Math.min(IDEAL, room)));
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    const recalc = () => calcDrop();
-    recalc();
-
-    const onDoc = (e: MouseEvent) => {
-      if (!fieldRef.current) return;
-      if (!fieldRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("resize", recalc);
-    window.addEventListener("scroll", recalc, true);
-    cardRef?.current?.addEventListener?.("scroll", recalc, true);
-
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-      window.removeEventListener("resize", recalc);
-      window.removeEventListener("scroll", recalc, true);
-      cardRef?.current?.removeEventListener?.("scroll", recalc, true);
-    };
-  }, [open, cardRef]);
-
-  const selectDate = (d: Date) => {
-    if (d.getTime() > today.getTime()) return;
-    onChange(fmtYMD(d));
-    setOpen(false);
-  };
-
-  return (
-    <div ref={fieldRef} className="relative">
-      <button
-        type="button"
-        onClick={() => {
-          calcDrop();
-          setOpen((o) => !o);
-        }}
-        className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
-      >
-        <span>{value || "เลือกวันที่ (แตะเพื่อเลือก)"}</span>
-        <svg viewBox="0 0 20 20" className="h-4 w-4 opacity-60" fill="currentColor">
-          <path d="M6 8l4 4 4-4H6z" />
-        </svg>
-      </button>
-
-      {open && (
-        <div
-          className={[
-            "absolute z-20 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg",
-            dropUp ? "bottom-full mb-1" : "top-full mt-1",
-          ].join(" ")}
-          style={{ maxHeight: menuMaxH }}
-        >
-          <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-            <button type="button" className="rounded-md px-2 py-1 text-sm hover:bg-slate-100" onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}>‹</button>
-            <div className="text-sm font-medium">
-              {viewMonth.toLocaleString("en-US", { month: "long" })} {viewMonth.getFullYear()}
-            </div>
-            <button type="button" className="rounded-md px-2 py-1 text-sm hover:bg-slate-100" onClick={() => setViewMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}>›</button>
-          </div>
-
-          <div className="grid grid-cols-7 px-2 pt-2 text-center text-xs text-slate-500">
-            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-              <div key={d} className="py-1">{d}</div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1 p-2">
-            {weeks.map((row, i) =>
-              row.map((cell, j) => {
-                if (!cell) return <div key={`${i}-${j}`} className="h-9" />;
-                const disabled = cell.getTime() > today.getTime();
-                const isSelected = value && fmtYMD(cell) === value;
-                return (
-                  <button
-                    key={`${i}-${j}`}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => selectDate(cell)}
-                    className={[
-                      "h-9 rounded-lg text-sm",
-                      disabled ? "cursor-not-allowed text-slate-300" : "hover:bg-slate-100",
-                      isSelected ? "bg-slate-900 text-white hover:bg-slate-900" : "text-slate-700",
-                    ].join(" ")}
-                  >
-                    {cell.getDate()}
-                  </button>
-                );
-              })
-            )}
-          </div>
-
-          <div className="flex items-center justify-between border-t border-slate-200 px-3 py-2 text-sm">
-            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(""); setViewMonth(new Date(today)); setOpen(false); }}>Clear</button>
-            <button type="button" className="rounded-md px-2 py-1 hover:bg-slate-100" onClick={() => { onChange(fmtYMD(today)); setViewMonth(new Date(today)); setOpen(false); }}>Today</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* Main */
+//Main Component
 const CreateMessagePage: React.FC = () => {
   const navigate = useNavigate();
+
+  // อ้างอิง input[type=file] เพื่อสั่งเปิดไฟล์ได้จากปุ่ม
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ระบบแจ้งเตือนจาก antd
   const [msgApi, msgCtx] = message.useMessage();
 
+  // สตริงวันที่วันนี้เพื่อกรอกอัตโนมัติ 
   const todayStr = fmtYMD(new Date());
+
+  // โหมดเนื้อหา
   const [contentKind, setContentKind] = useState<ContentKind>("long");
 
+  // state หลักของฟอร์ม
   const [formData, setFormData] = useState<FormDataType>({
     id: 0,
     name: "",
     author: "",
     no_of_like: 0,
-    date: "",
+    date: todayStr,       // ตั้งค่าวันที่อัตโนมัติ
     photo: null,
     content: "",
-    articleType: "OpinionPiece",
+    article_type_id: null,
     error: (message: string) => console.error(message),
     idts: undefined,
     viewCount: 0,
   });
 
+  // state สำหรับพรีวิวรูป เเละ modal พรีวิว
   const [preview, setPreview] = useState<string>("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
+  // รายการประเภทบทความ สถานะโหลด  เเละ id ของประเภทข้อความ
   const [articleTypeOptions, setArticleTypeOptions] = useState<ArticleTypeOption[]>([]);
   const [articleTypeLoading, setArticleTypeLoading] = useState<boolean>(false);
+  const [shortTypeId, setShortTypeId] = useState<number | undefined>(undefined);
 
-  /* สถานะระหว่างบันทึก */
-  const [saving, setSaving] = useState(false);
+  // State จัดการ dropdown ประเภท + CRUD mini form
+  const [opLoading, setOpLoading] = useState<boolean>(false);       // สถานะกำลังสร้าง/แก้ไข/ลบ
+  const [manageMode, setManageMode] = useState<"none" | "create" | "edit">("none");
+  const [editTargetId, setEditTargetId] = useState<number | null>(null);
+  const [nameInput, setNameInput] = useState("");
+  const [descInput, setDescInput] = useState("");
 
+  // โหลดประเภทบทความครั้งแรก
   useEffect(() => {
     (async () => {
       try {
         setArticleTypeLoading(true);
-        const detailed = await getArticleTypeOptionsDetailed();
-        const opts: ArticleTypeOption[] = (detailed || []).map((o: any) => {
-          const labelText =
-            typeof o?.label === "string" ? o.label :
-            typeof o?.label?.th === "string" ? o.label.th :
-            typeof o?.name === "string" ? o.name :
-            typeof o?.title === "string" ? o.title :
-            typeof o?.raw?.label === "string" ? o.raw.label :
-            typeof o?.raw?.name === "string" ? o.raw.name :
-            String(o?.value ?? "");
-          const descText =
-            typeof o?.description === "string" ? o.description :
-            typeof o?.raw?.description === "string" ? o.raw.description :
-            typeof o?.detail === "string" ? o.detail :
-            typeof o?.raw?.detail === "string" ? o.raw.detail :
-            typeof o?.raw?.desc === "string" ? o.raw.desc :
-            "";
-          return { value: String(o?.value ?? labelText), label: labelText, description: descText };
-        });
+        const list: ArticleType[] = await getAllArticleTypes(); // เรียก API เพื่อดึงประเภทบทความ
+        const opts: ArticleTypeOption[] = (list || []).map((t) => ({
+          id: Number(t.id!),
+          label: t.name,
+          description: t.description || "",
+        }));
         setArticleTypeOptions(opts);
-        if (opts.length && !opts.some((x) => x.value === String(formData.articleType))) {
-          setFormData((prev) => ({ ...prev, articleType: opts[0].value }));
+        setShortTypeId(resolveShortTypeId(opts)); // จำ id ของข้อความ ถ้ามี
+
+        // ถ้ายังไม่ได้เลือก type ใด ๆ และมีรายการอย่างน้อย 1 อัน ให้เลือกอันแรก
+        if (!formData.article_type_id && opts.length) {
+          setFormData((p) => ({ ...p, article_type_id: opts[0].id }));
         }
       } catch {
         msgApi.error("โหลดประเภทบทความไม่สำเร็จ");
@@ -256,36 +136,34 @@ const CreateMessagePage: React.FC = () => {
     })();
   }, []);
 
-  /* Smart drop-up ของ dropdown ประเภทบทความ */
-  const [typeOpen, setTypeOpen] = useState(false);
-  const [typeQuery, setTypeQuery] = useState("");
-  const [dropUp, setDropUp] = useState(false);
-  const [menuMaxH, setMenuMaxH] = useState<number>(280);
-  const typeRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+  //ตำแหน่ง/ความสูง dropdown (กันล้น card) 
+  const [typeOpen, setTypeOpen] = useState(false);       // เปิด/ปิดเมนู
+  const [typeQuery, setTypeQuery] = useState("");        // ข้อความค้นหาใน dropdown
+  const [dropUp, setDropUp] = useState(false);           // true = เปิดขึ้นบน, false = ลงล่าง
+  const [menuMaxH, setMenuMaxH] = useState<number>(280); // ความสูงสูงสุดของเมนู (ไดนามิก)
+  const typeRef = useRef<HTMLDivElement>(null);          // อ้างอิงกล่อง field dropdown
+  const cardRef = useRef<HTMLDivElement>(null);          // อ้างอิงการ์ดหลัก (ไว้คำนวณพื้นที่)
   const IDEAL_MENU_H = 280;
 
-  // แสดง 5 รายการพอดี + scroll
+  // ค่าควบคุมจำนวนแถว/ความสูง list
   const VISIBLE_ITEMS = 5;
   const ITEM_ROW_H = 44;
   const listMaxH = Math.min(menuMaxH, VISIBLE_ITEMS * ITEM_ROW_H + 8);
 
-  // โหมดกำหนดเอง
-  const [customTypeMode, setCustomTypeMode] = useState(false);
-  const [customTypeText, setCustomTypeText] = useState("");
-
-  // คีย์บอร์ด
+  // ควบคุม focus/scroll เข้า item ปัจจุบันในรายการ
   const [activeIdx, setActiveIdx] = useState<number>(-1);
   const listRef = useRef<HTMLUListElement>(null);
 
+  // คำนวณว่าควรเปิดเมนูขึ้นบนหรือลงล่าง เเละ set maxHeight ตามพื้นที่จริง
   const calcDropDirection = () => {
     const fieldRect = typeRef.current?.getBoundingClientRect();
     if (!fieldRect) return;
 
+    const cardRect = cardRef.current?.getBoundingClientRect();
     let spaceBelow = window.innerHeight - fieldRect.bottom;
     let spaceAbove = fieldRect.top;
 
-    const cardRect = cardRef.current?.getBoundingClientRect();
+    // จำกัดพื้นที่ให้ไม่เกินขอบการ์ด (ถ้าการ์ดเล็ก)
     if (cardRect) {
       spaceBelow = Math.min(spaceBelow, cardRect.bottom - fieldRect.bottom);
       spaceAbove = Math.min(spaceAbove, fieldRect.top - cardRect.top);
@@ -294,29 +172,39 @@ const CreateMessagePage: React.FC = () => {
     const preferUp = spaceBelow < IDEAL_MENU_H && spaceAbove > spaceBelow;
     setDropUp(preferUp);
 
-    const room = (preferUp ? spaceAbove : spaceBelow) - 12;
-    setMenuMaxH(Math.max(160, Math.min(IDEAL_MENU_H, room)));
+    const room = Math.max(
+      160,
+      Math.min(IDEAL_MENU_H, (preferUp ? spaceAbove : spaceBelow) - 12)
+    );
+    setMenuMaxH(room);
   };
 
+  // ปิดเมนูเมื่อคลิกนอก component
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!typeRef.current) return;
       if (!typeRef.current.contains(e.target as Node)) {
         setTypeOpen(false);
-        setCustomTypeMode(false);
-        setCustomTypeText("");
+        resetManage();
       }
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  // ปิดเมนูเมื่อกด ESC
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setTypeOpen(false); setCustomTypeMode(false); } };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setTypeOpen(false);
+        resetManage();
+      }
+    };
     if (typeOpen) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [typeOpen]);
 
+  // คอย recalculation เมื่อเปิดเมนู/resize/scroll
   useEffect(() => {
     if (!typeOpen) return;
     const recalc = () => calcDropDirection();
@@ -331,57 +219,43 @@ const CreateMessagePage: React.FC = () => {
     };
   }, [typeOpen]);
 
-  /* ====== useMemo พึ่งพาใน effects ====== */
+  // กรองรายการตามคำค้นหา
   const filteredTypeOptions = useMemo(() => {
     const q = typeQuery.trim().toLowerCase();
     if (!q) return articleTypeOptions;
     return articleTypeOptions.filter(
-      (o) => o.label.toLowerCase().includes(q) || (o.description?.toLowerCase() || "").includes(q)
+      (o) =>
+        o.label.toLowerCase().includes(q) ||
+        (o.description?.toLowerCase() || "").includes(q)
     );
   }, [typeQuery, articleTypeOptions]);
 
-  const hasExactMatch = useMemo(() => {
-    const q = typeQuery.trim().toLowerCase();
-    if (!q) return false;
-    return articleTypeOptions.some(
-      (o) => o.label.toLowerCase() === q || String(o.value).toLowerCase() === q
-    );
-  }, [typeQuery, articleTypeOptions]);
-
-  const showCreateFromQuery = !!typeQuery.trim() && !articleTypeLoading && !hasExactMatch;
-
-  const selectedTypeLabel = useMemo(() => {
-    if (articleTypeLoading) return "กำลังโหลดประเภทบทความ...";
-    const f = articleTypeOptions.find((o) => o.value === String(formData.articleType));
-    return f?.label || "เลือกประเภทบทความ";
-  }, [articleTypeLoading, articleTypeOptions, formData.articleType]);
-
-  // ★ ซิงค์ activeIdx และ auto-scroll
+  // ควบคุม active index เมื่อรายการเปลี่ยน/เมนูเปิด
   useEffect(() => {
-    if (articleTypeLoading) return;
-    if (!typeOpen) return;
+    if (articleTypeLoading || !typeOpen) return;
     if (filteredTypeOptions.length === 0) {
       setActiveIdx(-1);
       return;
     }
-    setActiveIdx((i) => {
-      if (i < 0) return 0;
-      if (i > filteredTypeOptions.length - 1) return filteredTypeOptions.length - 1;
-      return i;
-    });
+    setActiveIdx((i) => (i < 0 ? 0 : Math.min(i, filteredTypeOptions.length - 1)));
   }, [filteredTypeOptions, typeOpen, articleTypeLoading]);
 
+  // เลื่อน scroll ให้ item active มองเห็นได้
   useEffect(() => {
     if (activeIdx < 0 || !listRef.current) return;
-    const el = listRef.current.querySelector<HTMLButtonElement>(`[data-idx="${activeIdx}"]`);
+    const el = listRef.current.querySelector<HTMLButtonElement>(
+      `[data-idx="${activeIdx}"]`
+    );
     el?.scrollIntoView({ block: "nearest" });
   }, [activeIdx]);
 
-  /* สวิตช์โหมด */
+  //สวิตช์ pill (ย้าย highlight ตามปุ่มที่เลือก)
   const [thumb, setThumb] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
   const pillRef = useRef<HTMLDivElement>(null);
   const longRef = useRef<HTMLButtonElement>(null);
   const shortRef = useRef<HTMLButtonElement>(null);
+
+  // อัปเดตตำแหน่ง/ขนาดของแท่ง highlight (thumb) ให้ตรงปุ่มที่เลือก
   const updateThumb = () => {
     const target = contentKind === "long" ? longRef.current : shortRef.current;
     const container = pillRef.current;
@@ -392,7 +266,13 @@ const CreateMessagePage: React.FC = () => {
     const width = Math.max(0, btnRect.width - 8);
     setThumb({ left, width });
   };
-  useEffect(() => { updateThumb(); }, [contentKind]);
+
+  // อัปเดตเมื่อ contentKind เปลี่ยน
+  useEffect(() => {
+    updateThumb();
+  }, [contentKind]);
+
+  // ผูก ResizeObserver เเละ resize/scroll ของ window ให้ thumb ติดตามขนาด/ตำแหน่ง
   useEffect(() => {
     const ro = new ResizeObserver(updateThumb);
     if (pillRef.current) ro.observe(pillRef.current);
@@ -407,65 +287,23 @@ const CreateMessagePage: React.FC = () => {
     };
   }, []);
 
-  /* บันทึก */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (saving) return;
 
-    if (!formData.name.trim()) return msgApi.error("กรุณากรอกชื่อบทความ");
-    if (!formData.author.trim()) return msgApi.error("กรุณากรอกชื่อผู้เขียน");
-    if (!formData.date) return msgApi.error("กรุณาเลือกวันที่เผยแพร่");
-    if (!formData.content.trim()) return msgApi.error("กรุณากรอกเนื้อหา");
-    if (!formData.photo) return msgApi.error("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
-    if (contentKind === "long" && !String(formData.articleType || "").trim()) {
-      return msgApi.error("กรุณาระบุประเภทบทความ");
-    }
-
-    const picked = new Date(`${formData.date}T00:00:00`);
-    const today = new Date(`${todayStr}T00:00:00`);
-    if (isNaN(picked.getTime())) return msgApi.error("วันที่ไม่ถูกต้อง");
-    if (picked > today) return msgApi.error("เลือกวันที่ในอนาคตไม่ได้");
-
-    const form = new FormData();
-    form.append("name", formData.name);
-    form.append("author", formData.author);
-    form.append("no_of_like", String(formData.no_of_like));
-    form.append("date", formData.date);
-    form.append("content", formData.content);
-    form.append("viewCount", String(formData.viewCount ?? 0));
-    form.append("article_type", contentKind === "short" ? "บทความสั้น" : formData.articleType);
-    // แนบรูปภาพ (จำเป็น)
-    if (formData.photo) form.append("photo", formData.photo);
-
-    setSaving(true);
-    try {
-      const ok = await createWordHealingMessage(form);
-      if (ok) {
-        msgApi.success(contentKind === "short" ? "เพิ่มข้อมูลสำเร็จ" : "เพิ่มข้อมูลสำเร็จ");
-        setTimeout(() => navigate("/admin/messagePage"), 1000);
-      } else {
-        msgApi.error("เกิดข้อผิดพลาดในการเพิ่มข้อมูล");
-      }
-    } catch (err) {
-      console.error(err);
-      msgApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  /* เลือกไฟล์ — รับเฉพาะรูปภาพ และบังคับต้องแนบรูป */
+  //จัดการไฟล์รูปภาพ (เลือก/drag&drop/ลบ) 
+  // เมื่อผู้ใช้เลือกไฟล์รูปภาพ
   const handleFilePick: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // อนุญาตเฉพาะไฟล์ภาพ และจำกัดขนาด ≤ 5MB
     const isImage = file.type.startsWith("image/");
     if (!isImage) return msgApi.error("กรุณาเลือกไฟล์รูปภาพเท่านั้น");
     if (file.size / 1024 / 1024 >= 5) return msgApi.error("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
 
+    // เคลียร์ค่าเดิมก่อนอ่านใหม่
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
 
+    // อ่านไฟล์เป็น base64 เพื่อแสดงพรีวิวและส่งไป Backend
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result as string;
@@ -475,32 +313,204 @@ const CreateMessagePage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // ลบรูปออกจากฟอร์ม
   const removeFile = () => {
     setPreview("");
     setFormData((prev) => ({ ...prev, photo: null }));
+    msgApi.info("ลบรูปแล้ว");
   };
 
-  const [useMobilePicker, setUseMobilePicker] = useState(false);
-  useEffect(() => {
-    setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
-    const onResize = () => setUseMobilePicker(isTouchDevice() || window.innerWidth < 640);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+  //ฟังก์ชันช่วยของส่วน Create Update Delete ใน dropdown
+  // รีเซ็ตโหมดจัดการประเภท
+  const resetManage = () => {
+    setManageMode("none");
+    setEditTargetId(null);
+    setNameInput("");
+    setDescInput("");
+  };
 
+  // เข้าสู่โหมดสร้างประเภทใหม่
+  const beginCreate = () => {
+    setManageMode("create");
+    setEditTargetId(null);
+    setNameInput(typeQuery.trim() || "");
+    setDescInput("");
+  };
+
+  // เข้าสู่โหมดแก้ไขประเภท
+  const beginEdit = (opt: ArticleTypeOption) => {
+    setManageMode("edit");
+    setEditTargetId(opt.id);
+    setNameInput(opt.label);
+    setDescInput(opt.description || "");
+  };
+
+  // กดสร้างประเภทใหม่ เรียก API แล้วอัปเดตรายการใน state
+  const handleCreate = async () => {
+    const name = nameInput.trim();
+    if (!name) return msgApi.warning("กรุณาระบุชื่อประเภท");
+    try {
+      setOpLoading(true);
+      const created = await createArticleType({ name, description: descInput.trim() });
+      const newOpt: ArticleTypeOption = {
+        id: Number(created.id),
+        label: created.name,
+        description: created.description || "",
+      };
+      setArticleTypeOptions((prev) => [newOpt, ...prev]);
+      setFormData((prev) => ({ ...prev, article_type_id: newOpt.id }));
+      setShortTypeId((prev) => prev ?? resolveShortTypeId([newOpt, ...articleTypeOptions]));
+      msgApi.success("สร้างประเภทบทความสำเร็จ");
+      resetManage();
+      setTypeOpen(false);
+    } catch (e: any) {
+      msgApi.error(e?.message || "สร้างประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
+  // กดบันทึก ในโหมดแก้ไข >> เรียก API แล้วอัปเดตตัวเลือกใน state
+  const handleEdit = async () => {
+    if (!editTargetId) return;
+    const name = nameInput.trim();
+    if (!name) return msgApi.warning("กรุณาระบุชื่อประเภท");
+    try {
+      setOpLoading(true);
+      const updated = await updateArticleType(editTargetId, { name, description: descInput.trim() });
+      setArticleTypeOptions((prev) =>
+        prev.map((o) =>
+          o.id === editTargetId ? { ...o, label: updated.name, description: updated.description || "" } : o
+        )
+      );
+      msgApi.success("แก้ไขประเภทบทความสำเร็จ");
+      resetManage();
+      setTypeOpen(false);
+    } catch (e: any) {
+      msgApi.error(e?.message || "แก้ไขประเภทบทความไม่สำเร็จ");
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
+  // ลบประเภท >> เพิ่มป้องกันลบถ้าถูกใช้งาน (เช็คจาก BE ส่ง 409/IN_USE)
+  const handleDelete = async (opt: ArticleTypeOption) => {
+    try {
+      setOpLoading(true);
+      await deleteArticleType(opt.id);
+      setArticleTypeOptions((prev) => prev.filter((o) => o.id !== opt.id));
+      setFormData((prev) => {
+        if (prev.article_type_id === opt.id) {
+          const rest = articleTypeOptions.filter((o) => o.id !== opt.id);
+          return { ...prev, article_type_id: rest[0]?.id ?? null };
+        }
+        return prev;
+      });
+      msgApi.success("ลบประเภทบทความสำเร็จ");
+    } catch (e: any) {
+      if (isTypeInUseError(e)) {
+        msgApi.warning("ไม่สามารถลบประเภทนี้ได้ เนื่องจากกำลังถูกใช้งานอยู่ในบทความ/ข้อความ");
+      } else {
+        msgApi.error(e?.message || "ลบประเภทบทความไม่สำเร็จ");
+      }
+    } finally {
+      setOpLoading(false);
+    }
+  };
+
+  // ส่วนของการ submit ฟอร์ม บันทึกไป Backend 
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // ตรวจฟอร์มขั้นต่ำ
+    if (formData.name.trim() === "") return msgApi.warning("กรุณากรอกชื่อบทความ/ข้อความ");
+    if (formData.author.trim() === "") return msgApi.warning("กรุณากรอกชื่อผู้เขียน/แหล่งที่มา");
+    if (formData.content.trim() === "") return msgApi.warning("กรุณากรอกเนื้อหา");
+    if (!formData.photo) return msgApi.warning("กรุณาอัปโหลดรูปภาพประกอบ (จำเป็น)");
+
+    // กำหนดประเภท: ถ้าโหมด short >> บังคับใช้ shortTypeId; ถ้า long >> ใช้ค่าที่เลือกในฟอร์ม
+    const resolvedArticleTypeId =
+      contentKind === "short"
+        ? shortTypeId
+        : formData.article_type_id ?? undefined;
+
+    if (!resolvedArticleTypeId) {
+      msgApi.warning("ไม่พบประเภท ID 29 หรือชื่อ 'ข้อความ' โปรดสร้างหรือเลือกประเภทก่อน");
+      return;
+    }
+
+    // บันทึกด้วยวันที่วันนี้เสมอ (auto)
+    const autoDate = todayStr;
+
+    // ประกอบ FormData เพื่อส่ง multipart/form-data ไป Backend
+    const form = new FormData();
+    form.append("name", formData.name.trim());
+    form.append("author", formData.author.trim());
+    form.append("no_of_like", String(formData.no_of_like ?? 0));
+    form.append("date", autoDate);
+    form.append("content", formData.content.trim());
+    form.append("viewCount", String(formData.viewCount ?? 0));
+    form.append("article_type_id", String(resolvedArticleTypeId));
+    form.append("photo", formData.photo!);
+
+    try {
+      setSaving(true);
+      const ok = await createWordHealingMessage(form); // เรียก API สร้างข้อความให้กำลังใจ
+      if (!ok) throw new Error("เพิ่มข้อมูลไม่สำเร็จ");
+
+      // แจ้งเตือน ก่อนจะ navigate
+      await new Promise<void>((resolve) =>
+        msgApi.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve })
+      );
+
+      // ย้ายหน้าไปตารางรายการ พร้อมส่ง flash state
+      navigate("/admin/messagePage", {
+        replace: true,
+        state: { flash: { type: "success", content: "เพิ่มข้อมูลสำเร็จ" } },
+      });
+    } catch (err) {
+      console.error(err);
+      msgApi.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  //Rendering
   return (
     <div className="w-full min-h-screen bg-slate-100 p-6 lg:p-8">
+      {/* ตัวแสดงข้อความแจ้งเตือน */}
       {msgCtx}
 
+      {/* สปินเต็มจอระหว่างกำลังบันทึก */}
+      <Spin spinning={saving} fullscreen tip="กำลังบันทึกข้อมูล..." />
+
+      {/* หัวส่วนเเสดงหัวข้อ */}
       <div className="mb-3 flex items-center gap-1 sm:gap-2">
-        <img src={createMessageIcon} alt="manage icon" className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block" />
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 leading-tight">สร้างข้อความให้กำลังใจ</h1>
+        <img
+          src={createMessageIcon}
+          alt="manage icon"
+          className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 inline-block"
+        />
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 leading-tight">
+          สร้างข้อความให้กำลังใจ
+        </h1>
       </div>
 
-      <div ref={cardRef} className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10">
+      {/* การ์ดหลักของฟอร์ม (มี ref เพื่อคุม dropdown ไม่ให้ล้น) */}
+      <div
+        ref={cardRef}
+        className="mt-3 w-full rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:p-8 xl:p-10"
+      >
+        {/* ฟอร์มหลัก: แบ่ง 2 คอลัมน์บนจอใหญ่ */}
         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          {/* Left */}
+
+          {/* ฝั่งซ้าย: ชื่อ/ผู้เขียน/สวิตช์โหมด/ประเภท/เนื้อหา*/}
           <div className="space-y-5">
+            
+            {/* ส่วนชื่อบทความ/ข้อความ */}
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-slate-700">
                 ชื่อข้อความหรือบทความ <span className="text-rose-500">*</span>
@@ -516,6 +526,7 @@ const CreateMessagePage: React.FC = () => {
               />
             </div>
 
+            {/* ผู้เขียน/อ้างอิง */}
             <div className="space-y-2">
               <label htmlFor="author" className="block text-sm font-medium text-slate-700">
                 ผู้เขียน/อ้างอิง/แหล่งที่มา <span className="text-rose-500">*</span>
@@ -530,13 +541,24 @@ const CreateMessagePage: React.FC = () => {
               />
             </div>
 
-            {/* Switch */}
+            {/* สวิตช์โหมดเนื้อหา */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการสร้าง)</label>
+              <label className="block text-sm font-medium text-slate-700">
+                โหมดเนื้อหา (เลือกประเภทเนื้อหาที่ต้องการสร้าง)
+              </label>
               <div className="w-full flex justify-center">
                 <div className="relative w-fit mx-auto">
-                  <div ref={pillRef} className="relative inline-flex rounded-2xl border border-slate-200 bg-[#5DE2FF] p-1 shadow-sm">
-                    <span className="absolute top-1 bottom-1 rounded-xl bg-white shadow transition-all duration-300" style={{ left: `${thumb.left}px`, width: `${thumb.width}px` }} />
+                  {/* กล่อง pill (มีแถบ thumb เคลื่อนตามปุ่มที่เลือก) */}
+                  <div
+                    ref={pillRef}
+                    className="relative inline-flex rounded-2xl border border-slate-200 bg-[#5DE2FF] p-1 shadow-sm"
+                  >
+                    {/* thumb สีขาว */}
+                    <span
+                      className="absolute top-1 bottom-1 rounded-xl bg-white shadow transition-all duration-300"
+                      style={{ left: `${thumb.left}px`, width: `${thumb.width}px` }}
+                    />
+                    {/* สองปุ่ม: บทความ/ข้อความ*/}
                     <div className="relative z-10 grid grid-cols-2 gap-1">
                       <button
                         ref={longRef}
@@ -552,6 +574,7 @@ const CreateMessagePage: React.FC = () => {
                         <FileText className="h-4 w-4" />
                         บทความ
                       </button>
+
                       <button
                         ref={shortRef}
                         type="button"
@@ -572,210 +595,178 @@ const CreateMessagePage: React.FC = () => {
               </div>
             </div>
 
-            {/* ประเภทบทความ */}
+            {/* เลือกประเภทบทความแสดงเฉพาะโหมดบทความ */}
             {contentKind === "long" && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
                   ประเภทบทความ <span className="text-rose-500">*</span>
                 </label>
+
+                {/* กล่อง dropdown แบบ custom */}
                 <div ref={typeRef} className="relative">
                   <button
                     type="button"
-                    onClick={() => {
-                      calcDropDirection();
-                      setTypeOpen((o) => !o);
-                    }}
+                    onClick={() => { calcDropDirection(); setTypeOpen((o) => !o); }}
                     className="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3 py-2 text-left text-sm outline-none transition focus:border-slate-900"
                   >
-                    <span className={articleTypeLoading ? "text-slate-400" : ""}>{selectedTypeLabel}</span>
+                    <span>
+                      {articleTypeLoading
+                        ? "กำลังโหลดประเภทบทความ..."
+                        : (articleTypeOptions.find((o) => o.id === formData.article_type_id)?.label ||
+                          "เลือกประเภทบทความ")}
+                    </span>
                     <svg viewBox="0 0 20 20" fill="currentColor" className="ml-2 h-4 w-4 opacity-60">
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </button>
 
+                  {/* ที่คำนวณทิศขึ้นลงของ dropdown สูงสุดตามพื้นที่ว่าง*/}
                   {typeOpen && (
-                    <div className={["absolute z-20 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg", dropUp ? "bottom-full mb-1" : "top-full mt-1"].join(" ")}>
+                    <div
+                      className={[
+                        "absolute z-20 w-full overflow-auto overscroll-contain rounded-xl border border-slate-200 bg-white shadow-lg",
+                        dropUp ? "bottom-full mb-1" : "top-full mt-1",
+                      ].join(" ")}
+                      style={{ maxHeight: menuMaxH }}
+                    >
+                      {/* แถวค้นหาเเละปุ่มสร้าง */}
                       <div className="p-2">
-                        <input
-                          value={typeQuery}
-                          onChange={(e) => setTypeQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowDown") {
-                              e.preventDefault();
-                              if (filteredTypeOptions.length) {
-                                setActiveIdx((i) => Math.min((i < 0 ? -1 : i) + 1, filteredTypeOptions.length - 1));
-                              }
-                            } else if (e.key === "ArrowUp") {
-                              e.preventDefault();
-                              if (filteredTypeOptions.length) {
-                                setActiveIdx((i) => Math.max((i < 0 ? 0 : i) - 1, 0));
-                              }
-                            } else if (e.key === "Enter") {
-                              e.preventDefault();
-                              if (activeIdx >= 0 && activeIdx < filteredTypeOptions.length) {
-                                const o = filteredTypeOptions[activeIdx];
-                                setFormData((prev) => ({ ...prev, articleType: o.value }));
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              } else if (showCreateFromQuery) {
-                                const val = typeQuery.trim();
-                                if (val) {
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                              }
-                            } else if (e.key === "Escape") {
-                              setTypeOpen(false);
-                              setCustomTypeMode(false);
-                            }
-                          }}
-                          placeholder="ค้นหา..."
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            value={typeQuery}
+                            onChange={(e) => setTypeQuery(e.target.value)}
+                            placeholder="ค้นหา..."
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
+                          />
+                          <button
+                            type="button"
+                            onClick={beginCreate}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 sm:py-1.5"
+                          >
+                            <Plus className="h-4 w-4" /> สร้าง
+                          </button>
+                        </div>
                       </div>
 
-                      <ul
-                        role="listbox"
-                        ref={listRef}
-                        className="overflow-y-auto py-1"
-                        style={{ maxHeight: listMaxH }}
-                        aria-activedescendant={activeIdx >= 0 ? `type-opt-${activeIdx}` : undefined}
-                      >
-                        {articleTypeLoading && <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>}
-                        {!articleTypeLoading && filteredTypeOptions.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>}
+                      {/* รายการตัวเลือกเเละปุ่มแก้ไข/ลบ ต่อแถว */}
+                      <ul role="listbox" ref={listRef} className="overflow-y-auto py-1" style={{ maxHeight: listMaxH }}>
+                        {articleTypeLoading && (
+                          <li className="px-3 py-2 text-sm text-slate-500">กำลังโหลด...</li>
+                        )}
+                        {!articleTypeLoading && filteredTypeOptions.length === 0 && (
+                          <li className="px-3 py-2 text-sm text-slate-500">ไม่พบประเภทบทความ</li>
+                        )}
 
                         {filteredTypeOptions.map((o, idx) => (
-                          <li key={o.value}>
-                            <button
-                              type="button"
-                              id={`type-opt-${idx}`}
-                              data-idx={idx}
-                              role="option"
-                              aria-selected={o.value === String(formData.articleType)}
-                              onMouseEnter={() => setActiveIdx(idx)}
-                              className={[
-                                "w-full px-3 py-3 text-left text-base hover:bg-slate-100",
-                                "sm:py-2 sm:text-sm",
-                                o.value === String(formData.articleType) ? "bg-slate-50 font-medium" : "",
-                                idx === activeIdx ? "bg-slate-100" : "",
-                              ].join(" ")}
-                              onClick={() => {
-                                setFormData((prev) => ({ ...prev, articleType: o.value }));
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              <div className="flex flex-col">
-                                <span className="text-sm sm:text-[13px]">{o.label}</span>
-                                {o.description && <span className="text-xs text-slate-500 line-clamp-2">{o.description}</span>}
+                          <li key={o.id}>
+                            <div className="flex items-center">
+                              <button
+                                type="button"
+                                data-idx={idx}
+                                className={[
+                                  "flex-1 px-3 py-3 text-left text-base hover:bg-slate-100",
+                                  "sm:py-2 sm:text-sm",
+                                  o.id === formData.article_type_id ? "bg-slate-50 font-medium" : "",
+                                ].join(" ")}
+                                onClick={() => {
+                                  setFormData((prev) => ({ ...prev, article_type_id: o.id }));
+                                  setTypeOpen(false);
+                                  setTypeQuery("");
+                                  resetManage();
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="text-sm sm:text-[13px]">{o.label}</span>
+                                  {o.description && (
+                                    <span className="text-xs text-slate-500 line-clamp-2">
+                                      {o.description}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+
+                              <div className="pr-2 flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  title="แก้ไข"
+                                  onClick={(e) => { e.stopPropagation(); beginEdit(o); }}
+                                  className="rounded-md p-2 text-slate-700 hover:bg-slate-100"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="ลบ"
+                                  disabled={opLoading}
+                                  onClick={(e) => { e.stopPropagation(); handleDelete(o); }}
+                                  className="rounded-md p-2 text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
                               </div>
-                            </button>
+                            </div>
                           </li>
                         ))}
-
-                        {!customTypeMode && (
-                          <li>
-                            <button
-                              type="button"
-                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
-                              onClick={() => {
-                                setCustomTypeMode(true);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              อื่นๆ / ระบุเอง…
-                            </button>
-                          </li>
-                        )}
-
-                        {showCreateFromQuery && !customTypeMode && (
-                          <li>
-                            <button
-                              type="button"
-                              className="w-full px-3 py-3 text-left text-base hover:bg-slate-100 sm:py-2 sm:text-sm"
-                              onClick={() => {
-                                const val = typeQuery.trim();
-                                if (!val) return;
-                                setFormData((prev) => ({ ...prev, articleType: val }));
-                                setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                setTypeOpen(false);
-                                setTypeQuery("");
-                                setCustomTypeMode(false);
-                                setCustomTypeText("");
-                              }}
-                            >
-                              สร้างประเภทใหม่: <span className="font-medium">“{typeQuery.trim()}”</span>
-                            </button>
-                          </li>
-                        )}
                       </ul>
 
-                      {customTypeMode && (
-                        <div className="border-t border-slate-200 p-2 bg-white sticky bottom-0 sm:static">
-                          <label className="mb-1 block text-xs text-slate-500">กำหนดชื่อประเภทด้วยตนเอง</label>
+                      {/* ฟอร์มย่อยสร้าง/แก้ไข ประเภทบทความ*/}
+                      {(manageMode === "create" || manageMode === "edit") && (
+                        <div className="border-t border-slate-200 p-3 bg-white sticky bottom-0">
+                          <div className="text-xs text-slate-500 mb-2">
+                            {manageMode === "create" ? "สร้างประเภทบทความใหม่" : "แก้ไขประเภทบทความ"}
+                          </div>
 
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <div className="space-y-2">
                             <input
-                              autoFocus
-                              value={customTypeText}
-                              onChange={(e) => setCustomTypeText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  const val = customTypeText.trim();
-                                  if (!val) return;
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                                if (e.key === "Escape") {
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }
-                              }}
-                              className="w-full sm:flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-900 sm:py-1.5"
-                              placeholder="พิมพ์ชื่อประเภท เช่น คอลัมน์พิเศษ"
+                              value={nameInput}
+                              onChange={(e) => setNameInput(e.target.value)}
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                              placeholder="ชื่อประเภท เช่น บทความเชิงวิเคราะห์"
+                              maxLength={128}
                             />
+                            <textarea
+                              value={descInput}
+                              onChange={(e) => setDescInput(e.target.value)}
+                              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
+                              placeholder="คำอธิบาย (ไม่บังคับ)"
+                              maxLength={1000}
+                              rows={2}
+                            />
+                          </div>
 
-                            <div className="flex gap-2 sm:w-auto">
+                          <div className="mt-2 flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={resetManage}
+                              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
+                              disabled={opLoading}
+                            >
+                              ยกเลิก
+                            </button>
+
+                            {manageMode === "create" ? (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  const val = customTypeText.trim();
-                                  if (!val) return;
-                                  setFormData((prev) => ({ ...prev, articleType: val }));
-                                  setArticleTypeOptions((prev) => [{ value: val, label: val }, ...prev]);
-                                  setTypeOpen(false);
-                                  setTypeQuery("");
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }}
-                                className="w-full sm:w-auto rounded-lg bg-slate-900 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-white hover:bg-slate-700 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                                onClick={handleCreate}
+                                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+                                disabled={opLoading}
                               >
-                                ใช้ค่านี้
+                                {opLoading ? "กำลังสร้าง..." : "สร้าง"}
                               </button>
-
+                            ) : (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setCustomTypeMode(false);
-                                  setCustomTypeText("");
-                                }}
-                                className="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2.5 sm:py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap min-h-[44px] sm:min-h-0"
+                                onClick={handleEdit}
+                                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+                                disabled={opLoading}
                               >
-                                ยกเลิก
+                                {opLoading ? "กำลังบันทึก..." : "บันทึก"}
                               </button>
-                            </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -785,10 +776,11 @@ const CreateMessagePage: React.FC = () => {
               </div>
             )}
 
-            {/* Content */}
+            {/* กล่องกรอกเนื้อหา (เปลี่ยน placeholder ตามโหมด) */}
             <div className="space-y-2">
               <label htmlFor="content" className="block text-sm font-medium text-slate-700">
-                เนื้อหา{contentKind === "short" ? " (ข้อความ/บทความสั้น)" : "บทความ"} <span className="text-rose-500">*</span>
+                เนื้อหา{contentKind === "short" ? " (ข้อความ/บทความสั้น)" : "บทความ"}{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <textarea
                 id="content"
@@ -801,10 +793,13 @@ const CreateMessagePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right */}
+          {/* ฝั่งขวา: อัปโหลดรูปเเละปุ่มการทำงาน*/}
           <div className="flex flex-col">
-            <label className="mb-2 block text-sm font-medium text-slate-700">อัปโหลดรูปภาพประกอบ <span className="text-rose-500">*</span></label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              อัปโหลดรูปภาพประกอบ <span className="text-rose-500">*</span>
+            </label>
 
+            {/* กล่อง drag&drop + คลิกเพื่อเลือกไฟล์ */}
             <div
               className="relative rounded-2xl border-2 border-dashed border-slate-300 bg-white p-4"
               onDragOver={(e) => e.preventDefault()}
@@ -819,7 +814,7 @@ const CreateMessagePage: React.FC = () => {
                 }
               }}
             >
-              {/* รับเฉพาะรูปภาพ */}
+              {/* input file (ซ่อน) */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -828,7 +823,11 @@ const CreateMessagePage: React.FC = () => {
                 className="hidden"
               />
 
-              <div className="flex min-h-[280px] items-center justify-center" onClick={() => fileInputRef.current?.click()}>
+              {/* พื้นที่พรีวิว*/}
+              <div
+                className="flex min-h-[280px] items-center justify-center"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 {preview ? (
                   <img src={preview} alt="preview" className="max-h-[420px] w-full rounded-xl object-contain" />
                 ) : (
@@ -839,6 +838,7 @@ const CreateMessagePage: React.FC = () => {
                 )}
               </div>
 
+              {/* ปุ่มจัดการไฟล์ */}
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -847,6 +847,7 @@ const CreateMessagePage: React.FC = () => {
                 >
                   เลือกรูป
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setShowPreviewModal(true)}
@@ -855,6 +856,7 @@ const CreateMessagePage: React.FC = () => {
                 >
                   เปิดดูรูปตัวอย่าง
                 </button>
+
                 <button
                   type="button"
                   onClick={removeFile}
@@ -866,61 +868,48 @@ const CreateMessagePage: React.FC = () => {
               </div>
             </div>
 
-            {/* วันที่เผยแพร่ */}
-            <div className="mt-5 space-y-2">
-              <label className="block text-sm font-medium text-slate-700">วันที่เผยแพร่ <span className="text-rose-500">*</span></label>
-              {useMobilePicker ? (
-                <MobileDateField value={formData.date} max={todayStr} onChange={(ymd) => setFormData((prev) => ({ ...prev, date: ymd }))} cardRef={cardRef} />
-              ) : (
-                <input
-                  id="date"
-                  name="date"
-                  type="date"
-                  value={formData.date}
-                  max={todayStr}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900"
-                />
-              )}
-            </div>
 
-            {/* Buttons */}
+            {/* ปุ่มการทำงาน: ย้อนกลับ / บันทึก */}
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => navigate("/admin/messagePage")}
-                disabled={saving}
-                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                className="rounded-xl border-slate-300 !bg-black px-5 py-2.5 !text-white shadow-sm transition-colors hover:border-black hover:!bg-gray-700"
               >
                 ย้อนกลับ
               </button>
 
               <button
                 type="submit"
-                disabled={saving}
-                aria-busy={saving}
-                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99] disabled:opacity-50 disabled:pointer-events-none"
+                className="inline-flex items-center justify-center rounded-xl bg-[#5DE2FF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-500 active:scale-[.99]"
               >
-                <span>
-                  {saving
-                    ? "กำลังบันทึก…"
-                    : contentKind === "short"
-                      ? "บันทึกข้อความ/บทความสั้น"
-                      : "บันทึกบทความ"}
-                </span>
+                {contentKind === "short" ? "บันทึกข้อความ/บทความสั้น" : "บันทึกบทความ"}
               </button>
             </div>
           </div>
         </form>
       </div>
 
-      {/* Preview Modal */}
+      {/* Modal พรีวิวรูป */}
       {showPreviewModal && preview && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" onClick={() => setShowPreviewModal(false)}>
-          <div className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowPreviewModal(false)}
+        >
+          <div
+            className="max-h-[85vh] w-full max-w-7xl overflow-hidden rounded-2xl bg-white p-2 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img src={preview} alt="Preview" className="mx-auto max-h-[80vh] w-full rounded-xl object-contain" />
             <div className="p-2 text-right">
-              <button onClick={() => setShowPreviewModal(false)} className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">ปิด</button>
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                ปิด
+              </button>
             </div>
           </div>
         </div>
@@ -930,4 +919,3 @@ const CreateMessagePage: React.FC = () => {
 };
 
 export default CreateMessagePage;
-

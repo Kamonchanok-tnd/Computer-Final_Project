@@ -4,33 +4,105 @@ import type { ColumnsType } from "antd/es/table";
 import { DeleteOutlined, SettingOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { getAllWordHealingMessages, deleteWordHealingMessage } from "../../../../services/https/message";
 import type { WordHealingContent } from "../../../../interfaces/IWordHealingContent";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import emailIcon from "../../../../assets/email.png";
 
-const MessagePage: React.FC = () => {
-  const navigate = useNavigate();
-  const [messages, setMessages] = useState<WordHealingContent[]>([]);
-  const [filteredMessages, setFilteredMessages] = useState<WordHealingContent[]>([]);
-  const [loadingMessages, setLoadingMessages] = useState(true);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [selectedToDelete, setSelectedToDelete] = useState<WordHealingContent | null>(null);
-  const [, setIsDeleteSuccessModalVisible] = useState(false);
-  const [searchText, setSearchText] = useState<string>("");
-  const [sortOption, setSortOption] = useState<string>("default");
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string>("");
+// const apiUrl = "http://localhost:8003";
+const apiUrl = "http://localhost:8000";
 
-  function getRolePath( subPath: string) {
+// ชนิดข้อมูล flash message 
+type Flash = { type?: "success" | "error" | "info" | "warning"; content: string };
+
+const MessagePage: React.FC = () => {
+  
+  const navigate = useNavigate();
+  
+  // ใช้รับ state ที่ส่งมาจากหน้าอื่น (เช่น flash)
+  const location = useLocation();
+
+  // states หลักของหน้า
+  const [messages, setMessages] = useState<WordHealingContent[]>([]);   // ข้อมูลเต็มที่ดึงจาก BE
+  const [filteredMessages, setFilteredMessages] = useState<WordHealingContent[]>([]); 
+  const [loadingMessages, setLoadingMessages] = useState(true);                       
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);                 
+  const [selectedToDelete, setSelectedToDelete] = useState<WordHealingContent | null>(null);  // แถวที่ผู้ใช้จะลบ
+  const [, setIsDeleteSuccessModalVisible] = useState(false);                   
+  const [searchText, setSearchText] = useState<string>("");                     
+  const [sortOption, setSortOption] = useState<string>("default");              
+  const [previewVisible, setPreviewVisible] = useState(false);      // modal พรีวิวรูป
+  const [previewImage, setPreviewImage] = useState<string>("");                 
+
+  // mapping: article_type_id เป็น name  ใช้สำหรับแสดงชื่อประเภทในตาราง/ช่วยค้นหา
+  const [typeMap, setTypeMap] = useState<Record<number, string>>({});
+
+  // โหลด mapping ประเภทบทความจาก Backend หลายรูปแบบ field
+  const loadTypeMap = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${apiUrl}/getarticletype`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+      if (res.status === 204) { 
+        setTypeMap({});
+        return;
+      }
+      if (!res.ok) throw new Error(String(res.status));
+      const raw = await res.json();
+      const m: Record<number, string> = {};
+
+      // รองรับได้หลายรูปแบบโครงสร้าง object จาก Backend
+      if (Array.isArray(raw)) {
+        for (const it of raw) {
+          const id =
+            (typeof it?.id === "number" && it.id) ||
+            (typeof it?.ID === "number" && it.ID) ||
+            (typeof it?.article_type_id === "number" && it.article_type_id) ||
+            null;
+          const nm =
+            (typeof it?.name === "string" && it.name) ||
+            (typeof it?.Name === "string" && it.Name) ||
+            (typeof it?.title === "string" && it.title) ||
+            (typeof it?.Title === "string" && it.Title) ||
+            "";
+          if (id && nm) m[id] = nm;
+        }
+      }
+      setTypeMap(m);
+    } catch (e) {
+      console.error("getarticletype failed:", e);
+      setTypeMap({});
+    }
+  };
+
+  // helper: เดิน path ตาม role ที่เก็บใน localStorage (superadmin/admin)
+  function getRolePath(subPath: string) {
     const role = localStorage.getItem("role");
     const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
-    navigate(`/${rolePrefix}/${subPath}`)
-   
+    navigate(`/${rolePrefix}/${subPath}`);
   }
 
+  // โหลดรายการข้อความ 
   useEffect(() => {
     loadMessages();
+    loadTypeMap();  // โหลดชื่อประเภทเพื่อ mapping id เป็น name
   }, []);
 
+  // ดัก flash จากหน้าอื่น (เช่นสร้าง/แก้ไขสำเร็จ) แล้วล้าง state เพื่อไม่ให้แสดงซ้ำ
+  useEffect(() => {
+    const incoming = (location.state as { flash?: Flash } | null) || null;
+    if (!incoming?.flash?.content) return;
+
+    const t = incoming.flash.type ?? "success";
+    message.destroy();
+    (message as any)[t]?.(incoming.flash.content);
+    navigate(location.pathname, { replace: true, state: {} }); // ล้าง state
+  }, [location.key]);
+
+  // ดึงรายการข้อความ/บทความทั้งหมดจาก service แล้วเซ็ตทั้ง messages และ filteredMessages
   const loadMessages = async () => {
     setLoadingMessages(true);
     try {
@@ -43,11 +115,13 @@ const MessagePage: React.FC = () => {
     setLoadingMessages(false);
   };
 
+  // เปิด modal ยืนยันลบพร้อมจำแถวที่เลือก
   const showDeleteModal = (messageItem: WordHealingContent) => {
     setSelectedToDelete(messageItem);
     setDeleteModalVisible(true);
   };
 
+  // ยืนยันลบ → เรียก service ลบ → reload รายการ + แจ้งเตือน
   const handleConfirmDelete = async () => {
     if (!selectedToDelete) return;
     try {
@@ -61,45 +135,73 @@ const MessagePage: React.FC = () => {
     }
   };
 
+  // helper: คืนชื่อประเภทจาก record
+  const getTypeName = (m: WordHealingContent): string => {
+    const id =
+      (typeof m.article_type_id === "number" ? m.article_type_id : null) ??
+      (m as any)?.articleTypeId ??
+      (m as any)?.article_typeId ??
+      null;
+
+    if (typeof id === "number") {
+      if (typeMap[id]) return typeMap[id];
+      if (id === 29) return "ข้อความ";  // กรณีพิเศษ
+      return `#${id}`;                 // แสดง id 
+    }
+
+    // fallback: กรณี Backend เก่า/ค่ามาเป็น string
+    const byString =
+      (m as any).article_type?.toString()?.trim() ||
+      (m as any).articleType?.toString()?.trim() ||
+      (m as any).article_type_name?.toString()?.trim() ||
+      "";
+    return byString;
+  };
+
+  // เมื่อผู้ใช้พิมพ์ค้นหา  อัปเดต state และคำนวณ filter/sort 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchText(value);
     filterAndSort(value, sortOption);
   };
 
+  // ฟังก์ชันรวม: กรอง (ตามคำค้น) + เรียง (ตาม sortKey)
   const filterAndSort = (searchValue: string, sortKey: string) => {
     let data = [...messages];
 
-    // Filter
+    // ส่วนกรอง Filter 
     if (searchValue.trim() !== "") {
       const q = searchValue.toLowerCase();
-      data = data.filter((m) =>
-        m.name.toLowerCase().includes(q) ||
-        m.author.toLowerCase().includes(q) ||
-        (m.articleType || "").toLowerCase().includes(q) ||
-        (m.content || "").toLowerCase().includes(q)
-      );
+      data = data.filter((m) => {
+        const tname = getTypeName(m).toLowerCase();
+        return (
+          m.name.toLowerCase().includes(q) ||
+          m.author.toLowerCase().includes(q) ||
+          tname.includes(q) ||
+          (m.content || "").toLowerCase().includes(q)
+        );
+      });
     }
 
-    // Sort
+    // ส่วนการจัดเรียง Sort 
     switch (sortKey) {
       case "nameAsc":
-        data.sort((a, b) => a.name.localeCompare(b.name, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => a.name.localeCompare(b.name, "th", { sensitivity: "base" }));
         break;
       case "nameDesc":
-        data.sort((a, b) => b.name.localeCompare(a.name, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => b.name.localeCompare(a.name, "th", { sensitivity: "base" }));
         break;
       case "authorAsc":
-        data.sort((a, b) => a.author.localeCompare(b.author, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => a.author.localeCompare(b.author, "th", { sensitivity: "base" }));
         break;
       case "authorDesc":
-        data.sort((a, b) => b.author.localeCompare(a.author, 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => b.author.localeCompare(a.author, "th", { sensitivity: "base" }));
         break;
       case "contentAsc":
-        data.sort((a, b) => (a.content || '').localeCompare(b.content || '', 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => (a.content || "").localeCompare(b.content || "", "th", { sensitivity: "base" }));
         break;
       case "contentDesc":
-        data.sort((a, b) => (b.content || '').localeCompare(a.content || '', 'th', { sensitivity: 'base' }));
+        data.sort((a, b) => (b.content || "").localeCompare(a.content || "", "th", { sensitivity: "base" }));
         break;
       case "likesAsc":
         data.sort((a, b) => (a.no_of_like ?? 0) - (b.no_of_like ?? 0));
@@ -120,50 +222,51 @@ const MessagePage: React.FC = () => {
         data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         break;
       default:
-        break;
+        break; 
     }
 
     setFilteredMessages(data);
   };
 
-  // Preview image
+  // เมื่อคลิกรูปในตาราง จะเปิด modal พรีวิวรูป
   const handleImageClick = (image: string) => {
     setPreviewImage(image);
     setPreviewVisible(true);
   };
 
-  // Header style for table
-  const headerCellStyle = { backgroundColor: '#5DE2FF', color: '#0f172a', fontWeight: 600 } as const;
+  // สีหัวตาราง
+  const headerCellStyle = { backgroundColor: "#5DE2FF", color: "#0f172a", fontWeight: 600 } as const;
 
+  // คอลัมน์ของตาราง
   const messageColumns: ColumnsType<WordHealingContent> = [
     {
-      title: 'ลำดับ',
-      dataIndex: 'id',
-      key: 'id',
-      align: 'center',
+      title: "ลำดับ",
+      dataIndex: "id",
+      key: "id",
+      align: "center",
       width: 80,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'ชื่อบทความ',
-      dataIndex: 'name',
-      key: 'name',
-      align: 'center',
+      title: "ชื่อบทความ",
+      dataIndex: "name",
+      key: "name",
+      align: "center",
       width: 320,
-      render: (text: string) => <div className="whitespace-normal break-words">{text}</div>,
+      render: (text: string) => <div className="whitespace-normal break-words">{text}</div>, // ให้ตัดบรรทัดได้
       onHeaderCell: () => ({ style: headerCellStyle }),
-      responsive: ['xs','sm','md','lg','xl'],
+      responsive: ["xs", "sm", "md", "lg", "xl"],
     },
     {
-      title: 'ผู้เขียน/อ้างอิง/เเหล่งที่มา',
-      dataIndex: 'author',
-      key: 'author',
-      align: 'center',
+      title: "ผู้เขียน/อ้างอิง/เเหล่งที่มา",
+      dataIndex: "author",
+      key: "author",
+      align: "center",
       width: 480,
       render: (content: string) => {
         if (!content) return <span>-</span>;
         const text = String(content);
-        const short = text.length > 140 ? `${text.slice(0, 140)}…` : text;
+        const short = text.length > 140 ? `${text.slice(0, 140)}…` : text; // แสดงย่อพร้อม tooltip
         return (
           <Tooltip title={text} overlayStyle={{ maxWidth: 600 }}>
             <span className="whitespace-normal break-words">{short}</span>
@@ -171,22 +274,24 @@ const MessagePage: React.FC = () => {
         );
       },
       onHeaderCell: () => ({ style: headerCellStyle }),
-      responsive: ['xs','sm','md','lg','xl'],
+      responsive: ["xs", "sm", "md", "lg", "xl"],
     },
     {
-      title: 'ประเภทบทความ',
-      dataIndex: 'articleType',
-      key: 'articleType',
-      align: 'center',
-      render: (type: string) => (type ? <Tag>{type}</Tag> : <span>-</span>),
+      title: "ประเภทบทความ",
+      key: "article_type",
+      align: "center",
+      render: (_: any, record: WordHealingContent) => {
+        const label = getTypeName(record);
+        return label ? <Tag>{label}</Tag> : <span>-</span>;
+      },
       width: 160,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'เนื้อหาบทความ',
-      dataIndex: 'content',
-      key: 'content',
-      align: 'center',
+      title: "เนื้อหาบทความ",
+      dataIndex: "content",
+      key: "content",
+      align: "center",
       width: 480,
       render: (content: string) => {
         if (!content) return <span>-</span>;
@@ -199,45 +304,48 @@ const MessagePage: React.FC = () => {
         );
       },
       onHeaderCell: () => ({ style: headerCellStyle }),
-      responsive: ['xs','sm','md','lg','xl'],
+      responsive: ["xs", "sm", "md", "lg", "xl"],
     },
     {
-      title: 'วันที่สร้าง',
-      dataIndex: 'date',
-      key: 'date',
-      align: 'center',
+      title: "วันที่สร้าง",
+      dataIndex: "date",
+      key: "date",
+      align: "center",
       render: (date: string) => {
-        if (!date || date === 'ไม่มีวันที่') return '-';
+        if (!date || date === "ไม่มีวันที่") return "-";
         const d = new Date(date);
-        if (Number.isNaN(d.getTime())) return '-';
-        return d.toLocaleDateString();
+        if (Number.isNaN(d.getTime())) return "-";
+        return d.toLocaleDateString(); // แสดงตาม locale ของเบราว์เซอร์
       },
       width: 140,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'จำนวนการกดถูกใจ',
-      dataIndex: 'no_of_like',
-      key: 'no_of_like',
-      align: 'center',
+      title: "จำนวนการกดถูกใจ",
+      dataIndex: "no_of_like",
+      key: "no_of_like",
+      align: "center",
       width: 160,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'จำนวนการเข้าชม',
-      dataIndex: 'viewCount',
-      key: 'viewCount',
-      align: 'center',
+      title: "จำนวนการเข้าชม",
+      dataIndex: "viewCount",
+      key: "viewCount",
+      align: "center",
       width: 160,
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'รูปภาพ',
-      dataIndex: 'photo',
-      key: 'photo',
-      align: 'center',
+      title: "รูปภาพ",
+      dataIndex: "photo",
+      key: "photo",
+      align: "center",
       render: (photo: string | null) => (
-        <div className="flex items-center justify-center cursor-pointer" onClick={() => handleImageClick(photo || "/default-image.png")}>
+        <div
+          className="flex items-center justify-center cursor-pointer"
+          onClick={() => handleImageClick(photo || "/default-image.png")}
+        >
           <img src={photo || "/default-image.png"} alt="Healing" className="h-[50px] w-[50px] object-cover rounded-md" />
         </div>
       ),
@@ -245,17 +353,28 @@ const MessagePage: React.FC = () => {
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: 'การจัดการ',
-      key: 'actions',
-      align: 'center',
+      title: "การจัดการ",
+      key: "actions",
+      align: "center",
       render: (_: any, record: WordHealingContent) => (
         <Space>
-          <AntButton icon={<SettingOutlined />} onClick={() => {
-            const role = localStorage.getItem("role");
-            const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
-
-            navigate(`/${rolePrefix}/editMessagePage`, { state: { id: record.id } })}} className="!bg-black !text-white hover:!bg-gray-700 active:!bg-indigo-800 !border-none !shadow-none focus:!shadow-none"/>
-          <AntButton danger icon={<DeleteOutlined />} onClick={() => showDeleteModal(record)}  className="!w-8 !h-8 !p-0 !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"/>
+          {/* ปุ่มไปหน้าแก้ไขแยก path ตาม role*/}
+          <AntButton
+            icon={<SettingOutlined />}
+            onClick={() => {
+              const role = localStorage.getItem("role");
+              const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+              navigate(`/${rolePrefix}/editMessagePage`, { state: { id: record.id } });
+            }}
+            className="!bg-black !text-white hover:!bg-gray-700 active:!bg-indigo-800 !border-none !shadow-none focus:!shadow-none"
+          />
+          {/* ปุ่มลบ: เปิด modal ยืนยัน */}
+          <AntButton
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => showDeleteModal(record)}
+            className="!w-8 !h-8 !p-0 !bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 !border-none !shadow-none"
+          />
         </Space>
       ),
       width: 140,
@@ -265,7 +384,7 @@ const MessagePage: React.FC = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
-      {/* Header */}
+      {/* ส่วนหัว + ปุ่มสร้าง */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <img src={emailIcon} alt="manage icon" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
@@ -282,8 +401,9 @@ const MessagePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Controls */}
+      {/* แถบค้นหาเเละการเรียง */}
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
+        {/* ช่องค้นหา: ค้นจาก ชื่อ/ผู้เขียน/ประเภท/เนื้อหา */}
         <div className="md:col-span-9">
           <Input
             placeholder="ค้นหาบทความ/ผู้เขียน/ประเภท/เนื้อหา..."
@@ -295,54 +415,61 @@ const MessagePage: React.FC = () => {
             allowClear
           />
         </div>
+        {/* เลือกวิธีการ sort*/}
         <div className="md:col-span-3">
           <Select
             value={sortOption}
-            onChange={(v) => { setSortOption(String(v)); filterAndSort(searchText, String(v)); }}
-                        size="large"
+            onChange={(v) => {
+              setSortOption(String(v));
+              filterAndSort(searchText, String(v));
+            }}
+            size="large"
             className="w-full"
             options={[
-              { value: 'default',   label: 'เรียงลำดับ' },
-              { value: 'nameAsc',   label: 'ชื่อบทความ (ก → ฮ)' },
-              { value: 'nameDesc',  label: 'ชื่อบทความ (ฮ → ก)' },
-              { value: 'authorAsc', label: 'ชื่อผู้เขียน (ก → ฮ)' },
-              { value: 'authorDesc',label: 'ชื่อผู้เขียน (ฮ → ก)' },
-              { value: 'contentAsc',label: 'เนื้อหาบทความ (ก → ฮ)' },
-              { value: 'contentDesc',label: 'เนื้อหาบทความ (ฮ → ก)' },
-              { value: 'likesAsc',  label: 'จำนวนการกดถูกใจ (น้อย → มาก)' },
-              { value: 'likesDesc', label: 'จำนวนการกดถูกใจ (มาก → น้อย)' },
-              { value: 'viewsAsc',  label: 'จำนวนการเข้าชม (น้อย → มาก)' },
-              { value: 'viewsDesc', label: 'จำนวนการเข้าชม (มาก → น้อย)' },
-              { value: 'dateAsc',   label: 'วันที่สร้าง (เก่าสุด → ใหม่สุด)' },
-              { value: 'dateDesc',  label: 'วันที่สร้าง (ใหม่สุด → เก่าสุด)' },
+              { value: "default", label: "เรียงลำดับ" },
+              { value: "nameAsc", label: "ชื่อบทความ (ก → ฮ)" },
+              { value: "nameDesc", label: "ชื่อบทความ (ฮ → ก)" },
+              { value: "authorAsc", label: "ชื่อผู้เขียน (ก → ฮ)" },
+              { value: "authorDesc", label: "ชื่อผู้เขียน (ฮ → ก)" },
+              { value: "contentAsc", label: "เนื้อหาบทความ (ก → ฮ)" },
+              { value: "contentDesc", label: "เนื้อหาบทความ (ฮ → ก)" },
+              { value: "likesAsc", label: "จำนวนการกดถูกใจ (น้อย → มาก)" },
+              { value: "likesDesc", label: "จำนวนการกดถูกใจ (มาก → น้อย)" },
+              { value: "viewsAsc", label: "จำนวนการเข้าชม (น้อย → มาก)" },
+              { value: "viewsDesc", label: "จำนวนการเข้าชม (มาก → น้อย)" },
+              { value: "dateAsc", label: "วันที่สร้าง (เก่าสุด → ใหม่สุด)" },
+              { value: "dateDesc", label: "วันที่สร้าง (ใหม่สุด → เก่าสุด)" },
             ]}
           />
         </div>
       </div>
 
-      {/* Table */}
+      {/* ส่วนตาราง */}
       <div className="mt-4">
         {loadingMessages ? (
-          <div className="flex items-center justify-center py-16"><Spin tip="กำลังโหลดบทความ..." /></div>
+          <div className="flex items-center justify-center py-16">
+            <Spin tip="กำลังโหลดบทความ..." />
+          </div>
         ) : filteredMessages.length === 0 ? (
           <Alert message="ไม่พบบทความ" type="info" showIcon />
         ) : (
+          // ตารางข้อมูลหลัก
           <div className="w-full overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
             <Table<WordHealingContent>
               columns={messageColumns}
               dataSource={filteredMessages}
               rowKey={(r) => String(r.id)}
               bordered
-              pagination={{ pageSize: 10 }}
-              scroll={{ x: 1280 }}
-              sticky
+              pagination={{ pageSize: 10 }}    // แสดงหน้าละ 10 รายการ
+              scroll={{ x: 1280 }}             // รองรับจอเล็กด้วยการเลื่อนแนวนอน
+              sticky                           // header sticky
               size="middle"
             />
           </div>
         )}
       </div>
 
-      {/* Delete confirm modal */}
+      {/* Modal ยืนยันการลบ */}
       <Modal
         title="ยืนยันการลบบทความ ❌ "
         open={deleteModalVisible}
@@ -351,10 +478,9 @@ const MessagePage: React.FC = () => {
         okText="ยืนยัน"
         cancelText="ยกเลิก"
         centered
-        
         okButtonProps={{
           danger: true,
-          disabled: !selectedToDelete, 
+          disabled: !selectedToDelete,
           className:
             "!rounded-xl !border-none !shadow-none " +
             "!bg-rose-600 !text-white hover:!bg-rose-700 active:!bg-rose-800 " +
@@ -368,13 +494,10 @@ const MessagePage: React.FC = () => {
         rootClassName="font-sans"
       >
         <p>คุณแน่ใจหรือไม่ว่าต้องการลบบทความนี้?</p>
-        <p className="text-center font-semibold text-lg text-red-600">
-          {selectedToDelete?.name}
-        </p>
+        <p className="text-center font-semibold text-lg text-red-600">{selectedToDelete?.name}</p>
       </Modal>
 
-
-      {/* Preview image modal */}
+      {/* Modal พรีวิวรูป */}
       <Modal open={previewVisible} footer={null} onCancel={() => setPreviewVisible(false)} centered>
         <img alt="Preview" className="w-full max-h-[80vh] object-contain" src={previewImage} />
       </Modal>

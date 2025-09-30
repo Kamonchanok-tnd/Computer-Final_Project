@@ -9,7 +9,7 @@ import { useDarkMode } from "../../components/Darkmode/toggleDarkmode";
 const VoiceChat: React.FC = () => {
   const { isRecording, startRecording, stopRecording } = useRecorder();
   const wsRef = useRef<WebSocket | null>(null);
-  const [wsStatus, setWsStatus] = useState("🔌 Not connected");
+  const [wsStatus, setWsStatus] = useState("🔌 ไม่มี การเชื่อมต่อ");
   const [_logs, setLogs] = useState<string[]>([]);
   // const [isPlaying, setIsPlaying] = useState(false); 
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -30,7 +30,7 @@ const VoiceChat: React.FC = () => {
     const ws = new WebSocket("ws://localhost:8000/ws/chat-voice");
 
     ws.onopen = () => {
-      setWsStatus("Connected");
+      setWsStatus("พร้อมใช้งาน");
       addLog("WebSocket connected");
       // console.log("We send chatRoomID : ", RoomID);
       ws.send(JSON.stringify({ chatRoomID: RoomID ,token: `Bearer ${token}`}));
@@ -73,7 +73,7 @@ const VoiceChat: React.FC = () => {
     };
 
     ws.onclose = () => {
-      setWsStatus("🔌 Disconnected");
+      setWsStatus("🔌 ไม่มี การเชื่อมต่อ");
       addLog("WebSocket disconnected");
     };
 
@@ -122,7 +122,7 @@ const VoiceChat: React.FC = () => {
         <div className="">
           <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-text-dark' : 'text-black-word'}`}>AI Voice Chat</h1>
             <p className={`mb-2  ${isDarkMode ? 'text-text-dark' : 'text-black-word'}`}>
-              WebSocket Status: <strong>{wsStatus}</strong>
+               <strong>{wsStatus}</strong>
             </p>
         </div>
       
