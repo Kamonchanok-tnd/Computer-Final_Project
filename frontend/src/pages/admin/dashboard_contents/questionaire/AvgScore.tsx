@@ -131,9 +131,10 @@ const AverageScoreCard = () => {
             style={{ width: 120 }}
             allowClear
           >
-            <Option value="ชาย">ชาย</Option>
-            <Option value="หญิง">หญิง</Option>
-            <Option value="อื่นๆ">อื่นๆ</Option>
+             <option value="ชาย">ชาย</option>
+                <option value="หญิง">หญิง</option>
+                <option value="LGBTQ+">LGBTQ+</option>
+                <option value="ไม่ระบุ">ไม่ระบุ</option>
           </Select>
 
           {/* ช่วงอายุ */}

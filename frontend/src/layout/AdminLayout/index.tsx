@@ -48,12 +48,12 @@ const AdminLayout = () => {
     {
       key: "/admin/questionnairePage",
       icon: <QuestionOutlined />,
-      label: <Link to="/admin/questionnairePage">แบบสอบถาม</Link>,
+      label: <Link to="/admin/questionnairePage">แบบทดสอบ</Link>,
     },
     {
       key: "/admin/prompt",
       icon: <CommentOutlined />,
-      label: <Link to="/admin/prompt">การจัดการ Prompt AI</Link>,
+      label: <Link to="/admin/prompt">การจัดการพร้อมพ์</Link>,
     },
     {
       key: "/admin/sounds",

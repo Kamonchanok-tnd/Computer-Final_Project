@@ -10,7 +10,8 @@ import { EmotionChoice } from "../../../interfaces/IEmotionChoices";
 
 // ✅ Inline axiosInstance พร้อมแนบ token
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000", // แก้เป็น env ก็ได้ถ้ามี .env.local
+  //baseURL: "http://localhost:8003", // แก้เป็น env ก็ได้ถ้ามี .env.local
+  baseURL: "http://localhost:8000",
 });
 
 axiosInstance.interceptors.request.use((config) => {
@@ -208,6 +209,23 @@ export const getCriteriaByQuID = async (quId: number): Promise<any[]> => {
     return [];
   }
 };
+
+// ใช้กับ /assessment/Questionnaires ของที่ให้มา
+export const getQuestionnairesLite = async (): Promise<
+  Array<{ id: number; name?: string; description?: string; code?: string; alias?: string }>
+> => {
+  const res = await axiosInstance.get("/assessment/Questionnaires");
+  const list = Array.isArray(res.data) ? res.data : [];
+  // map เฉพาะฟิลด์ที่น่าจะมี (กันเคสชื่อแตกต่าง)
+  return list.map((q: any) => ({
+    id: Number(q?.ID ?? q?.Id ?? q?.id),
+    name: q?.Name ?? q?.name,
+    description: q?.Description ?? q?.description,
+    code: q?.Code ?? q?.code,
+    alias: q?.Alias ?? q?.alias,
+  }));
+};
+
 
 
 ////////////////////////////////////////////Admin Finished//////////////////////////////////////////////////////////////////////////

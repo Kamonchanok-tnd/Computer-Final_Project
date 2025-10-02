@@ -7,6 +7,7 @@ import type { WordHealingContent } from "../../../../interfaces/IWordHealingCont
 import { useNavigate, useLocation } from "react-router-dom";
 import emailIcon from "../../../../assets/email.png";
 
+// const apiUrl = "http://localhost:8003";
 const apiUrl = "http://localhost:8000";
 
 // ชนิดข้อมูล flash message 

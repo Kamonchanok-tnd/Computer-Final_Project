@@ -66,7 +66,7 @@ function RelaxActivities() {
       path: "/audiohome/message",
     },
     {
-      title: "สวดมนต์",
+      title: "สวดมนต์เสริมพลังใจ",
       description: "ฟังเสียงสวดมนต์ให้ใจสงบ",
       icon: <Book className="w-8 h-8 sm:w-10 sm:h-10 text-[#FFD54F]" />,
       gradient: "bg-gradient-to-br from-[#FFF9C4] to-[#FFE082]",

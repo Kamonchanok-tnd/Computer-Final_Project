@@ -587,16 +587,18 @@ const QuestionnairePage: React.FC = () => {
                     ก่อน แล้วจึงกลับมาลบที่นี่
                   </div>
                   <div className="mt-2">
-                    <AntButton
-                      className="!bg-[#5DE2FF] !text-black hover:!bg-cyan-500 !border-none !rounded-xl"
-                      onClick={() =>
-                        navigate("/admin/manageTestOrder", {
-                          state: { highlightQuestionnaireId: selectedToDelete?.id },
-                        })
-                      }
-                    >
-                      ไปที่หน้าจัดการลำดับแบบทดสอบ
-                    </AntButton>
+                  <AntButton
+                  className="!bg-[#5DE2FF] !text-black hover:!bg-cyan-500 !border-none !rounded-xl"
+                  onClick={() => {
+                    const role = localStorage.getItem("role");
+                    const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+                    navigate(`/${rolePrefix}/manageTestOrder`, {
+                      state: { highlightQuestionnaireId: selectedToDelete?.id },
+                    });
+                  }}
+                >
+                  ไปที่หน้าจัดการลำดับแบบทดสอบ
+                </AntButton>
                   </div>
                 </div>
               </div>
@@ -697,16 +699,18 @@ const QuestionnairePage: React.FC = () => {
               </li>
             </ol>
             <div className="mt-2">
-              <AntButton
-                className="!bg-[#5DE2FF] !text-black hover:!bg-cyan-500 !border-none !rounded-xl"
-                onClick={() =>
-                  navigate("/admin/manageTestOrder", {
-                    state: { highlightQuestionnaireId: selectedForInfo?.id },
-                  })
-                }
-              >
-                เปิดหน้าจัดการลำดับแบบทดสอบ
-              </AntButton>
+             <AntButton
+              className="!bg-[#5DE2FF] !text-black hover:!bg-cyan-500 !border-none !rounded-xl"
+              onClick={() => {
+                const role = localStorage.getItem("role");
+                const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
+                navigate(`/${rolePrefix}/manageTestOrder`, {
+                  state: { highlightQuestionnaireId: selectedForInfo?.id },
+                });
+              }}
+            >
+              เปิดหน้าจัดการลำดับแบบทดสอบ
+            </AntButton>
             </div>
           </div>
         </div>
