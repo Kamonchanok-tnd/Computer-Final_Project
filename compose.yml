@@ -109,14 +109,12 @@ services:
         condition: service_started
     restart: unless-stopped
 
-  # vbackend:
-  #   build: ./VBackend
-  #   container_name: VoiceChatBackend
-  #   restart: always
-  #   ports:
-  #       - "8001:8000"
-  #   volumes:
-  #       - ./VBackend/app_data:/app/data      
+  vbackend:
+    build: ./VBackend
+    container_name: VoiceChatBackend
+    restart: always
+    ports:
+        - "8001:8000"
 
   # backend:
   #   build:
