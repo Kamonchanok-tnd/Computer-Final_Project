@@ -291,7 +291,7 @@
 
 
 import { useState, useEffect, useRef } from "react";
-import { Volume2, VolumeX, Music2, Play, Pause } from "lucide-react";
+import { Volume2, VolumeX, Music2, Pause } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import owlImage from "../../../assets/maditaion.jpg";
 import BubbleBackground from "./BubbleBackground";

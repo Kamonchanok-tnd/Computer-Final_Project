@@ -146,13 +146,23 @@ function PageBody({ doctors }: { doctors: Doctor[] }) {
             </div>
 
             {/* QR Code */}
-            <div className="flex justify-center md:justify-end">
-              <img
-                src={QR}
-                alt="QR Code"
-                className="w-40 h-40 md:w-52 md:h-52 rounded-xl shadow-md ring-1 ring-sky-200 dark:ring-slate-600"
-              />
-            </div>
+            <div className="flex flex-col items-center  gap-3 ">
+  <img
+    src={QR}
+    alt="QR Code"
+    className="w-40 h-40 md:w-52 md:h-52 rounded-xl  ring-1 ring-sky-200 dark:ring-slate-600"
+  />
+
+  {/* ปุ่มลิงก์ */}
+  <a
+    href="https://docs.google.com/forms/d/e/1FAIpQLScN4i4L3yeIBpiFanC157NrNO_JjPWnVxYb_3JBot3V45JXDw/viewform?fbclid=IwY2xjawNPDedleHRuA2FlbQIxMABicmlkETE0MG5uZ3FFR3ZaSXN3RklyAR55UPtEGn3qBsUTI51YM1tzj3EhqEqHntSBq1R4s0mwXOOixCoDlcInbQdIbA_aem_4LMEIINQkz-UidcwnZKKCg" // 👈 แก้เป็นลิงก์ที่ต้องการ
+    target="_blank"
+    rel="noopener noreferrer"
+    className="px-4 py-2 rounded-lg bg-sky-500 text-white font-medium shadow hover:bg-sky-600 transition"
+  >
+    กดที่นี่เพื่อติดต่อ
+  </a>
+</div>
           </div>
         </div>
 
