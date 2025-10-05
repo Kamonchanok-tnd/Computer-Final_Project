@@ -116,36 +116,36 @@ services:
     ports:
         - "8001:8000"
 
-  # backend:
-  #   build:
-  #     context: .                      # รากโปรเจกต์ (มีโฟลเดอร์ backend/)
-  #     dockerfile: ./backend/Dockerfile
-  #   container_name: Backend
-  #   env_file:
-  #     - ./backend/.env                # อัด ENV เข้า container
-  #   volumes:
-  #     - ./backend/.env:/app/.env:ro 
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   ports:
-  #     - "8082:8080"                   # เปิดที่ http://localhost:8082
-  #   restart: unless-stopped
+  backend:
+    build:
+      context: .                      # รากโปรเจกต์ (มีโฟลเดอร์ backend/)
+      dockerfile: ./backend/Dockerfile
+    container_name: Backend
+    env_file:
+      - ./backend/.env                # อัด ENV เข้า container
+    volumes:
+      - ./backend/.env:/app/.env:ro 
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8082:8080"                   # เปิดที่ http://localhost:8082
+    restart: unless-stopped
 
 
 
-  # # docker-compose.yml (เฉพาะส่วน frontend)
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #     args:
-  #       VITE_API_URL: "/api"
-  #       VITE_IMG_URL: "/BgImage/"
-  #       VITE_PF_URL: "/images/profile/"
-  #   container_name: Frontend
-  #   ports:
-  #     - "5173:80"      # เข้าที่ http://localhost:5173
-  #   restart: unless-stopped
+  # docker-compose.yml (เฉพาะส่วน frontend)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "/api"
+        VITE_IMG_URL: "/BgImage/"
+        VITE_PF_URL: "/images/profile/"
+    container_name: Frontend
+    ports:
+      - "5173:80"      # เข้าที่ http://localhost:5173
+    restart: unless-stopped
 volumes:
   postgres_data:

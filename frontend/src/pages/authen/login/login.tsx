@@ -20,7 +20,7 @@ export default function SignInPages() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [staySignedIn, setStaySignedIn] = useState(true);
+  // const [staySignedIn, setStaySignedIn] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
   const { setAvatarUrl, setUsername } = useUser();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
