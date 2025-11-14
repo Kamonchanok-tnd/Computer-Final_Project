@@ -3,7 +3,7 @@ import { Form, Input, Button, message, Spin, Select, Divider, Row, Col, Space, I
 import { useNavigate, useParams } from "react-router-dom";
 import { AdminInterface } from "../../../interfaces/IAdmin";
 import { getAdminById, updateAdminById } from "../../../services/https/admin";
-import "./EditAdmin.css";
+import "./editAdmin.css";
 function EditAdmin() {
   const [admin, setAdmin] = useState<AdminInterface | null>(null);
   const [loading, setLoading] = useState(false);
