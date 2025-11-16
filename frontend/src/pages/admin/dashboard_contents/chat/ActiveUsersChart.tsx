@@ -28,7 +28,14 @@ const ActiveUsersChart: React.FC = () => {
     try {
       const res = await getActiveUsers(granularity);
 
-      const transformed = res.map((item: ActiveUser) => {
+      const raw: ActiveUser[] =
+        Array.isArray(res)
+          ? res
+          : Array.isArray((res as any)?.data)
+          ? (res as any).data
+          : [];
+
+      const transformed = raw.map((item: ActiveUser) => {
         const date = new Date(item.period);
         let label = "";
 

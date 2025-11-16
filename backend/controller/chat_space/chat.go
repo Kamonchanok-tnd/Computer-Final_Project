@@ -413,24 +413,95 @@ func DashboardOverview(c *gin.Context) {
 
 
 // 2. Daily usage
+// 2. Daily usage
 func DashboardUsage(c *gin.Context) {
 	type DailyUsage struct {
 		Date         time.Time `json:"date"`
 		MessageCount int64     `json:"message_count"`
-		DisplayLabel string    `json:"display_label"` // สำหรับ frontend
-		Hour         int       `json:"hour,omitempty"` // สำหรับ today
+		DisplayLabel string    `json:"display_label"`
+		Hour         int       `json:"hour,omitempty"`
+	}
+
+	type ErrorResponse struct {
+		Error   string `json:"error"`
+		Message string `json:"message"`
 	}
 
 	db := config.DB()
-	filter := c.DefaultQuery("filter", "user")             // all / user
-	granularity := c.DefaultQuery("granularity", "today") // today / day / week / month / year / custom
+	if db == nil {
+		c.JSON(500, ErrorResponse{
+			Error:   "database_error",
+			Message: "ไม่สามารถเชื่อมต่อฐานข้อมูลได้",
+		})
+		return
+	}
+
+	filter := c.DefaultQuery("filter", "user")
+	granularity := c.DefaultQuery("granularity", "today")
 	startDate := c.Query("start_date")
 	endDate := c.Query("end_date")
 
-	// timezone Bangkok
-	loc, _ := time.LoadLocation("Asia/Bangkok")
-	now := time.Now().In(loc)
+	// Validate filter
+	if filter != "user" && filter != "all" {
+		c.JSON(400, ErrorResponse{
+			Error:   "invalid_filter",
+			Message: "filter ต้องเป็น 'user' หรือ 'all' เท่านั้น",
+		})
+		return
+	}
 
+	// Validate granularity
+	validGranularity := map[string]bool{
+		"today": true, "day": true, "week": true,
+		"month": true, "year": true, "custom": true,
+	}
+	if !validGranularity[granularity] {
+		c.JSON(400, ErrorResponse{
+			Error:   "invalid_granularity",
+			Message: "granularity ไม่ถูกต้อง (ต้องเป็น today, day, week, month, year, หรือ custom)",
+		})
+		return
+	}
+
+	// Validate custom date range
+	if granularity == "custom" {
+		if startDate == "" || endDate == "" {
+			c.JSON(400, ErrorResponse{
+				Error:   "missing_dates",
+				Message: "กรุณาระบุ start_date และ end_date สำหรับ custom granularity",
+			})
+			return
+		}
+
+		// Validate date format
+		_, err := time.Parse("2006-01-02", startDate)
+		if err != nil {
+			c.JSON(400, ErrorResponse{
+				Error:   "invalid_start_date",
+				Message: "start_date ต้องอยู่ในรูปแบบ YYYY-MM-DD",
+			})
+			return
+		}
+
+		_, err = time.Parse("2006-01-02", endDate)
+		if err != nil {
+			c.JSON(400, ErrorResponse{
+				Error:   "invalid_end_date",
+				Message: "end_date ต้องอยู่ในรูปแบบ YYYY-MM-DD",
+			})
+			return
+		}
+	}
+
+	// timezone Bangkok
+	
+	loc, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+		// fallback to UTC+7
+		loc = time.FixedZone("UTC+7", 7*60*60)
+	}
+
+	now := time.Now().In(loc)
 	convQuery := db.Model(&entity.Conversation{})
 
 	// เลือกเฉพาะข้อความจาก user
@@ -463,34 +534,38 @@ func DashboardUsage(c *gin.Context) {
 			Group("DATE(created_at)").
 			Order("DATE(created_at) ASC")
 
-	
 	case "month":
-		start := now.AddDate(0, -6, 0).UTC() // 6 เดือนย้อนหลัง
+		start := now.AddDate(0, -6, 0).UTC()
 		convQuery = convQuery.
 			Select("DATE_TRUNC('month', created_at) AS date, COUNT(*) AS count").
 			Where("created_at >= ?", start).
 			Group("DATE_TRUNC('month', created_at)").
 			Order("DATE_TRUNC('month', created_at) ASC")
 
-		case "year":
-			start := now.AddDate(-1, 0, 0).UTC() // 12 เดือนย้อนหลัง
-			convQuery = convQuery.
-				Select("DATE_TRUNC('year', created_at) AS date, COUNT(*) AS count"). // <-- ใช้ 'year'
-				Where("created_at >= ?", start).
-				Group("DATE_TRUNC('year', created_at)").                             // <-- group by year
-				Order("DATE_TRUNC('year', created_at) ASC")
+	case "year":
+		start := now.AddDate(-1, 0, 0).UTC()
+		convQuery = convQuery.
+			Select("DATE_TRUNC('year', created_at) AS date, COUNT(*) AS count").
+			Where("created_at >= ?", start).
+			Group("DATE_TRUNC('year', created_at)").
+			Order("DATE_TRUNC('year', created_at) ASC")
 
 	case "custom":
-		if startDate != "" && endDate != "" {
-			convQuery = convQuery.
-				Select("DATE(created_at) AS date, COUNT(*) AS count").
-				Where("DATE(created_at) BETWEEN ? AND ?", startDate, endDate).
-				Group("DATE(created_at)").
-				Order("DATE(created_at) ASC")
-		}
+		convQuery = convQuery.
+			Select("DATE(created_at) AS date, COUNT(*) AS count").
+			Where("DATE(created_at) BETWEEN ? AND ?", startDate, endDate).
+			Group("DATE(created_at)").
+			Order("DATE(created_at) ASC")
 	}
 
-	convQuery.Scan(&convResults)
+	// Execute query with error handling
+	if err := convQuery.Scan(&convResults).Error; err != nil {
+		c.JSON(500, ErrorResponse{
+			Error:   "query_error",
+			Message: fmt.Sprintf("เกิดข้อผิดพลาดในการดึงข้อมูล: %v", err),
+		})
+		return
+	}
 
 	// เตรียม results
 	var results []DailyUsage
@@ -509,7 +584,9 @@ func DashboardUsage(c *gin.Context) {
 		// Map ข้อมูลจาก DB
 		for _, r := range convResults {
 			hour := r.Date.In(loc).Hour()
-			results[hour].MessageCount = r.Count
+			if hour >= 0 && hour < 24 {
+				results[hour].MessageCount = r.Count
+			}
 		}
 	} else {
 		// granularity อื่น ๆ
@@ -519,14 +596,14 @@ func DashboardUsage(c *gin.Context) {
 			var displayLabel string
 			switch granularity {
 			case "day", "custom":
-				displayLabel = dateInBangkok.Format("02/01") // วัน/เดือน
+				displayLabel = dateInBangkok.Format("02/01")
 			case "week":
 				_, week := dateInBangkok.ISOWeek()
-				displayLabel = fmt.Sprintf("W%02d", week) // สัปดาห์
+				displayLabel = fmt.Sprintf("W%02d", week)
 			case "month":
-				displayLabel = dateInBangkok.Format("Jan") // เดือน
+				displayLabel = dateInBangkok.Format("Jan")
 			case "year":
-				displayLabel = dateInBangkok.Format("2006") // ปี
+				displayLabel = dateInBangkok.Format("2006")
 			default:
 				displayLabel = dateInBangkok.Format("02/01")
 			}
@@ -546,7 +623,6 @@ func DashboardUsage(c *gin.Context) {
 
 	c.JSON(200, results)
 }
-
 
 
 // 3. Top users

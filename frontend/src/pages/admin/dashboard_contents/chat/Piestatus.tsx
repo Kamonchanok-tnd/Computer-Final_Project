@@ -21,7 +21,13 @@ const DashboardSessionsStatus: React.FC = () => {
       setLoading(true);
       try {
         const res = await Getstatus(); 
-        setData(res);
+        const raw: SessionStatus[] =
+          Array.isArray(res)
+            ? res
+            : Array.isArray((res as any)?.data)
+            ? (res as any).data
+            : [];
+        setData(raw);
       } catch (err) {
         console.error(err);
         setError("ไม่สามารถโหลดข้อมูลได้");
