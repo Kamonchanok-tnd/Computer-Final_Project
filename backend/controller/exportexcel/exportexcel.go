@@ -113,22 +113,23 @@ func ExportExcel(c *gin.Context) {
 		LEFT JOIN answer_options ao  ON aa.ao_id = ao.id
 		ORDER BY u.id, ar.id, q.priority;
 	`).Scan(&rows)
-	log.Printf("First row: %+v", rows[0])
+	 // ❗ ต้องเช็ค error ก่อน
+	 if result.Error != nil {
+        log.Printf("Database query error: %v", result.Error)
+        c.String(http.StatusInternalServerError, "Database query error")
+        return
+    }
 
+    // ❗ แล้วค่อยเช็คว่ามีข้อมูลไหม
+    if len(rows) == 0 {
+        log.Printf("No data found")
+        c.String(http.StatusNotFound, "No data found to export")
+        return
+    }
 
-	if result.Error != nil {
-		log.Printf("Database query error: %v", result.Error)
-		c.String(http.StatusInternalServerError, "Database query error")
-		return
-	}
-
-	if len(rows) == 0 {
-		log.Printf("No data found")
-		c.String(http.StatusNotFound, "No data found to export")
-		return
-	}
-
-	log.Printf("Total rows retrieved: %d", len(rows))
+    // ตรงนี้ค่อย log แถวแรกได้ ปลอดภัยแล้ว
+    log.Printf("First row: %+v", rows[0])
+    log.Printf("Total rows retrieved: %d", len(rows))
 
 	// 3. สร้าง Excel
 	f := excelize.NewFile()

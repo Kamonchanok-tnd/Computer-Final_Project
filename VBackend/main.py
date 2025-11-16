@@ -10,7 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydub import AudioSegment
 import uuid
 from fastapi import WebSocket, WebSocketDisconnect
-url = "http://backend:8082/gemini"
+url = "http://localhost/api/gemini"
+
 
 def get_answer_from_go(text: str,chatRoomID: int, token: str):#เอาไว้รับข้อความจาก go
     headers = {

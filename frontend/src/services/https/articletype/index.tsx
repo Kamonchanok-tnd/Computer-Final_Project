@@ -1,7 +1,7 @@
 
 import type { ArticleType } from "../../../interfaces/IArticleType";
 // const apiUrl = "http://localhost:8003";
-const apiUrl = "http://localhost:8000";
+const apiUrl = import.meta.env.VITE_API_URL as string;
 
 // รองรับเคสที่ BE ส่ง field แบบต่างกัน
 const pick = (o: any, ...keys: string[]) => keys.find(k => o?.[k] !== undefined) ? o[keys.find(k => o?.[k] !== undefined)!] : undefined;

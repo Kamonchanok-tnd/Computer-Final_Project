@@ -27,7 +27,7 @@ const VoiceChat: React.FC = () => {
   };
 
   const connectWebSocket = () => {
-    const ws = new WebSocket("ws://localhost:8000/ws/chat-voice");
+    const ws = new WebSocket("ws://localhost/voice/ws/chat-voice");
 
     ws.onopen = () => {
       setWsStatus("พร้อมใช้งาน");

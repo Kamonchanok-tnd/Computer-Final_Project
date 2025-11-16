@@ -38,7 +38,7 @@ import (
 	"github.com/joho/godotenv" // เพิ่มการนำเข้า godotenv
 )
 
-const PORT = "8000"
+const PORT = "8080"
 
 func init() {
 	// โหลดไฟล์ .env
@@ -77,24 +77,24 @@ func main() {
 
 	// Auth Routes
 	r.Static("/BgImage", "./images/background")
-	r.Static("/images/emoji", "./images/emoji")
-	r.Static("/images/emotion_choice", "./images/emotion_choice")
+	r.Static("/api/images/emoji", "./images/emoji")
+	r.Static("/api/images/emotion_choice", "./images/emotion_choice")
 	r.Static("/images/profile", "./images/avatar")
 
-	r.POST("/signup", users.SignUp)
-	r.POST("/signin", users.SignIn)
-	r.POST("/forgot-password", users.ForgotPasswordController)
-	r.POST("/validate-reset-token", resettoken.ValidateResetTokenController)
-	r.PATCH("/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
-	r.GET("/recent", controller.GetRecentChat)
-	r.GET("/excel", exportexcel.ExportExcel)
+	r.POST("/api/signup", users.SignUp)
+	r.POST("/api/signin", users.SignIn)
+	r.POST("/api/forgot-password", users.ForgotPasswordController)
+	r.POST("/api/validate-reset-token", resettoken.ValidateResetTokenController)
+	r.PATCH("/api/update-password", resettoken.UpdatePasswordController) // ฟังก์ชันอัพเดตรหัสผ่านใหม่
+	r.GET("/api/recent", controller.GetRecentChat)
+	r.GET("/api/excel", exportexcel.ExportExcel)
 
-	r.POST("/gemini", controller.GeminiHistory)
+	r.POST("/api/gemini", controller.GeminiHistory)
 
 	
 
 	// Protect routes with role-based access
-	router := r.Group("/")
+	router := r.Group("/api")
 	{
 		// Routes for admins only
 		router.Use(middlewares.Authorizes("admin"))
@@ -273,7 +273,7 @@ func main() {
 
 	}
 
-	userRouter := r.Group("/")
+	userRouter := r.Group("/api")
 	{
 		// Routes for users only
 		userRouter.Use(middlewares.Authorizes("user"))
@@ -355,12 +355,12 @@ func main() {
 	
 	}
 
-	r.GET("/", func(c *gin.Context) {
+	r.GET("/api", func(c *gin.Context) {
 		c.String(http.StatusOK, "API RUNNING... PORT: %s", PORT)
 	})
 
 	// Run the server
-	r.Run("localhost:" + PORT)
+	r.Run(":" + PORT)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

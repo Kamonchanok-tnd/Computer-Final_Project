@@ -4,7 +4,7 @@ import { AnswerOption } from "../../../interfaces/IAnswerOption";
 import { EmotionChoice } from "../../../interfaces/IEmotionChoices";
 import { Criteria } from "../../../interfaces/ICriteria";
 // const apiUrl = "http://localhost:8003";
-const apiUrl = "http://localhost:8000";
+const apiUrl = import.meta.env.VITE_API_URL as string;
 
 // ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
 export const getAllQuestionnaires = async (): Promise<Questionnaire[]> => {
