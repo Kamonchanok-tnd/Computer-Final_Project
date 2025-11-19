@@ -20,7 +20,7 @@ const AssessmentDashboard = Loadable(lazy(() => import("../pages/assessment/Asse
 const ASMRApp = Loadable(lazy(() => import("../pages/secondary function/ASMR/ASMRApp"))); 
 
 
-const VoiceChat = Loadable(lazy(() => import("../pages/Voice-Chat/VoiceChat")));
+// const VoiceChat = Loadable(lazy(() => import("../pages/Voice-Chat/VoiceChat")));
 const ChatRedirector = Loadable(lazy(() => import("../components/Chat.tsx/ChatRedirector")));
 const AddSoundPlaylist = Loadable(lazy(() => import("../pages/secondary function/Playlist/Playlist")))
 const MeditationPage = Loadable(lazy(() => import("../pages/secondary function/meditation/meditation"))); 
@@ -93,10 +93,7 @@ const UserRoutes = (isLoggedIn: boolean): RouteObject[] => {
             <Navigate to="/" />
           ), // หากล็อกอินแล้วจะแสดงหน้า EditProfile
         },
-        {
-          path: "/chat/voice-chat/:id",
-          element: isLoggedIn ? <VoiceChat /> : <Navigate to="/" />,
-        },
+       
         {
           path: "/chat",
           element: isLoggedIn ? <ChatRedirector /> : <Navigate to="/" />,

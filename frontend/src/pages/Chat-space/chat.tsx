@@ -342,26 +342,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
   //   /* ===================== [/Trigger Assessment] ===================== */
   // };
 
-  async function gotoVoice() {
-    if (isNewChat === false && chatRoomID !== null) {
-      navigate(`/chat/voice-chat/${chatRoomID}`);
-      return;
-    }
-
-    const data: IChatRoom = { uid: Number(Uid) };
-    try {
-      const res = await NewChat(data);
-      // console.log(" chatroom send: ", res.id);
-      setChatRoomID(res.id);
-      navigate(`/chat/voice-chat/${res.id}`);
-      /* ===================== [Trigger Assessment: afterChat idle 20s] ===================== */
-      startIdleTimer();
-      /* ===================== [/Trigger Assessment] ===================== */
-    } catch (error) {
-      console.error("Error:", error);
-      message.error("เกิดข้อผิดพลาดในการสร้างห้องแชท");
-    }
-  }
+ 
 
   return (
 
@@ -407,7 +388,7 @@ const ChatSpace: React.FC<ChatbotProps> = (isNewChatDefault) => {
           isTyping={isTyping}
           isDarkMode={isDarkMode}
           inputRef={inputRef as React.RefObject<HTMLInputElement>}
-          gotoVoice={gotoVoice}
+        
         />
       </div>
     </div>

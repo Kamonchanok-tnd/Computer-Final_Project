@@ -18,8 +18,8 @@ services:
     depends_on:
       backend:
         condition: service_started
-      vbackend:
-        condition: service_started
+      # vbackend:
+      #   condition: service_started
       frontend:
         condition: service_started
       pgadmin:
@@ -65,14 +65,14 @@ services:
       - app_network
 
   # ==================== Backends ====================
-  vbackend:
-    build: ./VBackend
-    container_name: VoiceChatBackend
-    restart: always
-    expose:
-      - "8000"
-    networks:
-      - app_network
+  # vbackend:
+  #   build: ./VBackend
+  #   container_name: VoiceChatBackend
+  #   restart: always
+  #   expose:
+  #     - "8000"
+  #   networks:
+  #     - app_network
 
   backend:
     build:
