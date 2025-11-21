@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import emailIcon from "../../../../assets/email.png";
 
 // const apiUrl = "http://localhost:8003";
-const apiUrl = "http://localhost:8080";
+const apiUrl = import.meta.env.VITE_API_URL as string;
 
 // ชนิดข้อมูล flash message 
 type Flash = { type?: "success" | "error" | "info" | "warning"; content: string };
