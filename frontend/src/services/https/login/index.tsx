@@ -12,10 +12,15 @@ const requestOptions = {
   },
 };
 async function SignIn(data: SignInInterface) {
-  return await axios
-    .post(`${apiUrl}/signin`, data, requestOptions)
-    .then((res) => res)
-    .catch((e) => e.response);
+  try {
+    const res = await axios.post(`${apiUrl}/signin`, data, requestOptions);
+    return res;
+  } catch (error: any) {
+    if (error.response) {
+      return error.response;
+    }
+    return { status: 500, data: { message: "Network Error" } };
+  }
 }
 
 async function GetGender() {
