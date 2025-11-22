@@ -12,12 +12,21 @@ import { Star, Trash2, Plus, BarChart3 } from "lucide-react";
 import AdminFeedbackOverview from "./components/AdminFeedbackOverview";
 import AdminFeedbackUser from "./components/AdminFeedbackUser";
 
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 0xf) >> 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+
 type OptionRow = { id: string; label: string };
 type QuestionRow = { id: string; label: string; type: QuestionType; options: OptionRow[] };
 
 export default function AdminFeedbackFormEditor() {
   const [rows, setRows] = useState<QuestionRow[]>([
-    { id: crypto.randomUUID(), label: "", type: "rating", options: [] },
+    { id: uuid(), label: "", type: "rating", options: [] },
   ]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +57,7 @@ export default function AdminFeedbackFormEditor() {
           qs
             .sort((a, b) => a.sort - b.sort)
             .map((q) => ({
-              id: crypto.randomUUID(),
+              id: uuid(),
               label: q.label,
               type: q.type,
               options:
@@ -56,12 +65,12 @@ export default function AdminFeedbackFormEditor() {
                   ? q.options
                       .slice()
                       .sort((a: IFeedbackOption, b: IFeedbackOption) => a.sort - b.sort)
-                      .map((op) => ({ id: crypto.randomUUID(), label: op.label }))
+                      .map((op) => ({ id: uuid(), label: op.label }))
                   : [],
             }));
 
         if (data.questions?.length) setRows(toRows(data.questions));
-        else setRows([{ id: crypto.randomUUID(), label: "", type: "rating", options: [] }]);
+        else setRows([{ id: uuid(), label: "", type: "rating", options: [] }]);
       } catch (e) {
         setErrMsg(e instanceof Error ? e.message : "โหลดแบบฟอร์มไม่สำเร็จ");
       } finally {
@@ -75,22 +84,44 @@ export default function AdminFeedbackFormEditor() {
 
   // Handlers
   const addQuestion = () =>
-    setRows((r) => [...r, { id: crypto.randomUUID(), label: "", type: "rating", options: [] }]);
-  const removeQuestion = (id: string) => setRows((r) => (r.length > 1 ? r.filter((x) => x.id !== id) : r));
+    setRows((r) => [...r, { id: uuid(), label: "", type: "rating", options: [] }]);
+
+  const removeQuestion = (id: string) =>
+    setRows((r) => (r.length > 1 ? r.filter((x) => x.id !== id) : r));
+
   const patchQuestion = (id: string, patch: Partial<Omit<QuestionRow, "id">>) =>
     setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+
   const addOption = (qid: string) =>
-    setRows((r) => r.map((q) => (q.id === qid ? { ...q, options: [...q.options, { id: crypto.randomUUID(), label: "" }] } : q)));
+    setRows((r) =>
+      r.map((q) =>
+        q.id === qid ? { ...q, options: [...q.options, { id: uuid(), label: "" }] } : q
+      )
+    );
+
   const patchOption = (qid: string, oid: string, label: string) =>
-    setRows((r) => r.map((q) => (q.id === qid ? { ...q, options: q.options.map((o) => (o.id === oid ? { ...o, label } : o)) } : q)));
+    setRows((r) =>
+      r.map((q) =>
+        q.id === qid
+          ? { ...q, options: q.options.map((o) => (o.id === oid ? { ...o, label } : o)) }
+          : q
+      )
+    );
+
   const removeOption = (qid: string, oid: string) =>
-    setRows((r) => r.map((q) => (q.id === qid ? { ...q, options: q.options.filter((o) => o.id !== oid) } : q)));
+    setRows((r) =>
+      r.map((q) =>
+        q.id === qid ? { ...q, options: q.options.filter((o) => o.id !== oid) } : q
+      )
+    );
 
   // Submit
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!isValid || submitting) return;
-    setSubmitting(true); setOkMsg(null); setErrMsg(null);
+    setSubmitting(true);
+    setOkMsg(null);
+    setErrMsg(null);
     try {
       const payload: SaveFormPayload = {
         questions: rows.map((q, idx) => ({
@@ -114,9 +145,7 @@ export default function AdminFeedbackFormEditor() {
 
   return (
     <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
-      {/* ===== ใช้คอนเทนเนอร์เดียวกันกับกริด เพื่อให้หัวข้อ/กริด/overview อยู่แกนเดียว ===== */}
       <div className="max-w-6xl mx-auto">
-        {/* Header (icon 48x48 พื้นหลังขาว เหมือนตัวอย่าง) */}
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 shrink-0 rounded-2xl bg-white/80 shadow grid place-items-center">
             <Star className="h-6 w-6 text-sky-700" />
@@ -126,7 +155,7 @@ export default function AdminFeedbackFormEditor() {
           </h1>
         </div>
 
-        {/* Grid: ฟอร์ม + พรีวิว */}
+        {/* Grid: Form + Preview */}
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Form */}
           <form onSubmit={onSubmit} className="rounded-2xl bg-white shadow p-5 sm:p-6">
@@ -188,7 +217,7 @@ export default function AdminFeedbackFormEditor() {
                                 e.target.value === "choice_single" || e.target.value === "choice_multi"
                                   ? q.options.length
                                     ? q.options
-                                    : [{ id: crypto.randomUUID(), label: "" }]
+                                    : [{ id: uuid(), label: "" }]
                                   : [],
                             })
                           }
@@ -253,7 +282,9 @@ export default function AdminFeedbackFormEditor() {
                 disabled={!isValid || submitting || loading}
                 className={[
                   "px-4 py-2 rounded-xl text-white text-sm font-medium transition",
-                  isValid && !submitting && !loading ? "bg-sky-600 hover:bg-sky-700" : "bg-sky-300 cursor-not-allowed",
+                  isValid && !submitting && !loading
+                    ? "bg-sky-600 hover:bg-sky-700"
+                    : "bg-sky-300 cursor-not-allowed",
                 ].join(" ")}
               >
                 {submitting ? "กำลังบันทึก..." : "บันทึกทั้งหมด"}
@@ -270,15 +301,23 @@ export default function AdminFeedbackFormEditor() {
               <div className="space-y-5">
                 {rows.map((q, idx) => (
                   <div key={q.id} className="rounded-xl border border-slate-200 bg-white p-4">
-                    <div className="mb-2 font-medium text-slate-800">{q.label || `คำถาม #${idx + 1}`}</div>
+                    <div className="mb-2 font-medium text-slate-800">
+                      {q.label || `คำถาม #${idx + 1}`}
+                    </div>
                     {q.type === "rating" && (
                       <div className="flex gap-1.5">
                         {[1, 2, 3, 4, 5].map((n) => (
-                          <Star key={n} className="h-7 w-7 text-yellow-400 fill-yellow-400/90" aria-hidden="true" />
+                          <Star
+                            key={n}
+                            className="h-7 w-7 text-yellow-400 fill-yellow-400/90"
+                            aria-hidden="true"
+                          />
                         ))}
                       </div>
                     )}
-                    {q.type === "text" && <div className="h-20 rounded-lg border border-slate-200 bg-white" />}
+                    {q.type === "text" && (
+                      <div className="h-20 rounded-lg border border-slate-200 bg-white" />
+                    )}
                     {(q.type === "choice_single" || q.type === "choice_multi") && (
                       <ul className="space-y-2">
                         {q.options.length ? (
@@ -306,7 +345,7 @@ export default function AdminFeedbackFormEditor() {
           </div>
         </div>
 
-        {/* ===== ภาพรวมคะแนนเว็บ (หัวข้อพร้อมไอคอนกล่องขาว ขนาดเท่าด้านบน) ===== */}
+        {/* Overview */}
         <div className="mt-10">
           <div className="mb-4 flex items-center gap-4 text-slate-800">
             <div className="h-12 w-12 shrink-0 rounded-2xl bg-white/80 shadow grid place-items-center">
@@ -316,7 +355,6 @@ export default function AdminFeedbackFormEditor() {
               ภาพรวมคะแนนเว็บ
             </h2>
           </div>
-          {/* ซ่อน H1 ภายใน Overview เพื่อไม่ให้หัวข้อซ้ำ */}
           <AdminFeedbackOverview hideHeaderTitle />
         </div>
 
