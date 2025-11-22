@@ -37,11 +37,16 @@ export default function SignInPages() {
   }, []);
 
   const handleLogin = async () => {
-    const values: SignInInterface = { email, password };
+  const values: SignInInterface = { email, password };
+
+  try {
     const res = await SignIn(values);
 
-    if (res.status === 200) {
+    if (res && res.status === 200) {
+      // แจ้งสำเร็จ
       messageApi.success("เข้าสู่ระบบสำเร็จ");
+
+      // เก็บข้อมูลลง localStorage
       localStorage.setItem("isLogin", "true");
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("page", "dashboard");
@@ -52,25 +57,30 @@ export default function SignInPages() {
       if (isDarkMode) {
         toggleDarkMode(); // สลับกลับเป็น light ถ้าอยู่ dark
       }
+
+      // ดึงข้อมูลผู้ใช้เพิ่มเติม
       if (res.data.id) {
-        GetUsersById(res.data.id).then(res => {
-          if (res.status === 200) {
+        try {
+          const userRes = await GetUsersById(res.data.id);
+          if (userRes?.status === 200) {
             // avatar
-            if (res.data.ProfileAvatar) {
-              const url = `${PROFILE_BASE_URL}${res.data.ProfileAvatar.avatar}`;
+            if (userRes.data.ProfileAvatar) {
+              const url = `${PROFILE_BASE_URL}${userRes.data.ProfileAvatar.avatar}`;
               setAvatarUrl(url);
               localStorage.setItem("avatarUrl", url);
             }
             // username
-            if (res.data.username) {
-              setUsername(res.data.username);
-              localStorage.setItem("username", res.data.username);
+            if (userRes.data.username) {
+              setUsername(userRes.data.username);
+              localStorage.setItem("username", userRes.data.username);
             }
           }
-        });
+        } catch (userErr) {
+          console.error("GetUsersById error:", userErr);
+        }
       }
-      
 
+      // redirect ตาม role
       let redirectPath = "/";
       switch (res.data.role) {
         case "superadmin":
@@ -82,17 +92,22 @@ export default function SignInPages() {
         case "user":
           redirectPath = "/user";
           break;
-        default:
-          redirectPath = "/";
       }
 
       setTimeout(() => {
         navigate(redirectPath);
       }, 1000);
+
     } else {
-      messageApi.error(res.data.error);
+      // ถ้า res ไม่ใช่ 200
+      messageApi.error(res?.data?.error || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
     }
-  };
+
+  } catch (error: any) {
+    console.error("SignIn error:", error);
+    messageApi.error(error.response?.data?.error || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+  }
+};
 
   return (
     <div className=" min-h-screen flex flex-col lg:flex-row bg-blue-100">
