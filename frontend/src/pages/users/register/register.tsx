@@ -73,7 +73,8 @@ function SignUpPages() {
     ...values,
     consent_accepted: consentAccepted,
     consent_accepted_at: consentAcceptedAt,
-    role: "user"
+    role: "user",
+    phone_number: values.PhoneNumber || ""
   };
   console.log("payload >>>", payload);
   const res = await CreateUser(payload);
@@ -394,21 +395,33 @@ const yearOptions = [
                 </Col>
   <Col span={24}>
   <Form.Item
-    label="เบอร์โทรศัพท์"
-    name="phone_number"
-    rules={[
-      { 
-        pattern: /^0[0-9]{9}$/, 
-        message: "เบอร์โทรศัพท์ต้องขึ้นต้นด้วย 0 และมี 10 หลัก" 
-      },
-    ]}
-  >
-    <Input 
-      placeholder="เช่น 0812345678" 
-      maxLength={10} 
-      type="tel"
-    />
-  </Form.Item>
+  name="phone"
+  label="เบอร์โทรศัพท์"
+  rules={[
+    {
+     
+  validator(_, value) {
+    // ถ้าไม่มีการกรอกเลย → ผ่านทันที
+    if (value === undefined || value === null || value === "") {
+      return Promise.resolve();
+    }
+
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(value)) {
+      return Promise.reject("รูปแบบหมายเลขโทรศัพท์ไม่ถูกต้อง");
+    }
+
+    return Promise.resolve();
+  }
+},
+
+    
+  ]}
+>
+  <Input placeholder="ไม่บังคับกรอก" />
+</Form.Item>
+
+
 </Col>
 
 
