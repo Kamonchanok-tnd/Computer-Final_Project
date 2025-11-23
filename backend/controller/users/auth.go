@@ -64,11 +64,6 @@ func SignUp(c *gin.Context) {
         return
     }
 
-    // ✅ ตรวจสอบเบอร์โทร
-    if !isValidPhoneNumber(payload.PhoneNumber) {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "รูปแบบเบอร์โทรไม่ถูกต้อง"})
-        return
-    }
 
     db := config.DB()
     var userCheck entity.Users
@@ -82,17 +77,30 @@ func SignUp(c *gin.Context) {
         return
     }
 
-    // ✅ ตรวจสอบเบอร์โทรซ้ำ
-    var phoneCheck entity.Users
-    result = db.Where("phone_number = ?", payload.PhoneNumber).First(&phoneCheck)
-    if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการตรวจสอบเบอร์โทร"})
-        return
+   
+    // ✅ ตรวจสอบเบอร์โทรเฉพาะถ้ามีค่า
+    // ตรวจสอบเบอร์โทรเฉพาะถ้ามีค่า
+    if payload.PhoneNumber != "" {
+        if !isValidPhoneNumber(payload.PhoneNumber) {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "รูปแบบเบอร์โทรไม่ถูกต้อง"})
+            return
+        }
+
+        // ตรวจสอบเบอร์ซ้ำ
+        var phoneCheck entity.Users
+        result := db.Where("phone_number = ?", payload.PhoneNumber).First(&phoneCheck)
+        if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการตรวจสอบเบอร์โทร"})
+            return
+        }
+        if phoneCheck.ID != 0 {
+            c.JSON(http.StatusConflict, gin.H{"error": "เบอร์โทรนี้ถูกใช้งานแล้ว"})
+            return
+        }
     }
-    if phoneCheck.ID != 0 {
-        c.JSON(http.StatusConflict, gin.H{"error": "เบอร์โทรนี้ถูกใช้งานแล้ว"})
-        return
-    }
+
+
+
 
 
     if payload.Role != "superadmin" && payload.Role != "user" {
