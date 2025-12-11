@@ -109,7 +109,7 @@ func GeminiHistory(c *gin.Context) {
 		history = append(history, genai.NewContentFromText(conv.Message, role))
 	}
 
-	chat, err := client.Chats.Create(ctx, "gemini-2.0-flash", instruction, history)
+	chat, err := client.Chats.Create(ctx, "gemini-2.5-flash", instruction, history)
 	if err != nil {
 		log.Println("❌ Error creating chat:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create chat"})
