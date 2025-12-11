@@ -121,3 +121,7 @@ services:
     networks:
       - app_network
 
+volumes:
+  postgres_data:
+  letsencrypt:      # <— เพิ่มอันนี้
+  certbot_www:      # <— แล้วก็อันนี้
