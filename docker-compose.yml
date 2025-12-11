@@ -3,9 +3,6 @@ version: '3.8'
 networks:
   app_network:
 
-volumes:
-  postgres_data:
-
 services:
   # ==================== Reverse Proxy ====================
   nginx:
