@@ -114,9 +114,9 @@ services:
     volumes:
       - letsencrypt:/etc/letsencrypt
       - certbot_www:/var/www/certbot
-    entrypoint: /bin/sh   # เอาไว้รันคำสั่ง certbot เอง
     networks:
       - app_network
+
 
 volumes:
   postgres_data:
