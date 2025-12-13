@@ -20,9 +20,11 @@ type Props = {
   open: boolean;
   onClose: () => void;
   periodKey?: string;
+  onSuccess?: () => void;
 };
 
-// เก็บสถานะด้วย "index ของคำถาม" เพื่อกัน q.id ซ้ำข้ามกลุ่ม
+
+
 type DraftAnswer = {
   questionIndex: number;
   rating?: number;
@@ -55,7 +57,9 @@ function StarRating({
           className="focus:outline-none"
         >
           <Star
-            className={`transition ${n <= value ? "text-yellow-400 fill-yellow-400" : "text-slate-300"}`}
+            className={`transition ${
+              n <= value ? "text-yellow-400 fill-yellow-400" : "text-slate-300"
+            }`}
             style={{ width: size, height: size }}
           />
         </button>
@@ -64,7 +68,14 @@ function StarRating({
   );
 }
 
-export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Props) {
+export default function UserFeedbackModal({
+  uid,
+  open,
+  onClose,
+  periodKey,
+  onSuccess, // ✅ รับจาก props
+}: Props) {
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FeedbackFormResponse | null>(null);
@@ -72,7 +83,6 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
   const [okMsg, setOkMsg] = useState<string | null>(null);
   const [errMsg, setErrMsg] = useState<string | null>(null);
 
-  // โหลดฟอร์มเมื่อเปิด
   useEffect(() => {
     let alive = true;
     async function load() {
@@ -85,17 +95,20 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
         if (!alive) return;
         setForm(data);
 
-        // init โดยใช้ questionIndex (ไม่ทับคำตอบเดิม)
         setAnswers((prev) => {
           const next: DraftAnswerMap = { ...prev };
-          (data.questions ?? []).forEach((q: IFeedbackQuestion, qi: number) => {
-            if (!next[qi]) {
-              next[qi] = {
-                questionIndex: qi,
-                ...(q.type === "choice_multi" ? { optionIndexes: [] } : {}),
-              };
+          (data.questions ?? []).forEach(
+            (q: IFeedbackQuestion, qi: number) => {
+              if (!next[qi]) {
+                next[qi] = {
+                  questionIndex: qi,
+                  ...(q.type === "choice_multi"
+                    ? { optionIndexes: [] }
+                    : {}),
+                };
+              }
             }
-          });
+          );
           return next;
         });
       } catch (e) {
@@ -110,7 +123,6 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
     };
   }, [open]);
 
-  // ตรวจความครบถ้วน
   const canSubmit = useMemo(() => {
     const qs = form?.questions ?? [];
     if (!qs.length) return false;
@@ -125,14 +137,15 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
         case "choice_single":
           return typeof a.optionIndex === "number";
         case "choice_multi":
-          return Array.isArray(a.optionIndexes) && a.optionIndexes.length > 0;
+          return (
+            Array.isArray(a.optionIndexes) && a.optionIndexes.length > 0
+          );
         default:
           return false;
       }
     });
   }, [answers, form]);
 
-  // อัปเดตแบบ merge เฉพาะข้อที่เปลี่ยน (index-safe)
   function setAnswer(qi: number, patch: Partial<DraftAnswer>) {
     setAnswers((prev) => {
       const current: DraftAnswer = prev[qi] ?? { questionIndex: qi };
@@ -140,7 +153,6 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
     });
   }
 
-  // ส่งคำตอบ: map questionIndex -> question_id จริง
   async function onSubmit() {
     const qs = form?.questions ?? [];
     if (!qs.length || saving || !canSubmit) return;
@@ -170,19 +182,32 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
               ? { question_id: qid, option_id: opId }
               : { question_id: qid };
           }
-          // multi
+
           const idxs = a?.optionIndexes ?? [];
           const ids = idxs
             .map((i) => q.options?.[i]?.id)
             .filter((v): v is number => typeof v === "number");
-          return ids.length ? { question_id: qid, option_ids: ids } : { question_id: qid };
+
+          return ids.length
+            ? { question_id: qid, option_ids: ids }
+            : { question_id: qid };
         }),
       };
 
       await submitUserFeedback(payload);
-      setOkMsg("ขอบคุณสำหรับการประเมินของคุณ");
+      onSuccess?.();
       setTimeout(() => onClose(), 900);
-    } catch (e) {
+    } catch (e: unknown) {
+      if (
+        typeof e === "object" &&
+        e !== null &&
+        "response" in e &&
+        typeof (e as { response?: { status?: number } }).response?.status ===
+          "number" &&
+        (e as { response?: { status?: number } }).response?.status === 409
+      ) {
+        return;
+      }
       setErrMsg(e instanceof Error ? e.message : "ส่งแบบประเมินไม่สำเร็จ");
     } finally {
       setSaving(false);
@@ -193,19 +218,19 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
 
   const questions = form?.questions ?? [];
 
-  // ===== MODAL CONTENT (wrapped) =====
   const modal = (
-    <div className="fixed inset-0 z-[10000]">
-      {/* backdrop */}
+    <div className="fixed inset-0 z-[1000]">
       <div
         className="absolute inset-0 bg-slate-900/40"
         onClick={() => (saving ? null : onClose())}
       />
-      {/* modal */}
+
       <div className="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-center sm:justify-center ">
         <div className="w-full sm:max-w-2xl sm:rounded-2xl bg-white shadow-xl sm:m-6">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-            <h3 className="font-semibold text-slate-800">แบบประเมินความพึงพอใจ</h3>
+            <h3 className="font-semibold text-slate-800">
+              แบบประเมินความพึงพอใจ
+            </h3>
             <button
               className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
               onClick={onClose}
@@ -218,12 +243,19 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
 
           <div className="max-h-[72vh] overflow-y-auto p-4 sm:p-6">
             {loading ? (
-              <div className="text-sm text-slate-500">กำลังโหลดแบบฟอร์ม…</div>
+              <div className="text-sm text-slate-500">
+                กำลังโหลดแบบฟอร์ม…
+              </div>
             ) : (
               <div className="space-y-5">
                 {questions.map((q: IFeedbackQuestion, qi: number) => (
-                  <div key={`q-${qi}`} className="rounded-xl border border-slate-200 p-4">
-                    <div className="mb-2 font-medium text-slate-900">{q.label}</div>
+                  <div
+                    key={`q-${qi}`}
+                    className="rounded-xl border border-slate-200 p-4"
+                  >
+                    <div className="mb-2 font-medium text-slate-900">
+                      {q.label}
+                    </div>
 
                     {q.type === "rating" && (
                       <StarRating
@@ -236,20 +268,50 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
                       <textarea
                         rows={3}
                         value={answers[qi]?.text ?? ""}
-                        onChange={(e) => setAnswer(qi, { text: e.target.value })}
+                        onChange={(e) =>
+                          setAnswer(qi, { text: e.target.value })
+                        }
                         className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 focus:border-sky-500"
                         placeholder="พิมพ์ความเห็นของคุณ…"
                       />
                     )}
 
-                    {(q.type === "choice_single" || q.type === "choice_multi") && (
+                    {(q.type === "choice_single" ||
+                      q.type === "choice_multi") && (
                       <div className="mt-1 grid gap-2">
-                        {(q.options ?? []).map((op: IFeedbackOption, oi: number) => {
-                          const groupName = `q-${qi}`;
-                          const inputId = `q-${qi}-op-${oi}`;
+                        {(q.options ?? []).map(
+                          (op: IFeedbackOption, oi: number) => {
+                            const groupName = `q-${qi}`;
+                            const inputId = `q-${qi}-op-${oi}`;
 
-                          if (q.type === "choice_single") {
-                            const selected = answers[qi]?.optionIndex === oi;
+                            if (q.type === "choice_single") {
+                              const selected =
+                                answers[qi]?.optionIndex === oi;
+                              return (
+                                <label
+                                  key={inputId}
+                                  htmlFor={inputId}
+                                  className="flex items-center gap-2 text-sm text-slate-800 cursor-pointer"
+                                >
+                                  <input
+                                    id={inputId}
+                                    type="radio"
+                                    name={groupName}
+                                    checked={!!selected}
+                                    onChange={() =>
+                                      setAnswer(qi, { optionIndex: oi })
+                                    }
+                                    className="h-4 w-4 accent-sky-600"
+                                  />
+                                  <span>{op.label}</span>
+                                </label>
+                              );
+                            }
+
+                            const current =
+                              answers[qi]?.optionIndexes ?? [];
+                            const selected = current.includes(oi);
+
                             return (
                               <label
                                 key={inputId}
@@ -258,46 +320,27 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
                               >
                                 <input
                                   id={inputId}
-                                  type="radio"
+                                  type="checkbox"
                                   name={groupName}
                                   checked={!!selected}
-                                  onChange={() => setAnswer(qi, { optionIndex: oi })}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    const before =
+                                      answers[qi]?.optionIndexes ?? [];
+                                    const next = checked
+                                      ? Array.from(
+                                          new Set([...before, oi])
+                                        )
+                                      : before.filter((x) => x !== oi);
+                                    setAnswer(qi, { optionIndexes: next });
+                                  }}
                                   className="h-4 w-4 accent-sky-600"
                                 />
                                 <span>{op.label}</span>
                               </label>
                             );
                           }
-
-                          // MULTI
-                          const current = answers[qi]?.optionIndexes ?? [];
-                          const selected = current.includes(oi);
-
-                          return (
-                            <label
-                              key={inputId}
-                              htmlFor={inputId}
-                              className="flex items-center gap-2 text-sm text-slate-800 cursor-pointer"
-                            >
-                              <input
-                                id={inputId}
-                                type="checkbox"
-                                name={groupName}
-                                checked={!!selected}
-                                onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  const before = answers[qi]?.optionIndexes ?? [];
-                                  const next = checked
-                                    ? Array.from(new Set([...before, oi]))
-                                    : before.filter((x) => x !== oi);
-                                  setAnswer(qi, { optionIndexes: next });
-                                }}
-                                className="h-4 w-4 accent-sky-600"
-                              />
-                              <span>{op.label}</span>
-                            </label>
-                          );
-                        })}
+                        )}
                       </div>
                     )}
                   </div>
@@ -329,7 +372,9 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
               onClick={onSubmit}
               disabled={!canSubmit || saving}
               className={`px-4 py-2 rounded-xl text-white text-sm font-medium ${
-                canSubmit && !saving ? "bg-sky-600 hover:bg-sky-700" : "bg-sky-300 cursor-not-allowed"
+                canSubmit && !saving
+                  ? "bg-sky-600 hover:bg-sky-700"
+                  : "bg-sky-300 cursor-not-allowed"
               }`}
             >
               {saving ? "กำลังส่ง..." : "ส่งแบบประเมิน"}
@@ -340,7 +385,6 @@ export default function UserFeedbackModal({ uid, open, onClose, periodKey }: Pro
     </div>
   );
 
-  // ส่งออกด้วย Portal (ใช้ #modal-root ถ้ามี ไม่งั้น fallback เป็น body)
   const host = document.getElementById("modal-root") ?? document.body;
   return createPortal(modal, host);
 }
