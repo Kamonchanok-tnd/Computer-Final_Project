@@ -395,33 +395,24 @@ const yearOptions = [
                 </Col>
   <Col span={24}>
   <Form.Item
-  name="phone"
-  label="เบอร์โทรศัพท์"
-  rules={[
-    {
-     
-  validator(_, value) {
-    // ถ้าไม่มีการกรอกเลย → ผ่านทันที
-    if (value === undefined || value === null || value === "") {
-      return Promise.resolve();
-    }
+    name="phone"
+    label="เบอร์โทรศัพท์  (กรณีต้องการให้ติดต่อกลับ)"
+    rules={[
+      {
+        validator(_, value) {
+          if (!value) return Promise.resolve();
 
-    const phoneRegex = /^0\d{9}$/;
-    if (!phoneRegex.test(value)) {
-      return Promise.reject("รูปแบบหมายเลขโทรศัพท์ไม่ถูกต้อง");
-    }
-
-    return Promise.resolve();
-  }
-},
-
-    
-  ]}
->
-  <Input placeholder="ไม่บังคับกรอก" />
-</Form.Item>
-
-
+          const phoneRegex = /^0\d{9}$/;
+          if (!phoneRegex.test(value)) {
+            return Promise.reject("รูปแบบหมายเลขโทรศัพท์ไม่ถูกต้อง");
+          }
+          return Promise.resolve();
+        },
+      },
+    ]}
+  >
+    <Input placeholder="ไม่บังคับกรอก" />
+  </Form.Item>
 </Col>
 
 
