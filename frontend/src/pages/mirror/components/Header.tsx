@@ -34,22 +34,47 @@ export default function Header({
       <h1 className="font-ibmthai text-xl sm:text-2xl font-semibold">{title}</h1>
 
       <div className="h-9 flex items-center justify-end">
-        {showOverviewButton ? (
-          <button
-            id="overview-button-anchor"
-            type="button"
-            onClick={() => navigate("/user/mirror/overview")}
-            aria-label="ดูสรุปอารมณ์รายเดือน"
-            className="relative h-9 w-9 rounded-full bg-slate-200 flex items-center justify-center hover:ring-1 hover:ring-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400"
-          >
-            {/* 🔧 FIX: ให้ไอคอนมีขนาดจริง ไม่ใช้ 5.5 ที่ Tailwind ไม่มี */}
-            <BarChart2 id="overview-icon" className="w-[22px] h-[22px] text-slate-700" aria-hidden />
-            {/* หรือใช้ class มาตรฐาน: className="w-5 h-5" */}
-          </button>
-        ) : (
-          <div className="w-9" />
-        )}
+  {showOverviewButton ? (
+    <div className="relative group">
+      <button
+        id="overview-button-anchor"
+        type="button"
+        onClick={() => navigate("/user/mirror/overview")}
+        aria-label="ดูสรุปอารมณ์ช่วงที่ผ่านมา"
+        className="relative h-9 w-9 rounded-full bg-slate-200 flex items-center justify-center
+                   hover:ring-1 hover:ring-slate-300
+                   focus:outline-none focus:ring-2 focus:ring-slate-400"
+      >
+        <BarChart2
+          id="overview-icon"
+          className="w-[22px] h-[22px] text-slate-700"
+          aria-hidden
+        />
+      </button>
+
+      {/* Tooltip ใต้ปุ่ม */}
+      <div
+        role="tooltip"
+        className="
+          pointer-events-none
+          absolute right-0 top-full mt-2
+          hidden group-hover:block
+          rounded-md bg-slate-800 px-2 py-1
+          text-xs text-white whitespace-nowrap
+          shadow-md
+          opacity-0 translate-y-1
+          group-hover:opacity-100 group-hover:translate-y-0
+          transition-all duration-150
+        "
+      >
+        สรุปอารมณ์ช่วงที่ผ่านมา
       </div>
+    </div>
+  ) : (
+    <div className="w-9" />
+  )}
+</div>
+
     </header>
   );
 }
