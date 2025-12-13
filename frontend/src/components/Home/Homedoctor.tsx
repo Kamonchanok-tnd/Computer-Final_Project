@@ -1,9 +1,8 @@
 
 import { useNavigate } from 'react-router-dom';
 
-import n6 from "../../assets/nurse/n6.jpg"
-import n1  from "../../assets/nurse/n1.jpg"
-import n2  from "../../assets/nurse/n2.jpg"
+
+import { SAMPLE_DOCTORS } from '../../pages/doctor/DoctorRecommendPage';
 type Doctor = {
   id: string;
   name: string;
@@ -12,27 +11,7 @@ type Doctor = {
  
 };
 
-const SAMPLE_DOCTORS: Doctor[] = [
-  {
-    id: "d1",
-    name: "อ.พี่โอ",
-    photo: n6,
 
-  
-  },
-  {
-    id: "d2",
-    name: "อ.พี่นก",
-    photo: n1,
-  
-  },
-  {
-    id: "d3",
-    name: "อ.พี่ปุ้ม",
-    photo: n2,
-  
-  },
-];
 
 interface DoctorCardProps {
   doctor: Doctor;

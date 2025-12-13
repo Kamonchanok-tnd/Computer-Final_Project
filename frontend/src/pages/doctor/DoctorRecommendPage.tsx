@@ -20,7 +20,7 @@ type Doctor = {
 };
 
 /* ===== Demo data ===== */
-const SAMPLE_DOCTORS: Doctor[] = [
+export const SAMPLE_DOCTORS: Doctor[] = [
   {
     id: "d1",
     name: "อ.พี่โอ",
