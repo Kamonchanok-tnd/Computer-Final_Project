@@ -459,7 +459,7 @@ const yearOptions = [
   <div className="fixed inset-0 bg-gray-200/90 flex items-center justify-center z-[999] animate-fadeIn overflow-auto p-4">
     <Card className="max-w-3xl w-full rounded-2xl p-6 shadow-2xl animate-scaleUp leading-relaxed">
       <Title level={3} className="text-center mb-6">
-        แบบฟอร์มยินยอมการใช้งานแอปพลิเคชัน SUT Healjai
+        แบบฟอร์มยินยอมการใช้งานแอปพลิเคชัน SUT Heal jai
       </Title>
 
       <div
@@ -483,7 +483,7 @@ const yearOptions = [
         <p>
           ท่านได้รับเชิญเข้าร่วมโครงการ เนื่องจากเป็นนักศึกษาชั้นปีที่ 1–4 ของมหาวิทยาลัยเทคโนโลยีสุรนารี 
           ที่มีระดับคะแนนความเครียดในระดับปานกลางขึ้นไป โดยเมื่อเข้าสู่โครงการ 
-          ท่านจะได้ทดลองใช้เว็บแอพพลิเคชัน SUT Healjai ผ่านอุปกรณ์มือถือหรือคอมพิวเตอร์ 
+          ท่านจะได้ทดลองใช้เว็บแอพพลิเคชัน SUT Heal jai ผ่านอุปกรณ์มือถือหรือคอมพิวเตอร์ 
           ซึ่งท่านจะได้รับความรู้และแนวทางอาจเป็นประโยชน์ต่อการจัดการความเครียด 
           และเป็นทางเลือกในการส่งเสริมสุขภาพจิต
         </p>

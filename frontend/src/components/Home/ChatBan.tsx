@@ -13,7 +13,7 @@ function ChatBan() {
         <div className="w-full lg:w-1/2 h-auto flex justify-center mb-6 lg:mb-0">
           <img 
             src={Image1} 
-            alt="SUT HEALJAI Illustration" 
+            alt="SUT HEAL JAI Illustration" 
             className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl h-auto object-contain" 
           />
         </div>
@@ -25,7 +25,7 @@ function ChatBan() {
               className="font-ibmthai-bold font-extrabold bg-clip-text text-transparent 
                      bg-gradient-to-r to-[#5D7285] from-[#2196F3] dark:to-blue-400 dark:from-cyan-400"
             >
-              SUT HEALJAI{" "}
+              SUT HEAL JAI{" "}
             </span>
             ไม่ใช่แค่บอท แต่คือเพื่อนที่คุณวางใจได้
             <br className="hidden sm:block" />
@@ -40,7 +40,7 @@ function ChatBan() {
           </p>
 
           <p className="text-sm sm:text-base lg:text-lg font-ibmthai text-[#1F1F22] dark:text-gray-200 mt-4 lg:mt-6 leading-relaxed max-w-2xl">
-            ไม่ว่าคุณจะเศร้า เหนื่อย ท้อ หรือแค่ต้องการใครสักคนรับฟัง SUT HEALJAI คือพื้นที่ของคุณ
+            ไม่ว่าคุณจะเศร้า เหนื่อย ท้อ หรือแค่ต้องการใครสักคนรับฟัง SUT HEAL JAI คือพื้นที่ของคุณ
             <br className="hidden sm:block" />
             <span className="block sm:inline">ที่คุณจะได้ระบายความรู้สึกอย่างอิสระ ไม่ตัดสิน ไม่ถามกลับ แค่รับฟังอย่างอ่อนโยน</span>
           </p>
