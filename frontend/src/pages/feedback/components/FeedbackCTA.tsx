@@ -5,7 +5,7 @@ type Props = { onOpen: MouseEventHandler<HTMLButtonElement> };
 
 export default function FeedbackCTA({ onOpen }: Props) {
   return (
-    <section className="w-full bg-white">
+    <section className="w-full bg-white font-ibmthai">
       {/* Banner Title – ใช้ธีม #99EDFF */}
       <div className="w-full">
         <div className="mx-auto w-full px-4 py-5 sm:py-6 bg-[linear-gradient(90deg,#8FE8FF_0%,#99EDFF_35%,#B7F3FF_100%)]">
@@ -40,12 +40,12 @@ export default function FeedbackCTA({ onOpen }: Props) {
                 <ul className="space-y-3 text-slate-700 text-sm sm:text-base">
                   <li className="flex items-start gap-3"><CheckIcon/><span>เข้าใจความต้องการของผู้ใช้งานจริง เพื่อนำไปพัฒนาฟีเจอร์</span></li>
                   <li className="flex items-start gap-3"><CheckIcon/><span>ยกระดับประสบการณ์และความพึงพอใจของผู้ใช้ทุกคน</span></li>
-                  <li className="flex items-start gap-3"><CheckIcon/><span>ใช้เวลาเพียง <strong>3–5 นาที</strong> และตอบได้ทุกอุปกรณ์</span></li>
+                  <li className="flex items-start gap-3"><CheckIcon/><span>ใช้เวลาเพียง <strong>3–5 นาที</strong> ในการประเมิน</span></li>
                 </ul>
 
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <Pill>ไม่เก็บข้อมูลส่วนตัว</Pill>
-                  <Pill>ปรับปรุงทุกสปรินต์</Pill>
+                  <Pill>ปรับปรุงเพื่อสิ่งที่ดีสำหรับคุณ</Pill>
                   <Pill>ขอบคุณที่ร่วมพัฒนา 💙</Pill>
                 </div>
               </div>
