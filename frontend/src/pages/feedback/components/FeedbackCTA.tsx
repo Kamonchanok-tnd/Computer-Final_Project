@@ -33,7 +33,7 @@ export default function FeedbackCTA({ onOpen }: Props) {
               </div>
 
               <h3 className="mt-4 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight tracking-tight text-slate-900">
-                ช่วยให้ <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">SUT HealJai</span> ดียิ่งขึ้น
+                ช่วยให้ <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">SUT Heal Jai</span> ดียิ่งขึ้น
               </h3>
 
               <div className="mt-6 rounded-2xl bg-white/80 backdrop-blur border border-[#D7F6FF] p-5 shadow-[0_10px_35px_rgba(0,163,204,0.10)]">

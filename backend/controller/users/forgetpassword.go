@@ -57,7 +57,7 @@ func ForgotPasswordController(c *gin.Context) {
 
 
     // ส่งอีเมล
-subject := "การรีเซ็ตรหัสผ่าน - ระบบ SUT Healjai"
+subject := "การรีเซ็ตรหัสผ่าน - ระบบ SUT Heal jai"
 body := fmt.Sprintf(`
 <!DOCTYPE html>
 <html lang="th">
@@ -118,7 +118,7 @@ body := fmt.Sprintf(`
         <p>หากท่านไม่ได้เป็นผู้ร้องขอการรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลฉบับนี้</p>
 
         <p>ขอแสดงความนับถือ,<br>
-        ทีมงาน SUT Healjai</p>
+        ทีมงาน SUT Heal jai</p>
 
         <div class="footer">
             *** อีเมลฉบับนี้เป็นการแจ้งอัตโนมัติ กรุณาอย่าตอบกลับ ***

@@ -97,7 +97,7 @@ function RelaxActivities() {
             สวัสดี {username || "..."}
           </p>
           <p className="text-gray-800 text-sm sm:text-base leading-relaxed dark:text-text-dark line-clamp-4">
-            Heal Jai ให้ใจได้พัก เมื่อทุกอย่างมันเยอะไป ลองแวะมาพักที่ SUT HealJai
+            Heal Jai ให้ใจได้พัก เมื่อทุกอย่างมันเยอะไป ลองแวะมาพักที่ SUT Heal Jai
             เรามีกิจกรรมสบาย ๆ และข้อความดี ๆ ที่พร้อมอยู่ข้างคุณเสมอ
           </p>
         </div>
