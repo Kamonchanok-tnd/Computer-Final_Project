@@ -14,6 +14,7 @@ import Footer from "../../components/Home/Footer";
 
 function Home() {
   const navigate = useNavigate();
+  const [feedbackAlert, setFeedbackAlert] = useState<string | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 const uidFromStorage = Number(
   JSON.parse(localStorage.getItem("user") || "{}")?.id || localStorage.getItem("id") || 0
@@ -196,7 +197,37 @@ const uidFromStorage = Number(
   }, []);
 
   return (
-    <div className="bg-[#F4FFFF] relative dark:bg-background-dark ">
+<div className="bg-[#F4FFFF] relative dark:bg-background-dark font-ibmthai">
+  {feedbackAlert && (
+    <div
+      className="
+        fixed top-5 left-1/2 -translate-x-1/2
+        z-[1200]
+        flex items-center gap-3
+        rounded-2xl
+        bg-white
+        px-5 py-3
+        text-sm sm:text-base
+        text-slate-800
+        shadow-[0_10px_30px_rgba(0,0,0,0.12)]
+        border border-emerald-100
+        animate-[fadeInDown_0.35s_ease-out]
+      "
+      role="status"
+      aria-live="polite"
+    >
+      {/* icon */}
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+        ✓
+      </div>
+
+      {/* text */}
+      <span className="font-medium">
+        ขอบคุณสำหรับคำแนะนำเพื่อปรับปรุงเว็บไซต์
+      </span>
+    </div>
+  )}
+
       <ChatBan />
       <Question />
   
@@ -206,12 +237,20 @@ const uidFromStorage = Number(
       <Homedoctor />
 <FeedbackCTA onOpen={() => setFeedbackOpen(true)} />
 
-{/* วาง component ป็อปอัปไว้ท้ายหน้า ก่อน <Footer /> */}
 <UserFeedbackModal
   uid={uidFromStorage}
   open={feedbackOpen}
   onClose={() => setFeedbackOpen(false)}
+  onSuccess={() => {
+    // 🔥 หน่วงก่อนโชว์ alert
+    setTimeout(() => {
+      setFeedbackAlert("success");
+      setTimeout(() => setFeedbackAlert(null), 3000); // ซ่อนอัตโนมัติ
+    }, 900); // ⬅️ รอให้ modal ปิดก่อน
+  }}
 />
+
+
  <Footer />
 
     </div>
