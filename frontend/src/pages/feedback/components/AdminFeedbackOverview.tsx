@@ -157,7 +157,7 @@ export default function AdminFeedbackOverview({ hideHeaderTitle = false }: Admin
 
       {/* Rating per question */}
       {ratingRows.length > 0 && (
-        <Section title="รายละเอียดคะแนนรายข้อ (Rating)">
+        <Section title="คะแนน (Rating)">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {ratingRows.map((q) => (
               <Card key={q.id}>
@@ -174,7 +174,7 @@ export default function AdminFeedbackOverview({ hideHeaderTitle = false }: Admin
 
       {/* Single choice breakdown */}
       {singleRows.length > 0 && (
-        <Section title="ฟีเจอร์ที่ชอบที่สุด (เลือก 1)">
+        <Section title="เลือกได้ข้อเดียว (Multiple choice)">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {singleRows.map((q) => (
               <Card key={q.id}>
@@ -189,7 +189,7 @@ export default function AdminFeedbackOverview({ hideHeaderTitle = false }: Admin
 
       {/* Multi choice breakdown */}
       {multiRows.length > 0 && (
-        <Section title="ฟีเจอร์ที่ใช้งาน (เลือกได้หลายข้อ)">
+        <Section title="เลือกได้หลายข้อ (Checkbox )">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {multiRows.map((q) => (
               <Card key={q.id}>
@@ -204,7 +204,7 @@ export default function AdminFeedbackOverview({ hideHeaderTitle = false }: Admin
 
       {/* Text feedback + อ่านเพิ่มเติม */}
       {textRows.length > 0 && (
-        <Section title="ข้อเสนอแนะ (ข้อความ)">
+        <Section title="กล่องข้อความ (ข้อความ)">
           <div className="grid grid-cols-1 gap-4">
             {textRows.map((q) => {
               const key = String(q.id);
