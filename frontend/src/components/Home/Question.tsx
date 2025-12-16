@@ -11,41 +11,6 @@ import { createAssessmentResult } from "../../services/https/assessment";
 
 import { useNavigate } from "react-router-dom";
 
-// import { ChevronRight } from "lucide-react";
-// import q1 from "../../assets/assessment/depression.png";
-// import q2 from "../../assets/assessment/depression1.png";
-// import q3 from "../../assets/assessment/Mindfulness.png";
-// import q4 from "../../assets/assessment/happy.png";
-// import q5 from "../../assets/assessment/ST5.png";
-
-// const card = [
-//   {
-//     id: 1,
-//     name: "แบบคัดกรองโรคซึมเศร้า 2Q",
-//     image: q1,
-//   },
-//   {
-//     id: 2,
-//     name: "แบบคัดกรองโรคซึมเศร้า 9Q",
-//     image: q2,
-//   },
-//   {
-//     id: 3,
-//     name: "แบบวัดระดับสติ (State Mindfulness)",
-//     image: q3,
-//   },
-//   {
-//     id: 4,
-//     name: "แบบวัดระดับความสุข คะแนน 0-10",
-//     image: q4,
-//   },
-//   {
-//     id: 5,
-//     name: "แบบวัดระดับความเครียด (ST-5)",
-//     image: q5,
-//   },
-// ];
-
 function Question() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
@@ -94,7 +59,7 @@ function Question() {
   // แก้ฟังก์ชันให้รับได้ทั้ง number | undefined แล้วเช็คก่อน
   const handleStartAssessment = async (quid?: number) => {
     if (typeof quid !== "number") {
-      alert("ไม่พบรหัสแบบทดสอบสุขภาพจิต");
+      alert("ไม่พบรหัสแบบคัดกรองสุขภาพจิต");
       return;
     }
 
@@ -102,7 +67,7 @@ function Question() {
     const uid = Number(user?.id || localStorage.getItem("id"));
 
     if (!uid) {
-      alert("กรุณาเข้าสู่ระบบก่อนทำแบบทดสอบสุขภาพจิต");
+      alert("กรุณาเข้าสู่ระบบก่อนทำแบบคัดกรองสุขภาพจิต");
       return;
     }
 
@@ -117,8 +82,8 @@ function Question() {
 
       navigate("/assessments");
     } catch (err) {
-      console.error("เริ่มทำแบบทดสอบสุขภาพจิตไม่สำเร็จ:", err);
-      alert("เริ่มทำแบบทดสอบสุขภาพจิตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+      console.error("เริ่มทำแบบคัดกรองสุขภาพจิตไม่สำเร็จ:", err);
+      alert("เริ่มทำแบบคัดกรองสุขภาพจิตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
     }
   };
 
@@ -136,7 +101,7 @@ const toImgSrc = (s?: string) => {
       {/* Header */}
       <div className="flex items-center justify-between xl:px-0 px-2">
         <p className="font-ibmthai text-2xl text-basic-text dark:text-text-dark">
-          แบบทดสอบสุขภาพจิตทั้งหมด
+          แบบคัดกรองสุขภาพจิตทั้งหมด
         </p>
       </div>
 
@@ -195,7 +160,7 @@ const toImgSrc = (s?: string) => {
                         className={`font-ibmthai bg-gradient-to-tl from-[#99EDFF] to-[#5FE2FF] text-white py-1 px-4 rounded-lg
     ${typeof item.id !== "number" ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
-                        เริ่มทำแบบทดสอบ
+                        เริ่มทำแบบคัดกรอง
                       </button>
                     </div>
                   </div>

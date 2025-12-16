@@ -79,7 +79,7 @@ const Result: React.FC = () => {
       });
   }, []);
 
-  // ไปทำแบบทดสอบ “ถัดไป” —> แวะหน้ารายการก่อน
+  // ไปทำแบบคัดกรอง “ถัดไป” —> แวะหน้ารายการก่อน
   const handleNext = () => {
     if (!nextQid || !nextGroupId) return;
     navigate(`/assessmentlists/${nextGroupId}/${nextQid}`);
@@ -118,7 +118,7 @@ const Result: React.FC = () => {
 
         if (!quId) {
           console.warn("⚠️ Cannot resolve QuID from any source");
-          setRecommendation("ไม่พบแบบทดสอบที่สัมพันธ์กับผลลัพธ์นี้ (QuID) กรุณาลองใหม่อีกครั้ง");
+          setRecommendation("ไม่พบแบบคัดกรองที่สัมพันธ์กับผลลัพธ์นี้ (QuID) กรุณาลองใหม่อีกครั้ง");
           return;
         }
 
@@ -281,7 +281,7 @@ const Result: React.FC = () => {
             onClick={handleNext}
             className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-700 transition mb-2"
           >
-            ทำแบบทดสอบถัดไป
+            ทำแบบคัดกรองถัดไป
           </button>
         ) : transaction?.description === "แบบคัดกรองโรคซึมเศร้า 9Q" ? (
           <button

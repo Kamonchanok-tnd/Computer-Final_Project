@@ -287,24 +287,24 @@ const UploadBox: React.FC<{
   );
 };
 
-// หน้า กรอกข้อมูลแบบทดสอบ แล้วบันทึกไปสร้าง (step ถัดไปคือสร้างคำถาม)
+// หน้า กรอกข้อมูลแบบคัดกรอง แล้วบันทึกไปสร้าง (step ถัดไปคือสร้างคำถาม)
 const FormStepInfo: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
 
-  // ฟิลด์ข้อมูลหลักของแบบทดสอบ
+  // ฟิลด์ข้อมูลหลักของแบบคัดกรอง
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState<number>(1);
   const [testType, setTestType] = useState<TestType>("positive");
 
-  // เงื่อนไข “ต้องทำแบบทดสอบอื่นก่อน” + เกณฑ์คะแนน
+  // เงื่อนไข “ต้องทำแบบคัดกรองอื่นก่อน” + เกณฑ์คะแนน
   const [hasCondition, setHasCondition] = useState(false);
   const [conditionOnID, setConditionOnID] = useState<number | undefined>(undefined);
   const [conditionScore, setConditionScore] = useState<number | undefined>(undefined);
   const [conditionType, setConditionType] = useState<"greaterThan" | "lessThan">("greaterThan");
 
-  // รายการแบบทดสอบทั้งหมด (ไว้ให้เลือกเป็นเงื่อนไข)
+  // รายการแบบคัดกรองทั้งหมด (ไว้ให้เลือกเป็นเงื่อนไข)
   const [questionnaires, setQuestionnaires] = useState<any[]>([]);
   const [loadingQs, setLoadingQs] = useState(true);
 
@@ -315,7 +315,7 @@ const FormStepInfo: React.FC = () => {
   // ref ของการ์ดหลัก (ช่วยจำกัดพื้นที่ dropdown)
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // โหลดรายการแบบทดสอบ (สำหรับ dropdown เงื่อนไขก่อนทำ)
+  // โหลดรายการแบบคัดกรอง (สำหรับ dropdown เงื่อนไขก่อนทำ)
   useEffect(() => {
     (async () => {
       try {
@@ -334,14 +334,14 @@ const FormStepInfo: React.FC = () => {
     const n = name.trim();
     const d = description.trim();
 
-    if (!n) return "กรุณากรอกชื่อแบบทดสอบ";
+    if (!n) return "กรุณากรอกชื่อแบบคัดกรอง";
     if (!d) return "กรุณากรอกคำอธิบาย";
     if (!quantity || quantity < 1) return "จำนวนคำถามต้องมากกว่า 0";
-    if (!testType) return "กรุณาเลือกประเภทแบบทดสอบ";
+    if (!testType) return "กรุณาเลือกประเภทแบบคัดกรอง";
     if (!pictureBase64) return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
 
     if (hasCondition) {
-      if (!conditionOnID) return "กรุณาเลือกแบบทดสอบที่ต้องทำก่อน";
+      if (!conditionOnID) return "กรุณาเลือกแบบคัดกรองที่ต้องทำก่อน";
       if (!conditionType) return "กรุณาเลือกเงื่อนไขคะแนน";
       const s = Number(conditionScore ?? NaN);
       if (!Number.isFinite(s)) return "กรุณาระบุคะแนนที่ต้องได้";
@@ -350,7 +350,7 @@ const FormStepInfo: React.FC = () => {
     return null;
   };
 
-  // ส่งข้อมูลสร้างแบบทดสอบ > ถ้าสำเร็จพาไปหน้า “สร้างคำถาม”
+  // ส่งข้อมูลสร้างแบบคัดกรอง > ถ้าสำเร็จพาไปหน้า “สร้างคำถาม”
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
@@ -393,7 +393,7 @@ const FormStepInfo: React.FC = () => {
     try {
       const created = await createQuestionnaire(payload);
       const questionnaireId = (created as any)?.id;
-      if (!questionnaireId) throw new Error("ไม่พบ ID ของแบบทดสอบที่สร้าง");
+      if (!questionnaireId) throw new Error("ไม่พบ ID ของแบบคัดกรองที่สร้าง");
 
       await new Promise<void>((resolve) => {
         messageApi.success({ content: "เพิ่มข้อมูลสำเร็จ", duration: 1.2, onClose: resolve });
@@ -425,7 +425,7 @@ const FormStepInfo: React.FC = () => {
           {/* ส่วนหัวของหน้า */}
           <div className="mb-6 flex items-center gap-3">
             <img src={createQuestionIcon} alt="icon" className="h-12 w-12 object-contain" />
-            <h1 className="text-2xl font-bold text-slate-800">สร้างแบบทดสอบสุขภาพจิต</h1>
+            <h1 className="text-2xl font-bold text-slate-800">สร้างแบบคัดกรองสุขภาพจิต</h1>
           </div>
 
           {/* การ์ดหลักของฟอร์ม */}
@@ -434,7 +434,7 @@ const FormStepInfo: React.FC = () => {
               {/* ซ้าย: ฟอร์มข้อความ/ตัวเลือก */}
               <div className="space-y-5">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบทดสอบ *</label>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบคัดกรอง *</label>
                   <input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
                 </div>
 
@@ -450,7 +450,7 @@ const FormStepInfo: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-slate-700">ประเภทแบบทดสอบ *</label>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">ประเภทแบบคัดกรอง *</label>
                     <DropdownSearchSelect
                       value={testType}
                       onChange={(v) => setTestType(v as TestType)}
@@ -464,7 +464,7 @@ const FormStepInfo: React.FC = () => {
                   </div>
                 </div>
 
-                {/* กล่องตั้งค่าเงื่อนไขก่อนทำแบบทดสอบ */}
+                {/* กล่องตั้งค่าเงื่อนไขก่อนทำแบบคัดกรอง */}
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
                     <input
@@ -479,18 +479,18 @@ const FormStepInfo: React.FC = () => {
                         else { setConditionOnID(undefined); }
                       }}
                     />
-                    แบบทดสอบนี้มีเงื่อนไขก่อนทำ
+                    แบบคัดกรองนี้มีเงื่อนไขก่อนทำ
                   </label>
 
                   {hasCondition && (
                     <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700">แบบทดสอบที่ต้องทำก่อน *</label>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">แบบคัดกรองที่ต้องทำก่อน *</label>
                         <DropdownSearchSelect
                           value={conditionOnID}
                           onChange={(v) => setConditionOnID(typeof v === "number" ? v : Number(v))}
                           options={questionnaires.map((q) => ({ label: q.nameQuestionnaire, value: q.id }))}
-                          placeholder="-- เลือกแบบทดสอบ --"
+                          placeholder="-- เลือกแบบคัดกรอง --"
                           className={loadingQs ? "opacity-60" : ""}
                           cardRef={cardRef}
                         />
@@ -531,12 +531,12 @@ const FormStepInfo: React.FC = () => {
                       (submitting ? "bg-cyan-400 cursor-not-allowed" : "bg-[#5DE2FF] hover:bg-cyan-500")
                     }
                   >
-                    {submitting ? "กำลังสร้าง..." : "สร้างแบบทดสอบ"}
+                    {submitting ? "กำลังสร้าง..." : "สร้างแบบคัดกรอง"}
                   </button>
                 </div>
               </div>
 
-              {/* ขวา: อัปโหลดรูปปกของแบบทดสอบ */}
+              {/* ขวา: อัปโหลดรูปปกของแบบคัดกรอง */}
               <UploadBox pictureBase64={pictureBase64} setPictureBase64={setPictureBase64} messageApi={messageApi} />
             </form>
           </div>

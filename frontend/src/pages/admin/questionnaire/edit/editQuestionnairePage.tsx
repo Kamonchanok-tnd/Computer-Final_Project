@@ -363,14 +363,14 @@ const UploadBox: React.FC<{
   );
 };
 
-// หน้าแก้ไขแบบทดสอบ 
+// หน้าแก้ไขแบบคัดกรอง 
 const EditQuestionnaire: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const location = useLocation();
   const [msg, contextHolder] = message.useMessage();
 
-  // หา id ของแบบทดสอบ: จาก URL param -> state -> query
+  // หา id ของแบบคัดกรอง: จาก URL param -> state -> query
   const qidFromState = (location.state as any)?.questionnaireId as number | undefined;
   const qid = useMemo(() => {
     if (params.id && !isNaN(Number(params.id))) return Number(params.id);
@@ -387,25 +387,25 @@ const EditQuestionnaire: React.FC = () => {
   const [quantity, setQuantity] = useState<number>(1);
   const [testType, setTestType] = useState<TestType>("positive");
 
-  // เงื่อนไขก่อนทำแบบทดสอบ (optional)
+  // เงื่อนไขก่อนทำแบบคัดกรอง (optional)
   const [hasCondition, setHasCondition] = useState(false);
   const [conditionOnID, setConditionOnID] = useState<number | undefined>(undefined);
   const [conditionScore, setConditionScore] = useState<number | undefined>(undefined);
   const [conditionType, setConditionType] = useState<"greaterThan" | "lessThan">("greaterThan");
 
-  const [questionnaires, setQuestionnaires] = useState<any[]>([]); // รายการแบบทดสอบอื่น ๆ ให้เลือกตั้งเป็นเงื่อนไข
-  const [current, setCurrent] = useState<any | null>(null);        // ข้อมูลแบบทดสอบปัจจุบัน
+  const [questionnaires, setQuestionnaires] = useState<any[]>([]); // รายการแบบคัดกรองอื่น ๆ ให้เลือกตั้งเป็นเงื่อนไข
+  const [current, setCurrent] = useState<any | null>(null);        // ข้อมูลแบบคัดกรองปัจจุบัน
 
   const [pictureBase64, setPictureBase64] = useState<string | undefined>(undefined); // รูปใหม่ที่อัปโหลด (base64)
   const [pictureRemoved, setPictureRemoved] = useState(false); // ผู้ใช้เลือกลบรูปเดิมหรือไม่
 
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // โหลดข้อมูลเริ่มต้นของแบบทดสอบ + รายการแบบทดสอบทั้งหมด
+  // โหลดข้อมูลเริ่มต้นของแบบคัดกรอง + รายการแบบคัดกรองทั้งหมด
   useEffect(() => {
     const load = async () => {
       if (!qid) {
-        msg.error("ไม่พบรหัสแบบทดสอบ");
+        msg.error("ไม่พบรหัสแบบคัดกรอง");
         navigate(-1);
         return;
       }
@@ -448,10 +448,10 @@ const EditQuestionnaire: React.FC = () => {
     const n = name.trim();
     const d = description.trim();
 
-    if (!n) return "กรุณากรอกชื่อแบบทดสอบ";
+    if (!n) return "กรุณากรอกชื่อแบบคัดกรอง";
     if (!d) return "กรุณากรอกคำอธิบาย";
     if (!quantity || quantity < 1) return "จำนวนคำถามต้องมากกว่า 0";
-    if (!testType) return "กรุณาเลือกประเภทแบบทดสอบ";
+    if (!testType) return "กรุณาเลือกประเภทแบบคัดกรอง";
 
     // กรณีรูป: ถ้าผู้ใช้กดลบ ต้องมีการอัปโหลดใหม่
     if (pictureRemoved && !pictureBase64) return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
@@ -461,7 +461,7 @@ const EditQuestionnaire: React.FC = () => {
       return "กรุณาอัปโหลดรูปภาพก่อนบันทึก";
 
     if (hasCondition) {
-      if (!conditionOnID) return "กรุณาเลือกแบบทดสอบที่ต้องทำก่อน";
+      if (!conditionOnID) return "กรุณาเลือกแบบคัดกรองที่ต้องทำก่อน";
       if (!conditionType) return "กรุณาเลือกเงื่อนไขคะแนน";
       const s = Number(conditionScore ?? NaN);
       if (!Number.isFinite(s)) return "กรุณาระบุคะแนนที่ต้องได้";
@@ -538,7 +538,7 @@ const EditQuestionnaire: React.FC = () => {
         {/* หัวเรื่อง */}
         <div className="mb-6 flex items-center gap-3">
           <img src={createQuestionIcon} alt="icon" className="h-12 w-12 object-contain" />
-          <h1 className="text-2xl font-bold text-slate-800">แก้ไขแบบทดสอบสุขภาพจิต</h1>
+          <h1 className="text-2xl font-bold text-slate-800">แก้ไขแบบคัดกรองสุขภาพจิต</h1>
         </div>
 
         {/* การ์ดฟอร์ม */}
@@ -548,7 +548,7 @@ const EditQuestionnaire: React.FC = () => {
             {/* ซ้าย: ฟอร์มข้อความหลัก */}
             <div className="space-y-5">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบทดสอบ *</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">ชื่อแบบคัดกรอง *</label>
                 <input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
               </div>
 
@@ -564,7 +564,7 @@ const EditQuestionnaire: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">ประเภทแบบทดสอบ *</label>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">ประเภทแบบคัดกรอง *</label>
                   <DropdownSearchSelect
                     value={testType}
                     onChange={(v) => setTestType(v as TestType)}
@@ -587,13 +587,13 @@ const EditQuestionnaire: React.FC = () => {
                     checked={hasCondition}
                     onChange={(e) => setHasCondition(e.target.checked)}
                   />
-                  แบบทดสอบนี้มีเงื่อนไขก่อนทำ
+                  แบบคัดกรองนี้มีเงื่อนไขก่อนทำ
                 </label>
 
                 {hasCondition && (
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">แบบทดสอบที่ต้องทำก่อน *</label>
+                      <label className="mb-2 block text-sm font-medium text-slate-700">แบบคัดกรองที่ต้องทำก่อน *</label>
                       <DropdownSearchSelect
                         value={conditionOnID}
                         onChange={(v) => setConditionOnID(typeof v === "number" ? v : Number(v))}
@@ -601,7 +601,7 @@ const EditQuestionnaire: React.FC = () => {
                           label: q.nameQuestionnaire,
                           value: q.id,
                         }))}
-                        placeholder="-- เลือกแบบทดสอบ --"
+                        placeholder="-- เลือกแบบคัดกรอง --"
                         cardRef={cardRef}
                       />
                     </div>
