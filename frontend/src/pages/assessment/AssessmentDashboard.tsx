@@ -484,7 +484,7 @@ const AssessmentDashboard: React.FC = () => {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [tx, rangePie]);
 
-  // ชนิดแบบทดสอบของชุดที่เลือก (ใช้รายการล่าสุดเป็นตัวแทน)
+  // ชนิดแบบคัดกรองของชุดที่เลือก (ใช้รายการล่าสุดเป็นตัวแทน)
   const selectedTestType: "positive" | "negative" = useMemo(() => {
     const rows = tx.filter((t) => t.description === selectedTest);
     const last = rows[rows.length - 1];
@@ -515,7 +515,7 @@ const AssessmentDashboard: React.FC = () => {
             <Activity className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <p className="text-slate-600 text-sm">การเข้าทำแบบทดสอบสุขภาพจิต</p>
+            <p className="text-slate-600 text-sm">การเข้าทำแบบคัดกรองสุขภาพจิต</p>
             <p className="text-2xl font-semibold text-emerald-700">
               {totalAttempts} <span className="text-base font-normal">ครั้ง</span>
             </p>
@@ -527,9 +527,9 @@ const AssessmentDashboard: React.FC = () => {
             <BarChart3 className="w-6 h-6 text-indigo-600" />
           </div>
           <div>
-            <p className="text-slate-600 text-sm">แบบทดสอบสุขภาพจิตที่เคยทำ</p>
+            <p className="text-slate-600 text-sm">แบบคัดกรองสุขภาพจิตที่เคยทำ</p>
             <p className="text-2xl font-semibold text-indigo-700">
-              {uniqueTests.length} <span className="text-base font-normal">แบบทดสอบ</span>
+              {uniqueTests.length} <span className="text-base font-normal">แบบคัดกรอง</span>
             </p>
           </div>
         </div>
@@ -558,7 +558,7 @@ const AssessmentDashboard: React.FC = () => {
             <Calendar className="w-6 h-6 text-amber-600" />
           </div>
           <div>
-            <p className="text-slate-600 text-sm">แบบทดสอบสุขภาพจิตรอบถัดไป</p>
+            <p className="text-slate-600 text-sm">แบบคัดกรองสุขภาพจิตรอบถัดไป</p>
             <p className="text-lg md:text-xl font-semibold text-amber-700">{nextRoundLabel}</p>
           </div>
         </div>
@@ -571,7 +571,7 @@ const AssessmentDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-amber-300">
             <div className="space-y-1">
               <h3 className="font-semibold text-slate-800">
-                {view === "single" ? "กราฟรายแบบทดสอบ" : "กราฟรวมหลายแบบทดสอบ"}
+                {view === "single" ? "กราฟรายแบบคัดกรอง" : "กราฟรวมหลายแบบคัดกรอง"}
               </h3>
               <p className="text-slate-500 text-sm">แกนตั้งเป็นคะแนน • แกนนอนเป็นวันที่ (สีตามกลุ่ม)</p>
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-2">
@@ -592,7 +592,7 @@ const AssessmentDashboard: React.FC = () => {
                     view === "single" ? "bg-white text-slate-900 shadow" : "text-gray-500 hover:text-orange-900"
                   }`}
                 >
-                  <FileText size={16} /> รายแบบทดสอบ
+                  <FileText size={16} /> รายแบบคัดกรอง
                 </button>
                 <button
                   onClick={() => setView("combined")}
@@ -777,9 +777,9 @@ const AssessmentDashboard: React.FC = () => {
           className="rounded-2xl bg-sky-200/30 shadow-sm border border-sky-100 p-4 flex flex-col lg:col-span-1"
         >
           <div className="p-5 border-b border-sky-300">
-            <h3 className="font-semibold text-slate-800 mb-3">จำนวนครั้งที่ทำแต่ละแบบทดสอบสุขภาพจิต</h3>
+            <h3 className="font-semibold text-slate-800 mb-3">จำนวนครั้งที่ทำแต่ละแบบคัดกรองสุขภาพจิต</h3>
             <p className="text-slate-500 text-sm">
-              จำนวนครั้งที่ทำแบบทดสอบสุขภาพจิตทั้งหมด : {totalAttempts} ครั้ง
+              จำนวนครั้งที่ทำแบบคัดกรองสุขภาพจิตทั้งหมด : {totalAttempts} ครั้ง
             </p>
           </div>
 

@@ -22,7 +22,7 @@ const QuestionnairePage: React.FC = () => {
   // message/toast ของ antd
   const [msgApi, contextHolder] = message.useMessage();
 
-  // สเตตรายการแบบทดสอบ + สถานะโหลด/หลังฟิลเตอร์
+  // สเตตรายการแบบคัดกรอง + สถานะโหลด/หลังฟิลเตอร์
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
   const [filteredQuestionnaires, setFilteredQuestionnaires] =
     useState<Questionnaire[]>([]);
@@ -44,7 +44,7 @@ const QuestionnairePage: React.FC = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [sortOption, setSortOption] = useState<string>("default");
 
-  // ข้อมูลกระดานลำดับ (ใช้ตรวจบล็อกการลบถ้าแบบทดสอบยังอยู่ใน sequence)
+  // ข้อมูลกระดานลำดับ (ใช้ตรวจบล็อกการลบถ้าแบบคัดกรองยังอยู่ใน sequence)
   const [orderBoard, setOrderBoard] = useState<OrderBoardCol[]>([]);
 
   const navigate = useNavigate();
@@ -75,14 +75,14 @@ const QuestionnairePage: React.FC = () => {
     }
   }, [location.state]);
 
-  // โหลดข้อมูลเริ่มต้น (รายการแบบทดสอบ, ผู้ใช้, กระดานลำดับ)
+  // โหลดข้อมูลเริ่มต้น (รายการแบบคัดกรอง, ผู้ใช้, กระดานลำดับ)
   useEffect(() => {
     loadQuestionnaires();
     loadUsers();
     loadOrderBoard();
   }, []);
 
-  // เรียก API: ดึงรายการแบบทดสอบทั้งหมด
+  // เรียก API: ดึงรายการแบบคัดกรองทั้งหมด
   const loadQuestionnaires = async () => {
     setLoadingQuestionnaires(true);
     try {
@@ -90,7 +90,7 @@ const QuestionnairePage: React.FC = () => {
       setQuestionnaires(data);
       setFilteredQuestionnaires(data);
     } catch (err) {
-      msgApi.error("เกิดข้อผิดพลาดในการโหลดแบบทดสอบ");
+      msgApi.error("เกิดข้อผิดพลาดในการโหลดแบบคัดกรอง");
       console.error(err);
     } finally {
       setLoadingQuestionnaires(false);
@@ -181,7 +181,7 @@ const QuestionnairePage: React.FC = () => {
   const filterAndSort = (searchValue: string, sortKey: string) => {
     let data = [...questionnaires];
 
-    // ฟิลเตอร์ด้วยชื่อแบบทดสอบหรือชื่อผู้สร้าง
+    // ฟิลเตอร์ด้วยชื่อแบบคัดกรองหรือชื่อผู้สร้าง
     if (searchValue.trim() !== "") {
       data = data.filter((q) => {
         const userName = usersMap[q.uid] || "";
@@ -276,7 +276,7 @@ const QuestionnairePage: React.FC = () => {
       .map((k) => q?.[k])
       .find((v) => v !== undefined);
 
-  // แบบทดสอบที่พึ่ง selectedForInfo (ไว้แสดงใน modal info)
+  // แบบคัดกรองที่พึ่ง selectedForInfo (ไว้แสดงใน modal info)
   const infoDependents = useMemo(() => {
     if (!selectedForInfo) return [];
     return questionnaires.filter(
@@ -284,7 +284,7 @@ const QuestionnairePage: React.FC = () => {
     );
   }, [selectedForInfo, questionnaires]);
 
-  // แบบทดสอบที่พึ่ง selectedToDelete (ไว้บล็อกการลบ)
+  // แบบคัดกรองที่พึ่ง selectedToDelete (ไว้บล็อกการลบ)
   const deleteDependents = useMemo(() => {
     if (!selectedToDelete) return [];
     return questionnaires.filter(
@@ -300,7 +300,7 @@ const QuestionnairePage: React.FC = () => {
     return input === `ลบ${name}` || input === `ลบ ${name}`;
   }, [deleteConfirmText, selectedToDelete]);
 
-  // หา stage ที่รายการนี้ยังคงอยู่ในจัดการลำดับแบบทดสอบ
+  // หา stage ที่รายการนี้ยังคงอยู่ในจัดการลำดับแบบคัดกรอง
   const inOrderStages = useMemo(() => {
     if (!selectedToDelete) return [] as string[];
     const id = selectedToDelete.id!;
@@ -324,7 +324,7 @@ const QuestionnairePage: React.FC = () => {
       onHeaderCell: () => ({ style: headerCellStyle }),
     },
     {
-      title: "ชื่อแบบทดสอบ",
+      title: "ชื่อแบบคัดกรอง",
       dataIndex: "nameQuestionnaire",
       key: "nameQuestionnaire",
       align: "center",
@@ -370,7 +370,7 @@ const QuestionnairePage: React.FC = () => {
       align: "center",
       render: (_: any, record: Questionnaire) => (
         <Space>
-          {/* ปุ่มแก้ไขแบบทดสอบ */}
+          {/* ปุ่มแก้ไขแบบคัดกรอง */}
           <AntButton
             icon={<SettingOutlined />}
             onClick={() => handleEdit(record)}
@@ -381,7 +381,7 @@ const QuestionnairePage: React.FC = () => {
             icon={<InfoCircleOutlined />}
             onClick={() => showInfoModal(record)}
             className="!w-8 !h-8 !p-0 !bg-[#5DE2FF] !text-black hover:!bg-cyan-500 active:!bg-cyan-600 !border-none !shadow-none"
-            title="ดูว่าแบบทดสอบนี้เป็นเงื่อนไขของแบบทดสอบใดบ้าง"
+            title="ดูว่าแบบคัดกรองนี้เป็นเงื่อนไขของแบบคัดกรองใดบ้าง"
           />
           {/* ปุ่มลบ (จะถูกบล็อกในโมดัลถ้ามีความสัมพันธ์/ยังอยู่ในลำดับ) */}
           <AntButton
@@ -410,7 +410,7 @@ const QuestionnairePage: React.FC = () => {
             className="h-10 w-10 object-contain sm:h-12 sm:w-12"
           />
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-          จัดการแบบทดสอบสุขภาพจิต
+          จัดการแบบคัดกรองสุขภาพจิต
           </h2>
         </div>
        
@@ -439,7 +439,7 @@ const QuestionnairePage: React.FC = () => {
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
         <div className="order-1 md:order-none md:col-span-9">
           <Input
-            placeholder="ค้นหาแบบทดสอบหรือผู้สร้าง..."
+            placeholder="ค้นหาแบบคัดกรองหรือผู้สร้าง..."
             size="large"
             value={searchText}
             onChange={handleSearchChange}
@@ -455,8 +455,8 @@ const QuestionnairePage: React.FC = () => {
             className="w-full"
             options={[
               { value: "default", label: "เรียงลำดับ" },
-              { value: "nameAsc", label: "ชื่อแบบทดสอบ (ก → ฮ)" },
-              { value: "nameDesc", label: "ชื่อแบบทดสอบ (ฮ → ก)" },
+              { value: "nameAsc", label: "ชื่อแบบคัดกรอง (ก → ฮ)" },
+              { value: "nameDesc", label: "ชื่อแบบคัดกรอง (ฮ → ก)" },
               { value: "descriptionAsc", label: "คำอธิบาย (ก → ฮ)" },
               { value: "descriptionDesc", label: "คำอธิบาย (ฮ → ก)" },
               { value: "authorAsc", label: "ผู้สร้าง (ก → ฮ)" },
@@ -474,10 +474,10 @@ const QuestionnairePage: React.FC = () => {
       <div className="mt-4">
         {loadingQuestionnaires ? (
           <div className="flex items-center justify-center py-16">
-            <Spin tip="กำลังโหลดแบบทดสอบ..." />
+            <Spin tip="กำลังโหลดแบบคัดกรอง..." />
           </div>
         ) : filteredQuestionnaires.length === 0 ? (
-          <Alert message="ไม่พบแบบทดสอบ" type="info" showIcon />
+          <Alert message="ไม่พบแบบคัดกรอง" type="info" showIcon />
         ) : (
           <div className="w-full overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
             <Table<Questionnaire>
@@ -497,7 +497,7 @@ const QuestionnairePage: React.FC = () => {
       {/* โมดัลลบ: บล็อกปุ่มยืนยันถ้ายังมีความสัมพันธ์/ยังอยู่ในลำดับ */}
       <Modal
         className="!font-ibmthai"
-        title="ยืนยันการลบแบบทดสอบ ❌"
+        title="ยืนยันการลบแบบคัดกรอง ❌"
         open={deleteModalVisible}
         onOk={handleConfirmDelete}
         onCancel={() => {
@@ -533,7 +533,7 @@ const QuestionnairePage: React.FC = () => {
         <div className="space-y-3">
           {/* สรุปรายการที่จะลบ */}
           <div className="rounded-lg bg-slate-50 p-3">
-            <div className="text-sm text-slate-600">กำลังลบแบบทดสอบ</div>
+            <div className="text-sm text-slate-600">กำลังลบแบบคัดกรอง</div>
             <div className="font-semibold !text-red-600">
               {selectedToDelete?.nameQuestionnaire || "-"}
             </div>
@@ -551,7 +551,7 @@ const QuestionnairePage: React.FC = () => {
                 <ExclamationCircleOutlined className="mt-0.5" />
                 <div>
                   <div className="font-semibold text-amber-800">
-                    ไม่สามารถลบได้ — แบบทดสอบนี้เป็นเงื่อนไขของแบบทดสอบต่อไปนี้
+                    ไม่สามารถลบได้ — แบบคัดกรองนี้เป็นเงื่อนไขของแบบคัดกรองต่อไปนี้
                   </div>
                   <ul className="list-disc ml-6 mt-1 space-y-1 text-amber-900">
                     {deleteDependents.map((q: any) => (
@@ -561,7 +561,7 @@ const QuestionnairePage: React.FC = () => {
                     ))}
                   </ul>
                   <div className="text-xs text-amber-700 mt-2">
-                    โปรดยกเลิกความสัมพันธ์ (condition) ของแบบทดสอบปลายทางก่อน
+                    โปรดยกเลิกความสัมพันธ์ (condition) ของแบบคัดกรองปลายทางก่อน
                   </div>
                 </div>
               </div>
@@ -575,7 +575,7 @@ const QuestionnairePage: React.FC = () => {
                 <ExclamationCircleOutlined className="mt-0.5" />
                 <div>
                   <div className="font-semibold text-amber-800">
-                    ไม่สามารถลบได้ — แบบทดสอบนี้ยังอยู่ใน “ลำดับการแสดงผล”
+                    ไม่สามารถลบได้ — แบบคัดกรองนี้ยังอยู่ใน “ลำดับการแสดงผล”
                   </div>
                   <div className="text-amber-900">
                     อยู่ในคอลัมน์:{" "}
@@ -583,7 +583,7 @@ const QuestionnairePage: React.FC = () => {
                   </div>
                   <div className="text-xs text-amber-700 mt-2">
                     กรุณาไปลบออกจากหน้า{" "}
-                    <span className="font-semibold">จัดการลำดับแบบทดสอบ</span>{" "}
+                    <span className="font-semibold">จัดการลำดับแบบคัดกรอง</span>{" "}
                     ก่อน แล้วจึงกลับมาลบที่นี่
                   </div>
                   <div className="mt-2">
@@ -597,7 +597,7 @@ const QuestionnairePage: React.FC = () => {
                     });
                   }}
                 >
-                  ไปที่หน้าจัดการลำดับแบบทดสอบ
+                  ไปที่หน้าจัดการลำดับแบบคัดกรอง
                 </AntButton>
                   </div>
                 </div>
@@ -625,10 +625,10 @@ const QuestionnairePage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* โมดัลข้อมูลความสัมพันธ์: แสดงรายการที่พึ่งแบบทดสอบนี้ + คู่มือย่อก่อนลบ */}
+      {/* โมดัลข้อมูลความสัมพันธ์: แสดงรายการที่พึ่งแบบคัดกรองนี้ + คู่มือย่อก่อนลบ */}
       <Modal
         className="!font-ibmthai"
-        title="แบบทดสอบนี้เป็นเงื่อนไขก่อนทำแบบทดสอบใดบ้าง?"
+        title="แบบคัดกรองนี้เป็นเงื่อนไขก่อนทำแบบคัดกรองใดบ้าง?"
         open={infoModalVisible}
         onOk={() => setInfoModalVisible(false)}
         onCancel={() => setInfoModalVisible(false)}
@@ -643,20 +643,20 @@ const QuestionnairePage: React.FC = () => {
         }}
       >
         <div className="space-y-3">
-          {/* ระบุแบบทดสอบต้นทาง */}
+          {/* ระบุแบบคัดกรองต้นทาง */}
           <div className="rounded-lg bg-slate-50 p-3">
-            <div className="text-sm text-slate-600">แบบทดสอบต้นทาง (Prerequisite)</div>
+            <div className="text-sm text-slate-600">แบบคัดกรองต้นทาง (Prerequisite)</div>
             <div className="font-semibold !text-red-600">
               {selectedForInfo?.nameQuestionnaire || "-"}
             </div>
           </div>
 
-          {/* รายการปลายทางที่พึ่งแบบทดสอบนี้ */}
+          {/* รายการปลายทางที่พึ่งแบบคัดกรองนี้ */}
           {infoDependents.length === 0 ? (
-            <p className="text-slate-600">ไม่เป็นเงื่อนไขของแบบทดสอบใด</p>
+            <p className="text-slate-600">ไม่เป็นเงื่อนไขของแบบคัดกรองใด</p>
           ) : (
             <div className="space-y-2">
-              <p className="text-slate-700">เป็นเงื่อนไขก่อนทำแบบทดสอบต่อไปนี้:</p>
+              <p className="text-slate-700">เป็นเงื่อนไขก่อนทำแบบคัดกรองต่อไปนี้:</p>
               <ul className="list-disc ml-6 space-y-1">
                 {infoDependents.map((q: any) => {
                   const score = q?.conditionScore ?? q?.condition_score;
@@ -689,13 +689,13 @@ const QuestionnairePage: React.FC = () => {
             <div className="font-semibold text-slate-800">ขั้นตอนก่อนลบ</div>
             <ol className="list-decimal ml-6 mt-2 space-y-1 text-slate-700">
               <li>
-                <span className="font-medium">ตรวจสอบความสัมพันธ์</span> — ถ้าแบบทดสอบนี้ถูกใช้เป็นเงื่อนไข
-                ให้ไปยกเลิกที่แบบทดสอบปลายทางก่อน
+                <span className="font-medium">ตรวจสอบความสัมพันธ์</span> — ถ้าแบบคัดกรองนี้ถูกใช้เป็นเงื่อนไข
+                ให้ไปยกเลิกที่แบบคัดกรองปลายทางก่อน
               </li>
               <li>
                 <span className="font-medium">ลบออกจากลำดับการแสดงผล</span> — ไปที่หน้า
-                <span className="font-semibold"> จัดการลำดับแบบทดสอบ </span>
-                แล้วนำแบบทดสอบนี้ออกจากคอลัมน์ที่เกี่ยวข้อง
+                <span className="font-semibold"> จัดการลำดับแบบคัดกรอง </span>
+                แล้วนำแบบคัดกรองนี้ออกจากคอลัมน์ที่เกี่ยวข้อง
               </li>
             </ol>
             <div className="mt-2">
@@ -709,7 +709,7 @@ const QuestionnairePage: React.FC = () => {
                 });
               }}
             >
-              เปิดหน้าจัดการลำดับแบบทดสอบ
+              เปิดหน้าจัดการลำดับแบบคัดกรอง
             </AntButton>
             </div>
           </div>

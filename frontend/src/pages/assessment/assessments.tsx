@@ -67,20 +67,20 @@ const Assessments: React.FC = () => {
             }
           }
         } catch (e) {
-          console.warn("โหลดชื่อแบบทดสอบไม่สำเร็จ ใช้ fallback:", e);
+          console.warn("โหลดชื่อแบบคัดกรองไม่สำเร็จ ใช้ fallback:", e);
           if (!questionnaireName && targetQuID) {
-            setQuestionnaireName(`แบบทดสอบสุขภาพจิต #${targetQuID}`);
+            setQuestionnaireName(`แบบคัดกรองสุขภาพจิต #${targetQuID}`);
           }
         }
 
         if (!assessmentResultID || !targetQuID) {
-          alert("ไม่พบข้อมูลแบบทดสอบสุขภาพจิต กรุณาเริ่มใหม่อีกครั้ง");
+          alert("ไม่พบข้อมูลแบบคัดกรองสุขภาพจิต กรุณาเริ่มใหม่อีกครั้ง");
           navigate("/");
           return;
         }
 
         if (!questionnaireName) {
-          setQuestionnaireName(`แบบทดสอบสุขภาพจิต #${targetQuID}`);
+          setQuestionnaireName(`แบบคัดกรองสุขภาพจิต #${targetQuID}`);
         }
 
         const filteredQuestions: Question[] = qRes
@@ -128,7 +128,7 @@ const Assessments: React.FC = () => {
     fetchEmotionChoices();
   }, []);
 
-  // 🧠 คลิกอิโมจิ = ตอบ + ส่ง + เด้งไปข้อต่อไป / จบแบบทดสอบสุขภาพจิต
+  // 🧠 คลิกอิโมจิ = ตอบ + ส่ง + เด้งไปข้อต่อไป / จบแบบคัดกรองสุขภาพจิต
   const handleSelectAndAdvance = async (opt: AnswerOption) => {
     if (isBusy) return;
     if (assessmentResultID == null) return;
@@ -156,7 +156,7 @@ const Assessments: React.FC = () => {
         setCurrent((prev) => prev + 1);
       } else {
         // ✅ ใช้ message.success ของ Ant Design แทน alert
-        message.success("ขอบคุณสำหรับการทำแบบทดสอบจนเสร็จเรียบร้อยค่ะ ✨", 3);
+        message.success("ขอบคุณสำหรับการทำแบบคัดกรองจนเสร็จเรียบร้อยค่ะ ✨", 3);
 
         const transaction = await finishAssessment(assessmentResultID);
         // console.log("✅ บันทึก Transaction สำเร็จ:", transaction);
@@ -193,7 +193,7 @@ const Assessments: React.FC = () => {
         paddingBottom: "calc(6rem + env(safe-area-inset-bottom))",
       }}
     >
-      {/* ชื่อแบบทดสอบสุขภาพจิต */}
+      {/* ชื่อแบบคัดกรองสุขภาพจิต */}
       <div className="flex items-center justify-center gap-3 mb-3 max-w-md w-full px-2">
         <img
           src={AssessmentNameIcon}
@@ -201,8 +201,7 @@ const Assessments: React.FC = () => {
           className="w-8 h-8 object-contain"
         />
         <h2 className="text-xl font-semibold truncate">
-          {questionnaireName ||
-            (targetQuID ? `แบบทดสอบสุขภาพจิต # ${targetQuID}` : "แบบทดสอบสุขภาพจิต")}
+          {questionnaireName || ("แบบคัดกรองสุขภาพจิต")}
         </h2>
         <img
           src={AssessmentNameIcon}

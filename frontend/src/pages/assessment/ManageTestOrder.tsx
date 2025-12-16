@@ -130,7 +130,7 @@ const ItemRow: React.FC<{
         <button
           onClick={() => onRemove(columnId, q.id)}
           className="p-1 rounded hover:bg-red-50 transition-colors"
-          title="ลบแบบทดสอบสุขภาพจิต"
+          title="ลบแบบคัดกรองสุขภาพจิต"
         >
           <img src={icondelete} alt="delete" className="w-7 h-7" />
         </button>
@@ -271,11 +271,11 @@ const ManageTestOrder: React.FC = () => {
           if (data?.error === "CONDITION_DUPLICATE") {
             message.warning(
               data?.message ||
-                "เพิ่มไม่ได้: มีแบบทดสอบสุขภาพจิตลูกที่มีเงื่อนไขเดียวกันอยู่แล้วในกลุ่มนี้"
+                "เพิ่มไม่ได้: มีแบบคัดกรองสุขภาพจิตลูกที่มีเงื่อนไขเดียวกันอยู่แล้วในกลุ่มนี้"
             );
           } else if (data?.error === "DUPLICATE") {
             message.warning(
-              data?.message || "เพิ่มไม่ได้: แบบทดสอบสุขภาพจิตนี้อยู่ในกลุ่มแล้ว"
+              data?.message || "เพิ่มไม่ได้: แบบคัดกรองสุขภาพจิตนี้อยู่ในกลุ่มแล้ว"
             );
           } else {
             message.warning(data?.message || "ข้อมูลซ้ำในกลุ่มนี้");
@@ -284,7 +284,7 @@ const ManageTestOrder: React.FC = () => {
           message.error(
             data?.message_th ||
               data?.message ||
-              "เพิ่มแบบทดสอบสุขภาพจิตไม่สำเร็จ"
+              "เพิ่มแบบคัดกรองสุขภาพจิตไม่สำเร็จ"
           );
         }
       } else {
@@ -327,7 +327,7 @@ const ManageTestOrder: React.FC = () => {
 
       // ✅ กล่องยืนยันก่อนลบ
       Modal.confirm({
-        title: "ยืนยันการลบแบบทดสอบสุขภาพจิต",
+        title: "ยืนยันการลบแบบคัดกรองสุขภาพจิต",
         icon: <ExclamationCircleOutlined />,
         content: (
           <div className="text-sm">
@@ -336,7 +336,7 @@ const ManageTestOrder: React.FC = () => {
             </div>
             {hasChildren && (
               <div className="mt-1">
-                รายการนี้มี “แบบทดสอบสุขภาพจิตลูก” อีก {children.length}{" "}
+                รายการนี้มี “แบบคัดกรองสุขภาพจิตลูก” อีก {children.length}{" "}
                 รายการที่จะถูกลบไปด้วย:
                 <ul className="list-disc ml-5 mt-1">
                   {children.map((c) => (
@@ -353,7 +353,7 @@ const ManageTestOrder: React.FC = () => {
         async onOk() {
           const idsToRemove = [qid, ...children.map((c) => c.id)];
 
-          const hide = message.loading("กำลังลบแบบทดสอบสุขภาพจิต...", 0);
+          const hide = message.loading("กำลังลบแบบคัดกรองสุขภาพจิต...", 0);
           try {
             for (const id of idsToRemove) {
               await removeQuestionnaireFromGroup(groupId, id);
@@ -541,7 +541,7 @@ const ManageTestOrder: React.FC = () => {
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
           <img src={iconas} alt="priority" className="w-10 h-10" />
-          จัดการลำดับการแสดงแบบทดสอบสุขภาพจิต
+          จัดการลำดับการแสดงแบบคัดกรองสุขภาพจิต
         </h1>
       </div>
 
@@ -627,8 +627,8 @@ const ManageTestOrder: React.FC = () => {
                     <button
                       onClick={() => handleToggleDropdown(column.id)}
                       className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-white hover:bg-gray-50 text-gray-600`}
-                      title="เพิ่มแบบทดสอบสุขภาพจิต"
-                      aria-label="เพิ่มแบบทดสอบสุขภาพจิต"
+                      title="เพิ่มแบบคัดกรองสุขภาพจิต"
+                      aria-label="เพิ่มแบบคัดกรองสุขภาพจิต"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -636,7 +636,7 @@ const ManageTestOrder: React.FC = () => {
                       <div className="absolute right-0 mt-2 w-56 bg-white border rounded shadow z-10">
                         {availableList.length === 0 ? (
                           <p className="p-2 text-sm text-gray-500">
-                            ไม่มีแบบทดสอบสุขภาพจิตใหม่
+                            ไม่มีแบบคัดกรองสุขภาพจิตใหม่
                           </p>
                         ) : (
                           <ul className="p-2 space-y-1">
@@ -693,7 +693,7 @@ const ManageTestOrder: React.FC = () => {
 
                     {tasks.length === 0 && (
                       <p className="text-gray-500 text-sm italic">
-                        ไม่มีแบบทดสอบสุขภาพจิตในกลุ่มนี้
+                        ไม่มีแบบคัดกรองสุขภาพจิตในกลุ่มนี้
                       </p>
                     )}
                   </div>
