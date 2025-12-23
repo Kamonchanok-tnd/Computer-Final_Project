@@ -48,7 +48,7 @@ const AdminLayout = () => {
     {
       key: "/admin/questionnairePage",
       icon: <QuestionOutlined />,
-      label: <Link to="/admin/questionnairePage">แบบทดสอบ</Link>,
+      label: <Link to="/admin/questionnairePage">แบบคัดกรอง</Link>,
     },
     {
       key: "/admin/prompt",

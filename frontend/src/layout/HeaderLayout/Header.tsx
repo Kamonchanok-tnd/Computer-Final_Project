@@ -32,7 +32,7 @@ const itemdrop=[
   },
   {
     key: "dashboard",
-    label: "ผลการทำแบบทดสอบ",
+    label: "ผลการทำแบบคัดกรอง",
     path: "/assessment/dashboard",
     icon: <ChartNoAxesCombined size={24} />,
   },

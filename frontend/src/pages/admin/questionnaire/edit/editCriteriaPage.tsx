@@ -115,7 +115,7 @@ const EditCriteriaPage: React.FC = () => {
   // โหลดข้อมูลเกณฑ์จาก Backend เมื่อรู้ questionnaireId
   useEffect(() => {
     if (!questionnaireId) {
-      warn("ไม่พบแบบทดสอบ: ไม่มี questionnaireId ถูกส่งมา", 1.8, () => navigate(-1));
+      warn("ไม่พบแบบคัดกรอง: ไม่มี questionnaireId ถูกส่งมา", 1.8, () => navigate(-1));
       return;
     }
     const fetchData = async () => {
@@ -228,7 +228,7 @@ const EditCriteriaPage: React.FC = () => {
 
       await new Promise<void>(resolve => ok("แก้ไขข้อมูลสำเร็จ", 1.2, resolve));
 
-      // กลับหน้ารายการแบบทดสอบ พร้อมส่งข้อความไปเเสดง
+      // กลับหน้ารายการแบบคัดกรอง พร้อมส่งข้อความไปเเสดง
       const role = localStorage.getItem("role");
       const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
       didNavigate = true;
@@ -268,7 +268,7 @@ const EditCriteriaPage: React.FC = () => {
             <img src={criteriaIcon} alt="criteria" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
             <div className="min-w-0">
               <h1 className="truncate text-2xl font-bold text-slate-800 sm:text-2xl">แก้ไขเกณฑ์การประเมิน</h1>
-              {questionnaireId && <p className="text-sm text-slate-500">แบบทดสอบ ID: {questionnaireId}, ชื่อเเบบทดสอบ: {name}</p>}
+              {questionnaireId && <p className="text-sm text-slate-500">แบบคัดกรอง ID: {questionnaireId}, ชื่อแบบคัดกรอง: {name}</p>}
             </div>
           </div>
 
