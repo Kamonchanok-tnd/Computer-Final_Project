@@ -80,7 +80,7 @@ const Assessments: React.FC = () => {
         }
 
         if (!questionnaireName) {
-          setQuestionnaireName(`แบบคัดกรองสุขภาพจิต #${targetQuID}`);
+          setQuestionnaireName(`แบบคัดกรองสุขภาพจิต `);
         }
 
         const filteredQuestions: Question[] = qRes
