@@ -43,7 +43,7 @@ const FormStepQuestion: React.FC = () => {
   const navigate = useNavigate();
   const [msg, contextHolder] = message.useMessage();
 
-  // รับ questionnaireId / จำนวนข้อ / ชื่อแบบทดสอบ จาก state
+  // รับ questionnaireId / จำนวนข้อ / ชื่อแบบคัดกรอง จาก state
   const questionnaireId = (location.state as any)?.questionnaireId as number | undefined;
   const quantity = (location.state as any)?.quantity ?? 1;
   const name = (location.state as any)?.name ?? "";
@@ -60,7 +60,7 @@ const FormStepQuestion: React.FC = () => {
   //  ตรวจว่ามี questionnaireId 
   useEffect(() => {
     if (!questionnaireId) {
-      msg.warning("ไม่พบข้อมูลแบบทดสอบ");
+      msg.warning("ไม่พบข้อมูลแบบคัดกรอง");
       navigate("/admin/forminfo", { replace: true });
       return;
     }
@@ -322,7 +322,7 @@ const FormStepQuestion: React.FC = () => {
           <img src={manageQuestionAndAnswerIcon} alt="manage" className="h-12 w-12 sm:h-16 sm:w-16 object-contain" />
           <div>
             <h2 className="text-2xl sm:text-2xl font-bold text-gray-800">สร้างคำถามและคำตอบ</h2>
-            <div className="text-sm text-gray-500">แบบทดสอบ ID: {questionnaireId}, ชื่อเเบบทดสอบ: {name}</div>
+            <div className="text-sm text-gray-500">แบบคัดกรอง ID: {questionnaireId}, ชื่อแบบคัดกรอง: {name}</div>
           </div>
         </div>
         <div className="hidden md:flex items-center gap-2">

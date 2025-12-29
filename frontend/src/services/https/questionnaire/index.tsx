@@ -6,7 +6,7 @@ import { Criteria } from "../../../interfaces/ICriteria";
 // const apiUrl = "http://localhost:8003";
 const apiUrl = import.meta.env.VITE_API_URL as string;
 
-// ฟังก์ชันสำหรับดึงแบบทดสอบทั้งหมด
+// ฟังก์ชันสำหรับดึงแบบคัดกรองทั้งหมด
 export const getAllQuestionnaires = async (): Promise<Questionnaire[]> => {
   try {
     const token = localStorage.getItem("token");
@@ -85,7 +85,7 @@ export const getAllEmotionChoices = async (): Promise<EmotionChoice[]> => {
     }
 };
 
-// ฟังก์ชันสำหรับสร้างแบบทดสอบ
+// ฟังก์ชันสำหรับสร้างแบบคัดกรอง
 export const createQuestionnaire = async (questionnaireData: Questionnaire) => {
   try {
     const response = await fetch(`${apiUrl}/createQuestionnaires`, {
@@ -190,7 +190,7 @@ export const getAllUsers = async () => {
 };
 
 
-// ฟังก์ชันสำหรับลบแบบทดสอบ (พร้อมคำถามทั้งหมด)
+// ฟังก์ชันสำหรับลบแบบคัดกรอง (พร้อมคำถามทั้งหมด)
 export const deleteQuestionnaire = async (id: number) => {
   const token = localStorage.getItem("token");
   const response = await fetch(`${apiUrl}/deletequestionnaire/${id}`, {
@@ -202,14 +202,14 @@ export const deleteQuestionnaire = async (id: number) => {
   });
 
   if (!response.ok) {
-    throw new Error("ไม่สามารถลบแบบทดสอบได้");
+    throw new Error("ไม่สามารถลบแบบคัดกรองได้");
   }
 
   return await response.json();
 };
 
 
-// ฟังก์ชันสำหรับดึงแบบทดสอบตาม ID
+// ฟังก์ชันสำหรับดึงแบบคัดกรองตาม ID
 export const getQuestionnaireById = async (id: number): Promise<Questionnaire> => {
   try {
     const token = localStorage.getItem("token");
@@ -260,7 +260,7 @@ export const getQuestionnaireById = async (id: number): Promise<Questionnaire> =
 };
 
 
-// ฟังก์ชันสำหรับอัปเดตแบบทดสอบ
+// ฟังก์ชันสำหรับอัปเดตแบบคัดกรอง
 export const updateQuestionnaire = async (id: number, data: any) => {
   try {
     const token = localStorage.getItem("token");
@@ -286,13 +286,13 @@ export const updateQuestionnaire = async (id: number, data: any) => {
 };
 
 
-// ฟังก์ชันสำหรับดึงคำถามพร้อมคำตอบตามไอดีแบบทดสอบ
+// ฟังก์ชันสำหรับดึงคำถามพร้อมคำตอบตามไอดีแบบคัดกรอง
 export interface QAItem {
   question: Question;        // ถ้า IQuestion ของคุณมี priority อยู่แล้วจะยิ่งพอดี
   answers: AnswerOption[];
 }
 
-// ดึงคำถามพร้อมคำตอบตามไอดีแบบทดสอบ
+// ดึงคำถามพร้อมคำตอบตามไอดีแบบคัดกรอง
 export const getQuestionsWithAnswersByQuestionnaireID = async (
   id: number
 ): Promise<QAItem[]> => {
@@ -463,7 +463,7 @@ export const updateQuestionAndAnswer = async (
 
 
 
-// ฟังก์ชันสำหรับดึงเกณฑ์การให้คะแนนตามไอดีแบบทดสอบ
+// ฟังก์ชันสำหรับดึงเกณฑ์การให้คะแนนตามไอดีแบบคัดกรอง
 export const getAllCriteriaByQuestionnaireId = async (id: number): Promise<Criteria[]> => {
   try {
     const token = localStorage.getItem("token");
@@ -489,7 +489,7 @@ export const getAllCriteriaByQuestionnaireId = async (id: number): Promise<Crite
 };
 
 
-// ฟังก์ชันสำหรับอัปเดตเกณฑ์การให้คะแนนตามไอดีแบบทดสอบ
+// ฟังก์ชันสำหรับอัปเดตเกณฑ์การให้คะแนนตามไอดีแบบคัดกรอง
 export const updateCriteriaByQuestionnaireId = async (
   id: number,
   body: {

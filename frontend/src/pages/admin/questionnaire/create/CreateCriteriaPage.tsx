@@ -96,7 +96,7 @@ const CreateCriteriaPage: React.FC = () => {
   useEffect(() => {
     if (!questionnaireId) {
       msg.warning({
-        content: "ไม่พบแบบทดสอบ: ไม่มี questionnaireId ถูกส่งมา",
+        content: "ไม่พบแบบคัดกรอง: ไม่มี questionnaireId ถูกส่งมา",
         duration: 1.8,
         onClose: () => navigate(-1),
       });
@@ -230,7 +230,7 @@ const CreateCriteriaPage: React.FC = () => {
             <img src={criteriaIcon} alt="criteria" className="h-10 w-10 object-contain sm:h-12 sm:w-12" />
             <div className="min-w-0">
               <h1 className="truncate text-xl font-bold text-slate-800 sm:text-2xl">สร้างเกณฑ์การประเมิน</h1>
-              {questionnaireId && <p className="text-sm text-slate-500">แบบทดสอบ ID: {questionnaireId}, ชื่อเเบบทดสอบ: {name}</p>}
+              {questionnaireId && <p className="text-sm text-slate-500">แบบคัดกรอง ID: {questionnaireId}, ชื่อแบบคัดกรอง: {name}</p>}
             </div>
           </div>
           <div className="hidden items-center gap-2 md:flex">

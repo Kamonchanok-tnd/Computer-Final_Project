@@ -41,7 +41,7 @@ const EditQuestionAndAnswer: React.FC = () => {
   const navigate = useNavigate();
   const [msg, contextHolder] = message.useMessage();
 
-  // รับค่า id เเละ name แบบทดสอบจากหน้าสร้างเเบบทดสอบ
+  // รับค่า id เเละ name แบบคัดกรองจากหน้าสร้างเเบบทดสอบ
   const { questionnaireId } = (location.state as NavState) || {};
   const name = (location.state as any)?.name ?? "";
   
@@ -55,10 +55,10 @@ const EditQuestionAndAnswer: React.FC = () => {
 
   const goBack = () => navigate(-1);
 
-  // โหลดข้อมูลเริ่มต้น: ตัวเลือกอารมณ์ เเละ คำถาม/คำตอบของแบบทดสอบนี้ 
+  // โหลดข้อมูลเริ่มต้น: ตัวเลือกอารมณ์ เเละ คำถาม/คำตอบของแบบคัดกรองนี้ 
   useEffect(() => {
     if (!questionnaireId) {
-      msg.warning("ไม่พบข้อมูลแบบทดสอบ");
+      msg.warning("ไม่พบข้อมูลแบบคัดกรอง");
       const role = localStorage.getItem("role");
       const rolePrefix = role === "superadmin" ? "superadmin" : "admin";
       navigate(`/${rolePrefix}/forminfo`, { replace: true });
@@ -443,7 +443,7 @@ const EditQuestionAndAnswer: React.FC = () => {
               แก้ไขคำถามและคำตอบ
             </h2>
             <div className="text-sm text-gray-500">
-              แบบทดสอบ ID: {questionnaireId}, ชื่อเเบบทดสอบ: {name}
+              แบบคัดกรอง ID: {questionnaireId}, ชื่อแบบคัดกรอง: {name}
             </div>
           </div>
         </div>
