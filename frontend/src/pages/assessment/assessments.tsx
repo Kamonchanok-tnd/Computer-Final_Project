@@ -69,7 +69,7 @@ const Assessments: React.FC = () => {
         } catch (e) {
           console.warn("โหลดชื่อแบบคัดกรองไม่สำเร็จ ใช้ fallback:", e);
           if (!questionnaireName && targetQuID) {
-            setQuestionnaireName(`แบบคัดกรองสุขภาพจิต #${targetQuID}`);
+            setQuestionnaireName(`แบบคัดกรองสุขภาพจิต`);
           }
         }
 
